@@ -12,6 +12,7 @@
     <PackageReference Include="Silk.NET.GLFW" Version="2.17.1" />
     <PackageReference Include="Silk.NET.Input" Version="2.17.1" />
     <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.17.1" />
+    <PackageReference Include="ZstdNet" Version="1.4.5" />
   </ItemGroup>
 
 </Project>

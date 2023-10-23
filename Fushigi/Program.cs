@@ -4,6 +4,8 @@ using Silk.NET.Windowing;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
+using ImGuiNET;
+using Fushigi.ui.widgets;
 
 using var window = Window.Create(WindowOptions.Default);
 ImGuiController controller = null;
@@ -38,6 +40,14 @@ window.Render += delta =>
     // This is where you'll do all of your ImGUi rendering
     // Here, we're just showing the ImGui built-in demo window.
     ImGuiNET.ImGui.ShowDemoWindow();
+
+    FilePicker fp = FilePicker.GetFilePicker(controller, "D:\\Hacking\\Switch\\Wonder\\romfs\\");
+    string file = "";
+
+    if (fp.Draw(ref file))
+    {
+
+    }
 
     // Make sure ImGui renders too!
     controller.Render();
