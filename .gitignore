@@ -1,3 +1,7 @@
+.vs/*
 Fushigi/.vs/*
 Fushigi/bin/*
 Fushigi/obj/*
+Fushigi.Byml/.vs/*
+Fushigi.Byml/bin/*
+Fushigi.Byml/obj/*
