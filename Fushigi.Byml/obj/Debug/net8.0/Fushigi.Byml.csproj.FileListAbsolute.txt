@@ -1,0 +1,12 @@
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\bin\Debug\net8.0\Fushigi.Byml.deps.json
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\bin\Debug\net8.0\Fushigi.Byml.dll
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\bin\Debug\net8.0\Fushigi.Byml.pdb
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\Fushigi.Byml.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\Fushigi.Byml.AssemblyInfoInputs.cache
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\Fushigi.Byml.AssemblyInfo.cs
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\Fushigi.Byml.csproj.CoreCompileInputs.cache
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\Fushigi.Byml.sourcelink.json
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\Fushigi.Byml.dll
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\refint\Fushigi.Byml.dll
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\Fushigi.Byml.pdb
+C:\Users\jupah\Documents\GitHub\Fushigi\Fushigi.Byml\obj\Debug\net8.0\ref\Fushigi.Byml.dll
