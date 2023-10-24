@@ -54,25 +54,8 @@ namespace Fushigi.windowing
                     WindowsDarkmodeUtil.SetDarkmodeAware(_window.Native.Win32.Value.Hwnd);
 
 
-                void SetupImGuiIO()
-                {
-                    unsafe
-                    {
-                        var glfw = GlfwWindowing.GetExistingApi(_window);
-                        if (glfw is not null && _window.Monitor?.Index >= 0)
-                        {
-                            Silk.NET.GLFW.Monitor** monitors = glfw.GetMonitors(out _);
-
-                            glfw.GetMonitorContentScale(monitors[_window.Monitor.Index],
-                                out float x, out float y);
-
-                            ImGui.GetIO().FontGlobalScale = y;
-                        }
-                    }
-                }
-
                 var input = _window.CreateInput();
-                var imguiController = new ImGuiController(s_gl, _window, input, imGuiFontConfig, SetupImGuiIO);
+                var imguiController = new ImGuiController(s_gl, _window, input, imGuiFontConfig);
 
                 //update
                 _window.Update += ds => imguiController.Update((float)ds);
