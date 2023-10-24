@@ -14,7 +14,7 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
 {
     // This is where you'll do any rendering beneath the ImGui context
     // Here, we just have a blank screen.
-    gl.Viewport(window.Size);
+    gl.Viewport(window.FramebufferSize);
 
     gl.ClearColor(.45f, .55f, .60f, 1f);
     gl.Clear((uint)ClearBufferMask.ColorBufferBit);
