@@ -11,15 +11,21 @@ namespace Fushigi.course
 {
     public class CourseArea
     {
-        public CourseArea(string areaName) {
+        public CourseArea(string areaName, RomFS romFS) {
             mAreaName = areaName;
+            mRomFS = romFS;
             Load();
         }
 
         public void Load()
         {
-            string areaParamPath = $"{RomFS.GetRoot()}/Stage/AreaParam/{mAreaName}.game__stage__AreaParam.bgyml";
-            mAreaParams = new AreaParam(new Byml.Byml(new MemoryStream(File.ReadAllBytes(areaParamPath))));
+            mAreaParams = new AreaParam(
+                new Byml.Byml(
+                    new MemoryStream(
+                        mRomFS.GetFileBytes($"Stage/AreaParam/{mAreaName}.game__stage__AreaParam.bgyml")
+                    )
+                )
+            );
         }
 
         public string GetName()
@@ -28,6 +34,7 @@ namespace Fushigi.course
         }
 
         string mAreaName;
+        private RomFS mRomFS;
         public AreaParam mAreaParams;
 
         public class AreaParam
