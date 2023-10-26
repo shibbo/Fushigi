@@ -27,9 +27,10 @@ namespace Fushigi.Byml
         public static uint ReadUInt24(this BinaryReader reader)
         {
             /* Read out 3 bytes into a sizeof(uint) buffer. */
-            Span<byte> bytes = stackalloc byte[3];
+            Span<byte> bytes = stackalloc byte[4];
             reader.BaseStream.Read(bytes[..^1]);
 
+            bytes[3] = 0;
             /* Convert buffer into uint. */
             uint v = BitConverter.ToUInt32(bytes);
 
