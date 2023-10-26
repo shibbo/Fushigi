@@ -47,8 +47,10 @@ void CacheCourseFiles()
 
             courseLocationList.Add(courseLocation);
         }
-        if(!courseEntries.ContainsKey(worldName))
+        if (!courseEntries.ContainsKey(worldName))
+        {
             courseEntries.Add(worldName, courseLocationList.ToArray());
+        }
     }
 }
 
