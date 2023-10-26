@@ -90,6 +90,14 @@ void DoAreaParams()
 
     CourseArea area = currentCourse.GetArea(selectedArea);
 
+    // if the area is null, it means we just switched from another course to a new one
+    // so, we nullify the selected area until the user selects a new one
+    if (area == null)
+    {
+        selectedArea = "";
+        return;
+    }
+
     ImGui.Text(area.GetName());
 
     if (area.mAreaParams.ContainsParam("BgmType"))
