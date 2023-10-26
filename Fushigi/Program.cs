@@ -11,6 +11,7 @@ using Fushigi.Byml.Writer.Primitives;
 using Fushigi;
 using Fushigi.course;
 using System.Text;
+using System.Numerics;
 
 WindowManager.CreateWindow(out IWindow window);
 
@@ -19,6 +20,8 @@ bool _stageList = false;
 bool _courseSelected = false;
 string selectedStage = "";
 string selectedArea = "";
+Vector2 areaScenePan = new();
+float areaSceneZoom = 1;
 
 Course currentCourse = null;
 
@@ -182,6 +185,85 @@ void DoAreaParams()
         ImGui.End();
     }
 }
+
+
+void DoAreaScene()
+{
+    const int gridBasePixelsPerUnit = 32;
+
+    bool status = ImGui.Begin("Course Area");
+
+    //canvas viewport coordinates
+    Vector2 canvasMin = ImGui.GetCursorScreenPos();
+    Vector2 canvasSize = Vector2.Max(ImGui.GetContentRegionAvail(), new Vector2(50, 50));
+    Vector2 canvasMax = canvasMin + canvasSize;
+    Vector2 canvasMidpoint = canvasMin + (canvasSize * new Vector2(0.5f));
+
+    ImGuiIOPtr io = ImGui.GetIO();
+    ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+
+    //canvas background
+    drawList.AddRectFilled(canvasMin, canvasMax, 0xFF323232);
+
+    //mouse hover and click detection
+    ImGui.InvisibleButton("canvas", canvasSize, ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
+    bool mouseHover = ImGui.IsItemHovered();
+    bool mouseActive = ImGui.IsItemActive();
+
+    // panning with middle mouse click
+    if (mouseActive && ImGui.IsMouseDragging(ImGuiMouseButton.Middle))
+    {
+        areaScenePan += io.MouseDelta;
+    }
+    Vector2 panOrigin = canvasMidpoint + areaScenePan;
+
+    // zooming with scroll wheel
+    if (mouseHover && io.MouseWheel!=0)
+    {
+        Vector2 prevMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
+        areaSceneZoom += io.MouseWheel * 0.1f * areaSceneZoom;
+        areaSceneZoom = MathF.Max(MathF.Min(areaSceneZoom, 5), 0.1f);
+        Vector2 newMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
+        areaScenePan += (newMouseGridCoordinates - prevMouseGridCoordinates) * new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
+        panOrigin = canvasMidpoint + areaScenePan;
+    }
+    float gridPixelsPerUnit = gridBasePixelsPerUnit * areaSceneZoom;
+
+    // grid lines
+    drawList.PushClipRect(canvasMin, canvasMax, true);
+    Vector2 gridStart = (canvasSize * new Vector2(0.5f)) + areaScenePan;
+    for (float x = gridStart.X % gridPixelsPerUnit; x < canvasSize.X; x += gridPixelsPerUnit)
+    {
+        drawList.AddLine(new Vector2(canvasMin.X+x, canvasMin.Y), new Vector2(canvasMin.X + x, canvasMax.Y), MathF.Abs((canvasMin.X + x) - panOrigin.X)<0.01 ? 0xFF008000 : 0xFF505050);
+    }
+    for (float y = gridStart.Y % gridPixelsPerUnit; y < canvasSize.Y; y += gridPixelsPerUnit)
+    {
+        drawList.AddLine(new Vector2(canvasMin.X, canvasMin.Y+y), new Vector2(canvasMax.X, canvasMin.Y+y), MathF.Abs((canvasMin.Y + y) - panOrigin.Y) < 0.01 ? 0xFF000080 : 0xFF505050);
+    }
+
+
+    /* debug reference points
+    drawList.AddCircleFilled(panOrigin, 2, 0xFFFFFFFF);
+    drawList.AddText(panOrigin, 0xFFFFFFFF, "origin");
+
+    Action<Vector2, uint> addDebugPoint = (gridPos, colour) =>
+    {
+        drawList.AddCircleFilled(panOrigin + (gridPos * new Vector2(unitScreenSize, -unitScreenSize)), 2, colour);
+        drawList.AddText(panOrigin + (gridPos * new Vector2(unitScreenSize, -unitScreenSize)), 0xFFFFFFFF, gridPos.ToString());
+    };
+
+    addDebugPoint(new Vector2(2, 3), 0xFF0000FF);
+    addDebugPoint(new Vector2(-5, 7), 0xFF00FF00);
+    addDebugPoint(new Vector2(-1, -5), 0xFFFF0000);
+    */
+
+    drawList.AddRect(canvasMin, canvasMax, 0xFFFFFFFF);
+    if (status)
+    {
+        ImGui.End();
+    }
+}
+
 void DoRendering(GL gl, double delta, ImGuiController controller)
 {
     // This is where you'll do any rendering beneath the ImGui context
@@ -202,6 +284,8 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     if (ImGui.Button("Select"))
     {
         string basePath = System.Text.Encoding.ASCII.GetString(folderBytes).Replace("\0", "");
+        if (string.IsNullOrEmpty(basePath))
+            basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";
 
         RomFS.SetRoot(basePath);
 
@@ -228,6 +312,7 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     if (selectedArea != "")
     {
         DoAreaParams();
+        DoAreaScene();
     }
 
     if (status)
