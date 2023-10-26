@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Fushigi.Byml;
+using Fushigi.course;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,30 +10,79 @@ namespace Fushigi
 {
     public class RomFS
     {
-        public static void SetRoot(string root)
+        private string _rootPath;
+        private Dictionary<string, string[]> _courseEntries;
+
+        public RomFS(string rootPath)
         {
-            sRomFSRoot = root;
+            _rootPath = rootPath;
+            _courseEntries = CacheCourseFiles();
         }
 
-        public static string GetRoot()
+        public string GetRoot()
         {
-            return sRomFSRoot;
+            return _rootPath;
         }
 
-        public static bool DirectoryExists(string path) {
-            return Directory.Exists($"{sRomFSRoot}/{path}");
-        }
-
-        public static string[] GetFiles(string path)
+        public Dictionary<string, string[]> GetCourseEntries()
         {
-            return Directory.GetFiles($"{sRomFSRoot}/{path}");
+            return _courseEntries;
         }
 
-        public static byte[] GetFileBytes(string path)
+        public Course GetCourse(string courseName)
         {
-            return File.ReadAllBytes($"{sRomFSRoot}/{path}");
+            return new Course(courseName, this);
         }
 
-        private static string sRomFSRoot;
+        private Dictionary<string, string[]> CacheCourseFiles()
+        {
+            /* common paths to check */
+            if (!DirectoryExists("BancMapUnit") || !DirectoryExists("Model") || !DirectoryExists("Stage"))
+            {
+                throw new Exception("RomFS -- Required folders not found.");
+            }
+
+            Dictionary<string, string[]> courseEntries = [];
+            string[] loadFiles = GetFiles("/Stage/WorldMapInfo");
+            foreach (string loadFile in loadFiles)
+            {
+                string worldName = Path.GetFileName(loadFile).Split(".game")[0];
+                List<string> courseLocationList = new();
+                Byml.Byml byml = new(new MemoryStream(File.ReadAllBytes(loadFile)));
+                var root = (BymlHashTable)byml.Root;
+                var courseList = (BymlArrayNode)root["CourseTable"];
+
+                for (int i = 0; i < courseList.Length; i++)
+                {
+                    var course = (BymlHashTable)courseList[i];
+                    string derp = ((BymlNode<string>)course["StagePath"]).Data;
+
+                    // we need to "fix" our StagePath so it points to our course
+                    string courseLocation = Path.GetFileName(derp).Split(".game")[0];
+
+                    courseLocationList.Add(courseLocation);
+                }
+                if (!courseEntries.ContainsKey(worldName))
+                {
+                    courseEntries.Add(worldName, courseLocationList.ToArray());
+                }
+            }
+
+            return courseEntries;
+        }
+
+        private bool DirectoryExists(string path) {
+            return Directory.Exists($"{_rootPath}/{path}");
+        }
+
+        private string[] GetFiles(string path)
+        {
+            return Directory.GetFiles($"{_rootPath}/{path}");
+        }
+
+        public byte[] GetFileBytes(string path)
+        {
+            return File.ReadAllBytes($"{_rootPath}/{path}");
+        }
     }
 }
