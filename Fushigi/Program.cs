@@ -132,7 +132,7 @@ void DoAreaParams()
         ImGui.InputText("Environment Sound EFX", buf, (uint)buf.Length);
     }
 
-    if (area.mAreaParams.ContainsParam("EnvironmentSoundEfx"))
+    if (area.mAreaParams.ContainsParam("WonderBgmType"))
     {
         byte[] buf = Encoding.ASCII.GetBytes(area.mAreaParams.mWonderBGMType);
         ImGui.InputText("Wonder BGM Type", buf, (uint)buf.Length);
