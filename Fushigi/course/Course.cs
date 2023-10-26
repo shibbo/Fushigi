@@ -15,16 +15,17 @@ namespace Fushigi.course
 {
     public class Course
     {
-        public Course(string courseName)
+        public Course(string courseName, RomFS romFS)
         {
             mCourseName = courseName;
             mAreas = new List<CourseArea>();
-            LoadFromRomFS();
+            mRomFs = romFS;
+            LoadFromRomFS();   
         }
 
         public void LoadFromRomFS()
         {
-            byte[] courseBytes = RomFS.GetFileBytes($"BancMapUnit/{mCourseName}.bcett.byml.zs");
+            byte[] courseBytes = mRomFs.GetFileBytes($"BancMapUnit/{mCourseName}.bcett.byml.zs");
             /* grab our course information file */
             Byml.Byml courseInfo = new Byml.Byml(new MemoryStream(FileUtil.DecompressData(courseBytes)));
 
@@ -35,7 +36,7 @@ namespace Fushigi.course
             {
                 string stageParamPath = ((BymlNode<string>)stageList[i]).Data.Replace("Work/", "").Replace(".gyml", ".bgyml");
                 string stageName = Path.GetFileName(stageParamPath).Split(".game")[0];
-                mAreas.Add(new CourseArea(stageName));
+                mAreas.Add(new CourseArea(stageName, mRomFs));
             }
         }
 
@@ -64,5 +65,6 @@ namespace Fushigi.course
 
         string mCourseName;
         List<CourseArea> mAreas;
+        private RomFS mRomFs;
     }
 }
