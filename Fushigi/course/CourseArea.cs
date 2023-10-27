@@ -11,14 +11,13 @@ namespace Fushigi.course
 {
     public class CourseArea
     {
+        string mAreaName;
+        private RomFS mRomFS;
+        public AreaParam mAreaParams;
+
         public CourseArea(string areaName, RomFS romFS) {
             mAreaName = areaName;
             mRomFS = romFS;
-            Load();
-        }
-
-        public void Load()
-        {
             mAreaParams = new AreaParam(
                 new Byml.Byml(
                     new MemoryStream(
@@ -31,11 +30,7 @@ namespace Fushigi.course
         public string GetName()
         {
             return mAreaName;
-        }
-
-        string mAreaName;
-        private RomFS mRomFS;
-        public AreaParam mAreaParams;
+        }    
 
         public class AreaParam
         {
@@ -152,9 +147,9 @@ namespace Fushigi.course
             public class SkinParam
             {
                 public bool mDisableBgUnitDecoA;
-                public string mFieldA;
-                public string mFieldB;
-                public string mObject;
+                public string? mFieldA;
+                public string? mFieldB;
+                public string? mObject;
             }
 
             Byml.Byml mByml;
@@ -165,7 +160,7 @@ namespace Fushigi.course
             public bool mIsNotCallWaterEnvSE;
             public float mWonderBGMStartOffset;
             public string mWonderBGMType;
-            public SkinParam mSkinParams;
+            public SkinParam? mSkinParams;
         }
     }
 }

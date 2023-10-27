@@ -55,7 +55,7 @@ namespace Fushigi.course
                 }
             }
 
-            return null;
+            throw new Exception($"GetArea() -- No Area with name {name} found");
         }
 
         public int GetAreaCount()

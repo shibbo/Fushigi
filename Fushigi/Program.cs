@@ -26,13 +26,13 @@ RomFS romFS = null;
 string errMsg = "";
 Vector4 errCol = new(0.95f, 0.14f, 0.14f, 1f);
 
-Course currentCourse = null;
+Course? currentCourse = null;
 
 window.Load += () => WindowManager.RegisterRenderDelegate(window, DoRendering);
 
 void DoFill()
 {
-    foreach (KeyValuePair<string, string[]> worldCourses in romFS.GetCourseEntries())
+    foreach (KeyValuePair<string, string[]> worldCourses in romFS!.GetCourseEntries())
     {
         if (ImGui.TreeNode(worldCourses.Key))
         {
@@ -63,7 +63,7 @@ void DoFill()
 void DoAreaSelect()
 {
     bool status = ImGui.Begin("Area Select");
-    int areaCount = currentCourse.GetAreaCount();
+    int areaCount = currentCourse!.GetAreaCount();
 
     for (int i = 0; i < areaCount; i++)
     {
@@ -84,11 +84,14 @@ void DoAreaParams()
 {
     bool status = ImGui.Begin("Course Area Parameters");
 
-    CourseArea area = currentCourse.GetArea(selectedArea);
-
-    // if the area is null, it means we just switched from another course to a new one
+    // if GetArea throws, it means we just switched from another course to a new one
     // so, we nullify the selected area until the user selects a new one
-    if (area == null)
+    CourseArea area;
+    try
+    {
+        area = currentCourse!.GetArea(selectedArea);
+    }
+    catch
     {
         selectedArea = "";
         return;
@@ -148,19 +151,19 @@ void DoAreaParams()
         {
             CourseArea.AreaParam.SkinParam skinParams = area.mAreaParams.mSkinParams;
 
-            if (area.mAreaParams.ContainsSkinParam("FieldA"))
+            if (skinParams.mFieldA != null)
             {
                 byte[] fielda_buf = Encoding.ASCII.GetBytes(skinParams.mFieldA);
                 ImGui.InputText("FieldA", fielda_buf, (uint)fielda_buf.Length);
             }
 
-            if (area.mAreaParams.ContainsSkinParam("FieldB"))
+            if (skinParams.mFieldB != null)
             {
-                byte[] buf = Encoding.ASCII.GetBytes(skinParams.mFieldA);
+                byte[] buf = Encoding.ASCII.GetBytes(skinParams.mFieldB);
                 ImGui.InputText("FieldB", buf, (uint)buf.Length);
             }
 
-            if (area.mAreaParams.ContainsSkinParam("Object"))
+            if (skinParams.mObject != null)
             {
                 byte[] buf = Encoding.ASCII.GetBytes(skinParams.mObject);
                 ImGui.InputText("Object", buf, (uint)buf.Length);
