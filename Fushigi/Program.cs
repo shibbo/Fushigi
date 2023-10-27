@@ -43,15 +43,14 @@ void DoFill()
                 {
                     try
                     {
-                        currentCourse = new Course(courseLocation, romFS);
+                        currentCourse = new(courseLocation, romFS);
                         _courseSelected = true;
                         errMsg = "";
                     }
                     catch (Exception ex)
                     {
-                        errMsg = ex.Message;
+                        ImGui.TextColored(errCol, $"Error loading course: {ex.Message}");
                     }
-
                     ImGui.TreePop();
                 }
             }
