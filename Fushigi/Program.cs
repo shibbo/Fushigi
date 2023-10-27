@@ -21,8 +21,6 @@ bool _courseSelected = false;
 string selectedStage = "";
 string selectedArea = "";
 
-RomFS romFS = null;
-
 string errMsg = "";
 Vector4 errCol = new(0.95f, 0.14f, 0.14f, 1f);
 
@@ -32,7 +30,7 @@ window.Load += () => WindowManager.RegisterRenderDelegate(window, DoRendering);
 
 void DoFill()
 {
-    foreach (KeyValuePair<string, string[]> worldCourses in romFS!.GetCourseEntries())
+    foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
     {
         if (ImGui.TreeNode(worldCourses.Key))
         {
@@ -43,7 +41,7 @@ void DoFill()
                 {
                     try
                     {
-                        currentCourse = new(courseLocation, romFS);
+                        currentCourse = new(courseLocation);
                         _courseSelected = true;
                         errMsg = "";
                     }
@@ -210,7 +208,7 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
         {
             try
             {
-                romFS = new(basePath);
+                RomFS.setRoot(basePath);
                 _stageList = true;
                 errMsg = "";
             }

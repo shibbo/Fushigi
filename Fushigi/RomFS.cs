@@ -10,31 +10,31 @@ namespace Fushigi
 {
     public class RomFS
     {
-        private string _rootPath;
-        private Dictionary<string, string[]> _courseEntries;
+        private static string _sRootPath = "";
+        private static Dictionary<string, string[]> _sCourseEntries = [];
 
-        public RomFS(string rootPath)
+        public static void setRoot(string rootPath)
         {
-            _rootPath = rootPath;
-            _courseEntries = CacheCourseFiles();
+            _sRootPath = rootPath;
+            _sCourseEntries = CacheCourseFiles();
         }
 
-        public string GetRoot()
+        public static string GetRoot()
         {
-            return _rootPath;
+            return _sRootPath;
         }
 
-        public Dictionary<string, string[]> GetCourseEntries()
+        public static Dictionary<string, string[]> GetCourseEntries()
         {
-            return _courseEntries;
+            return _sCourseEntries;
         }
 
-        public Course GetCourse(string courseName)
+        public static Course GetCourse(string courseName)
         {
-            return new Course(courseName, this);
+            return new Course(courseName);
         }
 
-        private Dictionary<string, string[]> CacheCourseFiles()
+        private static Dictionary<string, string[]> CacheCourseFiles()
         {
             /* common paths to check */
             if (!DirectoryExists("BancMapUnit") || !DirectoryExists("Model") || !DirectoryExists("Stage"))
@@ -71,18 +71,18 @@ namespace Fushigi
             return courseEntries;
         }
 
-        private bool DirectoryExists(string path) {
-            return Directory.Exists($"{_rootPath}/{path}");
+        private static bool DirectoryExists(string path) {
+            return Directory.Exists($"{_sRootPath}/{path}");
         }
 
-        private string[] GetFiles(string path)
+        private static string[] GetFiles(string path)
         {
-            return Directory.GetFiles($"{_rootPath}/{path}");
+            return Directory.GetFiles($"{_sRootPath}/{path}");
         }
 
-        public byte[] GetFileBytes(string path)
+        public static byte[] GetFileBytes(string path)
         {
-            return File.ReadAllBytes($"{_rootPath}/{path}");
+            return File.ReadAllBytes($"{_sRootPath}/{path}");
         }
     }
 }

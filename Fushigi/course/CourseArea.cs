@@ -12,16 +12,14 @@ namespace Fushigi.course
     public class CourseArea
     {
         string mAreaName;
-        private RomFS mRomFS;
         public AreaParam mAreaParams;
 
-        public CourseArea(string areaName, RomFS romFS) {
+        public CourseArea(string areaName) {
             mAreaName = areaName;
-            mRomFS = romFS;
             mAreaParams = new AreaParam(
                 new Byml.Byml(
                     new MemoryStream(
-                        mRomFS.GetFileBytes($"Stage/AreaParam/{mAreaName}.game__stage__AreaParam.bgyml")
+                        RomFS.GetFileBytes($"Stage/AreaParam/{mAreaName}.game__stage__AreaParam.bgyml")
                     )
                 )
             );
