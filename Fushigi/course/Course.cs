@@ -22,6 +22,11 @@ namespace Fushigi.course
             LoadFromRomFS();
         }
 
+        public string GetName()
+        {
+            return mCourseName;
+        }
+
         public void LoadFromRomFS()
         {
             byte[] courseBytes = RomFS.GetFileBytes($"BancMapUnit/{mCourseName}.bcett.byml.zs");

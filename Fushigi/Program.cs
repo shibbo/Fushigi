@@ -15,12 +15,14 @@ using System.Numerics;
 using Fushigi.param;
 using Fushigi.SARC;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 WindowManager.CreateWindow(out IWindow window);
 
 byte[] folderBytes = new byte[256];
 bool _stageList = false;
 bool _courseSelected = false;
+bool _loadActors = false;
 string selectedStage = "";
 string selectedArea = "";
 Dictionary<string, string[]> courseEntries = [];
@@ -80,13 +82,153 @@ void DoFill()
                 string courseLocation = worldCourses.Value[i];
                 if (ImGui.TreeNodeEx(courseLocation))
                 {
-                    currentCourse = new Course(courseLocation);
-                    _courseSelected = true;
+                    if (currentCourse == null || currentCourse.GetName() != courseLocation) {
+                        currentCourse = new Course(courseLocation);
+                        _courseSelected = true;
+                    }
+
                     ImGui.TreePop();
                 }
             }
             ImGui.TreePop();
         }
+    }
+}
+
+void DoActorLoad()
+{
+    CourseArea area = currentCourse.GetArea(selectedArea);
+    var root = area.GetRootNode();
+
+    bool actorStatus = ImGui.Begin("Actors");
+
+    // actors are in an array
+    BymlArrayNode actorArray = (BymlArrayNode)((BymlHashTable)root)["Actors"];
+
+    foreach (BymlHashTable node in actorArray.Array)
+    {
+        string actorName = ((BymlNode<string>)node["Gyaml"]).Data;
+        ulong hash = ((BymlBigDataNode<ulong>)node["Hash"]).Value;
+
+        ImGui.PushID(hash.ToString());
+        if (ImGui.TreeNode(actorName))
+        {
+            if (ImGui.TreeNode("Placement"))
+            {
+                var pos = (BymlArrayNode)node["Translate"];
+                var rot = (BymlArrayNode)node["Rotate"];
+                var scale = (BymlArrayNode)node["Scale"];
+
+                ImGui.InputFloat("Pos X", ref ((BymlNode<float>)pos[0]).Data);
+                ImGui.InputFloat("Pos Y", ref ((BymlNode<float>)pos[1]).Data);
+                ImGui.InputFloat("Pos Z", ref ((BymlNode<float>)pos[2]).Data);
+
+                ImGui.InputFloat("Rot X", ref ((BymlNode<float>)rot[0]).Data);
+                ImGui.InputFloat("Rot Y", ref ((BymlNode<float>)rot[1]).Data);
+                ImGui.InputFloat("Rot Z", ref ((BymlNode<float>)rot[2]).Data);
+
+                ImGui.InputFloat("Scale X", ref ((BymlNode<float>)scale[0]).Data);
+                ImGui.InputFloat("Scale Y", ref ((BymlNode<float>)scale[1]).Data);
+                ImGui.InputFloat("Scale Z", ref ((BymlNode<float>)scale[2]).Data);
+            }
+
+            List<string> actorParams = ParamDB.GetActorComponents(actorName);
+
+            /* actor parameters are loaded from the dynamic node */
+
+            if (node.ContainsKey("Dynamic"))
+            {
+                var dynamicNode = (BymlHashTable)node["Dynamic"];
+
+                foreach (string param in actorParams)
+                {
+                    Dictionary<string, ParamDB.ComponentParam> dict = ParamDB.GetComponentParams(param);
+
+                    if (dict.Keys.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (ImGui.TreeNode(param))
+                    {
+                        foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
+                        {
+                            if (dynamicNode.ContainsKey(pair.Key))
+                            {
+                                var paramNode = dynamicNode[pair.Key];
+
+                                switch (pair.Value.Type)
+                                {
+                                    case "S16":
+                                    case "S32":
+                                        ImGui.InputInt(pair.Key, ref ((BymlNode<int>)paramNode).Data);
+                                        break;
+                                    case "Bool":
+                                        ImGui.Checkbox(pair.Key, ref ((BymlNode<bool>)paramNode).Data);
+                                        break;
+                                    case "F32":
+                                        ImGui.InputFloat(pair.Key, ref ((BymlNode<float>)paramNode).Data);
+                                        break;
+                                    /*case "String":
+                                        byte[] buf = Encoding.ASCII.GetBytes(((BymlNode<string>)paramNode).Data);
+                                        ImGui.InputText(pair.Key, buf, (uint)buf.Length);
+                                        break;*/
+                                    case "F64":
+                                        double val = ((BymlBigDataNode<double>)paramNode).Value;
+                                        ImGui.InputDouble(pair.Key, ref val);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                //object initValue = ;
+                                switch (pair.Value.Type)
+                                {
+                                    case "S16":
+                                    case "S32":
+                                    case "U32":
+                                        {
+                                            int val = Convert.ToInt32(pair.Value.InitValue);
+                                            ImGui.InputInt(pair.Key, ref val);
+                                            break;
+                                        }
+
+                                    case "Bool":
+                                        {
+                                            bool val = (bool)pair.Value.InitValue;
+                                            ImGui.Checkbox(pair.Key, ref val);
+                                            break;
+                                        }
+                                    case "F32":
+                                        {
+                                            float val = Convert.ToSingle(pair.Value.InitValue);
+                                            ImGui.InputFloat(pair.Key, ref val);
+                                            break;
+                                        }
+
+                                    case "F64":
+                                        {
+                                            double val = Convert.ToDouble(pair.Value.InitValue);
+                                            ImGui.InputDouble(pair.Key, ref val);
+                                            break;
+                                        }
+                                }
+                            }
+
+                        }
+
+                        ImGui.TreePop();
+                    }
+                }
+                ImGui.TreePop();
+            }
+        }
+        ImGui.PopID();
+    }
+
+    if (actorStatus)
+    {
+        ImGui.End();
     }
 }
 
@@ -100,13 +242,22 @@ void DoAreaSelect()
         CourseArea area = currentCourse.GetArea(i);
         if (ImGui.Selectable(area.GetName()))
         {
-            selectedArea = area.GetName();
+            if (selectedArea != area.GetName())
+            {
+                selectedArea = area.GetName();
+                _loadActors = true;
+            }
         }
     }
 
     if (status)
     {
         ImGui.End();
+    }
+
+    if (_loadActors)
+    {
+        DoActorLoad();
     }
 }
 
@@ -299,6 +450,8 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     {
         ImGui.End();
     }
+
+    //ImGui.ShowMetricsWindow();
 
     // Make sure ImGui renders too!
     controller.Render();

@@ -46,6 +46,16 @@ namespace Fushigi.param
             }
         }
 
+        public static List<string> GetActorComponents(string actor)
+        {
+            return sActors[actor].Components;
+        }
+
+        public static Dictionary<string, ComponentParam> GetComponentParams(string componentName)
+        {
+            return sComponents[componentName].Parameters;
+        }
+
         public static void Load()
         {
             /* if we have already been initialized, we skip this process */

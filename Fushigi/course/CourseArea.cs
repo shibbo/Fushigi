@@ -1,4 +1,5 @@
 ﻿using Fushigi.Byml;
+using Fushigi.util;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,10 @@ namespace Fushigi.course
         {
             string areaParamPath = $"{RomFS.GetRoot()}/Stage/AreaParam/{mAreaName}.game__stage__AreaParam.bgyml";
             mAreaParams = new AreaParam(new Byml.Byml(new MemoryStream(File.ReadAllBytes(areaParamPath))));
+
+            string levelPath = $"{RomFS.GetRoot()}/BancMapUnit/{mAreaName}.bcett.byml.zs";
+            byte[] levelBytes = FileUtil.DecompressFile(levelPath);
+            mLevelByml = new Byml.Byml(new MemoryStream(levelBytes));
         }
 
         public string GetName()
@@ -28,8 +33,14 @@ namespace Fushigi.course
             return mAreaName;
         }
 
+        public IBymlNode GetRootNode()
+        {
+            return mLevelByml.Root;
+        }
+
         string mAreaName;
         public AreaParam mAreaParams;
+        Byml.Byml mLevelByml;
 
         public class AreaParam
         {
