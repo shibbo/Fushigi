@@ -130,6 +130,8 @@ void DoActorLoad()
                 ImGui.InputFloat("Scale X", ref ((BymlNode<float>)scale[0]).Data);
                 ImGui.InputFloat("Scale Y", ref ((BymlNode<float>)scale[1]).Data);
                 ImGui.InputFloat("Scale Z", ref ((BymlNode<float>)scale[2]).Data);
+
+                ImGui.TreePop();
             }
 
             List<string> actorParams = ParamDB.GetActorComponents(actorName);
