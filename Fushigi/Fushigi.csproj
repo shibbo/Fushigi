@@ -20,4 +20,10 @@
     <ProjectReference Include="..\Fushigi.Byml\Fushigi.Byml.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="res\AreaParam.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

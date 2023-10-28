@@ -1,0 +1,45 @@
+{
+	"BgmType": "String", 
+	"EnvPaletteSetting": {
+		"InitPaletteBaseName": "String", 
+		"WonderPaletteList": ["String"], 
+		"TransPaletteList": ["String"], 
+		"EventPaletteList": ["String"]
+	}, 
+
+	"EnvSetName": "String", 
+	"EnvironmentSound": "String", 
+	"EnvironmentSoundEfx": "String", 
+	"IsNotCallWaterEnvSE": "Bool", 
+	"SkinParam": {
+		"DisableBgUnitDecoA": "Bool", 
+		"FieldA": "String", 
+		"FieldB": "String", 
+		"Object": "String"
+		}, 
+	"WonderBgmStartOffset": "Float", 
+	"WonderBgmType": "String", 
+	"BackGroundAreaType": "String", 
+	"BgmInterlock": "Bool", 
+	"BgmInterlockOfWonder": "Bool", 
+	"PlayerRhythmJumpTiming": "String", 
+	"WonderEnvironmentSound": "String", 
+	"ExternalSoundAsset": "String", 
+	"PlayerRhythmJumpBadgeTiming": "String", 
+	"WonderEnvironmentSoundEfx": "String", 
+	"DynamicResolutionQuality": "String", 
+	"IsInvisibleDeadLine": "Bool", 
+	"IsWaterArea": "Bool", 
+	"WonderSEKeyForTag": "String", 
+	"IsNeedCallWaterInSE": "Bool", 
+	"IsVisibleOnlySameWonderPlayer": "Bool", 
+	"IsResetMarkerFlag": "Bool", 
+	"WonderBgmEfx": "String", 
+	"BgmString": "String", 
+	"UseMetalicPlayerSoundAsset": "Bool", 
+	"RemotePlayerSEPriority": "Int", 
+	"IsKoopaJr04Area": "Bool", 
+	"IsSetListenerCenter": "Bool", 
+	"BadgeMedleyEquipBadgeId": "String", 
+	"ExternalRhythmPatternSet": ["String"]
+}

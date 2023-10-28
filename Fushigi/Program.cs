@@ -11,6 +11,7 @@ using Fushigi.Byml.Writer.Primitives;
 using Fushigi;
 using Fushigi.course;
 using System.Text;
+using Fushigi.param;
 
 WindowManager.CreateWindow(out IWindow window);
 
@@ -21,6 +22,8 @@ string selectedStage = "";
 string selectedArea = "";
 
 Course currentCourse = null;
+
+ParamLoader.Load();
 
 window.Load += () => WindowManager.RegisterRenderDelegate(window, DoRendering);
 
@@ -84,6 +87,31 @@ void DoAreaSelect()
     }
 }
 
+void DoAreaParamLoad(CourseArea.AreaParam area)
+{
+    ParamHolder areaParams = ParamLoader.GetHolder("AreaParam");
+
+    foreach (string key in areaParams.Keys)
+    {
+        string paramType = areaParams[key];
+
+        if (!area.ContainsParam(key))
+        {
+            continue;
+        }
+
+        switch (paramType)
+        {
+            case "String":
+                    string? value = area.GetParam(area.GetRoot(), key, paramType) as string;
+                    byte[] buf = Encoding.ASCII.GetBytes(value);
+                    ImGui.InputText(key, buf, (uint)buf.Length);
+
+                break;
+        }
+    }
+}
+
 void DoAreaParams()
 {
     bool status = ImGui.Begin("Course Area Parameters");
@@ -100,6 +128,9 @@ void DoAreaParams()
 
     ImGui.Text(area.GetName());
 
+    DoAreaParamLoad(area.mAreaParams);
+
+    /*
     if (area.mAreaParams.ContainsParam("BgmType"))
     {
         byte[] buf = Encoding.ASCII.GetBytes(area.mAreaParams.mBGMType);
@@ -176,6 +207,7 @@ void DoAreaParams()
             }
         }
     }
+    */
 
     if (status)
     {
