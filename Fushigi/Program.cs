@@ -82,7 +82,8 @@ void DoFill()
                 string courseLocation = worldCourses.Value[i];
                 if (ImGui.TreeNodeEx(courseLocation))
                 {
-                    if (currentCourse == null || currentCourse.GetName() != courseLocation) {
+                    if (currentCourse == null || currentCourse.GetName() != courseLocation)
+                    {
                         currentCourse = new Course(courseLocation);
                         _courseSelected = true;
                     }
@@ -279,9 +280,9 @@ void DoAreaParamLoad(CourseArea.AreaParam area)
         switch (paramType)
         {
             case "String":
-                    string? value = area.GetParam(area.GetRoot(), key, paramType) as string;
-                    byte[] buf = Encoding.ASCII.GetBytes(value);
-                    ImGui.InputText(key, buf, (uint)buf.Length);
+                string? value = area.GetParam(area.GetRoot(), key, paramType) as string;
+                byte[] buf = Encoding.ASCII.GetBytes(value);
+                ImGui.InputText(key, buf, (uint)buf.Length);
 
                 break;
         }
@@ -319,6 +320,9 @@ void DoAreaScene()
 
     bool status = ImGui.Begin("Course Area");
 
+    CourseArea area = currentCourse.GetArea(selectedArea);
+    var root = area.GetRootNode();
+
     //canvas viewport coordinates
     Vector2 canvasMin = ImGui.GetCursorScreenPos();
     Vector2 canvasSize = Vector2.Max(ImGui.GetContentRegionAvail(), new Vector2(50, 50));
@@ -344,7 +348,7 @@ void DoAreaScene()
     Vector2 panOrigin = canvasMidpoint + areaScenePan;
 
     // zooming with scroll wheel
-    if (mouseHover && io.MouseWheel!=0)
+    if (mouseHover && io.MouseWheel != 0)
     {
         Vector2 prevMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
         areaSceneZoom += io.MouseWheel * 0.1f * areaSceneZoom;
@@ -360,28 +364,57 @@ void DoAreaScene()
     Vector2 gridStart = (canvasSize * new Vector2(0.5f)) + areaScenePan;
     for (float x = gridStart.X % gridPixelsPerUnit; x < canvasSize.X; x += gridPixelsPerUnit)
     {
-        drawList.AddLine(new Vector2(canvasMin.X+x, canvasMin.Y), new Vector2(canvasMin.X + x, canvasMax.Y), MathF.Abs((canvasMin.X + x) - panOrigin.X)<0.01 ? 0xFF008000 : 0xFF505050);
+        drawList.AddLine(new Vector2(canvasMin.X + x, canvasMin.Y), new Vector2(canvasMin.X + x, canvasMax.Y), MathF.Abs((canvasMin.X + x) - panOrigin.X) < 0.01 ? 0xFF008000 : 0xFF505050);
     }
     for (float y = gridStart.Y % gridPixelsPerUnit; y < canvasSize.Y; y += gridPixelsPerUnit)
     {
-        drawList.AddLine(new Vector2(canvasMin.X, canvasMin.Y+y), new Vector2(canvasMax.X, canvasMin.Y+y), MathF.Abs((canvasMin.Y + y) - panOrigin.Y) < 0.01 ? 0xFF000080 : 0xFF505050);
+        drawList.AddLine(new Vector2(canvasMin.X, canvasMin.Y + y), new Vector2(canvasMax.X, canvasMin.Y + y), MathF.Abs((canvasMin.Y + y) - panOrigin.Y) < 0.01 ? 0xFF000080 : 0xFF505050);
     }
 
-
-    /* debug reference points
-    drawList.AddCircleFilled(panOrigin, 2, 0xFFFFFFFF);
-    drawList.AddText(panOrigin, 0xFFFFFFFF, "origin");
-
-    Action<Vector2, uint> addDebugPoint = (gridPos, colour) =>
+    Action<Vector2, uint> addPoint = (gridPos, colour) =>
     {
-        drawList.AddCircleFilled(panOrigin + (gridPos * new Vector2(unitScreenSize, -unitScreenSize)), 2, colour);
-        drawList.AddText(panOrigin + (gridPos * new Vector2(unitScreenSize, -unitScreenSize)), 0xFFFFFFFF, gridPos.ToString());
+        Vector2 modPos = panOrigin + (gridPos * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
+        drawList.AddCircleFilled(modPos, 2, colour);
+        //drawList.AddText(modPos, 0xFFFFFFFF, gridPos.ToString());
     };
 
-    addDebugPoint(new Vector2(2, 3), 0xFF0000FF);
-    addDebugPoint(new Vector2(-5, 7), 0xFF00FF00);
-    addDebugPoint(new Vector2(-1, -5), 0xFFFF0000);
-    */
+    Action<Vector2, Vector2, uint> drawLine = (gridPos1, gridPos2, colour) =>
+    {
+        Vector2 modPos1 = panOrigin + (gridPos1 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
+        Vector2 modPos2 = panOrigin + (gridPos2 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
+        drawList.AddLine(modPos1, modPos2, colour);
+    };
+
+    //BgUnits are in an array.
+    BymlArrayNode bgUnitsArray = (BymlArrayNode)((BymlHashTable)root)["BgUnits"];
+    foreach (BymlHashTable bgUnit in bgUnitsArray.Array)
+    {
+        BymlArrayNode wallsArray = (BymlArrayNode)((BymlHashTable)bgUnit)["Walls"];
+
+        foreach (BymlHashTable walls in wallsArray.Array)
+        {
+            BymlHashTable externalRail = (BymlHashTable)walls["ExternalRail"];
+            BymlArrayNode pointsArray = (BymlArrayNode)externalRail["Points"];
+            List<Vector2> pointsList = new();
+            foreach (BymlHashTable points in pointsArray.Array)
+            {
+                var pos = (BymlArrayNode)points["Translate"];
+                float x = ((BymlNode<float>)pos[0]).Data;
+                float y = ((BymlNode<float>)pos[1]).Data;
+                addPoint(new Vector2(x, y), 0xFFFFFFFF);
+                pointsList.Add(new Vector2(x, y));
+            }
+            for (int i = 0; i < pointsList.Count - 1; i++)
+            {
+                drawLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF);
+            }
+            bool isClosed = ((BymlNode<bool>)externalRail["IsClosed"]).Data;
+            if (isClosed)
+            {
+                drawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
+            }
+        }
+    }
 
     drawList.AddRect(canvasMin, canvasMax, 0xFFFFFFFF);
     if (status)
@@ -423,7 +456,7 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
             {
                 ParamDB.Load();
             }
-            
+
             _stageList = true;
         }
         else
