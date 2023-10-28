@@ -40,6 +40,8 @@ namespace Fushigi.param
         {
             if (File.Exists("actors.json") && File.Exists("components.json"))
             {
+                sActors = JsonConvert.DeserializeObject<Dictionary<string, ActorParam>>(File.ReadAllText("actors.json"));
+                sComponents = JsonConvert.DeserializeObject<Dictionary<string, Component>>(File.ReadAllText("components.json"));
                 sIsInit = true;
             }
         }
