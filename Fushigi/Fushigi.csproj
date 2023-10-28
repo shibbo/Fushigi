@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Silk.NET.Core" Version="2.17.1" />
     <PackageReference Include="Silk.NET.GLFW" Version="2.17.1" />
     <PackageReference Include="Silk.NET.Input" Version="2.17.1" />
@@ -18,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fushigi.Byml\Fushigi.Byml.csproj" />
+    <ProjectReference Include="..\SARC\Fushigi.SARC.csproj" />
   </ItemGroup>
 
   <ItemGroup>

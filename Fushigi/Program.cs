@@ -13,6 +13,8 @@ using Fushigi.course;
 using System.Text;
 using System.Numerics;
 using Fushigi.param;
+using Fushigi.SARC;
+using System.Diagnostics;
 
 WindowManager.CreateWindow(out IWindow window);
 
@@ -27,6 +29,7 @@ float areaSceneZoom = 1;
 
 Course currentCourse = null;
 
+ParamDB.Init();
 ParamLoader.Load();
 
 window.Load += () => WindowManager.RegisterRenderDelegate(window, DoRendering);
@@ -150,85 +153,6 @@ void DoAreaParams()
 
     DoAreaParamLoad(area.mAreaParams);
 
-    /*
-    if (area.mAreaParams.ContainsParam("BgmType"))
-    {
-        byte[] buf = Encoding.ASCII.GetBytes(area.mAreaParams.mBGMType);
-        ImGui.InputText("Background Music Type", buf, (uint)buf.Length);
-    }
-
-    if (area.mAreaParams.ContainsParam("EnvSetName"))
-    {
-        byte[] buf = Encoding.ASCII.GetBytes(area.mAreaParams.mEnvSetName);
-        ImGui.InputText("Env Set Name", buf, (uint)buf.Length);
-    }
-
-    if (area.mAreaParams.ContainsParam("EnvironmentSound"))
-    {
-        byte[] buf = Encoding.ASCII.GetBytes(area.mAreaParams.mEnviornmentSound);
-        ImGui.InputText("Environment Sound", buf, (uint)buf.Length);
-    }
-
-    if (area.mAreaParams.ContainsParam("EnvironmentSoundEfx"))
-    {
-        byte[] buf = Encoding.ASCII.GetBytes(area.mAreaParams.mEnviornmentSoundEfx);
-        ImGui.InputText("Environment Sound EFX", buf, (uint)buf.Length);
-    }
-
-    if (area.mAreaParams.ContainsParam("IsNotCallWaterEnvSE"))
-    {
-        ImGui.Checkbox("IsNotCallWaterEnvSE", ref area.mAreaParams.mIsNotCallWaterEnvSE);
-    }
-
-    if (area.mAreaParams.ContainsParam("WonderBgmStartOffset"))
-    {
-        ImGui.InputFloat("WonderBgmStartOffset", ref area.mAreaParams.mWonderBGMStartOffset);
-    }
-
-    if (area.mAreaParams.ContainsParam("EnvironmentSoundEfx"))
-    {
-        byte[] buf = Encoding.ASCII.GetBytes(area.mAreaParams.mEnviornmentSoundEfx);
-        ImGui.InputText("Environment Sound EFX", buf, (uint)buf.Length);
-    }
-
-    if (area.mAreaParams.ContainsParam("WonderBgmType"))
-    {
-        byte[] buf = Encoding.ASCII.GetBytes(area.mAreaParams.mWonderBGMType);
-        ImGui.InputText("Wonder BGM Type", buf, (uint)buf.Length);
-    }
-
-    if (area.mAreaParams.mSkinParams != null)
-    {
-        if (ImGui.TreeNode("Skin Parameters"))
-        {
-            CourseArea.AreaParam.SkinParam skinParams = area.mAreaParams.mSkinParams;
-
-            if (area.mAreaParams.ContainsSkinParam("FieldA"))
-            {
-                byte[] fielda_buf = Encoding.ASCII.GetBytes(skinParams.mFieldA);
-                ImGui.InputText("FieldA", fielda_buf, (uint)fielda_buf.Length);
-            }
-
-            if (area.mAreaParams.ContainsSkinParam("FieldB"))
-            {
-                byte[] buf = Encoding.ASCII.GetBytes(skinParams.mFieldA);
-                ImGui.InputText("FieldB", buf, (uint)buf.Length);
-            }
-
-            if (area.mAreaParams.ContainsSkinParam("Object"))
-            {
-                byte[] buf = Encoding.ASCII.GetBytes(skinParams.mObject);
-                ImGui.InputText("Object", buf, (uint)buf.Length);
-            }
-
-            if (area.mAreaParams.ContainsSkinParam("DisableBgUnitDecoA"))
-            {
-                ImGui.Checkbox("DisableBgUnitDecoA", ref skinParams.mDisableBgUnitDecoA);
-            }
-        }
-    }
-    */
-
     if (status)
     {
         ImGui.End();
@@ -341,6 +265,12 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
         if (Path.Exists(basePath))
         {
             CacheCourseFiles();
+
+            if (!ParamDB.sIsInit)
+            {
+                ParamDB.Load();
+            }
+            
             _stageList = true;
         }
         else
