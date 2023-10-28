@@ -11,6 +11,8 @@ using Fushigi.Byml.Writer.Primitives;
 using Fushigi;
 using Fushigi.course;
 using System.Text;
+using System.Numerics;
+using Fushigi.param;
 
 WindowManager.CreateWindow(out IWindow window);
 
