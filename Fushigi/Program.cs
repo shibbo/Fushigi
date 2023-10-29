@@ -208,11 +208,9 @@ void DoActorLoad()
 void DoAreaSelect()
 {
     bool status = ImGui.Begin("Area Select");
-    int areaCount = currentCourse.GetAreaCount();
 
-    for (int i = 0; i < areaCount; i++)
+    foreach (var area in currentCourse.GetAreas())
     {
-        CourseArea area = currentCourse.GetArea(i);
         if (ImGui.Selectable(area.GetName()))
         {
             if (selectedArea != area.GetName())
