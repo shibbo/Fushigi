@@ -45,7 +45,11 @@ void DoFill()
         {
             foreach (var courseLocation in worldCourses.Value)
             {
-                if (ImGui.TreeNodeEx(courseLocation))
+                if (ImGui.RadioButton(
+                        courseLocation,
+                        currentCourse == null ? false : courseLocation == currentCourse.GetName()
+                    )
+                )
                 {
                     if (currentCourse == null || currentCourse.GetName() != courseLocation)
                     {
@@ -64,6 +68,11 @@ void DoFill()
 void DoActorLoad()
 {
     CourseArea area = currentCourse.GetArea(selectedArea);
+    if (area == null)
+    {
+        return;
+    }
+
     var root = area.GetRootNode();
 
     bool actorStatus = ImGui.Begin("Actors");
