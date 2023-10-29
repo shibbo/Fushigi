@@ -37,12 +37,6 @@ window.Load += () => WindowManager.RegisterRenderDelegate(window, DoRendering);
 
 void DoFill()
 {
-    /* common paths to check */
-    if (!RomFS.DirectoryExists("BancMapUnit") || !RomFS.DirectoryExists("Model") || !RomFS.DirectoryExists("Stage"))
-    {
-        throw new Exception("DoRendering() -- Required folders not found.");
-    }
-
     foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
     {
         if (ImGui.TreeNode(worldCourses.Key))

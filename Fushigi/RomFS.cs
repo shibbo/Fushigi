@@ -12,6 +12,13 @@ namespace Fushigi
         public static void SetRoot(string root)
         {
             sRomFSRoot = root;
+
+            /* common paths to check */
+            if (!RomFS.DirectoryExists("BancMapUnit") || !RomFS.DirectoryExists("Model") || !RomFS.DirectoryExists("Stage"))
+            {
+                throw new Exception("DoRendering() -- Required folders not found.");
+            }
+
             CacheCourseFiles();
         }
 
