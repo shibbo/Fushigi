@@ -68,7 +68,7 @@ namespace Fushigi.util
 
                 AppSettings.RecentCourses = [.. newArray];
                 // put our brand new path at 9
-                AppSettings.RecentCourses[9] = path;
+                AppSettings.RecentCourses[MaxRecents - 1] = path;
             }
             else
             {
