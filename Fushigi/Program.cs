@@ -22,11 +22,11 @@ WindowManager.CreateWindow(out IWindow window);
 
 UserSettings.Load();
 
-byte[] folderBytes = new byte[512];
+string folderName = "";
 
 if (!String.IsNullOrWhiteSpace(UserSettings.GetRomFSPath()))
 {
-    folderBytes = Encoding.UTF8.GetBytes(UserSettings.GetRomFSPath());
+    folderName = UserSettings.GetRomFSPath();
 }
 
 bool _stageList = false;
@@ -50,6 +50,7 @@ void DoClosing()
 {
     UserSettings.Save();
 }
+
 void DoFill()
 {
     foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
@@ -314,11 +315,11 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     //ImGui.ShowDemoWindow();
 
     bool status = ImGui.Begin("Input Folder");
-    ImGui.InputText("RomFS Folder", folderBytes, 512);
+    ImGui.InputText("RomFS Folder", ref folderName, 512);
 
     if (ImGui.Button("Select"))
     {
-        string basePath = Encoding.ASCII.GetString(folderBytes).Replace("\0", "");
+        string basePath = folderName.Replace("\0", "");
         if (string.IsNullOrEmpty(basePath))
             basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";     
 
