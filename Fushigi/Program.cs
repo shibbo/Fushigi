@@ -20,7 +20,19 @@ using Fushigi.ui.widgets;
 
 WindowManager.CreateWindow(out IWindow window);
 
-byte[] folderBytes = new byte[256];
+UserSettings.Load();
+
+byte[] folderBytes;
+
+if (UserSettings.GetRomFSPath() != null)
+{
+    folderBytes = Encoding.UTF8.GetBytes(UserSettings.GetRomFSPath());
+}
+else
+{
+    folderBytes = new byte[256];
+}
+
 bool _stageList = false;
 bool _courseSelected = false;
 bool _loadActors = false;
@@ -36,7 +48,12 @@ ParamDB.Init();
 ParamLoader.Load();
 
 window.Load += () => WindowManager.RegisterRenderDelegate(window, DoRendering);
+window.Closing += DoClosing;
 
+void DoClosing()
+{
+    UserSettings.Save();
+}
 void DoFill()
 {
     foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
@@ -305,13 +322,14 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
 
     if (ImGui.Button("Select"))
     {
-        string basePath = System.Text.Encoding.ASCII.GetString(folderBytes).Replace("\0", "");
+        string basePath = Encoding.ASCII.GetString(folderBytes).Replace("\0", "");
         if (string.IsNullOrEmpty(basePath))
             basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";     
 
         if (Path.Exists(basePath))
         {
             RomFS.SetRoot(basePath);
+            UserSettings.SetRomFSPath(basePath);
 
             if (!ParamDB.sIsInit)
             {
