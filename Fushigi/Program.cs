@@ -109,7 +109,7 @@ void DoActorLoad()
     foreach (BymlHashTable node in actorArray.Array)
     {
         string actorName = ((BymlNode<string>)node["Gyaml"]).Data;
-        ulong hash = ((BymlBigDataNode<ulong>)node["Hash"]).Value;
+        ulong hash = ((BymlBigDataNode<ulong>)node["Hash"]).Data;
 
         ImGui.PushID(hash.ToString());
         if (ImGui.TreeNode(actorName))
@@ -177,7 +177,7 @@ void DoActorLoad()
                                         ImGui.InputText(pair.Key, buf, (uint)buf.Length);
                                         break;*/
                                     case "F64":
-                                        double val = ((BymlBigDataNode<double>)paramNode).Value;
+                                        double val = ((BymlBigDataNode<double>)paramNode).Data;
                                         ImGui.InputDouble(pair.Key, ref val);
                                         break;
                                 }

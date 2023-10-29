@@ -160,7 +160,7 @@ namespace Fushigi.Byml
 
         public static T GetBigValue<T>(this IBymlNode bymlNode)
         {
-            return ((BymlBigDataNode<T>)bymlNode).Value;
+            return ((BymlBigDataNode<T>)bymlNode).Data;
         }
     }
 }

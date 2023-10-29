@@ -335,7 +335,7 @@ namespace Fushigi.Byml
             BymlHeader header = new()
             {
                 Magic = 0x4259,
-                Version = 4,
+                Version = 7,
                 HashKeyOffset = HashKeyStringTable.IsEmpty() ? 0 : hashKeyOffset,
                 StringTableOffset = StringTable.IsEmpty() ? 0 : stringTableOffset,
                 RootOrPathArrayOffset = rootOrPathArrayOffset
