@@ -25,7 +25,6 @@ bool _courseSelected = false;
 bool _loadActors = false;
 string selectedStage = "";
 string selectedArea = "";
-Dictionary<string, string[]> courseEntries = [];
 Vector2 areaScenePan = new();
 float areaSceneZoom = 1;
 
@@ -36,35 +35,6 @@ ParamLoader.Load();
 
 window.Load += () => WindowManager.RegisterRenderDelegate(window, DoRendering);
 
-void CacheCourseFiles()
-{
-    courseEntries.Clear();
-    string[] loadFiles = RomFS.GetFiles("/Stage/WorldMapInfo");
-    foreach (string loadFile in loadFiles)
-    {
-        string worldName = Path.GetFileName(loadFile).Split(".game")[0];
-        List<string> courseLocationList = new();
-        Byml byml = new Byml(new MemoryStream(File.ReadAllBytes(loadFile)));
-        var root = (BymlHashTable)byml.Root;
-        var courseList = (BymlArrayNode)root["CourseTable"];
-
-        for (int i = 0; i < courseList.Length; i++)
-        {
-            var course = (BymlHashTable)courseList[i];
-            string derp = ((BymlNode<string>)course["StagePath"]).Data;
-
-            // we need to "fix" our StagePath so it points to our course
-            string courseLocation = Path.GetFileName(derp).Split(".game")[0];
-
-            courseLocationList.Add(courseLocation);
-        }
-        if (!courseEntries.ContainsKey(worldName))
-        {
-            courseEntries.Add(worldName, courseLocationList.ToArray());
-        }
-    }
-}
-
 void DoFill()
 {
     /* common paths to check */
@@ -73,7 +43,7 @@ void DoFill()
         throw new Exception("DoRendering() -- Required folders not found.");
     }
 
-    foreach (KeyValuePair<string, string[]> worldCourses in courseEntries)
+    foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
     {
         if (ImGui.TreeNode(worldCourses.Key))
         {
@@ -444,13 +414,11 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     {
         string basePath = System.Text.Encoding.ASCII.GetString(folderBytes).Replace("\0", "");
         if (string.IsNullOrEmpty(basePath))
-            basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";
-
-        RomFS.SetRoot(basePath);
+            basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";     
 
         if (Path.Exists(basePath))
         {
-            CacheCourseFiles();
+            RomFS.SetRoot(basePath);
 
             if (!ParamDB.sIsInit)
             {
