@@ -29,7 +29,7 @@
         {
             foreach(var data in Internal)
             {
-                using (stream.TemporarySeek())
+                using (stream.TemporarySeek(data.Offset, SeekOrigin.Begin))
                     data.WriteBigData(stream);
                 stream.Position += data.CalcBigDataSize();
             }
