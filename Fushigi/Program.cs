@@ -16,6 +16,7 @@ using Fushigi.param;
 using Fushigi.SARC;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Fushigi.ui.widgets;
 
 WindowManager.CreateWindow(out IWindow window);
 
@@ -27,6 +28,7 @@ string selectedStage = "";
 string selectedArea = "";
 Vector2 areaScenePan = new();
 float areaSceneZoom = 1;
+AreaScene areaScene = null;
 
 Course currentCourse = null;
 
@@ -209,6 +211,7 @@ void DoAreaSelect()
             if (selectedArea != area.GetName())
             {
                 selectedArea = area.GetName();
+                areaScene = new(currentCourse.GetArea(selectedArea));
                 _loadActors = true;
             }
         }
@@ -274,116 +277,6 @@ void DoAreaParams()
     }
 }
 
-
-void DoAreaScene()
-{
-    const int gridBasePixelsPerUnit = 32;
-
-    bool status = ImGui.Begin("Course Area");
-
-    CourseArea area = currentCourse.GetArea(selectedArea);
-    var root = area.GetRootNode();
-
-    //canvas viewport coordinates
-    Vector2 canvasMin = ImGui.GetCursorScreenPos();
-    Vector2 canvasSize = Vector2.Max(ImGui.GetContentRegionAvail(), new Vector2(50, 50));
-    Vector2 canvasMax = canvasMin + canvasSize;
-    Vector2 canvasMidpoint = canvasMin + (canvasSize * new Vector2(0.5f));
-
-    ImGuiIOPtr io = ImGui.GetIO();
-    ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-
-    //canvas background
-    drawList.AddRectFilled(canvasMin, canvasMax, 0xFF323232);
-
-    //mouse hover and click detection
-    ImGui.InvisibleButton("canvas", canvasSize, ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
-    bool mouseHover = ImGui.IsItemHovered();
-    bool mouseActive = ImGui.IsItemActive();
-
-    // panning with middle mouse click
-    if (mouseActive && ImGui.IsMouseDragging(ImGuiMouseButton.Middle))
-    {
-        areaScenePan += io.MouseDelta;
-    }
-    Vector2 panOrigin = canvasMidpoint + areaScenePan;
-
-    // zooming with scroll wheel
-    if (mouseHover && io.MouseWheel != 0)
-    {
-        Vector2 prevMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-        areaSceneZoom += io.MouseWheel * 0.1f * areaSceneZoom;
-        areaSceneZoom = MathF.Max(MathF.Min(areaSceneZoom, 5), 0.1f);
-        Vector2 newMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-        areaScenePan += (newMouseGridCoordinates - prevMouseGridCoordinates) * new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-        panOrigin = canvasMidpoint + areaScenePan;
-    }
-    float gridPixelsPerUnit = gridBasePixelsPerUnit * areaSceneZoom;
-
-    // grid lines
-    drawList.PushClipRect(canvasMin, canvasMax, true);
-    Vector2 gridStart = (canvasSize * new Vector2(0.5f)) + areaScenePan;
-    for (float x = gridStart.X % gridPixelsPerUnit; x < canvasSize.X; x += gridPixelsPerUnit)
-    {
-        drawList.AddLine(new Vector2(canvasMin.X + x, canvasMin.Y), new Vector2(canvasMin.X + x, canvasMax.Y), MathF.Abs((canvasMin.X + x) - panOrigin.X) < 0.01 ? 0xFF008000 : 0xFF505050);
-    }
-    for (float y = gridStart.Y % gridPixelsPerUnit; y < canvasSize.Y; y += gridPixelsPerUnit)
-    {
-        drawList.AddLine(new Vector2(canvasMin.X, canvasMin.Y + y), new Vector2(canvasMax.X, canvasMin.Y + y), MathF.Abs((canvasMin.Y + y) - panOrigin.Y) < 0.01 ? 0xFF000080 : 0xFF505050);
-    }
-
-    Action<Vector2, uint> addPoint = (gridPos, colour) =>
-    {
-        Vector2 modPos = panOrigin + (gridPos * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-        drawList.AddCircleFilled(modPos, 2, colour);
-        //drawList.AddText(modPos, 0xFFFFFFFF, gridPos.ToString());
-    };
-
-    Action<Vector2, Vector2, uint> drawLine = (gridPos1, gridPos2, colour) =>
-    {
-        Vector2 modPos1 = panOrigin + (gridPos1 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-        Vector2 modPos2 = panOrigin + (gridPos2 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-        drawList.AddLine(modPos1, modPos2, colour);
-    };
-
-    //BgUnits are in an array.
-    BymlArrayNode bgUnitsArray = (BymlArrayNode)((BymlHashTable)root)["BgUnits"];
-    foreach (BymlHashTable bgUnit in bgUnitsArray.Array)
-    {
-        BymlArrayNode wallsArray = (BymlArrayNode)((BymlHashTable)bgUnit)["Walls"];
-
-        foreach (BymlHashTable walls in wallsArray.Array)
-        {
-            BymlHashTable externalRail = (BymlHashTable)walls["ExternalRail"];
-            BymlArrayNode pointsArray = (BymlArrayNode)externalRail["Points"];
-            List<Vector2> pointsList = new();
-            foreach (BymlHashTable points in pointsArray.Array)
-            {
-                var pos = (BymlArrayNode)points["Translate"];
-                float x = ((BymlNode<float>)pos[0]).Data;
-                float y = ((BymlNode<float>)pos[1]).Data;
-                addPoint(new Vector2(x, y), 0xFFFFFFFF);
-                pointsList.Add(new Vector2(x, y));
-            }
-            for (int i = 0; i < pointsList.Count - 1; i++)
-            {
-                drawLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF);
-            }
-            bool isClosed = ((BymlNode<bool>)externalRail["IsClosed"]).Data;
-            if (isClosed)
-            {
-                drawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
-            }
-        }
-    }
-
-    drawList.AddRect(canvasMin, canvasMax, 0xFFFFFFFF);
-    if (status)
-    {
-        ImGui.End();
-    }
-}
-
 void DoRendering(GL gl, double delta, ImGuiController controller)
 {
     // This is where you'll do any rendering beneath the ImGui context
@@ -437,7 +330,7 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     if (selectedArea != "")
     {
         DoAreaParams();
-        DoAreaScene();
+        areaScene.DisplayArea();
     }
 
     if (status)
