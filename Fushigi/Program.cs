@@ -16,6 +16,7 @@ using Fushigi.param;
 using Fushigi.SARC;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Fushigi.ui.widgets;
 
 WindowManager.CreateWindow(out IWindow window);
 
@@ -25,9 +26,9 @@ bool _courseSelected = false;
 bool _loadActors = false;
 string selectedStage = "";
 string selectedArea = "";
-Dictionary<string, string[]> courseEntries = [];
 Vector2 areaScenePan = new();
 float areaSceneZoom = 1;
+AreaScene areaScene = null;
 
 Course currentCourse = null;
 
@@ -36,51 +37,19 @@ ParamLoader.Load();
 
 window.Load += () => WindowManager.RegisterRenderDelegate(window, DoRendering);
 
-void CacheCourseFiles()
-{
-    courseEntries.Clear();
-    string[] loadFiles = RomFS.GetFiles("/Stage/WorldMapInfo");
-    foreach (string loadFile in loadFiles)
-    {
-        string worldName = Path.GetFileName(loadFile).Split(".game")[0];
-        List<string> courseLocationList = new();
-        Byml byml = new Byml(new MemoryStream(File.ReadAllBytes(loadFile)));
-        var root = (BymlHashTable)byml.Root;
-        var courseList = (BymlArrayNode)root["CourseTable"];
-
-        for (int i = 0; i < courseList.Length; i++)
-        {
-            var course = (BymlHashTable)courseList[i];
-            string derp = ((BymlNode<string>)course["StagePath"]).Data;
-
-            // we need to "fix" our StagePath so it points to our course
-            string courseLocation = Path.GetFileName(derp).Split(".game")[0];
-
-            courseLocationList.Add(courseLocation);
-        }
-        if (!courseEntries.ContainsKey(worldName))
-        {
-            courseEntries.Add(worldName, courseLocationList.ToArray());
-        }
-    }
-}
-
 void DoFill()
 {
-    /* common paths to check */
-    if (!RomFS.DirectoryExists("BancMapUnit") || !RomFS.DirectoryExists("Model") || !RomFS.DirectoryExists("Stage"))
-    {
-        throw new Exception("DoRendering() -- Required folders not found.");
-    }
-
-    foreach (KeyValuePair<string, string[]> worldCourses in courseEntries)
+    foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
     {
         if (ImGui.TreeNode(worldCourses.Key))
         {
-            for (int i = 0; i < worldCourses.Value.Length; i++)
+            foreach (var courseLocation in worldCourses.Value)
             {
-                string courseLocation = worldCourses.Value[i];
-                if (ImGui.TreeNodeEx(courseLocation))
+                if (ImGui.RadioButton(
+                        courseLocation,
+                        currentCourse == null ? false : courseLocation == currentCourse.GetName()
+                    )
+                )
                 {
                     if (currentCourse == null || currentCourse.GetName() != courseLocation)
                     {
@@ -99,6 +68,11 @@ void DoFill()
 void DoActorLoad()
 {
     CourseArea area = currentCourse.GetArea(selectedArea);
+    if (area == null)
+    {
+        return;
+    }
+
     var root = area.GetRootNode();
 
     bool actorStatus = ImGui.Begin("Actors");
@@ -238,16 +212,15 @@ void DoActorLoad()
 void DoAreaSelect()
 {
     bool status = ImGui.Begin("Area Select");
-    int areaCount = currentCourse.GetAreaCount();
 
-    for (int i = 0; i < areaCount; i++)
+    foreach (var area in currentCourse.GetAreas())
     {
-        CourseArea area = currentCourse.GetArea(i);
         if (ImGui.Selectable(area.GetName()))
         {
             if (selectedArea != area.GetName())
             {
                 selectedArea = area.GetName();
+                areaScene = new(currentCourse.GetArea(selectedArea));
                 _loadActors = true;
             }
         }
@@ -313,116 +286,6 @@ void DoAreaParams()
     }
 }
 
-
-void DoAreaScene()
-{
-    const int gridBasePixelsPerUnit = 32;
-
-    bool status = ImGui.Begin("Course Area");
-
-    CourseArea area = currentCourse.GetArea(selectedArea);
-    var root = area.GetRootNode();
-
-    //canvas viewport coordinates
-    Vector2 canvasMin = ImGui.GetCursorScreenPos();
-    Vector2 canvasSize = Vector2.Max(ImGui.GetContentRegionAvail(), new Vector2(50, 50));
-    Vector2 canvasMax = canvasMin + canvasSize;
-    Vector2 canvasMidpoint = canvasMin + (canvasSize * new Vector2(0.5f));
-
-    ImGuiIOPtr io = ImGui.GetIO();
-    ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-
-    //canvas background
-    drawList.AddRectFilled(canvasMin, canvasMax, 0xFF323232);
-
-    //mouse hover and click detection
-    ImGui.InvisibleButton("canvas", canvasSize, ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
-    bool mouseHover = ImGui.IsItemHovered();
-    bool mouseActive = ImGui.IsItemActive();
-
-    // panning with middle mouse click
-    if (mouseActive && ImGui.IsMouseDragging(ImGuiMouseButton.Middle))
-    {
-        areaScenePan += io.MouseDelta;
-    }
-    Vector2 panOrigin = canvasMidpoint + areaScenePan;
-
-    // zooming with scroll wheel
-    if (mouseHover && io.MouseWheel != 0)
-    {
-        Vector2 prevMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-        areaSceneZoom += io.MouseWheel * 0.1f * areaSceneZoom;
-        areaSceneZoom = MathF.Max(MathF.Min(areaSceneZoom, 5), 0.1f);
-        Vector2 newMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-        areaScenePan += (newMouseGridCoordinates - prevMouseGridCoordinates) * new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-        panOrigin = canvasMidpoint + areaScenePan;
-    }
-    float gridPixelsPerUnit = gridBasePixelsPerUnit * areaSceneZoom;
-
-    // grid lines
-    drawList.PushClipRect(canvasMin, canvasMax, true);
-    Vector2 gridStart = (canvasSize * new Vector2(0.5f)) + areaScenePan;
-    for (float x = gridStart.X % gridPixelsPerUnit; x < canvasSize.X; x += gridPixelsPerUnit)
-    {
-        drawList.AddLine(new Vector2(canvasMin.X + x, canvasMin.Y), new Vector2(canvasMin.X + x, canvasMax.Y), MathF.Abs((canvasMin.X + x) - panOrigin.X) < 0.01 ? 0xFF008000 : 0xFF505050);
-    }
-    for (float y = gridStart.Y % gridPixelsPerUnit; y < canvasSize.Y; y += gridPixelsPerUnit)
-    {
-        drawList.AddLine(new Vector2(canvasMin.X, canvasMin.Y + y), new Vector2(canvasMax.X, canvasMin.Y + y), MathF.Abs((canvasMin.Y + y) - panOrigin.Y) < 0.01 ? 0xFF000080 : 0xFF505050);
-    }
-
-    Action<Vector2, uint> addPoint = (gridPos, colour) =>
-    {
-        Vector2 modPos = panOrigin + (gridPos * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-        drawList.AddCircleFilled(modPos, 2, colour);
-        //drawList.AddText(modPos, 0xFFFFFFFF, gridPos.ToString());
-    };
-
-    Action<Vector2, Vector2, uint> drawLine = (gridPos1, gridPos2, colour) =>
-    {
-        Vector2 modPos1 = panOrigin + (gridPos1 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-        Vector2 modPos2 = panOrigin + (gridPos2 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-        drawList.AddLine(modPos1, modPos2, colour);
-    };
-
-    //BgUnits are in an array.
-    BymlArrayNode bgUnitsArray = (BymlArrayNode)((BymlHashTable)root)["BgUnits"];
-    foreach (BymlHashTable bgUnit in bgUnitsArray.Array)
-    {
-        BymlArrayNode wallsArray = (BymlArrayNode)((BymlHashTable)bgUnit)["Walls"];
-
-        foreach (BymlHashTable walls in wallsArray.Array)
-        {
-            BymlHashTable externalRail = (BymlHashTable)walls["ExternalRail"];
-            BymlArrayNode pointsArray = (BymlArrayNode)externalRail["Points"];
-            List<Vector2> pointsList = new();
-            foreach (BymlHashTable points in pointsArray.Array)
-            {
-                var pos = (BymlArrayNode)points["Translate"];
-                float x = ((BymlNode<float>)pos[0]).Data;
-                float y = ((BymlNode<float>)pos[1]).Data;
-                addPoint(new Vector2(x, y), 0xFFFFFFFF);
-                pointsList.Add(new Vector2(x, y));
-            }
-            for (int i = 0; i < pointsList.Count - 1; i++)
-            {
-                drawLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF);
-            }
-            bool isClosed = ((BymlNode<bool>)externalRail["IsClosed"]).Data;
-            if (isClosed)
-            {
-                drawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
-            }
-        }
-    }
-
-    drawList.AddRect(canvasMin, canvasMax, 0xFFFFFFFF);
-    if (status)
-    {
-        ImGui.End();
-    }
-}
-
 void DoRendering(GL gl, double delta, ImGuiController controller)
 {
     // This is where you'll do any rendering beneath the ImGui context
@@ -444,13 +307,11 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     {
         string basePath = System.Text.Encoding.ASCII.GetString(folderBytes).Replace("\0", "");
         if (string.IsNullOrEmpty(basePath))
-            basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";
-
-        RomFS.SetRoot(basePath);
+            basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";     
 
         if (Path.Exists(basePath))
         {
-            CacheCourseFiles();
+            RomFS.SetRoot(basePath);
 
             if (!ParamDB.sIsInit)
             {
@@ -478,7 +339,7 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     if (selectedArea != "")
     {
         DoAreaParams();
-        DoAreaScene();
+        areaScene.DisplayArea();
     }
 
     if (status)

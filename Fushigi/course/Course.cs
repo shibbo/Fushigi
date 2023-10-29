@@ -44,6 +44,11 @@ namespace Fushigi.course
             }
         }
 
+        public List<CourseArea> GetAreas()
+        {
+            return mAreas;
+        }
+
         public CourseArea GetArea(int idx)
         {
             return mAreas.ElementAt(idx);
