@@ -22,15 +22,11 @@ WindowManager.CreateWindow(out IWindow window);
 
 UserSettings.Load();
 
-byte[] folderBytes;
+byte[] folderBytes = new byte[512];
 
-if (UserSettings.GetRomFSPath() != null)
+if (!String.IsNullOrWhiteSpace(UserSettings.GetRomFSPath()))
 {
     folderBytes = Encoding.UTF8.GetBytes(UserSettings.GetRomFSPath());
-}
-else
-{
-    folderBytes = new byte[256];
 }
 
 bool _stageList = false;
