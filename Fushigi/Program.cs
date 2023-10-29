@@ -41,9 +41,8 @@ void DoFill()
     {
         if (ImGui.TreeNode(worldCourses.Key))
         {
-            for (int i = 0; i < worldCourses.Value.Length; i++)
+            foreach (var courseLocation in worldCourses.Value)
             {
-                string courseLocation = worldCourses.Value[i];
                 if (ImGui.TreeNodeEx(courseLocation))
                 {
                     if (currentCourse == null || currentCourse.GetName() != courseLocation)
