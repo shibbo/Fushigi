@@ -33,7 +33,6 @@ if (!String.IsNullOrWhiteSpace(UserSettings.GetRomFSPath()))
 
 bool _stageList = false;
 bool _courseSelected = false;
-string selectedArea = "";
 CourseScene courseScene = null;
 
 Course currentCourse = null;
@@ -76,55 +75,6 @@ void DoFill()
             }
             ImGui.TreePop();
         }
-    }
-}
-
-void DoAreaParamLoad(CourseArea.AreaParam area)
-{
-    ParamHolder areaParams = ParamLoader.GetHolder("AreaParam");
-
-    foreach (string key in areaParams.Keys)
-    {
-        string paramType = areaParams[key];
-
-        if (!area.ContainsParam(key))
-        {
-            continue;
-        }
-
-        switch (paramType)
-        {
-            case "String":
-                string? value = area.GetParam(area.GetRoot(), key, paramType) as string;
-                byte[] buf = Encoding.ASCII.GetBytes(value);
-                ImGui.InputText(key, buf, (uint)buf.Length);
-
-                break;
-        }
-    }
-}
-
-void DoAreaParams()
-{
-    bool status = ImGui.Begin("Course Area Parameters");
-
-    CourseArea area = currentCourse.GetArea(selectedArea);
-
-    // if the area is null, it means we just switched from another course to a new one
-    // so, we nullify the selected area until the user selects a new one
-    if (area == null)
-    {
-        selectedArea = "";
-        return;
-    }
-
-    ImGui.Text(area.GetName());
-
-    //DoAreaParamLoad(area.mAreaParams);
-
-    if (status)
-    {
-        ImGui.End();
     }
 }
 
@@ -181,12 +131,6 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     if (_courseSelected)
     {
         courseScene.DisplayCourse();
-    }
-
-    if (selectedArea != "")
-    {
-        DoAreaParams();
-        
     }
 
     if (status)

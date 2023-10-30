@@ -46,6 +46,8 @@ namespace Fushigi.ui.widgets
 
             CreateMap();
 
+            CreateAreaParams();
+
             CreateActorList();
 
             if (status)
@@ -217,6 +219,20 @@ namespace Fushigi.ui.widgets
             ImGui.End();
         }
 
+        private void CreateAreaParams()
+        {
+            bool status = ImGui.Begin("Course Area Parameters");
+
+            ImGui.Text(selectedArea.GetName());
+
+            AreaParamLoad(selectedArea.mAreaParams);
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+
         private void CreateMap()
         {
             UpdateCanvasSizes();
@@ -236,6 +252,31 @@ namespace Fushigi.ui.widgets
             PopulateArea();
 
             drawList.AddRect(canvasMin, canvasMax, 0xFFFFFFFF);
+        }
+
+        private void AreaParamLoad(CourseArea.AreaParam area)
+        {
+            ParamHolder areaParams = ParamLoader.GetHolder("AreaParam");
+
+            foreach (string key in areaParams.Keys)
+            {
+                string paramType = areaParams[key];
+
+                if (!area.ContainsParam(key))
+                {
+                    continue;
+                }
+
+                switch (paramType)
+                {
+                    case "String":
+                        string? value = area.GetParam(area.GetRoot(), key, paramType) as string;
+                        byte[] buf = Encoding.ASCII.GetBytes(value);
+                        ImGui.InputText(key, buf, (uint)buf.Length);
+
+                        break;
+                }
+            }
         }
 
         private void UpdateCanvasSizes()
