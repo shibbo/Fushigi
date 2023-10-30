@@ -36,7 +36,7 @@ namespace Fushigi.ui
         {
             bool status = ImGui.Begin("Select Course");
 
-            mCurrentCourseName = mCourseScene == null ? null : mCourseScene.GetCourse().GetName();
+            mCurrentCourseName = mCourseScene?.GetCourse().GetName();
 
             foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
             {
@@ -71,14 +71,17 @@ namespace Fushigi.ui
 
         public void Render(GL gl, double delta, ImGuiController controller)
         {
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            ImGui.DockSpaceOverViewport();
-            
-            /* this creates the viewport in the background */
+            /* keep OpenGLs viewport size in sync with the window's size */
             gl.Viewport(mWindow.FramebufferSize);
 
             gl.ClearColor(.45f, .55f, .60f, 1f);
             gl.Clear((uint)ClearBufferMask.ColorBufferBit);
+
+            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            ImGui.DockSpaceOverViewport();
+
+            if(ImGui.GetFrameCount() == 2) //only works after the first frame
+                ImGui.LoadIniSettingsFromDisk("imgui.ini");
 
             /* create a new menubar */
             if (ImGui.BeginMainMenuBar())
