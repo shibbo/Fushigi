@@ -92,19 +92,9 @@ namespace Fushigi.ui.widgets
 
             if (ImGui.Checkbox("All Layers", ref mAllLayersStatus))
             {
-                if (mAllLayersStatus == false)
+                foreach (string layer in mLayers.Keys)
                 {
-                    foreach (string layer in mLayers.Keys)
-                    {
-                        mLayers[layer] = false;
-                    }
-                }
-                else
-                {
-                    foreach (string layer in mLayers.Keys)
-                    {
-                        mLayers[layer] = true;
-                    }
+                    mLayers[layer] = mAllLayersStatus;
                 }
             }
 
