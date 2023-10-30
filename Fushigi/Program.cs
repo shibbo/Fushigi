@@ -294,7 +294,7 @@ void DoAreaParams()
 
     ImGui.Text(area.GetName());
 
-    DoAreaParamLoad(area.mAreaParams);
+    //DoAreaParamLoad(area.mAreaParams);
 
     if (status)
     {

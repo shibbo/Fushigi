@@ -30,18 +30,29 @@ namespace Fushigi.course
         public void LoadFromRomFS()
         {
             byte[] courseBytes = RomFS.GetFileBytes($"BancMapUnit/{mCourseName}.bcett.byml.zs");
+            byte[] stageParamBytes = RomFS.GetFileBytes($"Stage/StageParam/{mCourseName}.game__stage__StageParam.bgyml");
             /* grab our course information file */
             Byml.Byml courseInfo = new Byml.Byml(new MemoryStream(FileUtil.DecompressData(courseBytes)));
+            Byml.Byml stageParam = new Byml.Byml(new MemoryStream(stageParamBytes));
 
-            var root = (BymlHashTable)courseInfo.Root;
-            var stageList = (BymlArrayNode)root["RefStages"];
+            var stageParamRoot = (BymlHashTable)stageParam.Root;
 
-            for (int i = 0; i < stageList.Length; i++)
-            {
-                string stageParamPath = ((BymlNode<string>)stageList[i]).Data.Replace("Work/", "").Replace(".gyml", ".bgyml");
-                string stageName = Path.GetFileName(stageParamPath).Split(".game")[0];
-                mAreas.Add(new CourseArea(stageName));
+            if (((BymlNode<string>)stageParamRoot["Category"]).Data == "Course1Area") {
+                mAreas.Add(new CourseArea(mCourseName));
             }
+            else
+            {
+                var root = (BymlHashTable)courseInfo.Root;
+                var stageList = (BymlArrayNode)root["RefStages"];
+
+                for (int i = 0; i < stageList.Length; i++)
+                {
+                    string stageParamPath = ((BymlNode<string>)stageList[i]).Data.Replace("Work/", "").Replace(".gyml", ".bgyml");
+                    string stageName = Path.GetFileName(stageParamPath).Split(".game")[0];
+                    mAreas.Add(new CourseArea(stageName));
+                }
+            }
+
         }
 
         public List<CourseArea> GetAreas()
