@@ -139,7 +139,6 @@ void DoActorLoad()
 
                     if (dict.Keys.Count == 0)
                     {
-                        ImGui.TreePop();
                         continue;
                     }
 
@@ -203,7 +202,10 @@ void DoActorLoad()
                                     case "F64":
                                         {
                                             double val = Convert.ToDouble(pair.Value.InitValue);
-                                            ImGui.InputDouble(pair.Key, ref val);
+                                            if (ImGui.InputDouble(pair.Key, ref val))
+                                            {
+
+                                            }
                                             break;
                                         }
                                 }
