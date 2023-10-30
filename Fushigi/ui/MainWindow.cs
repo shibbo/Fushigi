@@ -91,11 +91,10 @@ namespace Fushigi.ui
                     {
                         /* open a new folder dialog to select the RomFS */
                         var dialog = new FolderDialog();
+                        dialog.SelectedPath = UserSettings.GetRomFSPath();
                         if (dialog.ShowDialog("Select Your RomFS Folder..."))
                         {
                             string basePath = dialog.SelectedPath.Replace("\0", "");
-                            if (string.IsNullOrEmpty(basePath))
-                                basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";
 
                             /* set our root, but also set the root path in user setings */
                             if (!RomFS.SetRoot(basePath))
@@ -127,7 +126,7 @@ namespace Fushigi.ui
                 }
                 /* end entire menu bar */
                 ImGui.EndMenuBar();
-            }            
+            }
 
             /* if our RomFS is selected, fill the course list */
             if (mIsRomFSSelected)
