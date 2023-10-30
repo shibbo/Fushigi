@@ -139,6 +139,7 @@ void DoActorLoad()
 
                     if (dict.Keys.Count == 0)
                     {
+                        ImGui.TreePop();
                         continue;
                     }
 
@@ -213,6 +214,10 @@ void DoActorLoad()
                         ImGui.TreePop();
                     }
                 }
+                ImGui.TreePop();
+            }
+            else
+            {
                 ImGui.TreePop();
             }
         }
