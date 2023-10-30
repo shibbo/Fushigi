@@ -393,5 +393,10 @@ namespace Fushigi.ui.widgets
             Vector2 modPos2 = panOrigin + (gridPos2 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
             drawList.AddLine(modPos1, modPos2, colour);
         }
+
+        public Course GetCourse()
+        {
+            return course;
+        }
     }
 }

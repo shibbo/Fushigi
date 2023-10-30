@@ -32,10 +32,7 @@ if (!String.IsNullOrWhiteSpace(UserSettings.GetRomFSPath()))
 }
 
 bool _stageList = false;
-bool _courseSelected = false;
-CourseScene courseScene = null;
-
-Course currentCourse = null;
+CourseScene? courseScene = null;
 
 ParamDB.Init();
 ParamLoader.Load();
@@ -50,6 +47,8 @@ void DoClosing()
 
 void DoFill()
 {
+    string? currentCourseName = courseScene == null ? null : courseScene.GetCourse().GetName();
+
     foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
     {
         if (ImGui.TreeNode(worldCourses.Key))
@@ -58,16 +57,13 @@ void DoFill()
             {
                 if (ImGui.RadioButton(
                         courseLocation,
-                        currentCourse == null ? false : courseLocation == currentCourse.GetName()
+                        currentCourseName == null ? false : courseLocation == currentCourseName
                     )
                 )
                 {
-                    if (currentCourse == null || currentCourse.GetName() != courseLocation)
+                    if (currentCourseName == null || currentCourseName != courseLocation)
                     {
-                        currentCourse = new(courseLocation);
-                        //selectedArea = currentCourse.GetArea(0).GetName();
-                        courseScene = new(currentCourse);
-                        _courseSelected = true;
+                        courseScene = new(new(courseLocation));
                     }
 
                     ImGui.TreePop();
@@ -128,7 +124,7 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
         DoFill();
     }
 
-    if (_courseSelected)
+    if (courseScene != null)
     {
         courseScene.DisplayCourse();
     }
