@@ -72,6 +72,7 @@ namespace Fushigi.ui
         public void Render(GL gl, double delta, ImGuiController controller)
         {
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            ImGui.DockSpaceOverViewport();
             
             /* this creates the viewport in the background */
             gl.Viewport(mWindow.FramebufferSize);
