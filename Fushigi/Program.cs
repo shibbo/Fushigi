@@ -17,10 +17,12 @@ using Fushigi.SARC;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Fushigi.ui.widgets;
+using TinyDialogsNet;
 
 WindowManager.CreateWindow(out IWindow window);
 
 UserSettings.Load();
+
 
 string folderName = "";
 
@@ -315,11 +317,13 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     //ImGui.ShowDemoWindow();
 
     bool status = ImGui.Begin("Input Folder");
-    ImGui.InputText("RomFS Folder", ref folderName, 512);
+    //ImGui.InputText("RomFS Folder", ref folderName, 512);
 
-    if (ImGui.Button("Select"))
+    if (ImGui.Button("Select RomFS Folder"))
     {
-        string basePath = folderName.Replace("\0", "");
+        var folder = Dialogs.SelectFolderDialog("Select Your RomFS Folder...", folderName);
+
+        string basePath = folder.Replace("\0", "");
         if (string.IsNullOrEmpty(basePath))
             basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";     
 
