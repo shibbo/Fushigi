@@ -34,9 +34,10 @@ namespace Fushigi.ui.widgets
         Vector2 canvasMidpoint;
 
         Vector2 panOrigin;
-        BymlHashTable? mSelectedObject;
-        private (double startTime, BymlHashTable? @object) highlightEffectAnim = (double.MinValue, null);
+        Dictionary<string, bool> mLayers = new Dictionary<string, bool>();
+        bool mHasFilledLayers = false;
         IWindow mParentWindow;
+        bool mAllLayersStatus = false;
 
         public CourseScene(Course course, IWindow window)
         {
@@ -56,6 +57,8 @@ namespace Fushigi.ui.widgets
             CreateAreaParams();
 
             CreateActorList();
+
+            CreateLayerList();
 
             if (status)
             {
@@ -80,6 +83,43 @@ namespace Fushigi.ui.widgets
             if (tabStatus)
             {
                 ImGui.EndTabBar();
+            }
+        }
+
+        private void CreateLayerList()
+        {
+            bool status = ImGui.Begin("Layers");
+
+            if (ImGui.Checkbox("All Layers", ref mAllLayersStatus))
+            {
+                if (mAllLayersStatus == false)
+                {
+                    foreach (string layer in mLayers.Keys)
+                    {
+                        mLayers[layer] = false;
+                    }
+                }
+                else
+                {
+                    foreach (string layer in mLayers.Keys)
+                    {
+                        mLayers[layer] = true;
+                    }
+                }
+            }
+
+            foreach (string layer in mLayers.Keys)
+            {
+                bool isActive = mLayers[layer];
+                if (ImGui.Checkbox(layer, ref isActive))
+                {
+                    mLayers[layer] = isActive;
+                }
+            }
+
+            if (status)
+            {
+                ImGui.End();
             }
         }
 
@@ -165,8 +205,18 @@ namespace Fushigi.ui.widgets
                 string actorName = ((BymlNode<string>)node["Gyaml"]).Data;
                 ulong hash = ((BymlBigDataNode<ulong>)node["Hash"]).Data;
 
+                if (!mHasFilledLayers)
+                {
+                    string layer = ((BymlNode<string>)node["Layer"]).Data;
+
+                    if (!mLayers.ContainsKey(layer))
+                    {
+                        mLayers.Add(layer, true);
+                    }
+                }
+
                 ImGui.PushID(hash.ToString());
-                if (ImGui.TreeNode(actorName))
+                if (ImGui.TreeNodeEx(actorName, ImGuiTreeNodeFlags.Selected))
                 {
                     if (ImGui.TreeNode("Placement"))
                     {
@@ -186,6 +236,8 @@ namespace Fushigi.ui.widgets
 
                 ImGui.PopID();
             }
+
+            mHasFilledLayers = true;
         }
 
         private void PlacementNode(BymlHashTable node)
@@ -392,38 +444,33 @@ namespace Fushigi.ui.widgets
             foreach (BymlHashTable actor in actorArray.Array)
             {
                 BymlArrayNode translationArr = (BymlArrayNode)actor["Translate"];
-                
 
-                float x = ((BymlNode<float>)translationArr[0]).Data;
-                float y = ((BymlNode<float>)translationArr[1]).Data;
-                Vector2 topLeft = new Vector2(x - 0.5f, y + 0.5f);
-                Vector2 bottomLeft = new Vector2(x - 0.5f, y - 0.5f);
+                string layer = ((BymlNode<string>)actor["Layer"]).Data;
 
-                addPoint(topLeft, (uint)Color.SpringGreen.ToArgb());
-                addPoint(bottomLeft, (uint)Color.SpringGreen.ToArgb());
-                drawLine(topLeft, bottomLeft, (uint)Color.SpringGreen.ToArgb());
+                if (mHasFilledLayers)
+                {
+                    if (mLayers[layer])
+                    {
+                        float x = ((BymlNode<float>)translationArr[0]).Data;
+                        float y = ((BymlNode<float>)translationArr[1]).Data;
+                        Vector2 topLeft = new Vector2(x - 0.5f, y + 0.5f);
+                        Vector2 bottomLeft = new Vector2(x - 0.5f, y - 0.5f);
 
-                Vector2 topRight = new Vector2(x + 0.5f, y + 0.5f);
-                Vector2 bottomRight = new Vector2(x + 0.5f, y - 0.5f);
+                        addPoint(topLeft, (uint)Color.SpringGreen.ToArgb());
+                        addPoint(bottomLeft, (uint)Color.SpringGreen.ToArgb());
+                        drawLine(topLeft, bottomLeft, (uint)Color.SpringGreen.ToArgb());
 
-                addPoint(topRight, (uint)Color.SpringGreen.ToArgb());
-                addPoint(bottomRight, (uint)Color.SpringGreen.ToArgb());
-                drawLine(topRight, bottomRight, (uint)Color.SpringGreen.ToArgb());
+                        Vector2 topRight = new Vector2(x + 0.5f, y + 0.5f);
+                        Vector2 bottomRight = new Vector2(x + 0.5f, y - 0.5f);
 
-                drawLine(topLeft, topRight, (uint)Color.SpringGreen.ToArgb());
-                drawLine(bottomLeft, bottomRight, (uint)Color.SpringGreen.ToArgb());
+                        addPoint(topRight, (uint)Color.SpringGreen.ToArgb());
+                        addPoint(bottomRight, (uint)Color.SpringGreen.ToArgb());
+                        drawLine(topRight, bottomRight, (uint)Color.SpringGreen.ToArgb());
 
-                //drawList.AddRect(minEdge, maxEdge, (uint)Color.SpringGreen.ToArgb());
-
-                //Vector2 topLeft = new Vector2(x - 0.5f, y + 0.5f);
-                //Vector2 bottomLeft = new Vector2(x - 0.5f, y - 0.5f);
-
-                //Vector2 topRight = new Vector2(x + 0.5f, y + 0.5f);
-                //Vector2 bottomRight = new Vector2(x + 0.5f, y - 0.5f);
-
-
-
-                //drawList.AddQuad(topLeft, bottomLeft, topRight, bottomRight, (uint)Color.SpringGreen.ToArgb());
+                        drawLine(topLeft, topRight, (uint)Color.SpringGreen.ToArgb());
+                        drawLine(bottomLeft, bottomRight, (uint)Color.SpringGreen.ToArgb());
+                    }
+                }
             }
         }
 
