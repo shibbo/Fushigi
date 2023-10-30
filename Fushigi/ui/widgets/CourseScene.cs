@@ -2,12 +2,15 @@
 using Fushigi.course;
 using Fushigi.param;
 using ImGuiNET;
+using Silk.NET.Windowing;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Fushigi.ui.widgets
 {
@@ -31,11 +34,15 @@ namespace Fushigi.ui.widgets
         Vector2 canvasMidpoint;
 
         Vector2 panOrigin;
+        BymlHashTable? mSelectedObject;
+        private (double startTime, BymlHashTable? @object) highlightEffectAnim = (double.MinValue, null);
+        IWindow mParentWindow;
 
-        public CourseScene(Course course)
+        public CourseScene(Course course, IWindow window)
         {
             this.course = course;
             selectedArea = course.GetArea(0);
+            mParentWindow = window;
         }
 
         public void DisplayCourse()
@@ -176,6 +183,7 @@ namespace Fushigi.ui.widgets
                         ImGui.TreePop();
                     }
                 }
+
                 ImGui.PopID();
             }
         }
@@ -289,7 +297,7 @@ namespace Fushigi.ui.widgets
                     ImGui.TreePop();
                 }
             }
-            ImGui.TreePop(); 
+            ImGui.TreePop();
         }
 
         private void UpdateCanvasSizes()
@@ -377,6 +385,45 @@ namespace Fushigi.ui.widgets
                         drawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
                     }
                 }
+            }
+
+            BymlArrayNode actorArray = (BymlArrayNode)((BymlHashTable)root)["Actors"];
+ 
+            foreach (BymlHashTable actor in actorArray.Array)
+            {
+                BymlArrayNode translationArr = (BymlArrayNode)actor["Translate"];
+                
+
+                float x = ((BymlNode<float>)translationArr[0]).Data;
+                float y = ((BymlNode<float>)translationArr[1]).Data;
+                Vector2 topLeft = new Vector2(x - 0.5f, y + 0.5f);
+                Vector2 bottomLeft = new Vector2(x - 0.5f, y - 0.5f);
+
+                addPoint(topLeft, (uint)Color.SpringGreen.ToArgb());
+                addPoint(bottomLeft, (uint)Color.SpringGreen.ToArgb());
+                drawLine(topLeft, bottomLeft, (uint)Color.SpringGreen.ToArgb());
+
+                Vector2 topRight = new Vector2(x + 0.5f, y + 0.5f);
+                Vector2 bottomRight = new Vector2(x + 0.5f, y - 0.5f);
+
+                addPoint(topRight, (uint)Color.SpringGreen.ToArgb());
+                addPoint(bottomRight, (uint)Color.SpringGreen.ToArgb());
+                drawLine(topRight, bottomRight, (uint)Color.SpringGreen.ToArgb());
+
+                drawLine(topLeft, topRight, (uint)Color.SpringGreen.ToArgb());
+                drawLine(bottomLeft, bottomRight, (uint)Color.SpringGreen.ToArgb());
+
+                //drawList.AddRect(minEdge, maxEdge, (uint)Color.SpringGreen.ToArgb());
+
+                //Vector2 topLeft = new Vector2(x - 0.5f, y + 0.5f);
+                //Vector2 bottomLeft = new Vector2(x - 0.5f, y - 0.5f);
+
+                //Vector2 topRight = new Vector2(x + 0.5f, y + 0.5f);
+                //Vector2 bottomRight = new Vector2(x + 0.5f, y - 0.5f);
+
+
+
+                //drawList.AddQuad(topLeft, bottomLeft, topRight, bottomRight, (uint)Color.SpringGreen.ToArgb());
             }
         }
 

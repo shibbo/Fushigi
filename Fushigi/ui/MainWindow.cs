@@ -52,7 +52,7 @@ namespace Fushigi.ui
                         {
                             if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
                             {
-                                mCourseScene = new(new(courseLocation));
+                                mCourseScene = new(new(courseLocation), mWindow);
                                 mIsCourseSelected = true;
                             }
 

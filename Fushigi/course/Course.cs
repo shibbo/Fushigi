@@ -42,15 +42,15 @@ namespace Fushigi.course
             }
             else
             {
-                var root = (BymlHashTable)courseInfo.Root;
-                var stageList = (BymlArrayNode)root["RefStages"];
+            var root = (BymlHashTable)courseInfo.Root;
+            var stageList = (BymlArrayNode)root["RefStages"];
 
-                for (int i = 0; i < stageList.Length; i++)
-                {
-                    string stageParamPath = ((BymlNode<string>)stageList[i]).Data.Replace("Work/", "").Replace(".gyml", ".bgyml");
-                    string stageName = Path.GetFileName(stageParamPath).Split(".game")[0];
-                    mAreas.Add(new CourseArea(stageName));
-                }
+            for (int i = 0; i < stageList.Length; i++)
+            {
+                string stageParamPath = ((BymlNode<string>)stageList[i]).Data.Replace("Work/", "").Replace(".gyml", ".bgyml");
+                string stageName = Path.GetFileName(stageParamPath).Split(".game")[0];
+                mAreas.Add(new CourseArea(stageName));
+            }
             }
 
         }
