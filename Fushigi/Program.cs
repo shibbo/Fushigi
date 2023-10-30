@@ -321,14 +321,11 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
 
     if (ImGui.Button("Select RomFS Folder"))
     {
-        var folder = Dialogs.SelectFolderDialog("Select Your RomFS Folder...", folderName);
-
-        if (String.IsNullOrWhiteSpace(folder))
-        {
+        FolderDialog dialog = new FolderDialog();
+        if (!dialog.ShowDialog("Select Your RomFS Folder..."))
             return;
-        }
 
-        string basePath = folder.Replace("\0", "");
+        string basePath = dialog.SelectedPath.Replace("\0", "");
         if (string.IsNullOrEmpty(basePath))
             basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";     
 
