@@ -55,7 +55,6 @@ namespace Fushigi.ui
                                 mSelectedCourseScene = new(new(courseLocation), mWindow);
                             }
 
-                            ImGui.TreePop();
                         }
                     }
                     ImGui.TreePop();
