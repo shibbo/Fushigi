@@ -95,7 +95,11 @@ namespace Fushigi.ui
                                 basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";
 
                             /* set our root, but also set the root path in user setings */
-                            RomFS.SetRoot(basePath);
+                            if (!RomFS.SetRoot(basePath))
+                            {
+                                return;
+                            }
+
                             UserSettings.SetRomFSPath(basePath);
 
                             /* if our parameter database isn't set, set it */

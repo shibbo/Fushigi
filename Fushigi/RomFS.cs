@@ -1,25 +1,23 @@
 ﻿using Fushigi.Byml;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using TinyDialogsNet;
 
 namespace Fushigi
 {
     public class RomFS
     {
-        public static void SetRoot(string root)
+        public static bool SetRoot(string root)
         {
             sRomFSRoot = root;
 
             /* common paths to check */
             if (!RomFS.DirectoryExists("BancMapUnit") || !RomFS.DirectoryExists("Model") || !RomFS.DirectoryExists("Stage"))
             {
-                throw new Exception("DoRendering() -- Required folders not found.");
+                Dialogs.MessageBox(Dialogs.MessageBoxButtons.Ok, Dialogs.MessageBoxIconType.Error, Dialogs.MessageBoxDefaultButton.OkYes, "Invalid RomFS Path", "The path you have selected is invalid. Please select a RomFS path that contains BancMapUnit, Model, and Stage.");
+                return false;
             }
 
             CacheCourseFiles();
+            return true;
         }
 
         public static string GetRoot()
