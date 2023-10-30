@@ -322,28 +322,28 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
     if (ImGui.Button("Select RomFS Folder"))
     {
         FolderDialog dialog = new FolderDialog();
-        if (!dialog.ShowDialog("Select Your RomFS Folder..."))
-            return;
-
-        string basePath = dialog.SelectedPath.Replace("\0", "");
-        if (string.IsNullOrEmpty(basePath))
-            basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";     
-
-        if (Path.Exists(basePath))
+        if (dialog.ShowDialog("Select Your RomFS Folder..."))
         {
-            RomFS.SetRoot(basePath);
-            UserSettings.SetRomFSPath(basePath);
+            string basePath = dialog.SelectedPath.Replace("\0", "");
+            if (string.IsNullOrEmpty(basePath))
+                basePath = "D:\\Hacking\\Switch\\Wonder\\romfs";
 
-            if (!ParamDB.sIsInit)
+            if (Path.Exists(basePath))
             {
-                ParamDB.Load();
-            }
+                RomFS.SetRoot(basePath);
+                UserSettings.SetRomFSPath(basePath);
 
-            _stageList = true;
-        }
-        else
-        {
-            throw new FileNotFoundException("DoRendering() -- Path does not exist.");
+                if (!ParamDB.sIsInit)
+                {
+                    ParamDB.Load();
+                }
+
+                _stageList = true;
+            }
+            else
+            {
+                throw new FileNotFoundException("DoRendering() -- Path does not exist.");
+            }
         }
     }
 
