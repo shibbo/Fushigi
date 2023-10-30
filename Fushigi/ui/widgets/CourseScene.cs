@@ -37,7 +37,7 @@ namespace Fushigi.ui.widgets
         Dictionary<string, bool> mLayers = new Dictionary<string, bool>();
         bool mHasFilledLayers = false;
         IWindow mParentWindow;
-        bool mAllLayersStatus = false;
+        bool mAllLayersStatus = true;
 
         public CourseScene(Course course, IWindow window)
         {
@@ -408,33 +408,40 @@ namespace Fushigi.ui.widgets
         {
             var root = selectedArea.GetRootNode();
 
-            //BgUnits are in an array.
-            BymlArrayNode bgUnitsArray = (BymlArrayNode)((BymlHashTable)root)["BgUnits"];
-            foreach (BymlHashTable bgUnit in bgUnitsArray.Array)
+            if (((BymlHashTable)root).ContainsKey("BgUnits"))
             {
-                BymlArrayNode wallsArray = (BymlArrayNode)((BymlHashTable)bgUnit)["Walls"];
+                //BgUnits are in an array.
+                BymlArrayNode bgUnitsArray = (BymlArrayNode)((BymlHashTable)root)["BgUnits"];
 
-                foreach (BymlHashTable walls in wallsArray.Array)
+                foreach (BymlHashTable bgUnit in bgUnitsArray.Array)
                 {
-                    BymlHashTable externalRail = (BymlHashTable)walls["ExternalRail"];
-                    BymlArrayNode pointsArray = (BymlArrayNode)externalRail["Points"];
-                    List<Vector2> pointsList = new();
-                    foreach (BymlHashTable points in pointsArray.Array)
+                    if (bgUnit.ContainsKey("Walls"))
                     {
-                        var pos = (BymlArrayNode)points["Translate"];
-                        float x = ((BymlNode<float>)pos[0]).Data;
-                        float y = ((BymlNode<float>)pos[1]).Data;
-                        addPoint(new Vector2(x, y), 0xFFFFFFFF);
-                        pointsList.Add(new Vector2(x, y));
-                    }
-                    for (int i = 0; i < pointsList.Count - 1; i++)
-                    {
-                        drawLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF);
-                    }
-                    bool isClosed = ((BymlNode<bool>)externalRail["IsClosed"]).Data;
-                    if (isClosed)
-                    {
-                        drawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
+                        BymlArrayNode wallsArray = (BymlArrayNode)((BymlHashTable)bgUnit)["Walls"];
+
+                        foreach (BymlHashTable walls in wallsArray.Array)
+                        {
+                            BymlHashTable externalRail = (BymlHashTable)walls["ExternalRail"];
+                            BymlArrayNode pointsArray = (BymlArrayNode)externalRail["Points"];
+                            List<Vector2> pointsList = new();
+                            foreach (BymlHashTable points in pointsArray.Array)
+                            {
+                                var pos = (BymlArrayNode)points["Translate"];
+                                float x = ((BymlNode<float>)pos[0]).Data;
+                                float y = ((BymlNode<float>)pos[1]).Data;
+                                addPoint(new Vector2(x, y), 0xFFFFFFFF);
+                                pointsList.Add(new Vector2(x, y));
+                            }
+                            for (int i = 0; i < pointsList.Count - 1; i++)
+                            {
+                                drawLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF);
+                            }
+                            bool isClosed = ((BymlNode<bool>)externalRail["IsClosed"]).Data;
+                            if (isClosed)
+                            {
+                                drawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
+                            }
+                        }
                     }
                 }
             }
