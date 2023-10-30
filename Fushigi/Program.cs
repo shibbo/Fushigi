@@ -38,7 +38,7 @@ string selectedStage = "";
 string selectedArea = "";
 Vector2 areaScenePan = new();
 float areaSceneZoom = 1;
-AreaScene areaScene = null;
+CourseScene courseScene = null;
 
 Course currentCourse = null;
 
@@ -69,7 +69,9 @@ void DoFill()
                 {
                     if (currentCourse == null || currentCourse.GetName() != courseLocation)
                     {
-                        currentCourse = new Course(courseLocation);
+                        currentCourse = new(courseLocation);
+                        //selectedArea = currentCourse.GetArea(0).GetName();
+                        courseScene = new(currentCourse);
                         _courseSelected = true;
                     }
 
@@ -243,7 +245,7 @@ void DoAreaSelect()
             if (selectedArea != area.GetName())
             {
                 selectedArea = area.GetName();
-                areaScene = new(currentCourse.GetArea(selectedArea));
+                courseScene = new(currentCourse);
                 _loadActors = true;
             }
         }
@@ -361,13 +363,13 @@ void DoRendering(GL gl, double delta, ImGuiController controller)
 
     if (_courseSelected)
     {
-        DoAreaSelect();
+        courseScene.DisplayCourse();
     }
 
     if (selectedArea != "")
     {
         DoAreaParams();
-        areaScene.DisplayArea();
+        
     }
 
     if (status)

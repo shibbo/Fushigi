@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 
 namespace Fushigi.ui.widgets
 {
-    class AreaScene
+    class CourseScene
     {
-        CourseArea area;
+        Course course;
+        CourseArea selectedArea;
 
         private const int gridBasePixelsPerUnit = 32;
 
@@ -30,14 +31,17 @@ namespace Fushigi.ui.widgets
 
         Vector2 panOrigin;
 
-        public AreaScene(CourseArea area)
+        public CourseScene(Course course)
         {
-            this.area = area;
+            this.course = course;
+            selectedArea = course.GetArea(0);
         }
 
-        public void DisplayArea()
+        public void DisplayCourse()
         {
-            bool status = ImGui.Begin("Course Area");
+            bool status = ImGui.Begin("Course");
+
+            CreateTabs();
 
             UpdateCanvasSizes();
 
@@ -56,9 +60,30 @@ namespace Fushigi.ui.widgets
             PopulateArea();
 
             drawList.AddRect(canvasMin, canvasMax, 0xFFFFFFFF);
+
             if (status)
             {
                 ImGui.End();
+            }
+        }
+
+        private void CreateTabs()
+        {
+            bool tabStatus = ImGui.BeginTabBar("Course Areas"); // Not sure what the string argument is for
+
+            foreach (var area in course.GetAreas())
+            {
+                if (ImGui.BeginTabItem(area.GetName()))
+                {
+                    selectedArea = area;
+
+                    ImGui.EndTabItem();
+                }
+            }
+
+            if (tabStatus)
+            {
+                ImGui.EndTabBar();
             }
         }
 
@@ -116,7 +141,7 @@ namespace Fushigi.ui.widgets
 
         private void PopulateArea()
         {
-            var root = area.GetRootNode();
+            var root = selectedArea.GetRootNode();
 
             //BgUnits are in an array.
             BymlArrayNode bgUnitsArray = (BymlArrayNode)((BymlHashTable)root)["BgUnits"];
