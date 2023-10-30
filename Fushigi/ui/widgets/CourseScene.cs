@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Fushigi.ui.widgets
 {
@@ -37,6 +38,8 @@ namespace Fushigi.ui.widgets
         readonly IWindow mParentWindow;
         bool mAllLayersVisible = true;
 
+        BymlHashTable? mSelectedActor = null;
+
         public CourseScene(Course course, IWindow window)
         {
             this.course = course;
@@ -55,6 +58,8 @@ namespace Fushigi.ui.widgets
             AreaParameterPanel();
 
             ActorsPanel();
+
+            ActorParameterPanel();
 
             LayersPanel();
 
@@ -116,14 +121,48 @@ namespace Fushigi.ui.widgets
             var root = selectedArea.GetRootNode();
 
             ImGui.Begin("Actors");
-            ImGui.Text(selectedArea.GetName());
 
             // actors are in an array
             BymlArrayNode actorArray = (BymlArrayNode)((BymlHashTable)root)["Actors"];
 
-            CourseActorsTreeView(actorArray);
+            //CourseActorsTreeView(actorArray);
+            CourseActorsLayerView(actorArray);
 
             ImGui.End();
+        }
+
+        private void ActorParameterPanel()
+        {
+            if (mSelectedActor is null)
+            {
+                return;
+            }
+
+            bool status = ImGui.Begin("Actor Parameters");
+
+            string actorName = ((BymlNode<string>)mSelectedActor["Gyaml"]).Data;
+
+            ImGui.Text(actorName);
+
+            if (ImGui.BeginChild("Placement"))
+            {
+                PlacementNode(mSelectedActor);
+            }
+
+            /* actor parameters are loaded from the dynamic node */
+            if (mSelectedActor.ContainsKey("Dynamic"))
+            {
+                DynamicParamNode(mSelectedActor, actorName);
+            }
+            else
+            {
+                ImGui.TreePop();
+            }
+
+            if (status)
+            {
+                ImGui.End();
+            }
         }
 
         private void AreaParameterPanel()
@@ -185,43 +224,82 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        private void CourseActorsTreeView(BymlArrayNode actorArray)
+        private void FillLayers(BymlArrayNode actorArray)
         {
             foreach (BymlHashTable node in actorArray.Array.Cast<BymlHashTable>())
             {
-                string actorName = ((BymlNode<string>)node["Gyaml"]).Data;
-                ulong hash = ((BymlBigDataNode<ulong>)node["Hash"]).Data;
+                string actorLayer = ((BymlNode<string>)node["Layer"]).Data;
+                mLayersVisibility[actorLayer] = true;
+            }
+            mHasFilledLayers = true;
+        }
 
-                if (!mHasFilledLayers)
-                {
-                    string layer = ((BymlNode<string>)node["Layer"]).Data;
-
-                    mLayersVisibility[layer] = true;
-                }
-
-                ImGui.PushID(hash.ToString());
-                if (ImGui.TreeNodeEx(actorName, ImGuiTreeNodeFlags.Selected))
-                {
-                    if (ImGui.TreeNode("Placement"))
-                    {
-                        PlacementNode(node);
-                    }
-
-                    /* actor parameters are loaded from the dynamic node */
-                    if (node.ContainsKey("Dynamic"))
-                    {
-                        DynamicParamNode(node, actorName);
-                    }
-                    else
-                    {
-                        ImGui.TreePop();
-                    }
-                }
-
-                ImGui.PopID();
+        private void CourseActorsLayerView(BymlArrayNode actorArray)
+        {
+            if (!mHasFilledLayers)
+            {
+                FillLayers(actorArray);
             }
 
-            mHasFilledLayers = true;
+            if (ImGui.Checkbox("All Layers", ref mAllLayersVisible))
+            {
+                foreach (string layer in mLayersVisibility.Keys)
+                {
+                    mLayersVisibility[layer] = mAllLayersVisible;
+                }
+            }
+
+            foreach (string layer in mLayersVisibility.Keys)
+            {
+                bool isVisible = mLayersVisibility[layer];
+                if (ImGui.Checkbox("##" + layer, ref isVisible))
+                {
+                    mLayersVisibility[layer] = isVisible;
+                }
+
+                ImGui.SameLine();
+
+                if (!isVisible)
+                {
+                    ImGui.BeginDisabled();
+                }
+
+                if (ImGui.CollapsingHeader(layer, ImGuiTreeNodeFlags.Selected))
+                {
+                    ImGui.Indent();
+                    ImGui.PushItemWidth(ImGui.GetColumnWidth());
+                    if (ImGui.BeginListBox("##" + layer))
+                    {
+                        foreach (BymlHashTable node in actorArray.Array.Cast<BymlHashTable>())
+                        {
+                            string actorName = ((BymlNode<string>)node["Gyaml"]).Data;
+                            ulong actorHash = ((BymlBigDataNode<ulong>)node["Hash"]).Data;
+                            string actorLayer = ((BymlNode<string>)node["Layer"]).Data;
+
+                            if (actorLayer != layer)
+                            {
+                                continue;
+                            }
+
+                            bool isSelected = (node == mSelectedActor);
+
+                            ImGui.PushID(actorHash.ToString());
+                            if (ImGui.Selectable(actorName, isSelected))
+                            {
+                                mSelectedActor = node;
+                            }
+                            ImGui.PopID();
+                        }
+                        ImGui.EndListBox();
+                    }
+                    ImGui.Unindent();
+                }
+
+                if (!isVisible)
+                {
+                    ImGui.EndDisabled();
+                }
+            }
         }
 
         private static void PlacementNode(BymlHashTable node)
@@ -230,19 +308,39 @@ namespace Fushigi.ui.widgets
             var rot = (BymlArrayNode)node["Rotate"];
             var scale = (BymlArrayNode)node["Scale"];
 
-            ImGui.InputFloat("Pos X", ref ((BymlNode<float>)pos[0]).Data);
-            ImGui.InputFloat("Pos Y", ref ((BymlNode<float>)pos[1]).Data);
-            ImGui.InputFloat("Pos Z", ref ((BymlNode<float>)pos[2]).Data);
+            if (ImGui.CollapsingHeader("Position"))
+            {
+                ImGui.PushID("Position");
+                ImGui.Indent();
+                ImGui.InputFloat("X", ref ((BymlNode<float>)pos[0]).Data);
+                ImGui.InputFloat("Y", ref ((BymlNode<float>)pos[1]).Data);
+                ImGui.InputFloat("Z", ref ((BymlNode<float>)pos[2]).Data);
+                ImGui.Unindent();
+                ImGui.PopID();
+            }
 
-            ImGui.InputFloat("Rot X", ref ((BymlNode<float>)rot[0]).Data);
-            ImGui.InputFloat("Rot Y", ref ((BymlNode<float>)rot[1]).Data);
-            ImGui.InputFloat("Rot Z", ref ((BymlNode<float>)rot[2]).Data);
+            if (ImGui.CollapsingHeader("Rotation"))
+            {
+                ImGui.PushID("Rotation");
+                ImGui.Indent();
+                ImGui.InputFloat("X", ref ((BymlNode<float>)rot[0]).Data);
+                ImGui.InputFloat("Y", ref ((BymlNode<float>)rot[1]).Data);
+                ImGui.InputFloat("Z", ref ((BymlNode<float>)rot[2]).Data);
+                ImGui.Unindent();
+                ImGui.PopID();
+            }
 
-            ImGui.InputFloat("Scale X", ref ((BymlNode<float>)scale[0]).Data);
-            ImGui.InputFloat("Scale Y", ref ((BymlNode<float>)scale[1]).Data);
-            ImGui.InputFloat("Scale Z", ref ((BymlNode<float>)scale[2]).Data);
+            if (ImGui.CollapsingHeader("Scale"))
+            {
+                ImGui.PushID("Scale");
+                ImGui.Indent();
+                ImGui.InputFloat("X", ref ((BymlNode<float>)scale[0]).Data);
+                ImGui.InputFloat("Y", ref ((BymlNode<float>)scale[1]).Data);
+                ImGui.InputFloat("Z", ref ((BymlNode<float>)scale[2]).Data);
+                ImGui.Unindent();
+                ImGui.PopID();
+            }
 
-            ImGui.TreePop();
         }
 
         private void DynamicParamNode(BymlHashTable node, string actorName)
@@ -259,8 +357,10 @@ namespace Fushigi.ui.widgets
                     continue;
                 }
 
-                if (ImGui.TreeNode(param))
+                if (ImGui.CollapsingHeader(param))
                 {
+                    ImGui.Indent();
+
                     foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
                     {
                         if (dynamicNode.ContainsKey(pair.Key))
@@ -326,13 +426,10 @@ namespace Fushigi.ui.widgets
                                     }
                             }
                         }
-
                     }
-
-                    ImGui.TreePop();
+                    ImGui.Unindent();
                 }
             }
-            ImGui.TreePop();
         }
 
         private void UpdateCanvasSizes()
