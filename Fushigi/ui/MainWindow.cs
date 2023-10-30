@@ -36,6 +36,8 @@ namespace Fushigi.ui
         {
             bool status = ImGui.Begin("Select Course");
 
+            mCurrentCourseName = mCourseScene == null ? null : mCourseScene.GetCourse().GetName();
+
             foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
             {
                 if (ImGui.TreeNode(worldCourses.Key))
@@ -44,13 +46,13 @@ namespace Fushigi.ui
                     {
                         if (ImGui.RadioButton(
                                 courseLocation,
-                                mCourse == null ? false : courseLocation == mCourse.GetName()
+                                mCurrentCourseName == null ? false : courseLocation == mCurrentCourseName
                             )
                         )
                         {
-                            if (mCourse == null || mCourse.GetName() != courseLocation)
+                            if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
                             {
-                                mCourse = new Course(courseLocation);
+                                mCourseScene = new(new(courseLocation));
                                 mIsCourseSelected = true;
                             }
 
@@ -124,12 +126,18 @@ namespace Fushigi.ui
                 DoCourseFill();
             }
 
+            if (mCourseScene != null)
+            {
+                mCourseScene.DisplayCourse();
+            }
+
             /* render our ImGUI controller */
             controller.Render();
         }
 
         IWindow mWindow;
-        Course? mCourse;
+        string? mCurrentCourseName;
+        CourseScene? mCourseScene;
         bool mIsRomFSSelected = false;
         bool mIsCourseSelected = false;
     }
