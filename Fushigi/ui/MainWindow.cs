@@ -32,11 +32,11 @@ namespace Fushigi.ui
             UserSettings.Save();
         }
 
-        void DoCourseFill()
+        void DrawCourseList()
         {
             bool status = ImGui.Begin("Select Course");
 
-            mCurrentCourseName = mCourseScene?.GetCourse().GetName();
+            mCurrentCourseName = mSelectedCourseScene?.GetCourse().GetName();
 
             foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
             {
@@ -52,8 +52,7 @@ namespace Fushigi.ui
                         {
                             if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
                             {
-                                mCourseScene = new(new(courseLocation), mWindow);
-                                mIsCourseSelected = true;
+                                mSelectedCourseScene = new(new(courseLocation), mWindow);
                             }
 
                             ImGui.TreePop();
@@ -91,7 +90,7 @@ namespace Fushigi.ui
                     if (ImGui.MenuItem("Set RomFS Path"))
                     {
                         /* open a new folder dialog to select the RomFS */
-                        FolderDialog dialog = new FolderDialog();
+                        var dialog = new FolderDialog();
                         if (dialog.ShowDialog("Select Your RomFS Folder..."))
                         {
                             string basePath = dialog.SelectedPath.Replace("\0", "");
@@ -133,22 +132,18 @@ namespace Fushigi.ui
             /* if our RomFS is selected, fill the course list */
             if (mIsRomFSSelected)
             {
-                DoCourseFill();
-            }
+                DrawCourseList();
 
-            if (mCourseScene != null)
-            {
-                mCourseScene.DisplayCourse();
+                mSelectedCourseScene?.DrawUI();
             }
 
             /* render our ImGUI controller */
             controller.Render();
         }
 
-        IWindow mWindow;
+        readonly IWindow mWindow;
         string? mCurrentCourseName;
-        CourseScene? mCourseScene;
+        CourseScene? mSelectedCourseScene;
         bool mIsRomFSSelected = false;
-        bool mIsCourseSelected = false;
     }
 }

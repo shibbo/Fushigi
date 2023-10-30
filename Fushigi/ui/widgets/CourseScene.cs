@@ -2,21 +2,19 @@
 using Fushigi.course;
 using Fushigi.param;
 using ImGuiNET;
+using Newtonsoft.Json.Linq;
+using Silk.NET.Input;
 using Silk.NET.Windowing;
-using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
 using System.Numerics;
 using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Fushigi.ui.widgets
 {
     class CourseScene
     {
-        Course course;
+        readonly Course course;
         CourseArea selectedArea;
 
         private const int gridBasePixelsPerUnit = 32;
@@ -34,10 +32,10 @@ namespace Fushigi.ui.widgets
         Vector2 canvasMidpoint;
 
         Vector2 panOrigin;
-        Dictionary<string, bool> mLayers = new Dictionary<string, bool>();
+        readonly Dictionary<string, bool> mLayersVisibility = [];
         bool mHasFilledLayers = false;
-        IWindow mParentWindow;
-        bool mAllLayersStatus = true;
+        readonly IWindow mParentWindow;
+        bool mAllLayersVisible = true;
 
         public CourseScene(Course course, IWindow window)
         {
@@ -46,19 +44,19 @@ namespace Fushigi.ui.widgets
             mParentWindow = window;
         }
 
-        public void DisplayCourse()
+        public void DrawUI()
         {
             bool status = ImGui.Begin("Course");
 
-            CreateTabs();
+            CourseTabBar();
 
-            CreateMap();
+            LevelViewport();
 
-            CreateAreaParams();
+            AreaParameterPanel();
 
-            CreateActorList();
+            ActorsPanel();
 
-            CreateLayerList();
+            LayersPanel();
 
             if (status)
             {
@@ -66,9 +64,9 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        private void CreateTabs()
+        private void CourseTabBar()
         {
-            bool tabStatus = ImGui.BeginTabBar("Course Areas"); // Not sure what the string argument is for
+            bool tabStatus = ImGui.BeginTabBar("Courses TabBar"); // Not sure what the string argument is for
 
             foreach (var area in course.GetAreas())
             {
@@ -86,24 +84,24 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        private void CreateLayerList()
+        private void LayersPanel()
         {
             bool status = ImGui.Begin("Layers");
 
-            if (ImGui.Checkbox("All Layers", ref mAllLayersStatus))
+            if (ImGui.Checkbox("All Layers", ref mAllLayersVisible))
             {
-                foreach (string layer in mLayers.Keys)
+                foreach (string layer in mLayersVisibility.Keys)
                 {
-                    mLayers[layer] = mAllLayersStatus;
+                    mLayersVisibility[layer] = mAllLayersVisible;
                 }
             }
 
-            foreach (string layer in mLayers.Keys)
+            foreach (string layer in mLayersVisibility.Keys)
             {
-                bool isActive = mLayers[layer];
-                if (ImGui.Checkbox(layer, ref isActive))
+                bool isVisible = mLayersVisibility[layer];
+                if (ImGui.Checkbox(layer, ref isVisible))
                 {
-                    mLayers[layer] = isActive;
+                    mLayersVisibility[layer] = isVisible;
                 }
             }
 
@@ -113,7 +111,7 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        private void CreateActorList()
+        private void ActorsPanel()
         {
             var root = selectedArea.GetRootNode();
 
@@ -123,18 +121,18 @@ namespace Fushigi.ui.widgets
             // actors are in an array
             BymlArrayNode actorArray = (BymlArrayNode)((BymlHashTable)root)["Actors"];
 
-            ListActors(actorArray);
+            CourseActorsTreeView(actorArray);
 
             ImGui.End();
         }
 
-        private void CreateAreaParams()
+        private void AreaParameterPanel()
         {
             bool status = ImGui.Begin("Course Area Parameters");
 
             ImGui.Text(selectedArea.GetName());
 
-            AreaParamLoad(selectedArea.mAreaParams);
+            AreaParameters(selectedArea.mAreaParams);
 
             if (status)
             {
@@ -142,7 +140,7 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        private void CreateMap()
+        private void LevelViewport()
         {
             UpdateCanvasSizes();
 
@@ -152,10 +150,10 @@ namespace Fushigi.ui.widgets
             drawList.AddRectFilled(canvasMin, canvasMax, 0xFF323232);
 
             //controls
-            HandleIO();
+            HandleViewportInput();
 
             //grid lines
-            GridLines();
+            DrawGridLines();
 
             //level
             PopulateArea();
@@ -163,7 +161,7 @@ namespace Fushigi.ui.widgets
             drawList.AddRect(canvasMin, canvasMax, 0xFFFFFFFF);
         }
 
-        private void AreaParamLoad(CourseArea.AreaParam area)
+        private static void AreaParameters(CourseArea.AreaParam area)
         {
             ParamHolder areaParams = ParamLoader.GetHolder("AreaParam");
 
@@ -179,18 +177,17 @@ namespace Fushigi.ui.widgets
                 switch (paramType)
                 {
                     case "String":
-                        string? value = area.GetParam(area.GetRoot(), key, paramType) as string;
-                        byte[] buf = Encoding.ASCII.GetBytes(value);
-                        ImGui.InputText(key, buf, (uint)buf.Length);
+                        string value = (string)area.GetParam(area.GetRoot(), key, paramType);
+                        ImGui.InputText(key, ref value, 1024);
 
                         break;
                 }
             }
         }
 
-        private void ListActors(BymlArrayNode actorArray)
+        private void CourseActorsTreeView(BymlArrayNode actorArray)
         {
-            foreach (BymlHashTable node in actorArray.Array)
+            foreach (BymlHashTable node in actorArray.Array.Cast<BymlHashTable>())
             {
                 string actorName = ((BymlNode<string>)node["Gyaml"]).Data;
                 ulong hash = ((BymlBigDataNode<ulong>)node["Hash"]).Data;
@@ -199,10 +196,7 @@ namespace Fushigi.ui.widgets
                 {
                     string layer = ((BymlNode<string>)node["Layer"]).Data;
 
-                    if (!mLayers.ContainsKey(layer))
-                    {
-                        mLayers.Add(layer, true);
-                    }
+                    mLayersVisibility[layer] = true;
                 }
 
                 ImGui.PushID(hash.ToString());
@@ -216,7 +210,7 @@ namespace Fushigi.ui.widgets
                     /* actor parameters are loaded from the dynamic node */
                     if (node.ContainsKey("Dynamic"))
                     {
-                        DynamicNode(node, actorName);
+                        DynamicParamNode(node, actorName);
                     }
                     else
                     {
@@ -230,7 +224,7 @@ namespace Fushigi.ui.widgets
             mHasFilledLayers = true;
         }
 
-        private void PlacementNode(BymlHashTable node)
+        private static void PlacementNode(BymlHashTable node)
         {
             var pos = (BymlArrayNode)node["Translate"];
             var rot = (BymlArrayNode)node["Rotate"];
@@ -251,7 +245,7 @@ namespace Fushigi.ui.widgets
             ImGui.TreePop();
         }
 
-        private void DynamicNode(BymlHashTable node, string actorName)
+        private void DynamicParamNode(BymlHashTable node, string actorName)
         {
             List<string> actorParams = ParamDB.GetActorComponents(actorName);
             var dynamicNode = (BymlHashTable)node["Dynamic"];
@@ -285,10 +279,9 @@ namespace Fushigi.ui.widgets
                                 case "F32":
                                     ImGui.InputFloat(pair.Key, ref ((BymlNode<float>)paramNode).Data);
                                     break;
-                                /*case "String":
-                                    byte[] buf = Encoding.ASCII.GetBytes(((BymlNode<string>)paramNode).Data);
-                                    ImGui.InputText(pair.Key, buf, (uint)buf.Length);
-                                    break;*/
+                                case "String":
+                                    ImGui.InputText(pair.Key, ref ((BymlNode<string>)paramNode).Data, 1024);
+                                    break;
                                 case "F64":
                                     double val = ((BymlBigDataNode<double>)paramNode).Data;
                                     ImGui.InputDouble(pair.Key, ref val);
@@ -350,7 +343,7 @@ namespace Fushigi.ui.widgets
             canvasMidpoint = canvasMin + (canvasSize * new Vector2(0.5f));
         }
 
-        private void HandleIO()
+        private void HandleViewportInput()
         {
             ImGuiIOPtr io = ImGui.GetIO();
 
@@ -379,7 +372,7 @@ namespace Fushigi.ui.widgets
             gridPixelsPerUnit = gridBasePixelsPerUnit * areaSceneZoom;
         }
 
-        private void GridLines()
+        private void DrawGridLines()
         {
             drawList.PushClipRect(canvasMin, canvasMax, true);
 
@@ -419,17 +412,17 @@ namespace Fushigi.ui.widgets
                                 var pos = (BymlArrayNode)points["Translate"];
                                 float x = ((BymlNode<float>)pos[0]).Data;
                                 float y = ((BymlNode<float>)pos[1]).Data;
-                                addPoint(new Vector2(x, y), 0xFFFFFFFF);
+                                AddPoint(new Vector2(x, y), 0xFFFFFFFF);
                                 pointsList.Add(new Vector2(x, y));
                             }
                             for (int i = 0; i < pointsList.Count - 1; i++)
                             {
-                                drawLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF);
+                                DrawLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF);
                             }
                             bool isClosed = ((BymlNode<bool>)externalRail["IsClosed"]).Data;
                             if (isClosed)
                             {
-                                drawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
+                                DrawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
                             }
                         }
                     }
@@ -446,39 +439,39 @@ namespace Fushigi.ui.widgets
 
                 if (mHasFilledLayers)
                 {
-                    if (mLayers[layer])
+                    if (mLayersVisibility.TryGetValue(layer, out bool isVisible) && isVisible)
                     {
                         float x = ((BymlNode<float>)translationArr[0]).Data;
                         float y = ((BymlNode<float>)translationArr[1]).Data;
                         Vector2 topLeft = new Vector2(x - 0.5f, y + 0.5f);
                         Vector2 bottomLeft = new Vector2(x - 0.5f, y - 0.5f);
 
-                        addPoint(topLeft, (uint)Color.SpringGreen.ToArgb());
-                        addPoint(bottomLeft, (uint)Color.SpringGreen.ToArgb());
-                        drawLine(topLeft, bottomLeft, (uint)Color.SpringGreen.ToArgb());
+                        AddPoint(topLeft, (uint)Color.SpringGreen.ToArgb());
+                        AddPoint(bottomLeft, (uint)Color.SpringGreen.ToArgb());
+                        DrawLine(topLeft, bottomLeft, (uint)Color.SpringGreen.ToArgb());
 
                         Vector2 topRight = new Vector2(x + 0.5f, y + 0.5f);
                         Vector2 bottomRight = new Vector2(x + 0.5f, y - 0.5f);
 
-                        addPoint(topRight, (uint)Color.SpringGreen.ToArgb());
-                        addPoint(bottomRight, (uint)Color.SpringGreen.ToArgb());
-                        drawLine(topRight, bottomRight, (uint)Color.SpringGreen.ToArgb());
+                        AddPoint(topRight, (uint)Color.SpringGreen.ToArgb());
+                        AddPoint(bottomRight, (uint)Color.SpringGreen.ToArgb());
+                        DrawLine(topRight, bottomRight, (uint)Color.SpringGreen.ToArgb());
 
-                        drawLine(topLeft, topRight, (uint)Color.SpringGreen.ToArgb());
-                        drawLine(bottomLeft, bottomRight, (uint)Color.SpringGreen.ToArgb());
+                        DrawLine(topLeft, topRight, (uint)Color.SpringGreen.ToArgb());
+                        DrawLine(bottomLeft, bottomRight, (uint)Color.SpringGreen.ToArgb());
                     }
                 }
             }
         }
 
-        private void addPoint(Vector2 gridPos, uint colour)
+        private void AddPoint(Vector2 gridPos, uint colour)
         {
             Vector2 modPos = panOrigin + (gridPos * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
             drawList.AddCircleFilled(modPos, 2, colour);
             //drawList.AddText(modPos, 0xFFFFFFFF, gridPos.ToString());
         }
 
-        private void drawLine(Vector2 gridPos1, Vector2 gridPos2, uint colour)
+        private void DrawLine(Vector2 gridPos1, Vector2 gridPos2, uint colour)
         {
             Vector2 modPos1 = panOrigin + (gridPos1 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
             Vector2 modPos2 = panOrigin + (gridPos2 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
