@@ -325,19 +325,31 @@ namespace Fushigi.ui.widgets
                            ((BymlNode<float>)node[1]).Data,
                            ((BymlNode<float>)node[2]).Data);
 
-                if (ImGui.DragFloat3(label, ref vec))
+                ImGui.Text(label);
+                ImGui.NextColumn();
+
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
+
+                if (ImGui.DragFloat3($"##{label}", ref vec))
                 {
                     ((BymlNode<float>)node[0]).Data = vec.X;
                     ((BymlNode<float>)node[1]).Data = vec.Y;
                     ((BymlNode<float>)node[2]).Data = vec.Z;
                 }
+                ImGui.PopItemWidth();
+
+                ImGui.NextColumn();
             }
 
             if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
             {
+                ImGui.Columns(2);
+
                 EditFloat3("Scale", (BymlArrayNode)node["Scale"]);
                 EditFloat3("Rotation", (BymlArrayNode)node["Rotate"]);
                 EditFloat3("Position", (BymlArrayNode)node["Translate"]);
+
+                ImGui.Columns(1);
             }
         }
 
@@ -363,9 +375,8 @@ namespace Fushigi.ui.widgets
 
                     foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
                     {
-                        string id = "##{pair.Key}";
+                        string id = $"##{pair.Key}";
 
-                        ImGui.NextColumn();
                         ImGui.Text(pair.Key);
                         ImGui.NextColumn();
 
@@ -437,6 +448,7 @@ namespace Fushigi.ui.widgets
 
                         ImGui.PopItemWidth();
 
+                        ImGui.NextColumn();
                     }
 
                     ImGui.Columns(1);
