@@ -140,6 +140,16 @@ namespace Fushigi.ui
             }
         }
 
+        void DrawWelcome()
+        {
+            if (ImGui.Begin("Welcome"))
+            {
+                ImGui.Text("Welcome to Fushigi! Visit 'File->Set RomFS Path' to get started.");
+
+                ImGui.End();
+            }
+        }
+
         public void Render(GL gl, double delta, ImGuiController controller)
         {
             /* keep OpenGLs viewport size in sync with the window's size */
@@ -165,6 +175,10 @@ namespace Fushigi.ui
                 } 
 
                 mSelectedCourseScene?.DrawUI();
+            }
+            else
+            {
+                DrawWelcome();
             }
 
             /* render our ImGUI controller */
