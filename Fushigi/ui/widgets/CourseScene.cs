@@ -64,6 +64,12 @@ namespace Fushigi.ui.widgets
 
             ActorParameterPanel();
 
+            if (viewport.HasSelectionChanged())
+            {
+                BymlHashTable selectedActor = viewport.GetSelectedActors().ElementAt(0);
+                mSelectedActor = selectedActor;
+            }
+
             if (status)
             {
                 ImGui.End();
@@ -408,30 +414,6 @@ namespace Fushigi.ui.widgets
 
                     ImGui.Unindent();
                 }
-            }
-        }
-
-        private void UpdateCanvasSizes()
-        {
-            canvasSize = Vector2.Max(ImGui.GetContentRegionAvail(), new Vector2(50, 50));
-            canvasMin = ImGui.GetCursorScreenPos();
-            canvasMax = canvasMin + canvasSize;
-            canvasMidpoint = canvasMin + (canvasSize * new Vector2(0.5f));
-        }
-
-        private void HandleViewportInput()
-        {
-            ImGuiIOPtr io = ImGui.GetIO();
-
-            //mouse hover and click detection
-            ImGui.InvisibleButton("canvas", canvasSize, ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
-            bool mouseHover = ImGui.IsItemHovered();
-            bool mouseActive = ImGui.IsItemActive();
-
-            // panning with middle mouse click
-            if (mouseActive && ImGui.IsMouseDragging(ImGuiMouseButton.Middle))
-            {
-                areaScenePan += io.MouseDelta;
             }
         }
 

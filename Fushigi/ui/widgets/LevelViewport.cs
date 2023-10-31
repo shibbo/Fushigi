@@ -2,6 +2,7 @@
 using Fushigi.course;
 using ImGuiNET;
 using Silk.NET.Input;
+using Silk.NET.SDL;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -21,7 +22,7 @@ namespace Fushigi.ui.widgets
         ImDrawListPtr mDrawList;
 
         Vector2 mSize = Vector2.Zero;
-        private ISet<BymlHashTable> mSelectedActors;
+        private ISet<BymlHashTable> mSelectedActors = new HashSet<BymlHashTable>();
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
 
@@ -34,6 +35,8 @@ namespace Fushigi.ui.widgets
 
         public uint GridColor = 0x77_FF_FF_FF;
         public float GridLineThickness = 1.5f;
+
+        bool mSelectionChanged = false;
 
         public Vector2 WorldToScreen(Vector3 pos) => WorldToScreen(pos, out _);
         public Vector2 WorldToScreen(Vector3 pos, out float ndcDepth)
@@ -67,18 +70,41 @@ namespace Fushigi.ui.widgets
 
         public void HandleCameraControls(bool mouseHover, bool mouseActive)
         {
-            Camera.distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
-
-            if(ImGui.IsMouseDragging(ImGuiMouseButton.Middle) && mouseActive)
+            if (ImGui.IsWindowFocused())
             {
-                Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
-                    ScreenToWorld(ImGui.GetMousePos());
+                Camera.distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
+
+                if (ImGui.IsMouseDragging(ImGuiMouseButton.Middle) && mouseActive)
+                {
+                    Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
+                        ScreenToWorld(ImGui.GetMousePos());
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.LeftArrow))
+                {
+                    Camera.target.X -= 0.25f;
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.RightArrow))
+                {
+                    Camera.target.X += 0.25f;
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.UpArrow))
+                {
+                    Camera.target.Y += 0.25f;
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.DownArrow))
+                {
+                    Camera.target.Y -= 0.25f;
+                }
             }
         }
 
         public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility, ISet<BymlHashTable> selectedActors)
         {
-            mSelectedActors = selectedActors;
+            //mSelectedActors = selectedActors;
             mLayersVisibility = layersVisibility;
             mTopLeft = ImGui.GetCursorScreenPos();
 
@@ -98,7 +124,6 @@ namespace Fushigi.ui.widgets
 
             HandleCameraControls(mouseHover, mouseActive);
 
-
             float ratio = mSize.X / mSize.Y;
             {
                 float tanFOV = MathF.Tan(FOV / 2);
@@ -117,7 +142,48 @@ namespace Fushigi.ui.widgets
 
             DrawAreaContent();
 
+            /* if the user clicked somewhere and it was not hovered over an element, we clear our selected actors array */
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                if (HoveredActor == null)
+                {
+                    mSelectionChanged = false;
+                    mSelectedActors.Clear();
+                }
+            }
+
+            if (ImGui.IsItemClicked())
+            {
+                if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+                {
+                    mSelectedActors.Add(HoveredActor);
+                }
+                else
+                {
+                    mSelectedActors.Clear();
+                    mSelectedActors.Add(HoveredActor);
+                }
+                
+                mSelectionChanged = true;
+            }
+
+            if (ImGui.IsKeyDown(ImGuiKey.Escape))
+            {
+                mSelectedActors.Clear();
+            }
+
             ImGui.PopClipRect();
+        }
+
+        public bool HasSelectionChanged()
+        {
+            return mSelectionChanged;
+        }
+
+        public ISet<BymlHashTable> GetSelectedActors()
+        {
+            mSelectionChanged = false;
+            return mSelectedActors;
         }
 
         void DrawGrid()
@@ -284,8 +350,10 @@ namespace Fushigi.ui.widgets
 
                     uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
 
-                    if(mSelectedActors.Contains(actor))
-                        color = ImGui.ColorConvertFloat4ToU32(new(1, .5f, 0, 1));
+                    if (mSelectedActors.Contains(actor))
+                    {
+                        color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+                    }
 
                     for (int i = 0; i < 4; i++)
                     {
@@ -298,7 +366,16 @@ namespace Fushigi.ui.widgets
                     }
 
                     if (HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos()))
+                    {
                         newHoveredActor = actor;
+
+                        string name = ((BymlNode<string>)actor["Gyaml"]).Data;
+
+                        ImGui.BeginTooltip();
+                        ImGui.SetTooltip($"{name}");
+                        ImGui.EndTooltip();
+                    }
+                        
                 }
             }
 
