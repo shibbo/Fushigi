@@ -125,6 +125,17 @@
                 ParseRootNode(Header.RootOrPathArrayOffset);
             }
         }
+        public Byml(IBymlNode root)
+        {
+            this.Root = root;
+        }
+
+        public void Save(Stream stream)
+        {
+            BymlWriter writer = new BymlWriter();
+            writer.PushIter(this.Root);
+            writer.Write(stream);
+        }
 
         internal static BymlNodeId? ReadNodeId(Stream stream)
         {

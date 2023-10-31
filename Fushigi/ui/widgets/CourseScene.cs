@@ -69,6 +69,13 @@ namespace Fushigi.ui.widgets
             }
         }
 
+        public void Save(string folder)
+        {
+            //Save each course area
+            foreach (var area in this.course.GetAreas())
+                area.Save(folder);
+        }
+
         private void CourseTabBar()
         {
             bool tabStatus = ImGui.BeginTabBar("Courses TabBar"); // Not sure what the string argument is for

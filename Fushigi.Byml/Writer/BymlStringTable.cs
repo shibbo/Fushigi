@@ -49,6 +49,9 @@ namespace Fushigi.Byml.Writer
             if (IsEmpty())
                 return;
 
+            //Sort
+            StringList.Sort(StringComparer.Ordinal);
+
             var writer = stream.AsBinaryWriter();
             writer.Write((byte) BymlNodeId.StringTable);
             writer.WriteUInt24((uint)StringList.Count);
