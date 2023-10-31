@@ -367,7 +367,7 @@ namespace Fushigi.ui.widgets
 
                     string name = ((BymlNode<string>)actor["Gyaml"]).Data;
                     
-                    bool isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
+                   isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
 
                     if(name.Contains("Area"))
                     {
@@ -437,12 +437,12 @@ namespace Fushigi.ui.widgets
             return false;
         }
 
-        bool HitTestPointLine(Vector2 p, Vector2 a, Vector2 b, float thickness)
+        static bool HitTestPointLine(Vector2 p, Vector2 a, Vector2 b, float thickness)
         {
             Vector2 pa = p-a, ba = b-a;
-            float h = MathF.Clamp( Vector2.Dot(pa,ba)/
+            float h = Math.Clamp( Vector2.Dot(pa,ba)/
                       Vector2.Dot(ba,ba), 0, 1 );
-            return ( pa - ba*h ).Length < thickness/2;
+            return ( pa - ba*h ).Length() < thickness/2;
         }
     }
 }
