@@ -8,6 +8,7 @@ using System.Net.Mime;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using ZstdNet;
 
 namespace Fushigi.course
 {
@@ -26,6 +27,23 @@ namespace Fushigi.course
             string levelPath = $"{RomFS.GetRoot()}/BancMapUnit/{mAreaName}.bcett.byml.zs";
             byte[] levelBytes = FileUtil.DecompressFile(levelPath);
             mLevelByml = new Byml.Byml(new MemoryStream(levelBytes));
+        }
+
+        public void Save()
+        {
+            Save($"{RomFS.GetRoot()}/BancMapUnit");
+        }
+
+        public void Save(string folder)
+        {
+            var byml = new Byml.Byml(this.GetRootNode());
+            //Save byml into memory to be compressed
+            var mem = new MemoryStream();
+            byml.Save(mem);
+
+            //Compress and save the course area
+            string levelPath = $"{folder}/{mAreaName}.bcett.byml.zs";
+            File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
         }
 
         public string GetName()

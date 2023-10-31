@@ -114,6 +114,21 @@ namespace Fushigi.ui
                         }
                     }
 
+                    /* Saves the currently loaded course */
+                    if (mSelectedCourseScene != null)
+                    {
+                        if (ImGui.MenuItem("Save"))
+                        {
+                            mSelectedCourseScene.Save();
+                        }
+                        if (ImGui.MenuItem("Save As"))
+                        {
+                            FolderDialog dlg = new FolderDialog();
+                            if (dlg.ShowDialog())
+                                mSelectedCourseScene.Save(dlg.SelectedPath);
+                        }
+                    }
+
                     /* a ImGUI menu item that just closes the application */
                     if (ImGui.MenuItem("Close"))
                     {

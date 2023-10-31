@@ -38,6 +38,18 @@ namespace Fushigi.util
             return decompressedData;
         }
 
+        public static byte[] CompressData(byte[] fileBytes)
+        {
+            byte[] compressedData;
+
+            using (var compressor = new ZstdNet.Compressor(new ZstdNet.CompressionOptions(19)))
+            {
+                compressedData = compressor.Wrap(fileBytes);
+            }
+
+            return compressedData;
+        }
+
         public static bool TryGetFileInfo(string filename, out FileInfo fileInfo)
         {
             try
