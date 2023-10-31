@@ -32,6 +32,8 @@ namespace Fushigi.util
             else
             {
                 AppSettings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsPath));
+
+                RomFS.SetRoot(AppSettings.RomFSPath);
             }
         }
 

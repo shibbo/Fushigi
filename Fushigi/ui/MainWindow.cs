@@ -32,55 +32,8 @@ namespace Fushigi.ui
             UserSettings.Save();
         }
 
-        void DrawCourseList()
+        void DrawMainMenu()
         {
-            bool status = ImGui.Begin("Select Course");
-
-            mCurrentCourseName = mSelectedCourseScene?.GetCourse().GetName();
-
-            foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
-            {
-                if (ImGui.TreeNode(worldCourses.Key))
-                {
-                    foreach (var courseLocation in worldCourses.Value)
-                    {
-                        if (ImGui.RadioButton(
-                                courseLocation,
-                                mCurrentCourseName == null ? false : courseLocation == mCurrentCourseName
-                            )
-                        )
-                        {
-                            if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
-                            {
-                                mSelectedCourseScene = new(new(courseLocation), mWindow);
-                            }
-
-                        }
-                    }
-                    ImGui.TreePop();
-                }
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
-        public void Render(GL gl, double delta, ImGuiController controller)
-        {
-            /* keep OpenGLs viewport size in sync with the window's size */
-            gl.Viewport(mWindow.FramebufferSize);
-
-            gl.ClearColor(.45f, .55f, .60f, 1f);
-            gl.Clear((uint)ClearBufferMask.ColorBufferBit);
-
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            ImGui.DockSpaceOverViewport();
-
-            if(ImGui.GetFrameCount() == 2) //only works after the first frame
-                ImGui.LoadIniSettingsFromDisk("imgui.ini");
-
             /* create a new menubar */
             if (ImGui.BeginMainMenuBar())
             {
@@ -108,9 +61,14 @@ namespace Fushigi.ui
                             {
                                 ParamDB.Load();
                             }
+                        }
+                    }
 
-                            /* this signals to ImGUI to render the course list */
-                            mIsRomFSSelected = true;
+                    if (RomFS.GetRoot() != null)
+                    {
+                        if (ImGui.MenuItem("Open Course"))
+                        {
+                            mIsChoosingCourse = true;
                         }
                     }
 
@@ -141,11 +99,70 @@ namespace Fushigi.ui
                 /* end entire menu bar */
                 ImGui.EndMenuBar();
             }
+        }
+
+        void DrawCourseList()
+        {
+            bool status = ImGui.Begin("Select Course");
+
+            mCurrentCourseName = mSelectedCourseScene?.GetCourse().GetName();
+
+            foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
+            {
+                if (ImGui.TreeNode(worldCourses.Key))
+                {
+                    foreach (var courseLocation in worldCourses.Value)
+                    {
+                        if (ImGui.RadioButton(
+                                courseLocation,
+                                mCurrentCourseName == null ? false : courseLocation == mCurrentCourseName
+                            )
+                        )
+                        {
+                            // Close course selection whether or not this is a different course
+                            mIsChoosingCourse = false;
+
+                            // Only change the course if it is different from current
+                            if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
+                            {
+                                mSelectedCourseScene = new(new(courseLocation), mWindow);        
+                            }
+
+                        }
+                    }
+                    ImGui.TreePop();
+                }
+            }
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+
+        public void Render(GL gl, double delta, ImGuiController controller)
+        {
+            /* keep OpenGLs viewport size in sync with the window's size */
+            gl.Viewport(mWindow.FramebufferSize);
+
+            gl.ClearColor(.45f, .55f, .60f, 1f);
+            gl.Clear((uint)ClearBufferMask.ColorBufferBit);
+
+            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            ImGui.DockSpaceOverViewport();
+
+            if(ImGui.GetFrameCount() == 2) //only works after the first frame
+                ImGui.LoadIniSettingsFromDisk("imgui.ini");
+
+            DrawMainMenu();
 
             /* if our RomFS is selected, fill the course list */
-            if (mIsRomFSSelected)
+            if (RomFS.GetRoot() != null)
             {
-                DrawCourseList();
+                if (mIsChoosingCourse)
+                {
+                    DrawCourseList();
+                } 
 
                 mSelectedCourseScene?.DrawUI();
             }
@@ -157,6 +174,6 @@ namespace Fushigi.ui
         readonly IWindow mWindow;
         string? mCurrentCourseName;
         CourseScene? mSelectedCourseScene;
-        bool mIsRomFSSelected = false;
+        bool mIsChoosingCourse = true;
     }
 }
