@@ -69,9 +69,16 @@ namespace Fushigi.ui.widgets
             }
         }
 
+        public void Save()
+        {
+            //Save each course area to current romfs folder
+            foreach (var area in this.course.GetAreas())
+                area.Save();
+        }
+
         public void Save(string folder)
         {
-            //Save each course area
+            //Save each course area to a specific folder
             foreach (var area in this.course.GetAreas())
                 area.Save(folder);
         }

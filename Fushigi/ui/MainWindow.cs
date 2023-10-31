@@ -119,6 +119,10 @@ namespace Fushigi.ui
                     {
                         if (ImGui.MenuItem("Save"))
                         {
+                            mSelectedCourseScene.Save();
+                        }
+                        if (ImGui.MenuItem("Save As"))
+                        {
                             FolderDialog dlg = new FolderDialog();
                             if (dlg.ShowDialog())
                                 mSelectedCourseScene.Save(dlg.SelectedPath);
