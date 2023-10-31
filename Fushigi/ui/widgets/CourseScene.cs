@@ -15,6 +15,7 @@ namespace Fushigi.ui.widgets
 {
     class CourseScene
     {
+        LevelViewport viewport;
         readonly Course course;
         CourseArea selectedArea;
 
@@ -44,6 +45,7 @@ namespace Fushigi.ui.widgets
         {
             this.course = course;
             selectedArea = course.GetArea(0);
+            viewport = new LevelViewport(selectedArea);
             mParentWindow = window;
         }
 
@@ -53,7 +55,8 @@ namespace Fushigi.ui.widgets
 
             CourseTabBar();
 
-            LevelViewport();
+            viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility, 
+                selectedActors: new HashSet<BymlHashTable>()); //only temporary
 
             AreaParameterPanel();
 
@@ -191,27 +194,6 @@ namespace Fushigi.ui.widgets
             {
                 ImGui.End();
             }
-        }
-
-        private void LevelViewport()
-        {
-            UpdateCanvasSizes();
-
-            drawList = ImGui.GetWindowDrawList();
-
-            //canvas background
-            drawList.AddRectFilled(canvasMin, canvasMax, 0xFF323232);
-
-            //controls
-            HandleViewportInput();
-
-            //grid lines
-            DrawGridLines();
-
-            //level
-            PopulateArea();
-
-            drawList.AddRect(canvasMin, canvasMax, 0xFFFFFFFF);
         }
 
         private static void AreaParameters(CourseArea.AreaParam area)
@@ -480,125 +462,6 @@ namespace Fushigi.ui.widgets
             {
                 areaScenePan += io.MouseDelta;
             }
-            panOrigin = canvasMidpoint + areaScenePan;
-
-            // zooming with scroll wheel
-            if (mouseHover && io.MouseWheel != 0)
-            {
-                Vector2 prevMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-                areaSceneZoom += io.MouseWheel * 0.1f * areaSceneZoom;
-                areaSceneZoom = MathF.Max(MathF.Min(areaSceneZoom, 5), 0.1f);
-                Vector2 newMouseGridCoordinates = (io.MousePos - panOrigin) / new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-                areaScenePan += (newMouseGridCoordinates - prevMouseGridCoordinates) * new Vector2(gridBasePixelsPerUnit * areaSceneZoom);
-                panOrigin = canvasMidpoint + areaScenePan;
-            }
-            gridPixelsPerUnit = gridBasePixelsPerUnit * areaSceneZoom;
-        }
-
-        private void DrawGridLines()
-        {
-            drawList.PushClipRect(canvasMin, canvasMax, true);
-
-            Vector2 gridStart = (canvasSize * new Vector2(0.5f)) + areaScenePan;
-            for (float x = gridStart.X % gridPixelsPerUnit; x < canvasSize.X; x += gridPixelsPerUnit)
-            {
-                drawList.AddLine(new Vector2(canvasMin.X + x, canvasMin.Y), new Vector2(canvasMin.X + x, canvasMax.Y), MathF.Abs((canvasMin.X + x) - panOrigin.X) < 0.01 ? 0xFF008000 : 0xFF505050);
-            }
-            for (float y = gridStart.Y % gridPixelsPerUnit; y < canvasSize.Y; y += gridPixelsPerUnit)
-            {
-                drawList.AddLine(new Vector2(canvasMin.X, canvasMin.Y + y), new Vector2(canvasMax.X, canvasMin.Y + y), MathF.Abs((canvasMin.Y + y) - panOrigin.Y) < 0.01 ? 0xFF000080 : 0xFF505050);
-            }
-        }
-
-        private void PopulateArea()
-        {
-            var root = selectedArea.GetRootNode();
-
-            if (((BymlHashTable)root).ContainsKey("BgUnits"))
-            {
-                //BgUnits are in an array.
-                BymlArrayNode bgUnitsArray = (BymlArrayNode)((BymlHashTable)root)["BgUnits"];
-
-                foreach (BymlHashTable bgUnit in bgUnitsArray.Array)
-                {
-                    if (bgUnit.ContainsKey("Walls"))
-                    {
-                        BymlArrayNode wallsArray = (BymlArrayNode)((BymlHashTable)bgUnit)["Walls"];
-
-                        foreach (BymlHashTable walls in wallsArray.Array)
-                        {
-                            BymlHashTable externalRail = (BymlHashTable)walls["ExternalRail"];
-                            BymlArrayNode pointsArray = (BymlArrayNode)externalRail["Points"];
-                            List<Vector2> pointsList = new();
-                            foreach (BymlHashTable points in pointsArray.Array)
-                            {
-                                var pos = (BymlArrayNode)points["Translate"];
-                                float x = ((BymlNode<float>)pos[0]).Data;
-                                float y = ((BymlNode<float>)pos[1]).Data;
-                                AddPoint(new Vector2(x, y), 0xFFFFFFFF);
-                                pointsList.Add(new Vector2(x, y));
-                            }
-                            for (int i = 0; i < pointsList.Count - 1; i++)
-                            {
-                                DrawLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF);
-                            }
-                            bool isClosed = ((BymlNode<bool>)externalRail["IsClosed"]).Data;
-                            if (isClosed)
-                            {
-                                DrawLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF);
-                            }
-                        }
-                    }
-                }
-            }
-
-            BymlArrayNode actorArray = (BymlArrayNode)((BymlHashTable)root)["Actors"];
- 
-            foreach (BymlHashTable actor in actorArray.Array)
-            {
-                BymlArrayNode translationArr = (BymlArrayNode)actor["Translate"];
-
-                string layer = ((BymlNode<string>)actor["Layer"]).Data;
-
-                if (mHasFilledLayers)
-                {
-                    if (mLayersVisibility.TryGetValue(layer, out bool isVisible) && isVisible)
-                    {
-                        float x = ((BymlNode<float>)translationArr[0]).Data;
-                        float y = ((BymlNode<float>)translationArr[1]).Data;
-                        Vector2 topLeft = new Vector2(x - 0.5f, y + 0.5f);
-                        Vector2 bottomLeft = new Vector2(x - 0.5f, y - 0.5f);
-
-                        AddPoint(topLeft, (uint)Color.SpringGreen.ToArgb());
-                        AddPoint(bottomLeft, (uint)Color.SpringGreen.ToArgb());
-                        DrawLine(topLeft, bottomLeft, (uint)Color.SpringGreen.ToArgb());
-
-                        Vector2 topRight = new Vector2(x + 0.5f, y + 0.5f);
-                        Vector2 bottomRight = new Vector2(x + 0.5f, y - 0.5f);
-
-                        AddPoint(topRight, (uint)Color.SpringGreen.ToArgb());
-                        AddPoint(bottomRight, (uint)Color.SpringGreen.ToArgb());
-                        DrawLine(topRight, bottomRight, (uint)Color.SpringGreen.ToArgb());
-
-                        DrawLine(topLeft, topRight, (uint)Color.SpringGreen.ToArgb());
-                        DrawLine(bottomLeft, bottomRight, (uint)Color.SpringGreen.ToArgb());
-                    }
-                }
-            }
-        }
-
-        private void AddPoint(Vector2 gridPos, uint colour)
-        {
-            Vector2 modPos = panOrigin + (gridPos * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-            drawList.AddCircleFilled(modPos, 2, colour);
-            //drawList.AddText(modPos, 0xFFFFFFFF, gridPos.ToString());
-        }
-
-        private void DrawLine(Vector2 gridPos1, Vector2 gridPos2, uint colour)
-        {
-            Vector2 modPos1 = panOrigin + (gridPos1 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-            Vector2 modPos2 = panOrigin + (gridPos2 * new Vector2(gridPixelsPerUnit, -gridPixelsPerUnit));
-            drawList.AddLine(modPos1, modPos2, colour);
         }
 
         public Course GetCourse()
