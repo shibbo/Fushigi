@@ -1,4 +1,4 @@
-﻿using Fushigi.Byml;
+using Fushigi.Byml;
 using Fushigi.course;
 using ImGuiNET;
 using Silk.NET.Input;
@@ -365,11 +365,19 @@ namespace Fushigi.ui.widgets
                             color, isHovered ? 2.5f : 1.5f);
                     }
 
-                    if (HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos()))
+                    string name = ((BymlNode<string>)actor["Gyaml"]).Data;
+                    
+                    bool isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
+
+                    if(name.Contains("Area"))
+                    {
+                        isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
+                            ImGui.GetMousePos());
+                    }
+
+                    if (isHovered)
                     {
                         newHoveredActor = actor;
-
-                        string name = ((BymlNode<string>)actor["Gyaml"]).Data;
 
                         ImGui.BeginTooltip();
                         ImGui.SetTooltip($"{name}");
@@ -407,6 +415,34 @@ namespace Fushigi.ui.widgets
 
             //no separating axis found -> collision
             return true;
+        }
+
+        /// <summary>
+        /// Does a collision check between a LineLoop and a point
+        /// </summary>
+        /// <param name="polygon">Points of a LineLoop</param>
+        /// <param name="point">Point</param>
+        /// <returns></returns>
+        public static bool HitTestLineLoopPoint(ReadOnlySpan<Vector2> points, float thickness, Vector2 point)
+        {
+            for (int i = 0; i < points.Length; i++)
+            {
+                var p1 = points[i];
+                var p2 = points[(i + 1) % points.Length];
+                if (HitTestPointLine(point, 
+                    p1, p2, thickness))
+                    return true;
+            }
+
+            return false;
+        }
+
+        bool HitTestPointLine(Vector2 p, Vector2 a, Vector2 b, float thickness)
+        {
+            Vector2 pa = p-a, ba = b-a;
+            float h = MathF.Clamp( Vector2.Dot(pa,ba)/
+                      Vector2.Dot(ba,ba), 0, 1 );
+            return ( pa - ba*h ).Length < thickness/2;
         }
     }
 }
