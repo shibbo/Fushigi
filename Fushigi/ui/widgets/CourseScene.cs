@@ -328,43 +328,39 @@ namespace Fushigi.ui.widgets
 
         private static void PlacementNode(BymlHashTable node)
         {
-            var pos = (BymlArrayNode)node["Translate"];
-            var rot = (BymlArrayNode)node["Rotate"];
-            var scale = (BymlArrayNode)node["Scale"];
-
-            if (ImGui.CollapsingHeader("Position"))
+            void EditFloat3(string label, BymlArrayNode node)
             {
-                ImGui.PushID("Position");
-                ImGui.Indent();
-                ImGui.InputFloat("X", ref ((BymlNode<float>)pos[0]).Data);
-                ImGui.InputFloat("Y", ref ((BymlNode<float>)pos[1]).Data);
-                ImGui.InputFloat("Z", ref ((BymlNode<float>)pos[2]).Data);
-                ImGui.Unindent();
-                ImGui.PopID();
+                var vec = new System.Numerics.Vector3(
+                           ((BymlNode<float>)node[0]).Data,
+                           ((BymlNode<float>)node[1]).Data,
+                           ((BymlNode<float>)node[2]).Data);
+
+                ImGui.Text(label);
+                ImGui.NextColumn();
+
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
+
+                if (ImGui.DragFloat3($"##{label}", ref vec))
+                {
+                    ((BymlNode<float>)node[0]).Data = vec.X;
+                    ((BymlNode<float>)node[1]).Data = vec.Y;
+                    ((BymlNode<float>)node[2]).Data = vec.Z;
+                }
+                ImGui.PopItemWidth();
+
+                ImGui.NextColumn();
             }
 
-            if (ImGui.CollapsingHeader("Rotation"))
+            if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
             {
-                ImGui.PushID("Rotation");
-                ImGui.Indent();
-                ImGui.InputFloat("X", ref ((BymlNode<float>)rot[0]).Data);
-                ImGui.InputFloat("Y", ref ((BymlNode<float>)rot[1]).Data);
-                ImGui.InputFloat("Z", ref ((BymlNode<float>)rot[2]).Data);
-                ImGui.Unindent();
-                ImGui.PopID();
-            }
+                ImGui.Columns(2);
 
-            if (ImGui.CollapsingHeader("Scale"))
-            {
-                ImGui.PushID("Scale");
-                ImGui.Indent();
-                ImGui.InputFloat("X", ref ((BymlNode<float>)scale[0]).Data);
-                ImGui.InputFloat("Y", ref ((BymlNode<float>)scale[1]).Data);
-                ImGui.InputFloat("Z", ref ((BymlNode<float>)scale[2]).Data);
-                ImGui.Unindent();
-                ImGui.PopID();
-            }
+                EditFloat3("Scale", (BymlArrayNode)node["Scale"]);
+                EditFloat3("Rotation", (BymlArrayNode)node["Rotate"]);
+                EditFloat3("Position", (BymlArrayNode)node["Translate"]);
 
+                ImGui.Columns(1);
+            }
         }
 
         private void DynamicParamNode(BymlHashTable node, string actorName)
@@ -385,8 +381,17 @@ namespace Fushigi.ui.widgets
                 {
                     ImGui.Indent();
 
+                    ImGui.Columns(2);
+
                     foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
                     {
+                        string id = $"##{pair.Key}";
+
+                        ImGui.Text(pair.Key);
+                        ImGui.NextColumn();
+
+                        ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
+
                         if (dynamicNode.ContainsKey(pair.Key))
                         {
                             var paramNode = dynamicNode[pair.Key];
@@ -395,20 +400,20 @@ namespace Fushigi.ui.widgets
                             {
                                 case "S16":
                                 case "S32":
-                                    ImGui.InputInt(pair.Key, ref ((BymlNode<int>)paramNode).Data);
+                                    ImGui.InputInt(id, ref ((BymlNode<int>)paramNode).Data);
                                     break;
                                 case "Bool":
-                                    ImGui.Checkbox(pair.Key, ref ((BymlNode<bool>)paramNode).Data);
+                                    ImGui.Checkbox(id, ref ((BymlNode<bool>)paramNode).Data);
                                     break;
                                 case "F32":
-                                    ImGui.InputFloat(pair.Key, ref ((BymlNode<float>)paramNode).Data);
+                                    ImGui.InputFloat(id, ref ((BymlNode<float>)paramNode).Data);
                                     break;
                                 case "String":
-                                    ImGui.InputText(pair.Key, ref ((BymlNode<string>)paramNode).Data, 1024);
+                                    ImGui.InputText(id, ref ((BymlNode<string>)paramNode).Data, 1024);
                                     break;
                                 case "F64":
                                     double val = ((BymlBigDataNode<double>)paramNode).Data;
-                                    ImGui.InputDouble(pair.Key, ref val);
+                                    ImGui.InputDouble(id, ref val);
                                     break;
                             }
                         }
@@ -422,27 +427,27 @@ namespace Fushigi.ui.widgets
                                 case "U32":
                                     {
                                         int val = Convert.ToInt32(pair.Value.InitValue);
-                                        ImGui.InputInt(pair.Key, ref val);
+                                        ImGui.InputInt(id, ref val);
                                         break;
                                     }
 
                                 case "Bool":
                                     {
                                         bool val = (bool)pair.Value.InitValue;
-                                        ImGui.Checkbox(pair.Key, ref val);
+                                        ImGui.Checkbox(id, ref val);
                                         break;
                                     }
                                 case "F32":
                                     {
                                         float val = Convert.ToSingle(pair.Value.InitValue);
-                                        ImGui.InputFloat(pair.Key, ref val);
+                                        ImGui.InputFloat(id, ref val);
                                         break;
                                     }
 
                                 case "F64":
                                     {
                                         double val = Convert.ToDouble(pair.Value.InitValue);
-                                        if (ImGui.InputDouble(pair.Key, ref val))
+                                        if (ImGui.InputDouble(id, ref val))
                                         {
 
                                         }
@@ -450,7 +455,14 @@ namespace Fushigi.ui.widgets
                                     }
                             }
                         }
+
+                        ImGui.PopItemWidth();
+
+                        ImGui.NextColumn();
                     }
+
+                    ImGui.Columns(1);
+
                     ImGui.Unindent();
                 }
             }
