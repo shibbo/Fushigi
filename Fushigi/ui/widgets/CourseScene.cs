@@ -98,6 +98,13 @@ namespace Fushigi.ui.widgets
             {
                 if (ImGui.BeginTabItem(area.GetName()))
                 {
+                    // Unselect actor on tab change
+                    // This is so that users do not see an actor selected from another area
+                    if (selectedArea != area)
+                    {
+                        mSelectedActor = null;
+                    }
+
                     selectedArea = area;
 
                     ImGui.EndTabItem();
@@ -127,31 +134,34 @@ namespace Fushigi.ui.widgets
 
         private void ActorParameterPanel()
         {
-            if (mSelectedActor is null)
-            {
-                return;
-            }
-
             bool status = ImGui.Begin("Actor Parameters");
 
-            string actorName = ((BymlNode<string>)mSelectedActor["Gyaml"]).Data;
-
-            ImGui.Text(actorName);
-
-            if (ImGui.BeginChild("Placement"))
+            if (mSelectedActor is null)
             {
-                PlacementNode(mSelectedActor);
-            }
-
-            /* actor parameters are loaded from the dynamic node */
-            if (mSelectedActor.ContainsKey("Dynamic"))
-            {
-                DynamicParamNode(mSelectedActor, actorName);
+                ImGui.Text("No Actor is selected");
             }
             else
             {
-                ImGui.TreePop();
+                string actorName = ((BymlNode<string>)mSelectedActor["Gyaml"]).Data;
+
+                ImGui.Text(actorName);
+
+                if (ImGui.BeginChild("Placement"))
+                {
+                    PlacementNode(mSelectedActor);
+                }
+
+                /* actor parameters are loaded from the dynamic node */
+                if (mSelectedActor.ContainsKey("Dynamic"))
+                {
+                    DynamicParamNode(mSelectedActor, actorName);
+                }
+                else
+                {
+                    ImGui.TreePop();
+                }
             }
+            
 
             if (status)
             {
