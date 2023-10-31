@@ -64,8 +64,6 @@ namespace Fushigi.ui.widgets
 
             ActorParameterPanel();
 
-            LayersPanel();
-
             if (status)
             {
                 ImGui.End();
@@ -103,33 +101,6 @@ namespace Fushigi.ui.widgets
             if (tabStatus)
             {
                 ImGui.EndTabBar();
-            }
-        }
-
-        private void LayersPanel()
-        {
-            bool status = ImGui.Begin("Layers");
-
-            if (ImGui.Checkbox("All Layers", ref mAllLayersVisible))
-            {
-                foreach (string layer in mLayersVisibility.Keys)
-                {
-                    mLayersVisibility[layer] = mAllLayersVisible;
-                }
-            }
-
-            foreach (string layer in mLayersVisibility.Keys)
-            {
-                bool isVisible = mLayersVisibility[layer];
-                if (ImGui.Checkbox(layer, ref isVisible))
-                {
-                    mLayersVisibility[layer] = isVisible;
-                }
-            }
-
-            if (status)
-            {
-                ImGui.End();
             }
         }
 
