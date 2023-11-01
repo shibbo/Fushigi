@@ -16,13 +16,7 @@ namespace Fushigi.util
             }
 
             var compressedBytes = File.ReadAllBytes(filePath);
-            byte[] decompressedData;
-
-            using (var decompressor = new ZstdNet.Decompressor())
-            {
-                decompressedData = decompressor.Unwrap(compressedBytes);
-            }
-
+            byte[] decompressedData = DecompressData(compressedBytes);
             return decompressedData;
         }
 
@@ -30,12 +24,25 @@ namespace Fushigi.util
         {
             byte[] decompressedData;
 
+            if (!IsFileCompressed(fileBytes)) {
+                throw new Exception("FileUtil::DecompressData -- File not ZSTD Compressed.");
+            }
             using (var decompressor = new ZstdNet.Decompressor())
             {
                 decompressedData = decompressor.Unwrap(fileBytes);
             }
 
             return decompressedData;
+        }
+
+        public static bool IsFileCompressed(byte[] fileBytes)
+        {
+            if (fileBytes[0] == 0x28 && fileBytes[1] == 0xb5) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
         public static byte[] CompressData(byte[] fileBytes)
