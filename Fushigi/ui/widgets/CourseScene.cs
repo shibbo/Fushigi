@@ -98,14 +98,16 @@ namespace Fushigi.ui.widgets
             {
                 if (ImGui.BeginTabItem(area.GetName()))
                 {
-                    // Unselect actor on tab change
-                    // This is so that users do not see an actor selected from another area
+                    // Tab change
                     if (selectedArea != area)
                     {
+                        selectedArea = area;
+                        viewport = new(area);
+
+                        // Unselect actor
+                        // This is so that users do not see an actor selected from another area
                         mSelectedActor = null;
                     }
-
-                    selectedArea = area;
 
                     ImGui.EndTabItem();
                 }
