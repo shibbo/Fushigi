@@ -188,8 +188,21 @@ namespace Fushigi.ui.widgets
             else
             {
                 string actorName = ((BymlNode<string>)mSelectedActor["Gyaml"]).Data;
+                string name = ((BymlNode<string>)mSelectedActor["Name"]).Data;
 
                 ImGui.Text(actorName);
+
+                ImGui.Separator();
+
+                ImGui.Columns(2);
+
+                ImGui.Text("Name");
+
+                ImGui.NextColumn();
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
+                ImGui.InputText($"##{name}", ref name, 512);
+
+                ImGui.Columns(1);
 
                 if (ImGui.BeginChild("Placement"))
                 {
@@ -200,10 +213,6 @@ namespace Fushigi.ui.widgets
                 if (mSelectedActor.ContainsKey("Dynamic"))
                 {
                     DynamicParamNode(mSelectedActor, actorName);
-                }
-                else
-                {
-                    ImGui.TreePop();
                 }
             }
             
@@ -301,6 +310,7 @@ namespace Fushigi.ui.widgets
                         foreach (BymlHashTable node in actorArray.Array.Cast<BymlHashTable>())
                         {
                             string actorName = ((BymlNode<string>)node["Gyaml"]).Data;
+                            string name = ((BymlNode<string>)node["Name"]).Data;
                             ulong actorHash = ((BymlBigDataNode<ulong>)node["Hash"]).Data;
                             string actorLayer = ((BymlNode<string>)node["Layer"]).Data;
 
@@ -312,10 +322,17 @@ namespace Fushigi.ui.widgets
                             bool isSelected = (node == mSelectedActor);
 
                             ImGui.PushID(actorHash.ToString());
-                            if (ImGui.Selectable(actorName, isSelected))
+                            ImGui.Columns(2);
+                            if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
                             {
                                 mSelectedActor = node;
                             }
+                            ImGui.NextColumn();
+                            ImGui.BeginDisabled();
+                            ImGui.Text(name);
+                            ImGui.EndDisabled();
+                            ImGui.Columns(1);
+
                             ImGui.PopID();
                         }
                         ImGui.EndListBox();
@@ -357,6 +374,7 @@ namespace Fushigi.ui.widgets
 
             if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
             {
+                ImGui.Indent();
                 ImGui.Columns(2);
 
                 EditFloat3("Scale", (BymlArrayNode)node["Scale"]);
@@ -364,6 +382,7 @@ namespace Fushigi.ui.widgets
                 EditFloat3("Position", (BymlArrayNode)node["Translate"]);
 
                 ImGui.Columns(1);
+                ImGui.Unindent();
             }
         }
 
