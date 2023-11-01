@@ -170,11 +170,22 @@ namespace Fushigi.ui
                 var romfs = UserSettings.GetRomFSPath();
                 var mod = UserSettings.GetModRomFSPath();
 
-                if (PathSelector.Show("RomFS Game Path", ref romfs, !string.IsNullOrEmpty(romfs)))
+                if (PathSelector.Show("RomFS Game Path", ref romfs, Directory.Exists($"{romfs}/BancMapUnit")))
+                {
                     UserSettings.SetRomFSPath(romfs);
+                    /* if our parameter database isn't set, set it */
+                    if (!ParamDB.sIsInit)
+                    {
+                        ParamDB.Load();
+                    }
+                }
+
+                Tooltip.Show("The game files which are stored under the romfs folder.");
 
                 if (PathSelector.Show("Save Directory", ref mod, !string.IsNullOrEmpty(mod)))
                     UserSettings.SetModRomFSPath(mod);
+
+                Tooltip.Show("The save output where to save modified romfs files");
 
                 ImGui.End();
             }
