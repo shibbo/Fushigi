@@ -149,20 +149,20 @@
         {
             if (StringTable == null)
                 throw new InvalidDataException("No string table present!");
-            if (StringTable.Strings.Length < index)
+            if (StringTable.Strings.Count < index)
                 throw new InvalidDataException("Out of bounds reference to the string table!");
 
-            return StringTable.Strings[index];
+            return StringTable.Strings[(int)index];
         }
 
         internal string GetFromHashKeyTable(uint index)
         {
             if (HashKeyTable == null)
                 throw new InvalidDataException("No hash key table present!");
-            if (HashKeyTable.Strings.Length < index)
+            if (HashKeyTable.Strings.Count < index)
                 throw new InvalidDataException("Out of bounds reference to the hash key table!");
 
-            return HashKeyTable.Strings[index];
+            return HashKeyTable.Strings[(int)index];
         }
 
         private class CachedNode

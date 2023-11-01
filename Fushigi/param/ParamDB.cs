@@ -56,6 +56,11 @@ namespace Fushigi.param
             return sComponents[componentName].Parameters;
         }
 
+        public static string[] GetActors()
+        {
+            return sActors.Keys.ToArray();
+        }
+
         public static void Load()
         {
             /* if we have already been initialized, we skip this process */
@@ -75,8 +80,15 @@ namespace Fushigi.param
                 ActorParam param = new ActorParam();
                 param.Components = new List<string>();
 
-                /* each .pack file is ZSTD compressed */
-                byte[] fileBytes = FileUtil.DecompressFile(file);
+                /* each .pack file should be ZSTD compressed, if not, skip the file */
+                byte[] fileBytes;
+                try {
+                    fileBytes = FileUtil.DecompressFile(file);
+                }
+                catch (Exception) {
+                    continue;
+                }
+
                 SARC.SARC sarc = new SARC.SARC(new MemoryStream(fileBytes));
 
                 /* /Component/Blackboard/BlackboardParamTable is where all of the actor-specific parameters live */

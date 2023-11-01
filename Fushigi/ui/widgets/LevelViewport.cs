@@ -10,6 +10,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 using Vector3 = System.Numerics.Vector3;
 
 namespace Fushigi.ui.widgets
@@ -20,11 +21,13 @@ namespace Fushigi.ui.widgets
         Matrix4x4 mViewProjectionMatrix;
         Matrix4x4 mViewProjectionMatrixInverse;
         ImDrawListPtr mDrawList;
+        public EditorState mEditorState = EditorState.Picking;
 
         Vector2 mSize = Vector2.Zero;
         private ISet<BymlHashTable> mSelectedActors = new HashSet<BymlHashTable>();
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
+        public string mActorToAdd = "";
 
         public float FOV = MathF.PI / 2;
 
@@ -37,6 +40,13 @@ namespace Fushigi.ui.widgets
         public float GridLineThickness = 1.5f;
 
         bool mSelectionChanged = false;
+
+        public enum EditorState
+        {
+            Picking,
+            AddingActor,
+            DeletingActor
+        }
 
         public Vector2 WorldToScreen(Vector3 pos) => WorldToScreen(pos, out _);
         public Vector2 WorldToScreen(Vector3 pos, out float ndcDepth)
@@ -78,6 +88,15 @@ namespace Fushigi.ui.widgets
                 {
                     Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
                         ScreenToWorld(ImGui.GetMousePos());
+                }
+
+                if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                {
+                    if (ImGui.GetIO().KeyAlt)
+                    {
+                        Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
+                        ScreenToWorld(ImGui.GetMousePos());
+                    }
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.LeftArrow))
@@ -142,35 +161,133 @@ namespace Fushigi.ui.widgets
 
             DrawAreaContent();
 
-            /* if the user clicked somewhere and it was not hovered over an element, we clear our selected actors array */
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            if (mEditorState == EditorState.Picking)
             {
-                if (HoveredActor == null)
+                /* if the user clicked somewhere and it was not hovered over an element, we clear our selected actors array */
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    mSelectionChanged = false;
+                    if (HoveredActor == null)
+                    {
+                        mSelectionChanged = false;
+                        mSelectedActors.Clear();
+                    }
+                }
+
+                if (ImGui.IsItemClicked())
+                {
+                    if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+                    {
+                        mSelectedActors.Add(HoveredActor);
+                        mSelectionChanged = true;
+                    }
+                    else
+                    {
+                        mSelectedActors.Clear();
+                        mSelectedActors.Add(HoveredActor);
+                        mSelectionChanged = true;
+                    }
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.Delete))
+                {
+                    mEditorState = EditorState.DeletingActor;
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                {
                     mSelectedActors.Clear();
                 }
             }
-
-            if (ImGui.IsItemClicked())
+            else if (mEditorState == EditorState.AddingActor)
             {
-                if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+                if (ImGui.IsKeyDown(ImGuiKey.Escape))
                 {
-                    mSelectedActors.Add(HoveredActor);
+                    mEditorState = EditorState.Picking;
+                }
+
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                {
+                    /* for adding actors, we want to avoid making new nodes as much as possible so we want to try copying existing ones with the same name and setting default values */
+                    /* so let's find an actor that shares our selected name */
+                    BymlHashTable root = (BymlHashTable)mArea.GetRootNode();
+                    BymlArrayNode actorArray = (BymlArrayNode)root["Actors"];
+
+                    BymlHashTable? newActor = null;
+
+                    foreach (BymlHashTable actor in actorArray.Array)
+                    {
+                        string actorName = ((BymlNode<string>)actor["Gyaml"]).Data;
+
+                        if (actorName == mActorToAdd)
+                        {
+                            newActor = new BymlHashTable(actor);
+                            break;
+                        }
+                    }
+
+                    if (newActor != null)
+                    {
+                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+
+                        posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                        posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+
+                        var posNode = (BymlArrayNode)newActor["Translate"];
+                        var rotNode = (BymlArrayNode)newActor["Rotate"];
+
+                        var bytes = new byte[sizeof(UInt64)];
+                        RNGCryptoServiceProvider Gen = new RNGCryptoServiceProvider();
+                        Gen.GetBytes(bytes);
+                        ulong hash = BitConverter.ToUInt64(bytes, 0);
+
+                        ((BymlBigDataNode<ulong>)newActor["Hash"]).Data = hash;
+
+                        BymlNode<float> rot_x = new BymlNode<float>(BymlNodeId.Float, 0.0f);
+                        BymlNode<float> rot_y = new BymlNode<float>(BymlNodeId.Float, 0.0f);
+                        BymlNode<float> rot_z = new BymlNode<float>(BymlNodeId.Float, 0.0f);
+
+                        rotNode.SetNodeAtIdx(rot_x, 0);
+                        rotNode.SetNodeAtIdx(rot_y, 0);
+                        rotNode.SetNodeAtIdx(rot_z, 0);
+
+                        BymlNode<float> x = new BymlNode<float>(BymlNodeId.Float, posVec.X);
+                        BymlNode<float> y = new BymlNode<float>(BymlNodeId.Float, posVec.Y);
+
+                        posNode.SetNodeAtIdx(x, 0);
+                        posNode.SetNodeAtIdx(y, 1);
+
+                        actorArray.AddNodeToArray(newActor);
+                    }
+
+                    mEditorState = EditorState.Picking;
+                }
+            }
+            else if (mEditorState == EditorState.DeletingActor)
+            {
+                if (mSelectedActors.Count > 0)
+                {
+                    BymlHashTable root = (BymlHashTable)mArea.GetRootNode();
+                    BymlArrayNode actorArray = (BymlArrayNode)root["Actors"];
+
+                    int idx = -1;
+
+                    foreach (BymlHashTable actor in mSelectedActors)
+                    {
+                        if (actorArray.Array.Contains(actor))
+                        {
+                            actorArray.Array.Remove(actor);
+                        }
+                    }
+
+                    mEditorState = EditorState.Picking;
                 }
                 else
                 {
-                    mSelectedActors.Clear();
-                    mSelectedActors.Add(HoveredActor);
+                    // blah blah we wait for user to select actors blah blah
+                    mEditorState = EditorState.Picking;
                 }
-                
-                mSelectionChanged = true;
             }
 
-            if (ImGui.IsKeyDown(ImGuiKey.Escape))
-            {
-                mSelectedActors.Clear();
-            }
 
             ImGui.PopClipRect();
         }

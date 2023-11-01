@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Fushigi.util
         struct Settings
         {
             public string RomFSPath;
+            public string RomFSModPath;
             public Dictionary<string, string> ModPaths;
             public List<string> RecentCourses;
         }
@@ -27,6 +29,7 @@ namespace Fushigi.util
             {
                 AppSettings.RomFSPath = "";
                 AppSettings.ModPaths = new();
+                AppSettings.RomFSModPath = "";
                 AppSettings.RecentCourses = new List<string>(MaxRecents);
             }
             else
@@ -43,11 +46,23 @@ namespace Fushigi.util
         public static void SetRomFSPath(string path)
         {
             AppSettings.RomFSPath = path;
+            Save(); //save setting
+        }
+
+        public static void SetModRomFSPath(string path)
+        {
+            AppSettings.RomFSModPath = path;
+            Save(); //save setting
         }
 
         public static string GetRomFSPath()
         {
             return AppSettings.RomFSPath;
+        }
+
+        public static string GetModRomFSPath()
+        {
+            return AppSettings.RomFSModPath;
         }
 
         public static void AppendModPath(string modname, string path)

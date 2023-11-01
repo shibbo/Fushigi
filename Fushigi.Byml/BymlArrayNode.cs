@@ -4,9 +4,9 @@
     {
         public BymlNodeId Id => BymlNodeId.Array;
 
-        public IBymlNode[] Array;
+        public List<IBymlNode> Array;
 
-        public int Length => Array.Length;
+        public int Length => Array.Count;
 
         public IBymlNode this[int i] => Array[i];
 
@@ -27,12 +27,27 @@
             while (stream.Position % 4 != 0)
                 stream.Position++;
 
-            Array = new IBymlNode[count];
+            Array = new List<IBymlNode>();
             for (var i = 0; i < count; i++)
             {
                 var id = types[i];
-                Array[i] = by.ReadNode(reader, id);
+                Array.Add(by.ReadNode(reader, id));
             }
+        }
+
+        public void SetNodeAtIdx(IBymlNode node, int idx)
+        {
+            Array[idx] = node;
+        }
+
+        public BymlArrayNode(uint count)
+        {
+            Array = new List<IBymlNode>();
+        }
+
+        public void AddNodeToArray(IBymlNode node)
+        {
+            Array.Add(node);
         }
     }
 }
