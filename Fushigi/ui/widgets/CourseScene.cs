@@ -19,34 +19,17 @@ namespace Fushigi.ui.widgets
         readonly Course course;
         CourseArea selectedArea;
 
-        private const int gridBasePixelsPerUnit = 32;
-
-        ImDrawListPtr drawList;
-
-        Vector2 areaScenePan = new();
-        float areaSceneZoom = 1;
-        float gridPixelsPerUnit;
-
-        //canvas viewport coordinates
-        Vector2 canvasMin;
-        Vector2 canvasSize;
-        Vector2 canvasMax;
-        Vector2 canvasMidpoint;
-
-        Vector2 panOrigin;
         readonly Dictionary<string, bool> mLayersVisibility = [];
         bool mHasFilledLayers = false;
-        readonly IWindow mParentWindow;
         bool mAllLayersVisible = true;
 
         BymlHashTable? mSelectedActor = null;
 
-        public CourseScene(Course course, IWindow window)
+        public CourseScene(Course course)
         {
             this.course = course;
             selectedArea = course.GetArea(0);
             viewport = new LevelViewport(selectedArea);
-            mParentWindow = window;
         }
 
         public void DrawUI()

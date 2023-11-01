@@ -65,7 +65,7 @@ namespace Fushigi.course
             return mAreas.ElementAt(idx);
         }
 
-        public CourseArea GetArea(string name)
+        public CourseArea? GetArea(string name)
         {
             foreach (CourseArea area in mAreas)
             {

@@ -46,7 +46,7 @@ namespace Fushigi.ui
             if (latestCourse != null)
             {
                 mCurrentCourseName = latestCourse;
-                mSelectedCourseScene = new(new(mCurrentCourseName), mWindow);
+                mSelectedCourseScene = new(new(mCurrentCourseName));
                 mIsChoosingCourse = false;
             }
         }
@@ -150,7 +150,7 @@ namespace Fushigi.ui
                             // Only change the course if it is different from current
                             if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
                             {
-                                mSelectedCourseScene = new(new(courseLocation), mWindow);
+                                mSelectedCourseScene = new(new(courseLocation));
                                 UserSettings.AppendRecentCourse(courseLocation);
                             }
 
