@@ -37,7 +37,12 @@ namespace Fushigi.util
 
         public static bool IsFileCompressed(byte[] fileBytes)
         {
-            if (fileBytes[0] == 0x28 && fileBytes[1] == 0xb5) {
+            /* Zstandard frame metadata */
+            if (fileBytes[0] == 0x28 && fileBytes[1] == 0xb5 && fileBytes[2] == 0x2f && fileBytes[3] == 0xfd) {
+                return true;
+            }
+            /* Skippable frame metadata, skips the first byte because it can be variable */
+            else if (fileBytes[1] == 0x2a && fileBytes[1] == 0x4d && fileBytes[2] == 0x18) {
                 return true;
             }
             else {
