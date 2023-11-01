@@ -22,6 +22,7 @@ namespace Fushigi.ui
         public MainWindow()
         {
             WindowManager.CreateWindow(out mWindow);
+            LoadFromSettings();
             mWindow.Load += () => WindowManager.RegisterRenderDelegate(mWindow, Render);
             mWindow.Closing += Close;
             mWindow.Run();
@@ -31,6 +32,23 @@ namespace Fushigi.ui
         public void Close()
         {
             UserSettings.Save();
+        }
+
+        void LoadFromSettings()
+        {
+            string romFSPath = UserSettings.GetRomFSPath();
+            if (romFSPath != null)
+            {
+                RomFS.SetRoot(romFSPath);
+            }
+
+            string? latestCourse = UserSettings.GetLatestCourse();
+            if (latestCourse != null)
+            {
+                mCurrentCourseName = latestCourse;
+                mSelectedCourseScene = new(new(mCurrentCourseName), mWindow);
+                mIsChoosingCourse = false;
+            }
         }
 
         void DrawMainMenu()
@@ -132,7 +150,8 @@ namespace Fushigi.ui
                             // Only change the course if it is different from current
                             if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
                             {
-                                mSelectedCourseScene = new(new(courseLocation), mWindow);        
+                                mSelectedCourseScene = new(new(courseLocation), mWindow);
+                                UserSettings.AppendRecentCourse(courseLocation);
                             }
 
                         }

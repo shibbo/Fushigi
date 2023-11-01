@@ -32,8 +32,6 @@ namespace Fushigi.util
             else
             {
                 AppSettings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsPath));
-
-                RomFS.SetRoot(AppSettings.RomFSPath);
             }
         }
 
@@ -57,7 +55,7 @@ namespace Fushigi.util
             AppSettings.ModPaths.Add(modname, path);
         }
 
-        public static void AppendRecentFile(string path)
+        public static void AppendRecentCourse(string courseName)
         {
             // please let me know if this isn't a good implementation
             if (AppSettings.RecentCourses.Count == MaxRecents)
@@ -70,12 +68,24 @@ namespace Fushigi.util
 
                 AppSettings.RecentCourses = [.. newArray];
                 // put our brand new path at 9
-                AppSettings.RecentCourses[MaxRecents - 1] = path;
+                AppSettings.RecentCourses[MaxRecents - 1] = courseName;
             }
             else
             {
-                AppSettings.RecentCourses.Add(path);
+                AppSettings.RecentCourses.Add(courseName);
             }
+        }
+
+        public static string? GetLatestCourse()
+        {
+            int size = AppSettings.RecentCourses.Count;
+            
+            if (size == 0)
+            {
+                return null;
+            }
+
+            return AppSettings.RecentCourses[size - 1];
         }
     }
 }
