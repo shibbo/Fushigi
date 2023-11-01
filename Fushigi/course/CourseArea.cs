@@ -31,11 +31,15 @@ namespace Fushigi.course
 
         public void Save()
         {
-            Save($"{RomFS.GetRoot()}/BancMapUnit");
+            //Save using the configured mod romfs path
+            Save($"{UserSettings.GetModRomFSPath()}/BancMapUnit");
         }
 
         public void Save(string folder)
         {
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
             var byml = new Byml.Byml(this.GetRootNode());
             //Save byml into memory to be compressed
             var mem = new MemoryStream();

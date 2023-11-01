@@ -83,13 +83,27 @@ namespace Fushigi.ui
 
                     if (ImGui.MenuItem("Save") && mSelectedCourseScene != null)
                     {
-                        mSelectedCourseScene.Save();
+                        //Ensure the romfs path is set for saving
+                        if (!string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
+                            mSelectedCourseScene.Save();
+                        else //Else configure the mod path
+                        {
+                            FolderDialog dlg = new FolderDialog();
+                            if (dlg.ShowDialog("Select the romfs directory to save to."))
+                            {
+                                UserSettings.SetModRomFSPath(dlg.SelectedPath);
+                                mSelectedCourseScene.Save();
+                            }
+                        }
                     }
                     if (ImGui.MenuItem("Save As") && mSelectedCourseScene != null)
                     {
                         FolderDialog dlg = new FolderDialog();
-                        if (dlg.ShowDialog())
-                            mSelectedCourseScene.Save(dlg.SelectedPath);
+                        if (dlg.ShowDialog("Select the romfs directory to save to."))
+                        {
+                            UserSettings.SetModRomFSPath(dlg.SelectedPath);
+                            mSelectedCourseScene.Save();
+                        }
                     }
 
                     ImGui.PopStyleColor();
