@@ -4,6 +4,7 @@ using Fushigi.param;
 using ImGuiNET;
 using Newtonsoft.Json.Linq;
 using Silk.NET.Input;
+using Silk.NET.SDL;
 using Silk.NET.Windowing;
 using System.Diagnostics;
 using System.Drawing;
@@ -15,6 +16,7 @@ namespace Fushigi.ui.widgets
 {
     class CourseScene
     {
+
         LevelViewport viewport;
         readonly Course course;
         CourseArea selectedArea;
@@ -38,6 +40,7 @@ namespace Fushigi.ui.widgets
         bool mHasFilledLayers = false;
         readonly IWindow mParentWindow;
         bool mAllLayersVisible = true;
+        bool mShowAddActor = false;
 
         BymlHashTable? mSelectedActor = null;
 
@@ -63,6 +66,11 @@ namespace Fushigi.ui.widgets
             ActorsPanel();
 
             ActorParameterPanel();
+
+            if (mShowAddActor)
+            {
+                SelectActor();
+            }
 
             if (viewport.HasSelectionChanged())
             {
@@ -117,11 +125,48 @@ namespace Fushigi.ui.widgets
             }
         }
 
+        private void SelectActor()
+        {
+            bool status = ImGui.Begin("Add Actor");
+
+            ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail());
+
+            foreach (string actor in ParamDB.GetActors())
+            {
+                ImGui.Selectable(actor);
+
+                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                {
+                    viewport.mEditorState = LevelViewport.EditorState.AddingActor;
+                    viewport.mActorToAdd = actor;
+                    mShowAddActor = false;
+                }
+            }
+
+            ImGui.EndListBox();
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+
         private void ActorsPanel()
         {
+
             var root = selectedArea.GetRootNode();
 
             ImGui.Begin("Actors");
+
+            if (ImGui.Button("Add Actor"))
+            {
+                mShowAddActor = true;
+            }
+
+            if (ImGui.Button("Delete Actor"))
+            {
+                viewport.mEditorState = LevelViewport.EditorState.DeletingActor;
+            }
 
             // actors are in an array
             BymlArrayNode actorArray = (BymlArrayNode)((BymlHashTable)root)["Actors"];

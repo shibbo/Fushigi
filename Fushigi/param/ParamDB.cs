@@ -56,6 +56,11 @@ namespace Fushigi.param
             return sComponents[componentName].Parameters;
         }
 
+        public static string[] GetActors()
+        {
+            return sActors.Keys.ToArray();
+        }
+
         public static void Load()
         {
             /* if we have already been initialized, we skip this process */

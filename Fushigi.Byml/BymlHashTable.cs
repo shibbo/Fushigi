@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace Fushigi.Byml
 {
@@ -59,6 +60,33 @@ namespace Fushigi.Byml
 
                 Pairs[i] = entry;
             }
+        }
+
+        public BymlHashTable()
+        {
+            Pairs = null;
+        }
+
+        public BymlHashTable(BymlHashTable rhs)
+        {
+            Pairs = rhs.Pairs;
+        }
+
+        public BymlHashTable(uint count)
+        {
+            Pairs = new BymlHashPair[count];
+        }
+
+        public void AddNode(BymlNodeId type, IBymlNode node, string nodeName, uint idx)
+        {
+            BymlHashPair pair = new()
+            {
+                Id = type,
+                Name = nodeName,
+                Value = node,
+            };
+
+            Pairs[idx] = pair;
         }
 
         public readonly struct KeyView : IReadOnlyList<string>
