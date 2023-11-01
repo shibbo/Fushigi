@@ -8,6 +8,15 @@ namespace Fushigi.util
 {
     public class FileUtil
     {
+        public static string FindContentPath(string path)
+        {
+            //Check for mod folder, then fall to romfs path
+            if (File.Exists($"{UserSettings.GetModRomFSPath()}/{path}"))
+                return $"{UserSettings.GetModRomFSPath()}/{path}";
+
+            return $"{UserSettings.GetRomFSPath()}/{path}";
+        }
+
         public static byte[] DecompressFile(string filePath)
         {
             if (!File.Exists(filePath))
