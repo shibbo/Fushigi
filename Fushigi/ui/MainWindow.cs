@@ -175,6 +175,7 @@ namespace Fushigi.ui
                 if (PathSelector.Show("RomFS Game Path", ref romfs, Directory.Exists($"{romfs}/BancMapUnit")))
                 {
                     UserSettings.SetRomFSPath(romfs);
+                    RomFS.SetRoot(romfs);
                     /* if our parameter database isn't set, set it */
                     if (!ParamDB.sIsInit)
                     {
