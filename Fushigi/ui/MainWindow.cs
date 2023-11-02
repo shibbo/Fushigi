@@ -184,7 +184,30 @@ namespace Fushigi.ui
         {
             if (ImGui.Begin("Welcome"))
             {
-                ImGui.Text("Welcome to Fushigi! Visit 'File->Set RomFS Path' to get started.");
+                ImGui.Text("Welcome to Fushigi! Set the RomFS game path and save directory to get started.");
+
+                var romfs = UserSettings.GetRomFSPath();
+                var mod = UserSettings.GetModRomFSPath();
+
+                ImGui.Indent();
+
+                if (PathSelector.Show("RomFS Game Path", ref romfs, Directory.Exists($"{romfs}/BancMapUnit")))
+                {
+                    UserSettings.SetRomFSPath(romfs);
+                    RomFS.SetRoot(romfs);
+                    /* if our parameter database isn't set, set it */
+                    if (!ParamDB.sIsInit)
+                    {
+                        ParamDB.Load();
+                    }
+                }
+
+                Tooltip.Show("The game files which are stored under the romfs folder.");
+
+                if (PathSelector.Show("Save Directory", ref mod, !string.IsNullOrEmpty(mod)))
+                    UserSettings.SetModRomFSPath(mod);
+
+                Tooltip.Show("The save output where to save modified romfs files");
 
                 ImGui.End();
             }
@@ -207,7 +230,8 @@ namespace Fushigi.ui
             DrawMainMenu();
 
             /* if our RomFS is selected, fill the course list */
-            if (RomFS.GetRoot() != null)
+            if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
+                !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
             {
                 if (mIsChoosingCourse)
                 {
