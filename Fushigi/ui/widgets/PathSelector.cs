@@ -23,15 +23,17 @@ namespace Fushigi.ui.widgets
             if (!System.IO.Directory.Exists(path))
                 isValid = false;
 
-            bool clicked = ImGui.Button($"  -  ##{label}");
-            bool edited = false;
-            ImGui.SameLine();
-
             ImGui.Columns(2);
+
+            ImGui.SetColumnWidth(0, 150);
+
+            bool edited = false;
 
             ImGui.Text(label);
 
             ImGui.NextColumn();
+
+            ImGui.PushItemWidth(ImGui.GetColumnWidth() - 100);
 
             if (!isValid)
             {
@@ -55,6 +57,11 @@ namespace Fushigi.ui.widgets
                 }
                 ImGui.EndPopup();
             }
+
+            ImGui.PopItemWidth();
+
+            ImGui.SameLine();
+            bool clicked = ImGui.Button($"Select##{label}");
 
             ImGui.NextColumn();
 
