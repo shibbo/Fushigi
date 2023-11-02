@@ -170,6 +170,8 @@ namespace Fushigi.ui
                 var romfs = UserSettings.GetRomFSPath();
                 var mod = UserSettings.GetModRomFSPath();
 
+                ImGui.Indent();
+
                 if (PathSelector.Show("RomFS Game Path", ref romfs, Directory.Exists($"{romfs}/BancMapUnit")))
                 {
                     UserSettings.SetRomFSPath(romfs);
