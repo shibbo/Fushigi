@@ -230,7 +230,9 @@ namespace Fushigi.ui
             {
                 ImGui.LoadIniSettingsFromDisk("imgui.ini");
                 LoadFromSettings();
-            }    
+            }
+
+            DrawMainMenu();
 
             // if our RomFS is selected, fill the course list
             // ImGui settings are available frame 3
