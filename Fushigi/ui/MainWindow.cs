@@ -13,6 +13,7 @@ using Fushigi.param;
 using Fushigi.ui.widgets;
 using ImGuiNET;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace Fushigi.ui
 {
@@ -21,8 +22,7 @@ namespace Fushigi.ui
 
         public MainWindow()
         {
-            WindowManager.CreateWindow(out mWindow);
-            LoadFromSettings();
+            WindowManager.CreateWindow(out mWindow);   
             mWindow.Load += () => WindowManager.RegisterRenderDelegate(mWindow, Render);
             mWindow.Closing += Close;
             mWindow.Run();
@@ -215,6 +215,7 @@ namespace Fushigi.ui
 
         public void Render(GL gl, double delta, ImGuiController controller)
         {
+
             /* keep OpenGLs viewport size in sync with the window's size */
             gl.Viewport(mWindow.FramebufferSize);
 
@@ -224,14 +225,20 @@ namespace Fushigi.ui
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             ImGui.DockSpaceOverViewport();
 
-            if(ImGui.GetFrameCount() == 2) //only works after the first frame
+            //only works after the first frame
+            if (ImGui.GetFrameCount() == 2)
+            {
                 ImGui.LoadIniSettingsFromDisk("imgui.ini");
+                LoadFromSettings();
+            }
 
             DrawMainMenu();
 
-            /* if our RomFS is selected, fill the course list */
+            // if our RomFS is selected, fill the course list
+            // ImGui settings are available frame 3
             if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
-                !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
+                !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()) &&
+                ImGui.GetFrameCount() > 2)
             {
                 if (mIsChoosingCourse)
                 {
