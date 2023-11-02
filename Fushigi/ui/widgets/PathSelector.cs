@@ -25,18 +25,24 @@ namespace Fushigi.ui.widgets
 
             bool clicked = ImGui.Button($"  -  ##{label}");
             bool edited = false;
-
             ImGui.SameLine();
+
+            ImGui.Columns(2);
+
+            ImGui.Text(label);
+
+            ImGui.NextColumn();
+
             if (!isValid)
             {
                 ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.5f, 0, 0, 1));
-                ImGui.InputText(label, ref path, 500, ImGuiInputTextFlags.ReadOnly);
+                ImGui.InputText($"##{label}", ref path, 500, ImGuiInputTextFlags.ReadOnly);
                 ImGui.PopStyleColor();
             }
             else
             {
                 ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 0.5f, 0, 1));
-                ImGui.InputText(label, ref path, 500, ImGuiInputTextFlags.ReadOnly);
+                ImGui.InputText($"##{label}", ref path, 500, ImGuiInputTextFlags.ReadOnly);
                 ImGui.PopStyleColor();
             }
 
@@ -49,6 +55,10 @@ namespace Fushigi.ui.widgets
                 }
                 ImGui.EndPopup();
             }
+
+            ImGui.NextColumn();
+
+            ImGui.Columns(1);
 
             if (clicked)
             {
