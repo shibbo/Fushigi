@@ -11,7 +11,9 @@ namespace Fushigi.util
 {
     public static class UserSettings
     {
-        public static readonly string SettingsPath = "UserSettings.json";
+        public static readonly string SettingsDir = 
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        public static readonly string SettingsFile = Path.Combine(SettingsDir, "UserSettings.json");
         public static readonly int MaxRecents = 10;
         static Settings AppSettings;
 
@@ -25,7 +27,7 @@ namespace Fushigi.util
 
         public static void Load()
         {
-            if (!File.Exists(SettingsPath))
+            if (!File.Exists(SettingsFile))
             {
                 AppSettings.RomFSPath = "";
                 AppSettings.ModPaths = new();
@@ -34,13 +36,18 @@ namespace Fushigi.util
             }
             else
             {
-                AppSettings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsPath));
+                AppSettings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsFile));
             }
         }
 
         public static void Save()
         {
-            File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(AppSettings, Formatting.Indented));
+            if (!Directory.Exists(SettingsDir))
+            {
+                Directory.CreateDirectory(SettingsDir);
+            }
+
+            File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(AppSettings, Formatting.Indented));
         }
 
         public static void SetRomFSPath(string path)

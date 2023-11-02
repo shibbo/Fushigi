@@ -37,7 +37,7 @@ namespace Fushigi.ui
         void LoadFromSettings()
         {
             string romFSPath = UserSettings.GetRomFSPath();
-            if (romFSPath != null)
+            if (!string.IsNullOrEmpty(romFSPath))
             {
                 RomFS.SetRoot(romFSPath);
             }
