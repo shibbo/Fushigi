@@ -21,35 +21,18 @@ namespace Fushigi.ui.widgets
         readonly Course course;
         CourseArea selectedArea;
 
-        private const int gridBasePixelsPerUnit = 32;
-
-        ImDrawListPtr drawList;
-
-        Vector2 areaScenePan = new();
-        float areaSceneZoom = 1;
-        float gridPixelsPerUnit;
-
-        //canvas viewport coordinates
-        Vector2 canvasMin;
-        Vector2 canvasSize;
-        Vector2 canvasMax;
-        Vector2 canvasMidpoint;
-
-        Vector2 panOrigin;
         readonly Dictionary<string, bool> mLayersVisibility = [];
         bool mHasFilledLayers = false;
-        readonly IWindow mParentWindow;
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
 
         BymlHashTable? mSelectedActor = null;
 
-        public CourseScene(Course course, IWindow window)
+        public CourseScene(Course course)
         {
             this.course = course;
             selectedArea = course.GetArea(0);
             viewport = new LevelViewport(selectedArea);
-            mParentWindow = window;
         }
 
         public void DrawUI()
@@ -106,14 +89,16 @@ namespace Fushigi.ui.widgets
             {
                 if (ImGui.BeginTabItem(area.GetName()))
                 {
-                    // Unselect actor on tab change
-                    // This is so that users do not see an actor selected from another area
+                    // Tab change
                     if (selectedArea != area)
                     {
+                        selectedArea = area;
+                        viewport = new(area);
+
+                        // Unselect actor
+                        // This is so that users do not see an actor selected from another area
                         mSelectedActor = null;
                     }
-
-                    selectedArea = area;
 
                     ImGui.EndTabItem();
                 }

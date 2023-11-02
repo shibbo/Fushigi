@@ -11,7 +11,9 @@ namespace Fushigi.util
 {
     public static class UserSettings
     {
-        public static readonly string SettingsPath = "UserSettings.json";
+        public static readonly string SettingsDir = 
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        public static readonly string SettingsFile = Path.Combine(SettingsDir, "UserSettings.json");
         public static readonly int MaxRecents = 10;
         static Settings AppSettings;
 
@@ -25,7 +27,7 @@ namespace Fushigi.util
 
         public static void Load()
         {
-            if (!File.Exists(SettingsPath))
+            if (!File.Exists(SettingsFile))
             {
                 AppSettings.RomFSPath = "";
                 AppSettings.ModPaths = new();
@@ -34,15 +36,18 @@ namespace Fushigi.util
             }
             else
             {
-                AppSettings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsPath));
-
-                RomFS.SetRoot(AppSettings.RomFSPath);
+                AppSettings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsFile));
             }
         }
 
         public static void Save()
         {
-            File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(AppSettings, Formatting.Indented));
+            if (!Directory.Exists(SettingsDir))
+            {
+                Directory.CreateDirectory(SettingsDir);
+            }
+
+            File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(AppSettings, Formatting.Indented));
         }
 
         public static void SetRomFSPath(string path)
@@ -72,7 +77,7 @@ namespace Fushigi.util
             AppSettings.ModPaths.Add(modname, path);
         }
 
-        public static void AppendRecentFile(string path)
+        public static void AppendRecentCourse(string courseName)
         {
             // please let me know if this isn't a good implementation
             if (AppSettings.RecentCourses.Count == MaxRecents)
@@ -85,12 +90,24 @@ namespace Fushigi.util
 
                 AppSettings.RecentCourses = [.. newArray];
                 // put our brand new path at 9
-                AppSettings.RecentCourses[MaxRecents - 1] = path;
+                AppSettings.RecentCourses[MaxRecents - 1] = courseName;
             }
             else
             {
-                AppSettings.RecentCourses.Add(path);
+                AppSettings.RecentCourses.Add(courseName);
             }
+        }
+
+        public static string? GetLatestCourse()
+        {
+            int size = AppSettings.RecentCourses.Count;
+            
+            if (size == 0)
+            {
+                return null;
+            }
+
+            return AppSettings.RecentCourses[size - 1];
         }
     }
 }
