@@ -1,6 +1,7 @@
 ﻿using Fushigi.Byml;
 using Fushigi.course;
 using Fushigi.param;
+using Fushigi.rstb;
 using ImGuiNET;
 using Newtonsoft.Json.Linq;
 using Silk.NET.Input;
@@ -71,16 +72,14 @@ namespace Fushigi.ui.widgets
 
         public void Save()
         {
+            RSTB resource_table = new RSTB();
+            resource_table.Load();
+
             //Save each course area to current romfs folder
             foreach (var area in this.course.GetAreas())
-                area.Save();
-        }
+                area.Save(resource_table);
 
-        public void Save(string folder)
-        {
-            //Save each course area to a specific folder
-            foreach (var area in this.course.GetAreas())
-                area.Save(folder);
+            resource_table.Save();
         }
 
         private void CourseTabBar()
@@ -279,7 +278,7 @@ namespace Fushigi.ui.widgets
                     mLayersVisibility[layer] = isVisible;
                 }
 
-                ImGui.SameLine();
+                    ImGui.SameLine();
 
                 if (!isVisible)
                 {

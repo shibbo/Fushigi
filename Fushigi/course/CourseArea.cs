@@ -1,4 +1,5 @@
 ﻿using Fushigi.Byml;
+using Fushigi.rstb;
 using Fushigi.util;
 using ImGuiNET;
 using System;
@@ -70,13 +71,13 @@ namespace Fushigi.course
             }
         }
 
-        public void Save()
+        public void Save(RSTB resource_table)
         {
             //Save using the configured mod romfs path
-            Save($"{UserSettings.GetModRomFSPath()}/BancMapUnit");
+            Save(resource_table, $"{UserSettings.GetModRomFSPath()}/BancMapUnit");
         }
 
-        public void Save(string folder)
+        public void Save(RSTB resource_table, string folder)
         {
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -100,9 +101,14 @@ namespace Fushigi.course
             var mem = new MemoryStream();
             byml.Save(mem);
 
+            var decomp_size = (uint)mem.Length;
+
             //Compress and save the course area
             string levelPath = $"{folder}/{mAreaName}.bcett.byml.zs";
             File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
+
+            //Update resource table
+            resource_table.SetResource($"BancMapUnit/{mAreaName}.bcett.byml", decomp_size);
         }
 
         public string GetName()
