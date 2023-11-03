@@ -8,7 +8,7 @@ namespace Fushigi.Byml
     {
         public BymlNodeId Id => BymlNodeId.Hash;
 
-        public readonly BymlHashPair[] Pairs;
+        public List<BymlHashPair> Pairs;
 
         public IBymlNode this[string key]
         {
@@ -18,6 +18,20 @@ namespace Fushigi.Byml
                     throw new KeyNotFoundException("Couldn't find key " + key);
                 return value;
             }
+        }
+
+        public void SetNode(string key, IBymlNode value)
+        {
+            var idx = Utils.BinarySearch(Pairs, key);
+
+            if (idx < 0)
+            {
+                return;
+            }
+
+
+            BymlHashPair pair = Pairs[idx];
+            pair.Value = value;
         }
 
         public bool ContainsKey(string key) => TryGetValue(key, out _);
@@ -43,7 +57,7 @@ namespace Fushigi.Byml
             BinaryReader reader = new(stream);
             uint count = reader.ReadUInt24();
 
-            Pairs = new BymlHashPair[count];
+            Pairs = new List<BymlHashPair>();
             for (int i = 0; i < count; i++)
             {
                 var name = reader.ReadUInt24();
@@ -58,26 +72,16 @@ namespace Fushigi.Byml
                     Value = by.ReadNode(reader, id.Value),
                 };
 
-                Pairs[i] = entry;
+                Pairs.Add(entry);
             }
         }
 
         public BymlHashTable()
         {
-            Pairs = null;
+            Pairs = new List<BymlHashPair>();
         }
 
-        public BymlHashTable(BymlHashTable rhs)
-        {
-            Pairs = rhs.Pairs;
-        }
-
-        public BymlHashTable(uint count)
-        {
-            Pairs = new BymlHashPair[count];
-        }
-
-        public void AddNode(BymlNodeId type, IBymlNode node, string nodeName, uint idx)
+        public void AddNode(BymlNodeId type, IBymlNode node, string nodeName)
         {
             BymlHashPair pair = new()
             {
@@ -86,7 +90,7 @@ namespace Fushigi.Byml
                 Value = node,
             };
 
-            Pairs[idx] = pair;
+            Pairs.Add(pair);
         }
 
         public readonly struct KeyView : IReadOnlyList<string>
@@ -100,7 +104,7 @@ namespace Fushigi.Byml
 
             public readonly string this[int index] => _this.Pairs[index].Name;
 
-            public readonly int Count => _this.Pairs.Length;
+            public readonly int Count => _this.Pairs.Count;
 
             public readonly IEnumerable<string> AsEnumerable()
             {
@@ -124,7 +128,7 @@ namespace Fushigi.Byml
 
             public readonly IBymlNode this[int index] => _this.Pairs[index].Value;
 
-            public readonly int Count => _this.Pairs.Length;
+            public readonly int Count => _this.Pairs.Count;
 
             public readonly IEnumerable<IBymlNode> AsEnumerable()
             {

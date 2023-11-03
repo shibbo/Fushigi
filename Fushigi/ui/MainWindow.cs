@@ -42,6 +42,11 @@ namespace Fushigi.ui
                 RomFS.SetRoot(romFSPath);
             }
 
+            if (!ParamDB.sIsInit)
+            {
+                ParamDB.Load();
+            }
+
             string? latestCourse = UserSettings.GetLatestCourse();
             if (latestCourse != null)
             {

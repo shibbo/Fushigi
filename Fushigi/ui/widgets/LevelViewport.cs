@@ -12,6 +12,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using Vector3 = System.Numerics.Vector3;
+using static Fushigi.course.CourseUnit;
+using System.Xml.Linq;
 
 namespace Fushigi.ui.widgets
 {
@@ -24,7 +26,7 @@ namespace Fushigi.ui.widgets
         public EditorState mEditorState = EditorState.Picking;
 
         Vector2 mSize = Vector2.Zero;
-        private ISet<BymlHashTable> mSelectedActors = new HashSet<BymlHashTable>();
+        private ISet<CourseActor> mSelectedActors = new HashSet<CourseActor>();
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
         public string mActorToAdd = "";
@@ -34,7 +36,7 @@ namespace Fushigi.ui.widgets
         public (Quaternion rotation, Vector3 target, float distance) Camera = 
             (Quaternion.Identity, Vector3.Zero, 10);
 
-        public BymlHashTable? HoveredActor;
+        public CourseActor? HoveredActor;
 
         public uint GridColor = 0x77_FF_FF_FF;
         public float GridLineThickness = 1.5f;
@@ -200,6 +202,9 @@ namespace Fushigi.ui.widgets
             }
             else if (mEditorState == EditorState.AddingActor)
             {
+                ImGui.BeginTooltip();
+                ImGui.SetTooltip($"Placing actor {mActorToAdd} -- Hold SHIFT to place multiple, ESCAPE to cancel.");
+                ImGui.EndTooltip();
                 if (ImGui.IsKeyDown(ImGuiKey.Escape))
                 {
                     mEditorState = EditorState.Picking;
@@ -207,84 +212,52 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    /* for adding actors, we want to avoid making new nodes as much as possible so we want to try copying existing ones with the same name and setting default values */
-                    /* so let's find an actor that shares our selected name */
-                    BymlHashTable root = (BymlHashTable)mArea.GetRootNode();
-                    BymlArrayNode actorArray = (BymlArrayNode)root["Actors"];
+                    CourseActor actor = new CourseActor(mActorToAdd, mArea.mRootHash);
 
-                    BymlHashTable? newActor = null;
+                    Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+                    posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                    posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                    posVec.Z = 0.0f;
+                    actor.mTranslation = posVec;
 
-                    foreach (BymlHashTable actor in actorArray.Array)
+                    mArea.mActorHolder.AddActor(actor);
+
+                    if (!ImGui.GetIO().KeyShift)
                     {
-                        string actorName = ((BymlNode<string>)actor["Gyaml"]).Data;
-
-                        if (actorName == mActorToAdd)
-                        {
-                            newActor = new BymlHashTable(actor);
-                            break;
-                        }
+                        mActorToAdd = "";
+                        mEditorState = EditorState.Picking;
                     }
-
-                    if (newActor != null)
-                    {
-                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
-
-                        posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
-                        posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
-
-                        var posNode = (BymlArrayNode)newActor["Translate"];
-                        var rotNode = (BymlArrayNode)newActor["Rotate"];
-
-                        var bytes = new byte[sizeof(UInt64)];
-                        RNGCryptoServiceProvider Gen = new RNGCryptoServiceProvider();
-                        Gen.GetBytes(bytes);
-                        ulong hash = BitConverter.ToUInt64(bytes, 0);
-
-                        ((BymlBigDataNode<ulong>)newActor["Hash"]).Data = hash;
-
-                        BymlNode<float> rot_x = new BymlNode<float>(BymlNodeId.Float, 0.0f);
-                        BymlNode<float> rot_y = new BymlNode<float>(BymlNodeId.Float, 0.0f);
-                        BymlNode<float> rot_z = new BymlNode<float>(BymlNodeId.Float, 0.0f);
-
-                        rotNode.SetNodeAtIdx(rot_x, 0);
-                        rotNode.SetNodeAtIdx(rot_y, 0);
-                        rotNode.SetNodeAtIdx(rot_z, 0);
-
-                        BymlNode<float> x = new BymlNode<float>(BymlNodeId.Float, posVec.X);
-                        BymlNode<float> y = new BymlNode<float>(BymlNodeId.Float, posVec.Y);
-
-                        posNode.SetNodeAtIdx(x, 0);
-                        posNode.SetNodeAtIdx(y, 1);
-
-                        actorArray.AddNodeToArray(newActor);
-                    }
-
-                    mEditorState = EditorState.Picking;
                 }
             }
             else if (mEditorState == EditorState.DeletingActor)
             {
                 if (mSelectedActors.Count > 0)
                 {
-                    BymlHashTable root = (BymlHashTable)mArea.GetRootNode();
-                    BymlArrayNode actorArray = (BymlArrayNode)root["Actors"];
-
-                    int idx = -1;
-
-                    foreach (BymlHashTable actor in mSelectedActors)
-                    {
-                        if (actorArray.Array.Contains(actor))
-                        {
-                            actorArray.Array.Remove(actor);
-                        }
-                    }
-
                     mEditorState = EditorState.Picking;
                 }
                 else
                 {
-                    // blah blah we wait for user to select actors blah blah
-                    mEditorState = EditorState.Picking;
+                    ImGui.BeginTooltip();
+                    ImGui.SetTooltip($"Click on the actor to delete. Hold SHIFT to delete multiple actors, ESCAPE to cancel.");
+                    ImGui.EndTooltip();
+
+                    if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                    {
+                        mEditorState = EditorState.Picking;
+                    }
+
+                    if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                    {
+                        if (HoveredActor != null)
+                        {
+                            mArea.mActorHolder.DeleteActor(HoveredActor);
+
+                            if (!ImGui.GetIO().KeyShift)
+                            {
+                                mEditorState = EditorState.Picking;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -297,7 +270,7 @@ namespace Fushigi.ui.widgets
             return mSelectionChanged;
         }
 
-        public ISet<BymlHashTable> GetSelectedActors()
+        public ISet<CourseActor> GetSelectedActors()
         {
             mSelectionChanged = false;
             return mSelectedActors;
@@ -379,80 +352,55 @@ namespace Fushigi.ui.widgets
 
         void DrawAreaContent()
         {
-            const float pointSize = 3;
+            const float pointSize = 5.0f;
 
-            var root = (BymlHashTable)mArea.GetRootNode();
-
-            if (root.ContainsKey("BgUnits"))
+            if (mArea.mUnitHolder.mUnits.Count > 0)
             {
-                //BgUnits are in an array.
-                BymlArrayNode bgUnitsArray = (BymlArrayNode)root["BgUnits"];
-
-                foreach (BymlHashTable bgUnit in bgUnitsArray.Array)
+                foreach (CourseUnit unit in mArea.mUnitHolder.mUnits)
                 {
-                    if (bgUnit.ContainsKey("Walls"))
+                    List<Vector2> pointsList = [];
+                    foreach (ExternalRail wallList in unit.mWalls)
                     {
-                        BymlArrayNode wallsArray = (BymlArrayNode)((BymlHashTable)bgUnit)["Walls"];
-
-                        foreach (BymlHashTable walls in wallsArray.Array)
+                        foreach (System.Numerics.Vector3 wall in wallList.mPoints)
                         {
-                            BymlHashTable externalRail = (BymlHashTable)walls["ExternalRail"];
-                            BymlArrayNode pointsArray = (BymlArrayNode)externalRail["Points"];
-                            List<Vector2> pointsList = [];
-                            foreach (BymlHashTable points in pointsArray.Array)
-                            {
-                                var pos = (BymlArrayNode)points["Translate"];
-                                float x = ((BymlNode<float>)pos[0]).Data;
-                                float y = ((BymlNode<float>)pos[1]).Data;
-                                float z = ((BymlNode<float>)pos[2]).Data;
+                            var pos2D = WorldToScreen(new(wall.X, wall.Y, wall.Z));
+                            mDrawList.AddCircleFilled(pos2D, pointSize, 0xFFFFFFFF);
+                            pointsList.Add(pos2D);
+                        }
 
-                                var pos2D = WorldToScreen(new(x, y, z));
-                                mDrawList.AddCircleFilled(
-                                    pos2D, pointSize, 0xFFFFFFFF);
-                                pointsList.Add(pos2D);
-                            }
-                            for (int i = 0; i < pointsList.Count - 1; i++)
-                            {
-                                mDrawList.AddLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF, 2.5f);
-                            }
-                            bool isClosed = ((BymlNode<bool>)externalRail["IsClosed"]).Data;
-                            if (isClosed)
-                            {
-                                mDrawList.AddLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF, 2.5f);
-                            }
+                        for (int i = 0; i < pointsList.Count - 1; i++)
+                        {
+                            mDrawList.AddLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF, 2.5f);
+                        }
+
+                        bool isClosed = wallList.IsClosed;
+                        if (isClosed)
+                        {
+                            mDrawList.AddLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF, 2.5f);
                         }
                     }
                 }
             }
 
-            BymlArrayNode actorArray = (BymlArrayNode)root["Actors"];
+            CourseActor? newHoveredActor = null;
 
-            BymlHashTable? newHoveredActor = null;
-
-            foreach (BymlHashTable actor in actorArray.Array)
+            foreach (CourseActor actor in mArea.mActorHolder.GetActors())
             {
-                BymlArrayNode translationArr = (BymlArrayNode)actor["Translate"];
-                BymlArrayNode scaleArr = (BymlArrayNode)actor["Scale"];
-                BymlArrayNode rotationArr = (BymlArrayNode)actor["Rotate"];
-
-                string layer = ((BymlNode<string>)actor["Layer"]).Data;
+                string layer = actor.mLayer;
 
                 if (mLayersVisibility!.TryGetValue(layer, out bool isVisible) && isVisible)
                 {
                     Matrix4x4 transform =
-                        Matrix4x4.CreateScale(
-                            ((BymlNode<float>)scaleArr[0]).Data,
-                            ((BymlNode<float>)scaleArr[1]).Data,
-                            ((BymlNode<float>)scaleArr[2]).Data
+                        Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.Y, actor.mScale.Z
                         ) *
                         Matrix4x4.CreateRotationZ(
-                            ((BymlNode<float>)rotationArr[2]).Data
+                            actor.mRotation.Z
                         ) *
                         Matrix4x4.CreateTranslation(
-                            ((BymlNode<float>)translationArr[0]).Data,
-                            ((BymlNode<float>)translationArr[1]).Data,
-                            ((BymlNode<float>)translationArr[2]).Data
-                        );
+                            actor.mTranslation.X,
+                            actor.mTranslation.Y,
+                            actor.mTranslation.Z
+                        );;
 
                     //topLeft
                     s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 0.5f, 0), transform));
@@ -474,19 +422,19 @@ namespace Fushigi.ui.widgets
 
                     for (int i = 0; i < 4; i++)
                     {
-                        mDrawList.AddCircleFilled(s_actorRectPolygon[i], 
+                        mDrawList.AddCircleFilled(s_actorRectPolygon[i],
                             pointSize, color);
                         mDrawList.AddLine(
-                            s_actorRectPolygon[i], 
+                            s_actorRectPolygon[i],
                             s_actorRectPolygon[(i + 1) % 4],
                             color, isHovered ? 2.5f : 1.5f);
                     }
 
-                    string name = ((BymlNode<string>)actor["Gyaml"]).Data;
-                    
-                   isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
+                    string name = actor.mActorName;
 
-                    if(name.Contains("Area"))
+                    isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
+
+                    if (name.Contains("Area"))
                     {
                         isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
                             ImGui.GetMousePos());
@@ -500,7 +448,6 @@ namespace Fushigi.ui.widgets
                         ImGui.SetTooltip($"{name}");
                         ImGui.EndTooltip();
                     }
-                        
                 }
             }
 

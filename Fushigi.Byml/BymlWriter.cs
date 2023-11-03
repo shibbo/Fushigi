@@ -172,7 +172,7 @@ namespace Fushigi.Byml
 
             if (rootAsHash != null)
             {
-                size = rootAsHash.Pairs.Length;
+                size = rootAsHash.Pairs.Count;
                 if (key != null)
                 {
                     PushHash(key);

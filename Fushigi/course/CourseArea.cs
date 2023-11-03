@@ -26,7 +26,48 @@ namespace Fushigi.course
 
             string levelPath = FileUtil.FindContentPath($"BancMapUnit/{mAreaName}.bcett.byml.zs");
             byte[] levelBytes = FileUtil.DecompressFile(levelPath);
-            mLevelByml = new Byml.Byml(new MemoryStream(levelBytes));
+            var byml = new Byml.Byml(new MemoryStream(levelBytes));
+
+            BymlHashTable? root = byml.Root as BymlHashTable;
+
+            mRootHash = BymlUtil.GetNodeData<uint>(root["RootAreaHash"]);
+            mStageParams = BymlUtil.GetNodeData<string>(root["StageParam"]);
+
+            BymlArrayNode actorsArray = (BymlArrayNode)root["Actors"];
+            mActorHolder = new CourseActorHolder(actorsArray);
+
+            if (root.ContainsKey("Rails"))
+            {
+                BymlArrayNode railsArray = (BymlArrayNode)root["Rails"];
+                mRailHolder = new(railsArray);
+            }
+            else
+            {
+                mRailHolder = new();
+            }
+
+            if (root.ContainsKey("ActorToRailLinks"))
+            {
+                BymlArrayNode? actorLinksArray = root["ActorToRailLinks"] as BymlArrayNode;
+                mRailLinks = new CourseActorToRailLinks(actorLinksArray, mActorHolder, mRailHolder);
+            }
+            else
+            {
+                mRailLinks = new();
+            }
+            
+
+            BymlArrayNode? linksArray = root["Links"] as BymlArrayNode;
+            mLinkHolder = new(linksArray, mActorHolder);
+
+            BymlArrayNode? groupsArray = root["SimultaneousGroups"] as BymlArrayNode;
+            mGroups = new CourseGroupHolder(groupsArray, mActorHolder);
+
+            if (root.ContainsKey("BgUnits"))
+            {
+                BymlArrayNode? unitsArray = root["BgUnits"] as BymlArrayNode;
+                mUnitHolder = new CourseUnitHolder(unitsArray);
+            }
         }
 
         public void Save()
@@ -40,7 +81,29 @@ namespace Fushigi.course
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 
-            var byml = new Byml.Byml(this.GetRootNode());
+            BymlHashTable root = new();
+            root.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>("RootAreaHash", mRootHash), "RootAreaHash");
+            root.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("StageParam", mStageParams), "StageParam");
+            root.AddNode(BymlNodeId.Array, mRailLinks.SerializeToArray(), "ActorToRailLinks");
+            root.AddNode(BymlNodeId.Array, mActorHolder.SerializeToArray(), "Actors");
+
+            if (mUnitHolder != null)
+            {
+                root.AddNode(BymlNodeId.Array, mUnitHolder.SerializeToArray(), "BgUnits");
+            }
+
+            root.AddNode(BymlNodeId.Array, mLinkHolder.SerializeToArray(), "Links");
+            root.AddNode(BymlNodeId.Array, mRailHolder.SerializeToArray(), "Rails");
+            root.AddNode(BymlNodeId.Array, mGroups.SerializeToArray(), "SimultaneousGroups");
+
+            var byml = new Byml.Byml(root);
+            var mem = new MemoryStream();
+            byml.Save(mem);
+
+            string path = $"{mAreaName}.bcett.byml.zs";
+            File.WriteAllBytes(path, FileUtil.CompressData(mem.ToArray()));
+
+            /*var byml = new Byml.Byml(this.GetRootNode());
             //Save byml into memory to be compressed
             var mem = new MemoryStream();
             byml.Save(mem);
@@ -48,6 +111,7 @@ namespace Fushigi.course
             //Compress and save the course area
             string levelPath = $"{folder}/{mAreaName}.bcett.byml.zs";
             File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
+            */
         }
 
         public string GetName()
@@ -55,14 +119,22 @@ namespace Fushigi.course
             return mAreaName;
         }
 
-        public IBymlNode GetRootNode()
+        public List<CourseActor> GetActors()
         {
-            return mLevelByml.Root;
+            return mActorHolder.GetActors();
         }
 
         string mAreaName;
+        public uint mRootHash;
+        string mStageParams;
         public AreaParam mAreaParams;
-        Byml.Byml mLevelByml;
+        public CourseActorHolder mActorHolder;
+        public CourseRailHolder mRailHolder;
+        public CourseActorToRailLinks mRailLinks;
+        public CourseLinkHolder mLinkHolder;
+        //public List<CourseLink> mLinks;
+        public CourseGroupHolder mGroups;
+        public CourseUnitHolder mUnitHolder;
 
         public class AreaParam
         {
