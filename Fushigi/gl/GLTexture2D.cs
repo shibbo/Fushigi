@@ -33,10 +33,11 @@ namespace Fushigi.gl
             return tex;
         }
 
-        public void Load(string filePath)
+        public void Load(string filePath) => Load(File.ReadAllBytes(filePath));
+
+        public void Load(byte[] imageFile)
         {
-            byte[] buffer = File.ReadAllBytes(filePath);
-            ImageResult image = ImageResult.FromMemory(buffer, ColorComponents.RedGreenBlueAlpha);
+            ImageResult image = ImageResult.FromMemory(imageFile, ColorComponents.RedGreenBlueAlpha);
 
             this.Width = (uint)image.Width;
             this.Height = (uint)image.Height;
