@@ -176,10 +176,11 @@ namespace Fushigi.ui.widgets
 
         private void ActorParameterPanel()
         {
-            bool status = ImGui.Begin("Actor Parameters");
+            bool status = ImGui.Begin("Actor Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
             if (mSelectedActor is null)
             {
+                ImGui.AlignTextToFramePadding();
                 ImGui.Text("No Actor is selected");
             }
             else
@@ -187,30 +188,32 @@ namespace Fushigi.ui.widgets
                 string actorName = mSelectedActor.mActorName;
                 string name = mSelectedActor.mName;
 
+                ImGui.AlignTextToFramePadding();
                 ImGui.Text(actorName);
 
                 ImGui.Separator();
 
                 ImGui.Columns(2);
 
+                ImGui.AlignTextToFramePadding();
                 ImGui.Text("Name");
 
                 ImGui.NextColumn();
-                ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
                 ImGui.InputText($"##{name}", ref name, 512);
+                ImGui.PopItemWidth();
 
                 ImGui.Columns(1);
 
-                if (ImGui.BeginChild("Placement"))
-                {
-                    PlacementNode(mSelectedActor);
-                }
+                PlacementNode(mSelectedActor);
 
                 /* actor parameters are loaded from the dynamic node */
                 if (mSelectedActor.mActorParameters.Count > 0)
                 {
                     DynamicParamNode(mSelectedActor);
                 }
+
+                // TODO: Put actor link editor here
             }
             
 
@@ -242,17 +245,55 @@ namespace Fushigi.ui.widgets
             {
                 string paramType = areaParams[key];
 
-                if (!area.ContainsParam(key))
-                {
-                    continue;
-                }
+                //if (!area.ContainsParam(key))
+                //{
+                //    continue;
+                //}
 
                 switch (paramType)
                 {
                     case "String":
-                        string value = (string)area.GetParam(area.GetRoot(), key, paramType);
-                        ImGui.InputText(key, ref value, 1024);
-
+                        {
+                            string value = "";
+                            if (area.ContainsParam(key))
+                            {
+                                value = (string)area.GetParam(area.GetRoot(), key, paramType);
+                            }
+                            ImGui.InputText(key, ref value, 1024);
+                            break;
+                        }
+                    case "Bool":
+                        {
+                            bool value = false;
+                            if (area.ContainsParam(key))
+                            {
+                                value = (bool)area.GetParam(area.GetRoot(), key, paramType);
+                            }
+                            ImGui.Checkbox(key, ref value);
+                            break;
+                        }
+                    case "Int":
+                        {
+                            int value = 0;
+                            if (area.ContainsParam(key))
+                            {
+                                //value = (int)area.GetParam(area.GetRoot(), key, paramType);
+                            }
+                            ImGui.InputInt(key, ref value);
+                            break;
+                        }
+                    case "Float":
+                        {
+                            float value = 0.0f;
+                            if (area.ContainsParam(key))
+                            {
+                                value = (float)area.GetParam(area.GetRoot(), key, paramType);
+                            }
+                            ImGui.InputFloat(key, ref value);
+                            break;
+                        }
+                    default:
+                        Console.WriteLine(key);
                         break;
                 }
             }
@@ -372,20 +413,51 @@ namespace Fushigi.ui.widgets
 
         private static void PlacementNode(CourseActor actor)
         {
+            static void EditFloat3RadAsDeg(string label, ref System.Numerics.Vector3 rad, float speed)
+            {
+                float RadToDeg(float rad)
+                {
+                    double deg = 180 / Math.PI * rad;
+                    return (float)deg;
+                }
+
+                float DegToRad(float deg)
+                {
+                    double rad = Math.PI / 180 * deg;
+                    return (float)rad;
+                }
+
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text(label);
+                ImGui.NextColumn();
+
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+
+                var deg = new System.Numerics.Vector3(RadToDeg(rad.X), RadToDeg(rad.Y), RadToDeg(rad.Z));
+
+                if (ImGui.DragFloat3($"##{label}", ref deg, speed))
+                {
+                    rad.X = DegToRad(deg.X);
+                    rad.Y = DegToRad(deg.Y);
+                    rad.Z = DegToRad(deg.Z);
+                }
+                ImGui.PopItemWidth();
+
+                ImGui.NextColumn();
+            }
+
             if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 ImGui.Indent();
                 ImGui.Columns(2);
 
+                ImGui.AlignTextToFramePadding();
                 ImGui.Text("Scale");
                 ImGui.NextColumn();
 
-                ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                if (ImGui.DragFloat3($"##Scale", ref actor.mScale))
-                {
-
-                }
+                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f);
                 ImGui.PopItemWidth();
 
                 ImGui.NextColumn();
@@ -396,37 +468,16 @@ namespace Fushigi.ui.widgets
                 ImGui.Indent();
                 ImGui.Columns(2);
 
-                ImGui.Text("Rotation");
+                EditFloat3RadAsDeg("Rotation", ref actor.mRotation, 0.25f);
+
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Translation");
                 ImGui.NextColumn();
 
-                ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                if (ImGui.DragFloat3($"##Rotation", ref actor.mRotation))
-                {
-
-                }
+                ImGui.DragFloat3("##Translation", ref actor.mTranslation, 0.25f);
                 ImGui.PopItemWidth();
-
-                ImGui.NextColumn();
-
-                ImGui.Columns(1);
-                ImGui.Unindent();
-
-                ImGui.Indent();
-                ImGui.Columns(2);
-
-                ImGui.Text("Translate");
-                ImGui.NextColumn();
-
-                ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
-
-                if (ImGui.DragFloat3($"##Translate", ref actor.mTranslation))
-                {
-
-                }
-                ImGui.PopItemWidth();
-
-                ImGui.NextColumn();
 
                 ImGui.Columns(1);
                 ImGui.Unindent();
@@ -435,19 +486,23 @@ namespace Fushigi.ui.widgets
 
         private void DynamicParamNode(CourseActor actor)
         {
-            List<string> actorParams = ParamDB.GetActorComponents(actor.mActorName);
-
-            foreach (string param in actorParams)
+            if (ImGui.CollapsingHeader("Dynamic", ImGuiTreeNodeFlags.DefaultOpen))
             {
-                Dictionary<string, ParamDB.ComponentParam> dict = ParamDB.GetComponentParams(param);
+                List<string> actorParams = ParamDB.GetActorComponents(actor.mActorName);
 
-                if (dict.Keys.Count == 0)
+                foreach (string param in actorParams)
                 {
-                    continue;
-                }
+                    Dictionary<string, ParamDB.ComponentParam> dict = ParamDB.GetComponentParams(param);
 
-                if (ImGui.CollapsingHeader(param))
-                {
+                    if (dict.Keys.Count == 0)
+                    {
+                        continue;
+                    }
+                    ImGui.Indent();
+
+                    ImGui.Text(param);
+                    ImGui.Separator();
+
                     ImGui.Indent();
 
                     ImGui.Columns(2);
@@ -456,10 +511,11 @@ namespace Fushigi.ui.widgets
                     {
                         string id = $"##{pair.Key}";
 
+                        ImGui.AlignTextToFramePadding();
                         ImGui.Text(pair.Key);
                         ImGui.NextColumn();
 
-                        ImGui.PushItemWidth(ImGui.GetColumnWidth() - 12);
+                        ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
                         if (actor.mActorParameters.ContainsKey(pair.Key))
                         {
@@ -514,6 +570,8 @@ namespace Fushigi.ui.widgets
                     ImGui.Columns(1);
 
                     ImGui.Unindent();
+                    ImGui.Unindent();
+
                 }
             }
         }
