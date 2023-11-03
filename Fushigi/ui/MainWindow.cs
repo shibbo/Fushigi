@@ -42,7 +42,7 @@ namespace Fushigi.ui
                 RomFS.SetRoot(romFSPath);
             }
 
-            if (!ParamDB.sIsInit)
+            if (!ParamDB.sIsInit && !string.IsNullOrEmpty(RomFS.GetRoot()))
             {
                 ParamDB.Load();
             }
