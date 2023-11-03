@@ -119,7 +119,6 @@ namespace Fushigi.ui.widgets
 
         public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility)
         {
-            //mSelectedActors = selectedActors;
             mLayersVisibility = layersVisibility;
             mTopLeft = ImGui.GetCursorScreenPos();
 
@@ -368,26 +367,23 @@ namespace Fushigi.ui.widgets
             {
                 foreach (CourseUnit unit in mArea.mUnitHolder.mUnits)
                 {
-                    List<Vector2> pointsList = [];
-                    foreach (ExternalRail wallList in unit.mWalls)
+                    foreach (ExternalRail wallGeometry in unit.mWalls)
                     {
-                        foreach (System.Numerics.Vector3 wall in wallList.mPoints)
+                        if (wallGeometry.mPoints.Count == 0)
+                            continue;
+
+                        Vector2[] pointsList = new Vector2[wallGeometry.mPoints.Count];
+
+                        for (int i = 0; i < wallGeometry.mPoints.Count; i++)
                         {
-                            var pos2D = WorldToScreen(new(wall.X, wall.Y, wall.Z));
+                            Vector3 point = wallGeometry.mPoints[i];
+                            var pos2D = WorldToScreen(new(point.X, point.Y, point.Z));
                             mDrawList.AddCircleFilled(pos2D, pointSize, 0xFFFFFFFF);
-                            pointsList.Add(pos2D);
+                            pointsList[i] = pos2D;
                         }
 
-                        for (int i = 0; i < pointsList.Count - 1; i++)
-                        {
-                            mDrawList.AddLine(pointsList[i], pointsList[i + 1], 0xFFFFFFFF, 2.5f);
-                        }
-
-                        bool isClosed = wallList.IsClosed;
-                        if (isClosed)
-                        {
-                            mDrawList.AddLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF, 2.5f);
-                        }
+                        mDrawList.AddPolyline(ref pointsList[0], pointsList.Length, 0xFFFFFFFF,
+                            wallGeometry.IsClosed ? ImDrawFlags.Closed : ImDrawFlags.None, 2.5f);
                     }
                 }
             }
