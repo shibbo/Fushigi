@@ -149,6 +149,11 @@ namespace Fushigi.course
 
     public class CourseUnitHolder
     {
+        public CourseUnitHolder()
+        {
+
+        }
+
         public CourseUnitHolder(BymlArrayNode array)
         {
             foreach (BymlHashTable tbl in array.Array)

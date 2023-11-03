@@ -49,6 +49,11 @@ namespace Fushigi.course
 
     public class CourseGroupHolder
     {
+        public CourseGroupHolder()
+        {
+        
+        }
+
         public CourseGroupHolder(BymlArrayNode array, CourseActorHolder actorHolder)
         {
             foreach(BymlHashTable tbl in array.Array)

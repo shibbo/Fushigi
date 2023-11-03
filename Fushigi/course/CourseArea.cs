@@ -34,8 +34,15 @@ namespace Fushigi.course
             mRootHash = BymlUtil.GetNodeData<uint>(root["RootAreaHash"]);
             mStageParams = BymlUtil.GetNodeData<string>(root["StageParam"]);
 
-            BymlArrayNode actorsArray = (BymlArrayNode)root["Actors"];
-            mActorHolder = new CourseActorHolder(actorsArray);
+            if (root.ContainsKey("Actors"))
+            {
+                BymlArrayNode actorsArray = (BymlArrayNode)root["Actors"];
+                mActorHolder = new CourseActorHolder(actorsArray);
+            }
+            else
+            {
+                mActorHolder = new();
+            }
 
             if (root.ContainsKey("Rails"))
             {
@@ -56,18 +63,35 @@ namespace Fushigi.course
             {
                 mRailLinks = new();
             }
-            
 
-            BymlArrayNode? linksArray = root["Links"] as BymlArrayNode;
-            mLinkHolder = new(linksArray, mActorHolder);
+            if (root.ContainsKey("Links"))
+            {
+                BymlArrayNode? linksArray = root["Links"] as BymlArrayNode;
+                mLinkHolder = new(linksArray, mActorHolder);
+            }
+            else
+            { 
+                mLinkHolder = new();
+            }
 
-            BymlArrayNode? groupsArray = root["SimultaneousGroups"] as BymlArrayNode;
-            mGroups = new CourseGroupHolder(groupsArray, mActorHolder);
+            if (root.ContainsKey("SimultaneousGroups"))
+            {
+                BymlArrayNode? groupsArray = root["SimultaneousGroups"] as BymlArrayNode;
+                mGroups = new CourseGroupHolder(groupsArray, mActorHolder);
+            }
+            else
+            {
+                mGroups = new();
+            }
 
             if (root.ContainsKey("BgUnits"))
             {
                 BymlArrayNode? unitsArray = root["BgUnits"] as BymlArrayNode;
                 mUnitHolder = new CourseUnitHolder(unitsArray);
+            }
+            else
+            {
+                mUnitHolder = new();
             }
         }
 

@@ -242,6 +242,11 @@ namespace Fushigi.course
 
     public class CourseActorHolder
     {
+        public CourseActorHolder()
+        {
+        
+        }
+
         public CourseActorHolder(BymlArrayNode actorArray)
         {
             foreach (BymlHashTable actor in actorArray.Array)

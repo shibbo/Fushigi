@@ -33,6 +33,11 @@ namespace Fushigi.course
 
     public class CourseLinkHolder
     {
+        public CourseLinkHolder()
+        {
+
+        }
+
         public CourseLinkHolder(BymlArrayNode linkArray, CourseActorHolder actorHolder)
         {
             foreach (BymlHashTable tbl in linkArray.Array)
