@@ -26,6 +26,13 @@ namespace Fushigi.gl
             return tex;
         }
 
+        public static GLTexture2D Load(GL gl, int width, int height, byte[] rgba)
+        {
+            GLTexture2D tex = new GLTexture2D(gl);
+            tex.Load(width, height, rgba);
+            return tex;
+        }
+
         public void Load(string filePath)
         {
             byte[] buffer = File.ReadAllBytes(filePath);
@@ -39,6 +46,18 @@ namespace Fushigi.gl
             this.PixelType = Silk.NET.OpenGL.PixelType.UnsignedByte;
 
             LoadImage(image.Data);
+        }
+
+        public void Load(int width, int height, byte[] rgba)
+        {
+            this.Width = (uint)width;
+            this.Height = (uint)height;
+
+            this.InternalFormat = InternalFormat.Rgba;
+            this.PixelFormat = Silk.NET.OpenGL.PixelFormat.Rgba;
+            this.PixelType = Silk.NET.OpenGL.PixelType.UnsignedByte;
+
+            LoadImage(rgba);
         }
 
         public unsafe void LoadImage(byte[] image)
