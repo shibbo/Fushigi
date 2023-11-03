@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using Silk.NET.Input;
 using Silk.NET.SDL;
 using Silk.NET.Windowing;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Net.Http.Headers;
@@ -52,6 +53,8 @@ namespace Fushigi.ui.widgets
             ActorsPanel();
 
             ActorParameterPanel();
+
+            RailsPanel();
 
             if (mShowAddActor)
             {
@@ -160,6 +163,17 @@ namespace Fushigi.ui.widgets
             ImGui.End();
         }
 
+        private void RailsPanel()
+        {
+            ImGui.Begin("Rails");
+
+            CourseRailHolder railArray = selectedArea.mRailHolder;
+
+            CourseRailsView(railArray);
+
+            ImGui.End();
+        }
+
         private void ActorParameterPanel()
         {
             bool status = ImGui.Begin("Actor Parameters");
@@ -253,6 +267,31 @@ namespace Fushigi.ui.widgets
             }
 
             mHasFilledLayers = true;
+        }
+
+        private void CourseRailsView(CourseRailHolder railHolder)
+        {
+            foreach(CourseRail rail in railHolder.mRails)
+            {
+                if (ImGui.TreeNode($"Rail {railHolder.mRails.IndexOf(rail)}"))
+                {
+                    //ImGui.Checkbox("IsClosed", ref rail.mIsClosed);
+
+                    foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
+                    {
+                        if (ImGui.TreeNode($"Point {rail.mPoints.IndexOf(pnt)}"))
+                        {
+                            ImGui.TreePop();
+                        }
+                    }
+
+                    ImGui.TreePop();
+                    /*if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
+                    {
+                        
+                    }*/
+                }
+            }
         }
 
         private void CourseActorsLayerView(CourseActorHolder actorArray)

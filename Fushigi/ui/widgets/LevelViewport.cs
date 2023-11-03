@@ -352,7 +352,7 @@ namespace Fushigi.ui.widgets
 
         void DrawAreaContent()
         {
-            const float pointSize = 5.0f;
+            const float pointSize = 3.0f;
 
             if (mArea.mUnitHolder.mUnits.Count > 0)
             {
@@ -378,6 +378,33 @@ namespace Fushigi.ui.widgets
                         {
                             mDrawList.AddLine(pointsList[pointsList.Count - 1], pointsList[0], 0xFFFFFFFF, 2.5f);
                         }
+                    }
+                }
+            }
+
+            if (mArea.mRailHolder.mRails.Count > 0) 
+            {
+                foreach (CourseRail rail in mArea.mRailHolder.mRails)
+                {
+                    List<Vector2> pointsList = [];
+
+                    foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
+                    {
+                        var pos2D = WorldToScreen(new(pnt.mTranslate.X, pnt.mTranslate.Y, pnt.mTranslate.Z));
+                        mDrawList.AddCircleFilled(pos2D, pointSize, (uint)System.Drawing.Color.HotPink.ToArgb());
+                        pointsList.Add(pos2D);
+                    }
+
+                    for (int i = 0; i < pointsList.Count - 1; i++)
+                    {
+                        mDrawList.AddLine(pointsList[i], pointsList[i + 1], (uint)System.Drawing.Color.HotPink.ToArgb(), 2.5f);
+                    }
+
+                    bool isClosed = rail.mIsClosed;
+
+                    if (isClosed)
+                    {
+                        mDrawList.AddLine(pointsList[pointsList.Count - 1], pointsList[0], (uint)System.Drawing.Color.HotPink.ToArgb(), 2.5f);
                     }
                 }
             }

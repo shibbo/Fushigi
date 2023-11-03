@@ -174,8 +174,8 @@ namespace Fushigi.course
         uint mAreaHash;
         string mGyml;
         ulong mHash;
-        bool mIsClosed;
-        List<CourseRailPoint> mPoints = new();
+        public bool mIsClosed;
+        public List<CourseRailPoint> mPoints = new();
         Dictionary<string, object> mParameters = new();
 
         public class CourseRailPoint
@@ -303,7 +303,7 @@ namespace Fushigi.course
 
             ulong mHash;
             Dictionary<string, object> mParameters = new();
-            System.Numerics.Vector3 mTranslate;
+            public System.Numerics.Vector3 mTranslate;
         }
     }
 
@@ -355,7 +355,7 @@ namespace Fushigi.course
             return node;
         }
 
-        List<CourseRail> mRails = new();
+        public List<CourseRail> mRails = new();
     }
 
     public class CourseActorToRailLinks
