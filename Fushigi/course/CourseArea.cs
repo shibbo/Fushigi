@@ -100,18 +100,9 @@ namespace Fushigi.course
             var mem = new MemoryStream();
             byml.Save(mem);
 
-            string path = $"{mAreaName}.bcett.byml.zs";
-            File.WriteAllBytes(path, FileUtil.CompressData(mem.ToArray()));
-
-            /*var byml = new Byml.Byml(this.GetRootNode());
-            //Save byml into memory to be compressed
-            var mem = new MemoryStream();
-            byml.Save(mem);
-
             //Compress and save the course area
             string levelPath = $"{folder}/{mAreaName}.bcett.byml.zs";
             File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
-            */
         }
 
         public string GetName()
