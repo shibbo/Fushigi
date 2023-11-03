@@ -23,7 +23,7 @@ namespace Fushigi.ui.widgets
         Matrix4x4 mViewProjectionMatrix;
         Matrix4x4 mViewProjectionMatrixInverse;
         ImDrawListPtr mDrawList;
-        public EditorState mEditorState = EditorState.Picking;
+        public EditorState mEditorState = EditorState.Selecting;
 
         Vector2 mSize = Vector2.Zero;
         private ISet<CourseActor> mSelectedActors = new HashSet<CourseActor>();
@@ -45,7 +45,7 @@ namespace Fushigi.ui.widgets
 
         public enum EditorState
         {
-            Picking,
+            Selecting,
             AddingActor,
             DeletingActor
         }
@@ -82,24 +82,18 @@ namespace Fushigi.ui.widgets
 
         public void HandleCameraControls(bool mouseHover, bool mouseActive)
         {
-            if (ImGui.IsWindowFocused())
+            bool isPanGesture = (ImGui.IsMouseDragging(ImGuiMouseButton.Middle)) ||
+                (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyAlt);
+
+            if (mouseActive && isPanGesture)
+            {
+                Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
+                    ScreenToWorld(ImGui.GetMousePos());
+            }
+
+            if (mouseHover)
             {
                 Camera.distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
-
-                if (ImGui.IsMouseDragging(ImGuiMouseButton.Middle) && mouseActive)
-                {
-                    Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
-                        ScreenToWorld(ImGui.GetMousePos());
-                }
-
-                if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
-                {
-                    if (ImGui.GetIO().KeyAlt)
-                    {
-                        Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
-                        ScreenToWorld(ImGui.GetMousePos());
-                    }
-                }
 
                 if (ImGui.IsKeyDown(ImGuiKey.LeftArrow))
                 {
@@ -123,7 +117,7 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility, ISet<BymlHashTable> selectedActors)
+        public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility)
         {
             //mSelectedActors = selectedActors;
             mLayersVisibility = layersVisibility;
@@ -163,30 +157,36 @@ namespace Fushigi.ui.widgets
 
             DrawAreaContent();
 
-            if (mEditorState == EditorState.Picking)
+            if (!mouseHover)
+                HoveredActor = null;
+
+            if(HoveredActor != null)
+                ImGui.SetTooltip($"{HoveredActor.mActorName}");
+
+            if (mEditorState == EditorState.Selecting)
             {
-                /* if the user clicked somewhere and it was not hovered over an element, we clear our selected actors array */
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                if (ImGui.IsItemClicked())
                 {
+                    /* if the user clicked somewhere and it was not hovered over an element, 
+                     * we clear our selected actors array */
                     if (HoveredActor == null)
                     {
                         mSelectionChanged = false;
                         mSelectedActors.Clear();
                     }
-                }
-
-                if (ImGui.IsItemClicked())
-                {
-                    if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
-                    {
-                        mSelectedActors.Add(HoveredActor);
-                        mSelectionChanged = true;
-                    }
                     else
                     {
-                        mSelectedActors.Clear();
-                        mSelectedActors.Add(HoveredActor);
-                        mSelectionChanged = true;
+                        if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+                        {
+                            mSelectedActors.Add(HoveredActor);
+                            mSelectionChanged = true;
+                        }
+                        else
+                        {
+                            mSelectedActors.Clear();
+                            mSelectedActors.Add(HoveredActor);
+                            mSelectionChanged = true;
+                        }
                     }
                 }
 
@@ -202,12 +202,11 @@ namespace Fushigi.ui.widgets
             }
             else if (mEditorState == EditorState.AddingActor)
             {
-                ImGui.BeginTooltip();
                 ImGui.SetTooltip($"Placing actor {mActorToAdd} -- Hold SHIFT to place multiple, ESCAPE to cancel.");
-                ImGui.EndTooltip();
+
                 if (ImGui.IsKeyDown(ImGuiKey.Escape))
                 {
-                    mEditorState = EditorState.Picking;
+                    mEditorState = EditorState.Selecting;
                 }
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
@@ -225,7 +224,7 @@ namespace Fushigi.ui.widgets
                     if (!ImGui.GetIO().KeyShift)
                     {
                         mActorToAdd = "";
-                        mEditorState = EditorState.Picking;
+                        mEditorState = EditorState.Selecting;
                     }
                 }
             }
@@ -233,17 +232,28 @@ namespace Fushigi.ui.widgets
             {
                 if (mSelectedActors.Count > 0)
                 {
-                    mEditorState = EditorState.Picking;
+                    //TODO if undo/redo is ever implemented make sure this is just one operation
+                    foreach (var actor in mSelectedActors)
+                        mArea.mActorHolder.DeleteActor(actor);
+
+                    mEditorState = EditorState.Selecting;
                 }
                 else
                 {
-                    ImGui.BeginTooltip();
-                    ImGui.SetTooltip($"Click on the actor to delete. Hold SHIFT to delete multiple actors, ESCAPE to cancel.");
-                    ImGui.EndTooltip();
+                    if(HoveredActor != null)
+                        ImGui.SetTooltip($"""
+                            Click to delete {HoveredActor.mActorName}.
+                            Hold SHIFT to delete multiple actors, ESCAPE to cancel.
+                            """);
+                    else
+                        ImGui.SetTooltip("""
+                            Click on any actor to delete it.
+                            Hold SHIFT to delete multiple actors, ESCAPE to cancel.
+                            """);
 
                     if (ImGui.IsKeyDown(ImGuiKey.Escape))
                     {
-                        mEditorState = EditorState.Picking;
+                        mEditorState = EditorState.Selecting;
                     }
 
                     if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
@@ -254,7 +264,7 @@ namespace Fushigi.ui.widgets
 
                             if (!ImGui.GetIO().KeyShift)
                             {
-                                mEditorState = EditorState.Picking;
+                                mEditorState = EditorState.Selecting;
                             }
                         }
                     }
@@ -468,13 +478,7 @@ namespace Fushigi.ui.widgets
                     }
 
                     if (isHovered)
-                    {
                         newHoveredActor = actor;
-
-                        ImGui.BeginTooltip();
-                        ImGui.SetTooltip($"{name}");
-                        ImGui.EndTooltip();
-                    }
                 }
             }
 

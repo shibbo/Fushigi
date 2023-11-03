@@ -45,8 +45,7 @@ namespace Fushigi.ui.widgets
 
             CourseTabBar();
 
-            viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility, 
-                selectedActors: new HashSet<BymlHashTable>()); //only temporary
+            viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
 
             AreaParameterPanel();
 
