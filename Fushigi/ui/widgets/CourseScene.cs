@@ -389,7 +389,13 @@ namespace Fushigi.ui.widgets
                             if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
                             {
                                 mSelectedActor = actor;
+                                viewport.SelectedActor(actor);
                             }
+                            if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                            {
+                                viewport.FrameSelectedActor(actor);
+                            }
+
                             ImGui.NextColumn();
                             ImGui.BeginDisabled();
                             ImGui.Text(name);

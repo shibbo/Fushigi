@@ -80,6 +80,26 @@ namespace Fushigi.ui.widgets
             return new (world.X, world.Y, world.Z);
         }
 
+        public void FrameSelectedActor(CourseActor actor)
+        {
+            this.Camera.target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
+        }
+
+        public void SelectedActor(CourseActor actor)
+        {
+            if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+            {
+                mSelectedActors.Add(actor);
+                mSelectionChanged = true;
+            }
+            else
+            {
+                mSelectedActors.Clear();
+                mSelectedActors.Add(actor);
+                mSelectionChanged = true;
+            }
+        }
+
         public void HandleCameraControls(bool mouseHover, bool mouseActive)
         {
             bool isPanGesture = (ImGui.IsMouseDragging(ImGuiMouseButton.Middle)) ||
