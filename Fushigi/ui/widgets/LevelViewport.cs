@@ -472,7 +472,34 @@ namespace Fushigi.ui.widgets
             Vector3? newHoveredPoint = null;
 
             foreach (var wall in this.mArea.WallUnitRenders)
-                wall.Render(this, mDrawList); 
+                wall.Render(this, mDrawList);
+
+            //Hide belt for now. TODO how should this be handled?
+            //foreach (var belt in this.mArea.BeltUnitRenders)
+            //    belt.Render(this, mDrawList);
+
+            if (mArea.mRailHolder.mRails.Count > 0)
+            {
+                foreach (CourseRail rail in mArea.mRailHolder.mRails)
+                {
+                    List<Vector2> pointsList = [];
+                    foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
+                    {
+                        var pos2D = WorldToScreen(new(pnt.mTranslate.X, pnt.mTranslate.Y, pnt.mTranslate.Z));
+                        mDrawList.AddCircleFilled(pos2D, pointSize, (uint)System.Drawing.Color.HotPink.ToArgb());
+                        pointsList.Add(pos2D);
+                    }
+                    for (int i = 0; i < pointsList.Count - 1; i++)
+                    {
+                        mDrawList.AddLine(pointsList[i], pointsList[i + 1], (uint)System.Drawing.Color.HotPink.ToArgb(), 2.5f);
+                    }
+                    bool isClosed = rail.mIsClosed;
+                    if (isClosed)
+                    {
+                        mDrawList.AddLine(pointsList[pointsList.Count - 1], pointsList[0], (uint)System.Drawing.Color.HotPink.ToArgb(), 2.5f);
+                    }
+                }
+            }
 
             CourseActor? newHoveredActor = null;
 

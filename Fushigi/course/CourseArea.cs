@@ -97,10 +97,13 @@ namespace Fushigi.course
 
             //Load rail render tools
             this.WallUnitRenders.Clear();
+            this.BeltUnitRenders.Clear();
             foreach (var unit in mUnitHolder.mUnits)
             {
                 foreach (var wall in unit.mWalls)
                     this.WallUnitRenders.Add(new UnitRailRenderer(unit, wall));
+                foreach (var wall in unit.mBeltRails)
+                    this.BeltUnitRenders.Add(new UnitRailRenderer(unit, wall));
             }
         }
 
@@ -109,11 +112,16 @@ namespace Fushigi.course
             //Save each wall back attached to the renderer
             //Clear each course unit holder
             foreach (var unit in mUnitHolder.mUnits)
+            {
                 unit.mWalls.Clear();
+                unit.mBeltRails.Clear();
+            }
 
             //Add each wall back from the renderer
             foreach (var wall_rail in WallUnitRenders)
                 wall_rail.CourseUnit.mWalls.Add(wall_rail.Save());
+            foreach (var belt_rail in BeltUnitRenders)
+                belt_rail.CourseUnit.mBeltRails.Add(belt_rail.SaveBelt());
 
             //Save using the configured mod romfs path
             Save(resource_table, Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit"));

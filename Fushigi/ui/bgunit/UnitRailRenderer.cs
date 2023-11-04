@@ -60,6 +60,18 @@ namespace Fushigi.ui.widgets
             return rail;
         }
 
+        public CourseUnit.BeltRail SaveBelt()
+        {
+            CourseUnit.BeltRail rail = new CourseUnit.BeltRail();
+
+            rail.mPoints = new List<Vector3?>();
+            foreach (var pt in Points)
+                rail.mPoints.Add(pt.Position);
+
+            rail.IsClosed = this.IsClosed;
+            return rail;
+        }
+
         public void DeselectAll()
         {
             foreach (var point in Points)
