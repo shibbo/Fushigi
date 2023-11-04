@@ -14,6 +14,7 @@ using Fushigi.ui.widgets;
 using ImGuiNET;
 using System.Numerics;
 using System.Diagnostics;
+using Silk.NET.SDL;
 
 namespace Fushigi.ui
 {

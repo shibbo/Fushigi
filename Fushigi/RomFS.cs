@@ -1,5 +1,4 @@
 ﻿using Fushigi.Byml;
-using TinyDialogsNet;
 
 namespace Fushigi
 {
@@ -12,7 +11,7 @@ namespace Fushigi
             /* common paths to check */
             if (!RomFS.DirectoryExists("BancMapUnit") || !RomFS.DirectoryExists("Model") || !RomFS.DirectoryExists("Stage"))
             {
-                Dialogs.MessageBox(Dialogs.MessageBoxButtons.Ok, Dialogs.MessageBoxIconType.Error, Dialogs.MessageBoxDefaultButton.OkYes, "Invalid RomFS Path", "The path you have selected is invalid. Please select a RomFS path that contains BancMapUnit, Model, and Stage.");
+                //Dialogs.MessageBox(Dialogs.MessageBoxButtons.Ok, Dialogs.MessageBoxIconType.Error, Dialogs.MessageBoxDefaultButton.OkYes, "Invalid RomFS Path", "The path you have selected is invalid. Please select a RomFS path that contains BancMapUnit, Model, and Stage.");
                 return false;
             }
 
