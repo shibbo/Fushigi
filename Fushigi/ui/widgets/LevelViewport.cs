@@ -14,6 +14,7 @@ using System.Security.Cryptography;
 using Vector3 = System.Numerics.Vector3;
 using static Fushigi.course.CourseUnit;
 using System.Xml.Linq;
+using System.Reflection;
 
 namespace Fushigi.ui.widgets
 {
@@ -23,10 +24,15 @@ namespace Fushigi.ui.widgets
         Matrix4x4 mViewProjectionMatrix;
         Matrix4x4 mViewProjectionMatrixInverse;
         ImDrawListPtr mDrawList;
+        public EditorMode mEditorMode = EditorMode.Actors;
         public EditorState mEditorState = EditorState.Selecting;
 
         Vector2 mSize = Vector2.Zero;
         private ISet<CourseActor> mSelectedActors = new HashSet<CourseActor>();
+        private Vector3? mSelectedPoint;
+        private int mWallIdx = -1;
+        private int mUnitIdx = -1;
+        private int mPointIdx = -1;
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
         public string mActorToAdd = "";
@@ -37,6 +43,7 @@ namespace Fushigi.ui.widgets
             (Quaternion.Identity, Vector3.Zero, 10);
 
         public CourseActor? HoveredActor;
+        public Vector3? HoveredPoint;
 
         public uint GridColor = 0x77_FF_FF_FF;
         public float GridLineThickness = 1.5f;
@@ -48,6 +55,12 @@ namespace Fushigi.ui.widgets
             Selecting,
             AddingActor,
             DeletingActor
+        }
+
+        public enum EditorMode
+        {
+            Actors,
+            Units
         }
 
         public Vector2 WorldToScreen(Vector3 pos) => WorldToScreen(pos, out _);
@@ -184,10 +197,43 @@ namespace Fushigi.ui.widgets
 
             if (mEditorState == EditorState.Selecting)
             {
+                if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                {
+                    if (mSelectedActors.Count == 1)
+                    {
+                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+
+                        if (ImGui.GetIO().KeyShift)
+                        {
+                            mSelectedActors.ElementAt(0).mTranslation = posVec;
+                        }
+                        else
+                        {
+                            posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                            posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                            posVec.Z = mSelectedActors.ElementAt(0).mTranslation.Z;
+                            mSelectedActors.ElementAt(0).mTranslation = posVec;
+                        }
+                    }
+                }
+
                 if (ImGui.IsItemClicked())
                 {
+                    bool isModeActor = HoveredActor != null;
+                    bool isModeUnit = HoveredPoint != null;
+
+                    if (isModeActor && !isModeUnit)
+                    {
+                        mEditorMode = EditorMode.Actors;
+                    }
+
+                    if (isModeUnit && !isModeActor)
+                    {
+                        mEditorMode = EditorMode.Units;
+                    }
+
                     /* if the user clicked somewhere and it was not hovered over an element, 
-                     * we clear our selected actors array */
+                        * we clear our selected actors array */
                     if (HoveredActor == null)
                     {
                         mSelectionChanged = false;
@@ -207,6 +253,15 @@ namespace Fushigi.ui.widgets
                             mSelectionChanged = true;
                         }
                     }
+
+                    if (HoveredPoint == null)
+                    {
+                        mSelectedPoint = null;
+                    }
+                    else
+                    {
+                        mSelectedPoint = HoveredPoint;
+                    }
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.Delete))
@@ -217,6 +272,7 @@ namespace Fushigi.ui.widgets
                 if (ImGui.IsKeyDown(ImGuiKey.Escape))
                 {
                     mSelectedActors.Clear();
+                    mSelectedPoint = null;
                 }
             }
             else if (mEditorState == EditorState.AddingActor)
@@ -289,7 +345,6 @@ namespace Fushigi.ui.widgets
                     }
                 }
             }
-
 
             ImGui.PopClipRect();
         }
@@ -382,6 +437,7 @@ namespace Fushigi.ui.widgets
         void DrawAreaContent()
         {
             const float pointSize = 3.0f;
+            Vector3? newHoveredPoint = null;
 
             if (mArea.mUnitHolder.mUnits.Count > 0)
             {
@@ -396,11 +452,36 @@ namespace Fushigi.ui.widgets
 
                         for (int i = 0; i < wallGeometry.mPoints.Count; i++)
                         {
-                            Vector3 point = wallGeometry.mPoints[i];
+                            Vector3 point = (Vector3)wallGeometry.mPoints[i];
                             var pos2D = WorldToScreen(new(point.X, point.Y, point.Z));
-                            mDrawList.AddCircleFilled(pos2D, pointSize, 0xFFFFFFFF);
+                            Vector2 pnt = new(pos2D.X, pos2D.Y);
+
+                            bool isHovered = HoveredPoint == point;
+
+                            uint color;
+
+                            if (isHovered || mSelectedPoint == point)
+                            {
+                                color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+                            }
+                            else
+                            {
+                                color = 0xFFFFFFFF;
+                            }
+
+                            mDrawList.AddCircleFilled(pos2D, 6.0f, color);
                             pointsList[i] = pos2D;
+
+                            if ((ImGui.GetMousePos() - pnt).Length() < 6.0f)
+                            {
+                                newHoveredPoint = point;
+                                mUnitIdx = mArea.mUnitHolder.mUnits.IndexOf(unit);
+                                mWallIdx = unit.mWalls.IndexOf(wallGeometry);
+                                mPointIdx = i;
+                            }
                         }
+
+                        HoveredPoint = newHoveredPoint;
 
                         mDrawList.AddPolyline(ref pointsList[0], pointsList.Length, 0xFFFFFFFF,
                             wallGeometry.IsClosed ? ImDrawFlags.Closed : ImDrawFlags.None, 2.5f);
@@ -494,7 +575,9 @@ namespace Fushigi.ui.widgets
                     }
 
                     if (isHovered)
+                    {
                         newHoveredActor = actor;
+                    }
                 }
             }
 

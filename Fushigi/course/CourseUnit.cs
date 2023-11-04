@@ -50,7 +50,7 @@ namespace Fushigi.course
 
                         ExternalRail rail = new();
                         rail.IsClosed = BymlUtil.GetNodeData<bool>(externalRailDict["IsClosed"]);
-                        rail.mPoints = new List<System.Numerics.Vector3>();
+                        rail.mPoints = new List<System.Numerics.Vector3?>();
 
                         foreach (BymlHashTable pointsTbl in pointsArr.Array)
                         {
@@ -132,13 +132,13 @@ namespace Fushigi.course
         public struct ExternalRail
         {
             public bool IsClosed;
-            public List<System.Numerics.Vector3> mPoints;
+            public List<System.Numerics.Vector3?> mPoints;
         }
 
         public struct BeltRail
         {
             public bool IsClosed;
-            public List<System.Numerics.Vector3> mPoints;
+            public List<System.Numerics.Vector3?> mPoints;
         }
 
         int mModelType;
