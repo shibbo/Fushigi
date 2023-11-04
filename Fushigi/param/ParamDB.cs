@@ -68,7 +68,8 @@ namespace Fushigi.param
             }
 
             /* the files in /Pack/Actor in the RomFS contain the PACK files that contain our parameters */
-            string[] files = RomFS.GetFiles("/Pack/Actor");
+            // string[] files = RomFS.GetFiles("/Pack/Actor");
+            string[] files = RomFS.GetFiles(Path.Combine("Pack", "Actor"));
 
             /* iterate through each file */
             foreach (string file in files)
@@ -90,13 +91,15 @@ namespace Fushigi.param
                 SARC.SARC sarc = new SARC.SARC(new MemoryStream(fileBytes));
 
                 /* /Component/Blackboard/BlackboardParamTable is where all of the actor-specific parameters live */
-                if (!sarc.DirectoryExists("Component/Blackboard/BlackboardParamTable"))
+                string actorParamDir = Path.Combine("Component", "Blackboard", "BlackboardParamTable");
+
+                if (!sarc.DirectoryExists(actorParamDir))
                 {
                     continue;
                 }
 
                 /* grab every file in this directory, should be all BYMLs */
-                string[] filesInDir = sarc.GetFiles("Component/Blackboard/BlackboardParamTable");
+                string[] filesInDir = sarc.GetFiles(actorParamDir);
 
                 foreach(string paramFile in filesInDir)
                 {
@@ -122,7 +125,7 @@ namespace Fushigi.param
             }
 
             /*  now let's read our rail parameter files */
-            string[] railComponentFiles = RomFS.GetFiles("Component\\Blackboard\\BlackboardParamTable");
+            string[] railComponentFiles = RomFS.GetFiles(Path.Combine("Component", "Blackboard", "BlackboardParamTable"));
 
             foreach (string railComp in railComponentFiles)
             {
@@ -133,7 +136,7 @@ namespace Fushigi.param
             }
 
             /* read our rail parameter sheets that tell us what to use for rail params and rail point params */
-            string[] railParamFiles = RomFS.GetFiles("Gyml\\Rail\\RailParam");
+            string[] railParamFiles = RomFS.GetFiles(Path.Combine("Gyml", "Rail", "RailParam"));
 
             foreach(string railParamFile in railParamFiles)
             {

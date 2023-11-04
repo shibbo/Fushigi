@@ -197,7 +197,12 @@ namespace Fushigi.ui
 
                 ImGui.Indent();
 
-                if (PathSelector.Show("RomFS Game Path", ref romfs, Directory.Exists($"{romfs}/BancMapUnit")))
+                
+                if (PathSelector.Show(
+                    "RomFS Game Path", 
+                    ref romfs, 
+                    Directory.Exists(Path.Combine(romfs, "BancMapUnit")))
+                    )
                 {
                     UserSettings.SetRomFSPath(romfs);
                     RomFS.SetRoot(romfs);

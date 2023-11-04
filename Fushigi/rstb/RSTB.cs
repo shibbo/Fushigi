@@ -64,8 +64,10 @@ namespace Fushigi.rstb
         /// Loads the resource table from the romfs or saved content path configured in the tool settings.
         /// </summary>
         public void Load()
-        {
-            string path = FileUtil.FindContentPath("System/Resource/ResourceSizeTable.Product.100.rsizetable.zs");
+        {            
+            string path = FileUtil.FindContentPath(
+                Path.Combine("System", "Resource", "ResourceSizeTable.Product.100.rsizetable.zs")
+                );
             //Failed to find file, skip
             if (!File.Exists(path))
                 return;
@@ -80,13 +82,17 @@ namespace Fushigi.rstb
         {
             if (HashToResourceSize.Count == 0) //File not loaded, return
                 return;
-
-            string dir = $"{UserSettings.GetModRomFSPath()}/System/Resource";
+           
+            string dir = Path.Combine(UserSettings.GetModRomFSPath(), "System", "Resource");
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             var mem = new MemoryStream();
             Write(mem);
-            File.WriteAllBytes($"{dir}/ResourceSizeTable.Product.100.rsizetable.zs", FileUtil.CompressData(mem.ToArray()));
+            
+            File.WriteAllBytes(
+                Path.Combine(dir, "ResourceSizeTable.Product.100.rsizetable.zs"), 
+                FileUtil.CompressData(mem.ToArray())
+                );
         }
 
         private void Read(Stream stream)
