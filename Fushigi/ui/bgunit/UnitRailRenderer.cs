@@ -29,7 +29,6 @@ namespace Fushigi.ui.widgets
         public UnitRailRenderer(CourseUnit unit, CourseUnit.ExternalRail rail)
         {
             CourseUnit = unit;
-
             this.Points.Clear();
 
             foreach (var pt in rail.mPoints)
@@ -40,6 +39,7 @@ namespace Fushigi.ui.widgets
 
         public UnitRailRenderer(CourseUnit unit, CourseUnit.BeltRail rail)
         {
+            CourseUnit = unit;
             this.Points.Clear();
 
             foreach (var pt in rail.mPoints)
