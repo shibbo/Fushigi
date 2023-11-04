@@ -29,8 +29,8 @@ namespace Fushigi.course
 
         public void LoadFromRomFS()
         {
-            var courseFilePath = FileUtil.FindContentPath($"BancMapUnit/{mCourseName}.bcett.byml.zs");
-            var stageParamFilePath = FileUtil.FindContentPath($"Stage/StageParam/{mCourseName}.game__stage__StageParam.bgyml");
+            var courseFilePath = FileUtil.FindContentPath($"BancMapUnit{Path.DirectorySeparatorChar}{mCourseName}.bcett.byml.zs");
+            var stageParamFilePath = FileUtil.FindContentPath($"Stage{Path.DirectorySeparatorChar}StageParam{Path.DirectorySeparatorChar}{mCourseName}.game__stage__StageParam.bgyml");
             /* grab our course information file */
             Byml.Byml courseInfo = new Byml.Byml(new MemoryStream(FileUtil.DecompressFile(courseFilePath)));
             Byml.Byml stageParam = new Byml.Byml(new MemoryStream(File.ReadAllBytes(stageParamFilePath)));
@@ -47,7 +47,7 @@ namespace Fushigi.course
 
                 for (int i = 0; i < stageList.Length; i++)
                 {
-                    string stageParamPath = ((BymlNode<string>)stageList[i]).Data.Replace("Work/", "").Replace(".gyml", ".bgyml");
+                    string stageParamPath = ((BymlNode<string>)stageList[i]).Data.Replace($"Work{Path.DirectorySeparatorChar}", "").Replace(".gyml", ".bgyml");
                     string stageName = Path.GetFileName(stageParamPath).Split(".game")[0];
                     mAreas.Add(new CourseArea(stageName));
                 }

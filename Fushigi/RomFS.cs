@@ -31,23 +31,23 @@ namespace Fushigi
         }
 
         public static bool DirectoryExists(string path) {
-            return Directory.Exists($"{sRomFSRoot}/{path}");
+            return Directory.Exists($"{sRomFSRoot}{Path.DirectorySeparatorChar}{path}");
         }
 
         public static string[] GetFiles(string path)
         {
-            return Directory.GetFiles($"{sRomFSRoot}/{path}");
+            return Directory.GetFiles($"{sRomFSRoot}{Path.DirectorySeparatorChar}{path}");
         }
 
         public static byte[] GetFileBytes(string path)
         {
-            return File.ReadAllBytes($"{sRomFSRoot}/{path}");
+            return File.ReadAllBytes($"{sRomFSRoot}{Path.DirectorySeparatorChar}{path}");
         }
 
         private static void CacheCourseFiles()
         {
             sCourseEntries.Clear();
-            string[] loadFiles = RomFS.GetFiles("/Stage/WorldMapInfo");
+            string[] loadFiles = RomFS.GetFiles($"{Path.DirectorySeparatorChar}Stage{Path.DirectorySeparatorChar}WorldMapInfo");
             foreach (string loadFile in loadFiles)
             {
                 string worldName = Path.GetFileName(loadFile).Split(".game")[0];

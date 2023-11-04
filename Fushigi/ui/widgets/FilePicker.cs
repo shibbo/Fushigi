@@ -90,7 +90,7 @@ namespace Fushigi.ui.widgets
                     if (di.Parent != null)
                     {
                         ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFF00);
-                        if (ImGui.Selectable("../", false))
+                        if (ImGui.Selectable($"..{Path.DirectorySeparatorChar}", false))
                         {
                             CurrentFolder = di.Parent.FullName;
                         }
@@ -102,7 +102,7 @@ namespace Fushigi.ui.widgets
                         {
                             string name = Path.GetFileName(fse);
                             ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFF00);
-                            if (ImGui.Selectable(name + "/", false))
+                            if (ImGui.Selectable(name + Path.DirectorySeparatorChar, false))
                             {
                                 CurrentFolder = fse;
                             }

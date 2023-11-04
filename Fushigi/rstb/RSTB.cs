@@ -65,7 +65,7 @@ namespace Fushigi.rstb
         /// </summary>
         public void Load()
         {
-            string path = FileUtil.FindContentPath("System/Resource/ResourceSizeTable.Product.100.rsizetable.zs");
+            string path = FileUtil.FindContentPath($"System{Path.DirectorySeparatorChar}Resource{Path.DirectorySeparatorChar}ResourceSizeTable.Product.100.rsizetable.zs");
             //Failed to find file, skip
             if (!File.Exists(path))
                 return;
@@ -81,12 +81,12 @@ namespace Fushigi.rstb
             if (HashToResourceSize.Count == 0) //File not loaded, return
                 return;
 
-            string dir = $"{UserSettings.GetModRomFSPath()}/System/Resource";
+            string dir = $"{UserSettings.GetModRomFSPath()}{Path.DirectorySeparatorChar}System{Path.DirectorySeparatorChar}Resource";
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
             var mem = new MemoryStream();
             Write(mem);
-            File.WriteAllBytes($"{dir}/ResourceSizeTable.Product.100.rsizetable.zs", FileUtil.CompressData(mem.ToArray()));
+            File.WriteAllBytes($"{dir}{Path.DirectorySeparatorChar}ResourceSizeTable.Product.100.rsizetable.zs", FileUtil.CompressData(mem.ToArray()));
         }
 
         private void Read(Stream stream)
@@ -186,7 +186,7 @@ namespace Fushigi.rstb
                     size = (int)new FileInfo(file).Length;
 
                 //Get resource hash
-                string path = $"{folder}/{Path.GetFileName(file).Replace(".zs", "")}";
+                string path = $"{folder}{Path.DirectorySeparatorChar}{Path.GetFileName(file).Replace(".zs", "")}";
                 uint hash = Crc32.Compute(path);
 
                 if (this.HashToResourceSize.ContainsKey(hash))

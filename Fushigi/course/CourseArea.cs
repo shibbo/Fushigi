@@ -22,10 +22,10 @@ namespace Fushigi.course
 
         public void Load()
         {
-            string areaParamPath = FileUtil.FindContentPath($"Stage/AreaParam/{mAreaName}.game__stage__AreaParam.bgyml");
+            string areaParamPath = FileUtil.FindContentPath($"Stage{Path.DirectorySeparatorChar}AreaParam{Path.DirectorySeparatorChar}{mAreaName}.game__stage__AreaParam.bgyml");
             mAreaParams = new AreaParam(new Byml.Byml(new MemoryStream(File.ReadAllBytes(areaParamPath))));
 
-            string levelPath = FileUtil.FindContentPath($"BancMapUnit/{mAreaName}.bcett.byml.zs");
+            string levelPath = FileUtil.FindContentPath($"BancMapUnit{Path.DirectorySeparatorChar}{mAreaName}.bcett.byml.zs");
             byte[] levelBytes = FileUtil.DecompressFile(levelPath);
             var byml = new Byml.Byml(new MemoryStream(levelBytes));
 
@@ -98,7 +98,7 @@ namespace Fushigi.course
         public void Save(RSTB resource_table)
         {
             //Save using the configured mod romfs path
-            Save(resource_table, $"{UserSettings.GetModRomFSPath()}/BancMapUnit");
+            Save(resource_table, $"{UserSettings.GetModRomFSPath()}{Path.DirectorySeparatorChar}BancMapUnit");
         }
 
         public void Save(RSTB resource_table, string folder)
@@ -128,11 +128,11 @@ namespace Fushigi.course
             var decomp_size = (uint)mem.Length;
 
             //Compress and save the course area
-            string levelPath = $"{folder}/{mAreaName}.bcett.byml.zs";
+            string levelPath = $"{folder}{Path.DirectorySeparatorChar}{mAreaName}.bcett.byml.zs";
             File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
 
             //Update resource table
-            resource_table.SetResource($"BancMapUnit/{mAreaName}.bcett.byml", decomp_size);
+            resource_table.SetResource($"BancMapUnit{Path.DirectorySeparatorChar}{mAreaName}.bcett.byml", decomp_size);
         }
 
         public string GetName()
