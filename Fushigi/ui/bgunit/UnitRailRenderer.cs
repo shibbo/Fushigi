@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using static Fushigi.ui.widgets.UnitRailRenderer;
 
 namespace Fushigi.ui.widgets
 {
@@ -52,15 +53,16 @@ namespace Fushigi.ui.widgets
 
         public CourseUnit.Rail Save()
         {
-            CourseUnit.Rail rail = new CourseUnit.Rail();
+            CourseUnit.Rail rail = new CourseUnit.Rail()
+            {
+                IsClosed = this.IsClosed,
+                IsInternal = this.IsInternal,
+                mPoints = new List<Vector3?>(),
+            };
 
-            this.Points.Clear();
-
-            foreach (var pt in rail.mPoints)
-                Points.Add(new RailPoint(pt.Value));
-
-            IsClosed = rail.IsClosed;
-            IsInternal = rail.IsInternal;
+            rail.mPoints = new List<Vector3?>();
+            foreach (var pt in this.Points)
+                rail.mPoints.Add(pt.Position);
 
             return rail;
         }

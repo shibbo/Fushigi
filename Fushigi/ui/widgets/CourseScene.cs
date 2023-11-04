@@ -401,9 +401,14 @@ namespace Fushigi.ui.widgets
                 {
                     if (ImGui.Button("Add Wall", new Vector2(100, 22)))
                         unit.WallUnitRenders.Add(new UnitRailRenderer(unit, new CourseUnit.Rail()));
-                    if (ImGui.Button("Remove Wall", new Vector2(100, 22)))
-                        unit.WallUnitRenders.Add(new UnitRailRenderer(unit, new CourseUnit.Rail()));
 
+                    ImGui.SameLine();
+                    if (ImGui.Button("Remove Wall", new Vector2(100, 22)))
+                    {
+                        var selected = unit.WallUnitRenders.Where(x => x.IsSelected).ToList();
+                        foreach (var wall in selected)
+                            unit.WallUnitRenders.Remove(wall);
+                    }
 
                     foreach (var wall in unit.WallUnitRenders)
                     {
