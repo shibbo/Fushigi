@@ -122,7 +122,7 @@ namespace Fushigi.param
             }
 
             /*  now let's read our rail parameter files */
-            string[] railComponentFiles = RomFS.GetFiles("Component\\Blackboard\\BlackboardParamTable");
+            string[] railComponentFiles = RomFS.GetFiles("Component/Blackboard/BlackboardParamTable");
 
             foreach (string railComp in railComponentFiles)
             {
@@ -133,7 +133,7 @@ namespace Fushigi.param
             }
 
             /* read our rail parameter sheets that tell us what to use for rail params and rail point params */
-            string[] railParamFiles = RomFS.GetFiles("Gyml\\Rail\\RailParam");
+            string[] railParamFiles = RomFS.GetFiles("Gyml/Rail/RailParam");
 
             foreach(string railParamFile in railParamFiles)
             {
