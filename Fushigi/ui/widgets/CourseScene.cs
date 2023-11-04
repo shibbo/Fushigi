@@ -399,6 +399,12 @@ namespace Fushigi.ui.widgets
                 }
                 if (expanded)
                 {
+                    if (ImGui.Button("Add Wall", new Vector2(100, 22)))
+                        unit.WallUnitRenders.Add(new UnitRailRenderer(unit, new CourseUnit.Rail()));
+                    if (ImGui.Button("Remove Wall", new Vector2(100, 22)))
+                        unit.WallUnitRenders.Add(new UnitRailRenderer(unit, new CourseUnit.Rail()));
+
+
                     foreach (var wall in unit.WallUnitRenders)
                     {
                         bool isSelected = wall.IsSelected;
@@ -440,9 +446,6 @@ namespace Fushigi.ui.widgets
 
                         ImGui.Unindent();
                     }
-                    if (ImGui.Button("Add Wall", new Vector2(100, 22)))
-                        unit.WallUnitRenders.Add(new UnitRailRenderer(unit, new CourseUnit.Rail()));
-
                     ImGui.TreePop();
                 }
             }
