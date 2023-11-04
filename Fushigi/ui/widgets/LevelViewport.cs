@@ -197,6 +197,26 @@ namespace Fushigi.ui.widgets
 
             if (mEditorState == EditorState.Selecting)
             {
+                if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                {
+                    if (mSelectedActors.Count == 1)
+                    {
+                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+
+                        if (ImGui.GetIO().KeyShift)
+                        {
+                            mSelectedActors.ElementAt(0).mTranslation = posVec;
+                        }
+                        else
+                        {
+                            posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                            posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                            posVec.Z = mSelectedActors.ElementAt(0).mTranslation.Z;
+                            mSelectedActors.ElementAt(0).mTranslation = posVec;
+                        }
+                    }
+                }
+
                 if (ImGui.IsItemClicked())
                 {
                     bool isModeActor = HoveredActor != null;
