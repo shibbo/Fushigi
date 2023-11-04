@@ -15,6 +15,7 @@ using Vector3 = System.Numerics.Vector3;
 using static Fushigi.course.CourseUnit;
 using System.Xml.Linq;
 using System.Reflection;
+using Microsoft.VisualBasic;
 
 namespace Fushigi.ui.widgets
 {
@@ -47,6 +48,8 @@ namespace Fushigi.ui.widgets
 
         public uint GridColor = 0x77_FF_FF_FF;
         public float GridLineThickness = 1.5f;
+
+        UndoHandler UndoHandler = new UndoHandler();
 
         bool mSelectionChanged = false;
 
@@ -91,6 +94,26 @@ namespace Fushigi.ui.widgets
             world /= world.W;
 
             return new (world.X, world.Y, world.Z);
+        }
+
+        public void AddToUndo(IRevertable revertable)
+        {
+            UndoHandler.AddToUndo(revertable);
+        }
+
+        public void AddToUndo(List<IRevertable> revertable)
+        {
+            UndoHandler.AddToUndo(revertable);
+        }
+
+        public void BeginUndoCollection()
+        {
+            UndoHandler.BeginUndoCollection();
+        }
+
+        public void EndUndoCollection()
+        {
+            UndoHandler.EndUndoCollection();
         }
 
         public void FrameSelectedActor(CourseActor actor)
@@ -194,6 +217,15 @@ namespace Fushigi.ui.widgets
 
             if(HoveredActor != null)
                 ImGui.SetTooltip($"{HoveredActor.mActorName}");
+
+            if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
+            {
+                UndoHandler.Undo();
+            }
+            if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeyCtrl)
+            {
+                UndoHandler.Redo();
+            }
 
             if (mEditorState == EditorState.Selecting)
             {
@@ -439,82 +471,8 @@ namespace Fushigi.ui.widgets
             const float pointSize = 3.0f;
             Vector3? newHoveredPoint = null;
 
-            if (mArea.mUnitHolder.mUnits.Count > 0)
-            {
-                foreach (CourseUnit unit in mArea.mUnitHolder.mUnits)
-                {
-                    foreach (ExternalRail wallGeometry in unit.mWalls)
-                    {
-                        if (wallGeometry.mPoints.Count == 0)
-                            continue;
-
-                        Vector2[] pointsList = new Vector2[wallGeometry.mPoints.Count];
-
-                        for (int i = 0; i < wallGeometry.mPoints.Count; i++)
-                        {
-                            Vector3 point = (Vector3)wallGeometry.mPoints[i];
-                            var pos2D = WorldToScreen(new(point.X, point.Y, point.Z));
-                            Vector2 pnt = new(pos2D.X, pos2D.Y);
-
-                            bool isHovered = HoveredPoint == point;
-
-                            uint color;
-
-                            if (isHovered || mSelectedPoint == point)
-                            {
-                                color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
-                            }
-                            else
-                            {
-                                color = 0xFFFFFFFF;
-                            }
-
-                            mDrawList.AddCircleFilled(pos2D, 6.0f, color);
-                            pointsList[i] = pos2D;
-
-                            if ((ImGui.GetMousePos() - pnt).Length() < 6.0f)
-                            {
-                                newHoveredPoint = point;
-                                mUnitIdx = mArea.mUnitHolder.mUnits.IndexOf(unit);
-                                mWallIdx = unit.mWalls.IndexOf(wallGeometry);
-                                mPointIdx = i;
-                            }
-                        }
-
-                        HoveredPoint = newHoveredPoint;
-
-                        mDrawList.AddPolyline(ref pointsList[0], pointsList.Length, 0xFFFFFFFF,
-                            wallGeometry.IsClosed ? ImDrawFlags.Closed : ImDrawFlags.None, 2.5f);
-                    }
-                }
-            }
-
-            if (mArea.mRailHolder.mRails.Count > 0) 
-            {
-                foreach (CourseRail rail in mArea.mRailHolder.mRails)
-                {
-                    List<Vector2> pointsList = [];
-
-                    foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
-                    {
-                        var pos2D = WorldToScreen(new(pnt.mTranslate.X, pnt.mTranslate.Y, pnt.mTranslate.Z));
-                        mDrawList.AddCircleFilled(pos2D, pointSize, (uint)System.Drawing.Color.HotPink.ToArgb());
-                        pointsList.Add(pos2D);
-                    }
-
-                    for (int i = 0; i < pointsList.Count - 1; i++)
-                    {
-                        mDrawList.AddLine(pointsList[i], pointsList[i + 1], (uint)System.Drawing.Color.HotPink.ToArgb(), 2.5f);
-                    }
-
-                    bool isClosed = rail.mIsClosed;
-
-                    if (isClosed)
-                    {
-                        mDrawList.AddLine(pointsList[pointsList.Count - 1], pointsList[0], (uint)System.Drawing.Color.HotPink.ToArgb(), 2.5f);
-                    }
-                }
-            }
+            foreach (var wall in this.mArea.WallUnitRenders)
+                wall.Render(this, mDrawList); 
 
             CourseActor? newHoveredActor = null;
 

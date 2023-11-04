@@ -1,5 +1,6 @@
 ﻿using Fushigi.Byml;
 using Fushigi.rstb;
+using Fushigi.ui.widgets;
 using Fushigi.util;
 using ImGuiNET;
 using System;
@@ -22,10 +23,10 @@ namespace Fushigi.course
 
         public void Load()
         {
-            string areaParamPath = FileUtil.FindContentPath($"Stage/AreaParam/{mAreaName}.game__stage__AreaParam.bgyml");
+            string areaParamPath = FileUtil.FindContentPath(Path.Combine("Stage", "AreaParam", $"{mAreaName}.game__stage__AreaParam.bgyml"));
             mAreaParams = new AreaParam(new Byml.Byml(new MemoryStream(File.ReadAllBytes(areaParamPath))));
 
-            string levelPath = FileUtil.FindContentPath($"BancMapUnit/{mAreaName}.bcett.byml.zs");
+            string levelPath = FileUtil.FindContentPath(Path.Combine("BancMapUnit", $"{mAreaName}.bcett.byml.zs"));
             byte[] levelBytes = FileUtil.DecompressFile(levelPath);
             var byml = new Byml.Byml(new MemoryStream(levelBytes));
 
@@ -93,12 +94,29 @@ namespace Fushigi.course
             {
                 mUnitHolder = new();
             }
+
+            //Load rail render tools
+            this.WallUnitRenders.Clear();
+            foreach (var unit in mUnitHolder.mUnits)
+            {
+                foreach (var wall in unit.mWalls)
+                    this.WallUnitRenders.Add(new UnitRailRenderer(unit, wall));
+            }
         }
 
         public void Save(RSTB resource_table)
         {
+            //Save each wall back attached to the renderer
+            //Clear each course unit holder
+            foreach (var unit in mUnitHolder.mUnits)
+                unit.mWalls.Clear();
+
+            //Add each wall back from the renderer
+            foreach (var wall_rail in WallUnitRenders)
+                wall_rail.CourseUnit.mWalls.Add(wall_rail.Save());
+
             //Save using the configured mod romfs path
-            Save(resource_table, $"{UserSettings.GetModRomFSPath()}/BancMapUnit");
+            Save(resource_table, Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit"));
         }
 
         public void Save(RSTB resource_table, string folder)
@@ -156,6 +174,10 @@ namespace Fushigi.course
         //public List<CourseLink> mLinks;
         public CourseGroupHolder mGroups;
         public CourseUnitHolder mUnitHolder;
+
+        //Editor render objects
+        internal List<UnitRailRenderer> WallUnitRenders = new List<UnitRailRenderer>();
+        internal List<UnitRailRenderer> BeltUnitRenders = new List<UnitRailRenderer>();
 
         public class AreaParam
         {
