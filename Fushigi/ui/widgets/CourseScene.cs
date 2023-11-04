@@ -389,13 +389,6 @@ namespace Fushigi.ui.widgets
                             if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
                             {
                                 mSelectedActor = actor;
-                            }
-<<<<<<< Updated upstream
-=======
-                            //Keyboard scrolling
-                            if (ImGui.IsItemHovered() && ImGui.IsItemFocused())
-                            {
-                                mSelectedActor = actor;
                                 viewport.SelectedActor(actor);
                             }
                             if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
@@ -403,7 +396,6 @@ namespace Fushigi.ui.widgets
                                 viewport.FrameSelectedActor(actor);
                             }
 
->>>>>>> Stashed changes
                             ImGui.NextColumn();
                             ImGui.BeginDisabled();
                             ImGui.Text(name);
