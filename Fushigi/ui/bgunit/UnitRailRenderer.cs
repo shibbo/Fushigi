@@ -1,10 +1,12 @@
 ﻿using Fushigi.course;
 using ImGuiNET;
+using Microsoft.VisualBasic;
 using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -19,14 +21,23 @@ namespace Fushigi.ui.widgets
 
         public bool IsClosed = false;
 
+        public bool IsInternal = false;
+
         public bool mouseDown = false;
         public bool transformStart = false;
+
+        public bool IsSelected = false;
+        public bool Visible = true;
+
+        public uint Color_Default = 0xFFFFFFFF;
+        public uint Color_SelectionEdit = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+        public uint Color_SlopeError = 0xFF0000FF;
 
         private Vector3 mouseDownPos;
 
         public CourseUnit CourseUnit;
 
-        public UnitRailRenderer(CourseUnit unit, CourseUnit.ExternalRail rail)
+        public UnitRailRenderer(CourseUnit unit, CourseUnit.Rail rail)
         {
             CourseUnit = unit;
 
@@ -36,39 +47,21 @@ namespace Fushigi.ui.widgets
                 Points.Add(new RailPoint(pt.Value));
 
             IsClosed = rail.IsClosed;
+            IsInternal = rail.IsInternal;
         }
 
-        public UnitRailRenderer(CourseUnit unit, CourseUnit.BeltRail rail)
+        public CourseUnit.Rail Save()
         {
+            CourseUnit.Rail rail = new CourseUnit.Rail();
+
             this.Points.Clear();
 
             foreach (var pt in rail.mPoints)
                 Points.Add(new RailPoint(pt.Value));
 
             IsClosed = rail.IsClosed;
-        }
+            IsInternal = rail.IsInternal;
 
-        public CourseUnit.ExternalRail Save()
-        {
-            CourseUnit.ExternalRail rail = new CourseUnit.ExternalRail();
-
-            rail.mPoints = new List<Vector3?>();
-            foreach (var pt in Points)
-                rail.mPoints.Add(pt.Position);
-
-            rail.IsClosed = this.IsClosed;
-            return rail;
-        }
-
-        public CourseUnit.BeltRail SaveBelt()
-        {
-            CourseUnit.BeltRail rail = new CourseUnit.BeltRail();
-
-            rail.mPoints = new List<Vector3?>();
-            foreach (var pt in Points)
-                rail.mPoints.Add(pt.Position);
-
-            rail.IsClosed = this.IsClosed;
             return rail;
         }
 
@@ -76,6 +69,12 @@ namespace Fushigi.ui.widgets
         {
             foreach (var point in Points)
                 point.IsSelected = false;
+        }
+
+        public void SelectAll()
+        {
+            foreach (var point in Points)
+                point.IsSelected = true;
         }
 
         public void InsertPoint(LevelViewport viewport, RailPoint point, int index)
@@ -86,10 +85,7 @@ namespace Fushigi.ui.widgets
 
         public void AddPoint(LevelViewport viewport, RailPoint point)
         {
-            var selected = this.GetSelected();
-            if (selected.Count == 0)
-                return;
-
+            this.Points.Add(point);
             viewport.AddToUndo(new UnitRailPointAddUndo(this, point));
         }
 
@@ -114,11 +110,15 @@ namespace Fushigi.ui.widgets
         {
             if (ImGui.IsKeyPressed(ImGuiKey.Delete))
                 RemoveSelected(viewport);
+            if (IsSelected && ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGuiKey.A))
+                SelectAll();
         }
 
         public void OnMouseDown(LevelViewport viewport)
         {
-            mouseDown = true;
+            if (!IsSelected)
+                return;
+
             mouseDownPos = viewport.ScreenToWorld(ImGui.GetMousePos());
 
             var selected = GetSelected();
@@ -134,10 +134,27 @@ namespace Fushigi.ui.widgets
                      selected[0].Position.Z);
 
                 DeselectAll();
-                InsertPoint(viewport, new RailPoint(pos) { IsSelected = true }, index + 1);
+
+                if (this.Points.Count - 1 == index) //is last point
+                    InsertPoint(viewport, new RailPoint(pos) { IsSelected = true }, 0);
+                else
+                    InsertPoint(viewport, new RailPoint(pos) { IsSelected = true }, index + 1);
+            }
+            else if (ImGui.GetIO().KeyAlt && selected.Count == 0) //Add new point from last 
+            {
+                //Insert and add
+                Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
+                Vector3 pos = new(
+                     MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                     MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                     2);
+
+                DeselectAll();
+
+                AddPoint(viewport, new RailPoint(pos) { IsSelected = true });
             }
             else
-            {
+                    {
                 if (!ImGui.GetIO().KeyCtrl && !ImGui.GetIO().KeyShift)
                     DeselectAll();
             }
@@ -155,6 +172,7 @@ namespace Fushigi.ui.widgets
 
                 Points[i].PreviousPosition = point;
             }
+            mouseDown = true;
         }
 
         public void OnMouseUp(LevelViewport viewport)
@@ -168,7 +186,7 @@ namespace Fushigi.ui.widgets
             if (!mouseDown) return;
 
             Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
-            Vector3 diff = mouseDownPos - posVec;
+            Vector3 diff = posVec - mouseDownPos;
             if (diff.X != 0 && diff.Y != 0 && !transformStart)
             {
                 transformStart = true;
@@ -183,8 +201,8 @@ namespace Fushigi.ui.widgets
             {
                 if (transformStart && Points[i].IsSelected)
                 {
-                    diff.X = -MathF.Round(diff.X, MidpointRounding.AwayFromZero);
-                    diff.Y = -MathF.Round(diff.Y, MidpointRounding.AwayFromZero);
+                    diff.X = MathF.Round(diff.X, MidpointRounding.AwayFromZero);
+                    diff.Y = MathF.Round(diff.Y, MidpointRounding.AwayFromZero);
                     posVec.Z = Points[i].Position.Z;
                     Points[i].Position = Points[i].PreviousPosition + diff;
                 }
@@ -193,6 +211,9 @@ namespace Fushigi.ui.widgets
 
         public void Render(LevelViewport viewport, ImDrawListPtr mDrawList)
         {
+            if (!this.Visible)
+                return;
+
             if (ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(ImGuiMouseButton.Left))
                 OnMouseDown(viewport);
             if (ImGui.IsMouseReleased(0))
@@ -227,25 +248,50 @@ namespace Fushigi.ui.widgets
                 else //last point but not closed, draw no line
                     continue;
 
-                uint line_color = IsValidAngle(pos2D, nextPos2D) ? 0xFFFFFFFF : 0xFF0000FF;
+                uint line_color = IsValidAngle(pos2D, nextPos2D) ? Color_Default : Color_SlopeError;
+                if (this.IsSelected && line_color != Color_SlopeError)
+                    line_color = Color_SelectionEdit;
+
                 mDrawList.AddLine(pos2D, nextPos2D, line_color, 2.5f);
+
+                //Arrow display
+                Vector3 next = (i < Points.Count - 1) ? Points[i + 1].Position : Points[0].Position;
+                Vector3 dist = (next - Points[i].Position);
+                var angleInRadian = MathF.Atan2(dist.Y, dist.X); //angle in radian
+                var rotation = Matrix4x4.CreateRotationZ(angleInRadian);
+
+                float width = 0.25F;
+                float length = 0.35F;
+
+                var line1 = Vector3.TransformNormal(new Vector3(-length, width, 0), rotation);
+                var line2 = Vector3.TransformNormal(new Vector3(-length, -width, 0), rotation);
+
+                Vector2[] arrow = new Vector2[3];
+                arrow[2] = viewport.WorldToScreen(next + line1);
+                arrow[1] = viewport.WorldToScreen(next + line2);
+                arrow[0] = nextPos2D;
+
+                mDrawList.AddConvexPolyFilled(ref arrow[0], 3, 0xFFF0F0F0);
             }
 
-            for (int i = 0; i < Points.Count; i++)
+            if (IsSelected)
             {
-                Vector3 point = Points[i].Position;
-                var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
-                Vector2 pnt = new(pos2D.X, pos2D.Y);
+                for (int i = 0; i < Points.Count; i++)
+                {
+                    Vector3 point = Points[i].Position;
+                    var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
+                    Vector2 pnt = new(pos2D.X, pos2D.Y);
 
-                //Display point color
-                uint color = 0xFFFFFFFF;
-                if (Points[i].IsHovered || Points[i].IsSelected)
-                    color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+                    //Display point color
+                    uint color = 0xFFFFFFFF;
+                    if (Points[i].IsHovered || Points[i].IsSelected)
+                        color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
 
-                mDrawList.AddCircleFilled(pos2D, 6.0f, color);
+                    mDrawList.AddCircleFilled(pos2D, 6.0f, color);
 
-                bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
-                Points[i].IsHovered = isHovered;
+                    bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
+                    Points[i].IsHovered = isHovered;
+                }
             }
         }
 

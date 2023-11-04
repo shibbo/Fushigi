@@ -227,7 +227,9 @@ namespace Fushigi.ui.widgets
                 UndoHandler.Redo();
             }
 
-            if (mEditorState == EditorState.Selecting)
+            bool isFocused = ImGui.IsWindowFocused();
+
+            if (isFocused && mEditorState == EditorState.Selecting)
             {
                 if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
                 {
@@ -307,7 +309,7 @@ namespace Fushigi.ui.widgets
                     mSelectedPoint = null;
                 }
             }
-            else if (mEditorState == EditorState.AddingActor)
+            else if (isFocused && mEditorState == EditorState.AddingActor)
             {
                 ImGui.SetTooltip($"Placing actor {mActorToAdd} -- Hold SHIFT to place multiple, ESCAPE to cancel.");
 
@@ -335,7 +337,7 @@ namespace Fushigi.ui.widgets
                     }
                 }
             }
-            else if (mEditorState == EditorState.DeletingActor)
+            else if (isFocused && mEditorState == EditorState.DeletingActor)
             {
                 if (mSelectedActors.Count > 0)
                 {
@@ -471,12 +473,15 @@ namespace Fushigi.ui.widgets
             const float pointSize = 3.0f;
             Vector3? newHoveredPoint = null;
 
-            foreach (var wall in this.mArea.WallUnitRenders)
-                wall.Render(this, mDrawList);
+            foreach (var unit in this.mArea.mUnitHolder.mUnits)
+            {
+                foreach (var wall in unit.WallUnitRenders)
+                    wall.Render(this, mDrawList);
 
-            //Hide belt for now. TODO how should this be handled?
-            //foreach (var belt in this.mArea.BeltUnitRenders)
-            //    belt.Render(this, mDrawList);
+                //Hide belt for now. TODO how should this be handled?
+                //foreach (var belt in unit.BeltUnitRenders)
+                //    belt.Render(this, mDrawList);
+            }
 
             if (mArea.mRailHolder.mRails.Count > 0)
             {
