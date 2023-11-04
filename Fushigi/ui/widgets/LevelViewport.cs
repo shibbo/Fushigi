@@ -197,22 +197,6 @@ namespace Fushigi.ui.widgets
 
             if (mEditorState == EditorState.Selecting)
             {
-                if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
-                {
-                    mSelectedPoint = ScreenToWorld(ImGui.GetMousePos());
-                    CourseUnit unit = mArea.mUnitHolder.mUnits[mUnitIdx];
-
-                    unit.mWalls[mWallIdx].mPoints[mPointIdx] = mSelectedPoint;
-                }
-
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-                {
-                    Vector3 pnt = ScreenToWorld(ImGui.GetMousePos());
-
-                    CourseUnit unit = mArea.mUnitHolder.mUnits[mUnitIdx];
-                    unit.mWalls[mWallIdx].mPoints.Insert(mPointIdx + 1, pnt);
-                }
-
                 if (ImGui.IsItemClicked())
                 {
                     bool isModeActor = HoveredActor != null;
