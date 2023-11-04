@@ -169,6 +169,9 @@ namespace Fushigi.course
         //Editor render objects
         internal List<UnitRailRenderer> WallUnitRenders = new List<UnitRailRenderer>();
         internal List<UnitRailRenderer> BeltUnitRenders = new List<UnitRailRenderer>();
+
+        //Editor toggle
+        public bool Visible = true;
     }
 
     public class CourseUnitHolder

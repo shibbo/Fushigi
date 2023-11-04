@@ -239,7 +239,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.Separator();
 
-                if (ImGui.CollapsingHeader("Properties"))
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     ImGui.Columns(2);
                     ImGui.Text("Model Type"); ImGui.NextColumn();
@@ -258,7 +258,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.Separator();
 
-                if (ImGui.CollapsingHeader("Properties"))
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     ImGui.Columns(2);
                     ImGui.Text("IsClosed"); ImGui.NextColumn();
@@ -378,10 +378,21 @@ namespace Fushigi.ui.widgets
             foreach (var unit in unitHolder.mUnits)
             {
                 var tree_flags = ImGuiTreeNodeFlags.None;
+                string name = $"Tile Unit {unitHolder.mUnits.IndexOf(unit)}";
 
-                bool expanded = ImGui.TreeNode($"##Tile Unit {unitHolder.mUnits.IndexOf(unit)}");
+                ImGui.AlignTextToFramePadding();
+                bool expanded = ImGui.TreeNodeEx($"##{name}", ImGuiTreeNodeFlags.DefaultOpen);
+
                 ImGui.SameLine();
-                if (ImGui.Selectable($"Tile Unit {unitHolder.mUnits.IndexOf(unit)}", mSelectedUnit == unit))
+                if (ImGui.Checkbox($"##Visible{name}", ref unit.Visible))
+                {
+                    foreach (var wall in unit.WallUnitRenders)
+                        wall.Visible = unit.Visible;
+                }
+                ImGui.SetItemAllowOverlap();
+                ImGui.SameLine();
+
+                if (ImGui.Selectable(name, mSelectedUnit == unit))
                 {
                     DeselectAll();
                     mSelectedUnit = unit;
@@ -391,15 +402,19 @@ namespace Fushigi.ui.widgets
                     foreach (var wall in unit.WallUnitRenders)
                     {
                         bool isSelected = wall.IsSelected;
-                        string name = $"Wall {unit.WallUnitRenders.IndexOf(wall)}";
+                        string wallname = $"Wall {unit.WallUnitRenders.IndexOf(wall)}";
 
-                        if (ImGui.Checkbox($"##Visible{name}", ref wall.Visible))
+                        ImGui.Indent();
+
+                        if (ImGui.Checkbox($"##Visible{wallname}", ref wall.Visible))
                         {
 
                         }
                         ImGui.SameLine();
 
-                        if (ImGui.Selectable($"{name}", isSelected))
+                        ImGui.Columns(2);
+
+                        if (ImGui.Selectable($"##{wallname}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
                         {
                             foreach (var u in unitHolder.mUnits)
                                 foreach (var w in u.WallUnitRenders)
@@ -411,6 +426,19 @@ namespace Fushigi.ui.widgets
                             //Show selection for rail with properties
                             mSelectedUnitRail = wall;
                         }
+                        ImGui.SameLine();
+
+                        //Shift text from selection
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 22);
+                        ImGui.Text(wallname);
+
+                        ImGui.NextColumn();
+
+                        ImGui.TextDisabled($"(Num Points: {wall.Points.Count})");
+
+                        ImGui.Columns(1);
+
+                        ImGui.Unindent();
                     }
                     if (ImGui.Button("Add Wall", new Vector2(100, 22)))
                         unit.WallUnitRenders.Add(new UnitRailRenderer(unit, new CourseUnit.Rail()));
