@@ -255,25 +255,6 @@ namespace Fushigi.ui.widgets
                     line_color = Color_SelectionEdit;
 
                 mDrawList.AddLine(pos2D, nextPos2D, line_color, 2.5f);
-
-                //Arrow display
-                Vector3 next = (i < Points.Count - 1) ? Points[i + 1].Position : Points[0].Position;
-                Vector3 dist = (next - Points[i].Position);
-                var angleInRadian = MathF.Atan2(dist.Y, dist.X); //angle in radian
-                var rotation = Matrix4x4.CreateRotationZ(angleInRadian);
-
-                float width = 0.25F;
-                float length = 0.35F;
-
-                var line1 = Vector3.TransformNormal(new Vector3(-length, width, 0), rotation);
-                var line2 = Vector3.TransformNormal(new Vector3(-length, -width, 0), rotation);
-
-                Vector2[] arrow = new Vector2[3];
-                arrow[2] = viewport.WorldToScreen(next + line1);
-                arrow[1] = viewport.WorldToScreen(next + line2);
-                arrow[0] = nextPos2D;
-
-                mDrawList.AddConvexPolyFilled(ref arrow[0], 3, 0xFFF0F0F0);
             }
 
             if (IsSelected)
