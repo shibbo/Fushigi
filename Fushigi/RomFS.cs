@@ -1,28 +1,31 @@
 ﻿using Fushigi.Byml;
-using TinyDialogsNet;
 
 namespace Fushigi
 {
     public class RomFS
     {
-        public static bool SetRoot(string root)
-        {
-            sRomFSRoot = root;
-
-            /* common paths to check */
-            if (!RomFS.DirectoryExists("BancMapUnit") || !RomFS.DirectoryExists("Model") || !RomFS.DirectoryExists("Stage"))
+        public static void SetRoot(string root)
+        {           
+            if (!IsValidRoot(root))
             {
-                Dialogs.MessageBox(Dialogs.MessageBoxButtons.Ok, Dialogs.MessageBoxIconType.Error, Dialogs.MessageBoxDefaultButton.OkYes, "Invalid RomFS Path", "The path you have selected is invalid. Please select a RomFS path that contains BancMapUnit, Model, and Stage.");
-                return false;
+                return;
             }
 
+            sRomFSRoot = root;
             CacheCourseFiles();
-            return true;
         }
 
         public static string GetRoot()
         {
             return sRomFSRoot;
+        }
+
+        public static bool IsValidRoot(string root)
+        {
+            /* common paths to check */
+            return Directory.Exists(Path.Combine(root, "BancMapUnit")) && 
+                Directory.Exists(Path.Combine(root, "Model")) && 
+                Directory.Exists(Path.Combine(root, "Stage"));
         }
 
         public static Dictionary<string, string[]> GetCourseEntries()
@@ -31,23 +34,23 @@ namespace Fushigi
         }
 
         public static bool DirectoryExists(string path) {
-            return Directory.Exists($"{sRomFSRoot}/{path}");
+            return Directory.Exists(Path.Combine(sRomFSRoot, path));
         }
 
         public static string[] GetFiles(string path)
-        {
-            return Directory.GetFiles($"{sRomFSRoot}/{path}");
+        {    
+            return Directory.GetFiles(Path.Combine(sRomFSRoot, path));
         }
 
         public static byte[] GetFileBytes(string path)
         {
-            return File.ReadAllBytes($"{sRomFSRoot}/{path}");
+            return File.ReadAllBytes(Path.Combine(sRomFSRoot, path));
         }
 
         private static void CacheCourseFiles()
         {
             sCourseEntries.Clear();
-            string[] loadFiles = RomFS.GetFiles("/Stage/WorldMapInfo");
+            string[] loadFiles = GetFiles(Path.Combine("Stage", "WorldMapInfo"));
             foreach (string loadFile in loadFiles)
             {
                 string worldName = Path.GetFileName(loadFile).Split(".game")[0];
