@@ -62,8 +62,6 @@ namespace Fushigi.ui.widgets
 
         public void DrawUI(GL gl)
         {
-            AreaParameterPanel();
-
             ActorsPanel();
 
             ActorParameterPanel();
@@ -107,9 +105,21 @@ namespace Fushigi.ui.widgets
                         activeViewport = viewport;
                     }
 
+                    var topLeft = ImGui.GetCursorScreenPos();
+                    var size = ImGui.GetContentRegionAvail();
+
                     viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
 
-                    ImGui.End();
+                    ImGui.SetNextWindowPos(topLeft);
+                    ImGui.SetNextWindowSize(new Vector2(100, size.Y), ImGuiCond.Once);
+                    ImGui.SetNextWindowCollapsed(true, ImGuiCond.Once);
+                    ImGui.SetNextWindowSizeConstraints(new Vector2(5, 5), size);
+                    if(ImGui.Begin($"Area Parameters ({area.GetName()})", ImGuiWindowFlags.NoMove))
+                    {
+                        AreaParameters(area.mAreaParams);
+                        ImGui.End();
+                    }
+
                 }
             }
 
@@ -330,20 +340,6 @@ namespace Fushigi.ui.widgets
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("No actor or rail is selected");
             }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
-        private void AreaParameterPanel()
-        {
-            bool status = ImGui.Begin("Course Area Parameters");
-
-            ImGui.Text(selectedArea.GetName());
-
-            AreaParameters(selectedArea.mAreaParams);
 
             if (status)
             {
