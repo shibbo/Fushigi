@@ -10,11 +10,11 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using static Fushigi.ui.widgets.UnitRailRenderer;
+using System.Xml.Linq;
 
 namespace Fushigi.ui.widgets
 {
-    internal class UnitRailRenderer
+    internal class BGUnitRail
     {
         public List<RailPoint> Points = new List<RailPoint>();
 
@@ -38,7 +38,7 @@ namespace Fushigi.ui.widgets
 
         public CourseUnit CourseUnit;
 
-        public UnitRailRenderer(CourseUnit unit, CourseUnit.Rail rail)
+        public BGUnitRail(CourseUnit unit, CourseUnit.Rail rail)
         {
             CourseUnit = unit;
 
@@ -49,6 +49,11 @@ namespace Fushigi.ui.widgets
 
             IsClosed = rail.IsClosed;
             IsInternal = rail.IsInternal;
+        }
+
+        public void Reverse()
+        {
+            this.Points.Reverse();
         }
 
         public CourseUnit.Rail Save()
@@ -118,6 +123,14 @@ namespace Fushigi.ui.widgets
 
         public void OnMouseDown(LevelViewport viewport)
         {
+            //Line hit test
+            if (!IsSelected && LevelViewport.HitTestLineLoopPoint(GetPoints(viewport), 4f,
+                    ImGui.GetMousePos()))
+            {
+                viewport.SelectBGUnit(this);
+                IsSelected = true;
+            }
+
             if (!IsSelected)
                 return;
 
@@ -175,6 +188,17 @@ namespace Fushigi.ui.widgets
                 Points[i].PreviousPosition = point;
             }
             mouseDown = true;
+        }
+
+        private Vector2[] GetPoints(LevelViewport viewport)
+        {
+            Vector2[] points = new Vector2[Points.Count];
+            for (int i = 0; i < Points.Count; i++)
+            {
+                Vector3 p = Points[i].Position;
+                points[i] = viewport.WorldToScreen(new(p.X, p.Y, p.Z));
+            }
+            return points;
         }
 
         public void OnMouseUp(LevelViewport viewport)
@@ -255,6 +279,27 @@ namespace Fushigi.ui.widgets
                     line_color = Color_SelectionEdit;
 
                 mDrawList.AddLine(pos2D, nextPos2D, line_color, 2.5f);
+
+                if (IsSelected)
+                {
+                    //Arrow display
+                    Vector3 next = (i < Points.Count - 1) ? Points[i + 1].Position : Points[0].Position;
+                    Vector3 dist = (next - Points[i].Position);
+                    var angleInRadian = MathF.Atan2(dist.Y, dist.X); //angle in radian
+                    var rotation = Matrix4x4.CreateRotationZ(angleInRadian);
+
+                    float width = 1f;
+
+                    var line = Vector3.TransformNormal(new Vector3(0, width, 0), rotation);
+
+                    Vector2[] arrow = new Vector2[2];
+                    arrow[0] = viewport.WorldToScreen(Points[i].Position + (dist / 2f));
+                    arrow[1] = viewport.WorldToScreen(Points[i].Position + (dist / 2f) + line);
+
+                    float alpha = 0.5f;
+
+                    mDrawList.AddLine(arrow[0], arrow[1], ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, alpha)), 2.5f);
+                }
             }
 
             if (IsSelected)

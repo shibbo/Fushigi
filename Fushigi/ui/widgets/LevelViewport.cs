@@ -30,6 +30,8 @@ namespace Fushigi.ui.widgets
 
         Vector2 mSize = Vector2.Zero;
         private ISet<CourseActor> mSelectedActors = new HashSet<CourseActor>();
+        private ISet<BGUnitRail> mSelectedBGUnitRails = new HashSet<BGUnitRail>();
+
         private Vector3? mSelectedPoint;
         private int mWallIdx = -1;
         private int mUnitIdx = -1;
@@ -119,6 +121,13 @@ namespace Fushigi.ui.widgets
         public void FrameSelectedActor(CourseActor actor)
         {
             this.Camera.target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
+        }
+
+        public void SelectBGUnit(BGUnitRail rail)
+        {
+            mSelectedBGUnitRails.Clear();
+            mSelectedBGUnitRails.Add(rail);
+            mSelectionChanged = true;
         }
 
         public void SelectedActor(CourseActor actor)
@@ -270,7 +279,8 @@ namespace Fushigi.ui.widgets
                         * we clear our selected actors array */
                     if (HoveredActor == null)
                     {
-                        mSelectionChanged = false;
+                        if (mSelectedBGUnitRails.Count == 0)
+                            mSelectionChanged = false;
                         mSelectedActors.Clear();
                     }
                     else
@@ -388,6 +398,12 @@ namespace Fushigi.ui.widgets
             return mSelectionChanged;
         }
 
+        public ISet<BGUnitRail> GetSelectedBGUnitRails()
+        {
+            mSelectionChanged = false;
+            return mSelectedBGUnitRails;
+        }
+
         public ISet<CourseActor> GetSelectedActors()
         {
             mSelectionChanged = false;
@@ -475,8 +491,13 @@ namespace Fushigi.ui.widgets
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
-                foreach (var wall in unit.WallUnitRenders)
-                    wall.Render(this, mDrawList);
+                foreach (var wall in unit.Walls)
+                {
+                    if (wall.ExternalRail != null)
+                        wall.ExternalRail.Render(this, mDrawList);
+                    foreach (var rail in wall.InternalRails)
+                        rail.Render(this, mDrawList);
+                }
 
                 //Hide belt for now. TODO how should this be handled?
                 //foreach (var belt in unit.BeltUnitRenders)
