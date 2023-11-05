@@ -5,6 +5,7 @@ using Fushigi.rstb;
 using ImGuiNET;
 using Newtonsoft.Json.Linq;
 using Silk.NET.Input;
+using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using Silk.NET.Windowing;
 using System;
@@ -34,11 +35,11 @@ namespace Fushigi.ui.widgets
         CourseUnit? mSelectedUnit = null;
         BGUnitRail? mSelectedUnitRail = null;
 
-        public CourseScene(Course course)
+        public CourseScene(Course course, GL gl)
         {
             this.course = course;
             selectedArea = course.GetArea(0);
-            viewport = new LevelViewport(selectedArea);
+            viewport = new LevelViewport(selectedArea, gl);
         }
 
         public void DeselectAll()
@@ -51,11 +52,11 @@ namespace Fushigi.ui.widgets
             mSelectedUnitRail = null;
         }
 
-        public void DrawUI()
+        public void DrawUI(GL gl)
         {
             bool status = ImGui.Begin("Course");
 
-            CourseTabBar();
+            CourseTabBar(gl);
 
             viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
 
@@ -106,7 +107,7 @@ namespace Fushigi.ui.widgets
             resource_table.Save();
         }
 
-        private void CourseTabBar()
+        private void CourseTabBar(GL gl)
         {
             bool tabStatus = ImGui.BeginTabBar("Courses TabBar"); // Not sure what the string argument is for
 
@@ -118,7 +119,7 @@ namespace Fushigi.ui.widgets
                     if (selectedArea != area)
                     {
                         selectedArea = area;
-                        viewport = new(area);
+                        viewport = new(area, gl);
 
                         // Unselect actor
                         // This is so that users do not see an actor selected from another area

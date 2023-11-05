@@ -26,7 +26,7 @@ namespace Fushigi.ui
             UserSettings.Save();
         }
 
-        void LoadFromSettings()
+        void LoadFromSettings(GL gl)
         {
             string romFSPath = UserSettings.GetRomFSPath();
             if (RomFS.IsValidRoot(romFSPath))
@@ -50,14 +50,14 @@ namespace Fushigi.ui
             if (latestCourse != null)
             {
                 mCurrentCourseName = latestCourse;
-                mSelectedCourseScene = new(new(mCurrentCourseName));
+                mSelectedCourseScene = new(new(mCurrentCourseName), gl);
                 mIsChoosingCourse = false;
                 mIsChoosingPreferences = false;
                 mIsWelcome = false;
             }
         }
 
-        void DrawMainMenu()
+        void DrawMainMenu(GL gl)
         {
             /* create a new menubar */
             if (ImGui.BeginMainMenuBar())
@@ -134,7 +134,7 @@ namespace Fushigi.ui
             }
         }
 
-        void DrawCourseList()
+        void DrawCourseList(GL gl)
         {
             bool status = ImGui.Begin("Select Course");
 
@@ -158,7 +158,7 @@ namespace Fushigi.ui
                             // Only change the course if it is different from current
                             if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
                             {
-                                mSelectedCourseScene = new(new(courseLocation));
+                                mSelectedCourseScene = new(new(courseLocation), gl);
                                 UserSettings.AppendRecentCourse(courseLocation);
                             }
 
@@ -207,10 +207,10 @@ namespace Fushigi.ui
             if (ImGui.GetFrameCount() == 2)
             {
                 ImGui.LoadIniSettingsFromDisk("imgui.ini");
-                LoadFromSettings();
+                LoadFromSettings(gl);
             }
 
-            DrawMainMenu();
+            DrawMainMenu(gl);
 
             // ImGui settings are available frame 3
             if (ImGui.GetFrameCount() > 2)
@@ -220,10 +220,10 @@ namespace Fushigi.ui
                 {
                     if (mIsChoosingCourse)
                     {
-                        DrawCourseList();
+                        DrawCourseList(gl);
                     }
 
-                    mSelectedCourseScene?.DrawUI();
+                    mSelectedCourseScene?.DrawUI(gl);
                 }
 
                 if (mIsChoosingPreferences)
