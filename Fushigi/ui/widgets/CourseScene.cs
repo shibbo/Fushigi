@@ -112,14 +112,21 @@ namespace Fushigi.ui.widgets
                     if(activeViewport != viewport)
                         ImGui.GetWindowDrawList().AddRectFilled(topLeft, topLeft + size, 0x44000000);
 
-                    ImGui.SetNextWindowPos(topLeft);
-                    ImGui.SetNextWindowSize(new Vector2(100, size.Y), ImGuiCond.Once);
-                    ImGui.SetNextWindowCollapsed(true, ImGuiCond.Once);
-                    ImGui.SetNextWindowSizeConstraints(new Vector2(5, 5), size);
-                    if(ImGui.Begin($"Area Parameters ({area.GetName()})", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.ChildWindow))
+                    //Allow button press, align to top of the screen
+                    ImGui.SetItemAllowOverlap();
+                    ImGui.SetCursorScreenPos(topLeft);
+
+                    //Load popup when button is pressed
+                    if (ImGui.Button("Area Parameters"))
+                        ImGui.OpenPopup("AreaParams");
+
+                    //Fixed popup pos, render popup
+                    var pos = ImGui.GetCursorScreenPos();
+                    ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
+                    if (ImGui.BeginPopup($"AreaParams", ImGuiWindowFlags.NoMove))
                     {
                         AreaParameters(area.mAreaParams);
-                        ImGui.End();
+                        ImGui.EndPopup();
                     }
                 }
             }
@@ -351,62 +358,79 @@ namespace Fushigi.ui.widgets
         private static void AreaParameters(CourseArea.AreaParam area)
         {
             ParamHolder areaParams = ParamLoader.GetHolder("AreaParam");
+            var pos = ImGui.GetCursorScreenPos();
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
+            ImGui.SetNextWindowSize(new Vector2(400, 800), ImGuiCond.Once);
 
-            foreach (string key in areaParams.Keys)
+            if (ImGui.Begin("Area Parameters", ImGuiWindowFlags.NoMove))
             {
-                string paramType = areaParams[key];
+                ImGui.Columns(2);
 
-                //if (!area.ContainsParam(key))
-                //{
-                //    continue;
-                //}
-
-                switch (paramType)
+                foreach (string key in areaParams.Keys)
                 {
-                    case "String":
-                        {
-                            string value = "";
-                            if (area.ContainsParam(key))
+                    string paramType = areaParams[key];
+
+                    //if (!area.ContainsParam(key))
+                    //{
+                    //    continue;
+                    //}
+
+                    ImGui.Text(key);
+                    ImGui.NextColumn();
+
+                    ImGui.PushItemWidth(ImGui.GetColumnWidth() - 5);
+
+                    switch (paramType)
+                    {
+                        case "String":
                             {
-                                value = (string)area.GetParam(area.GetRoot(), key, paramType);
+                                string value = "";
+                                if (area.ContainsParam(key))
+                                {
+                                    value = (string)area.GetParam(area.GetRoot(), key, paramType);
+                                }
+                                ImGui.InputText($"##{key}", ref value, 1024);
+                                break;
                             }
-                            ImGui.InputText(key, ref value, 1024);
-                            break;
-                        }
-                    case "Bool":
-                        {
-                            bool value = false;
-                            if (area.ContainsParam(key))
+                        case "Bool":
                             {
-                                value = (bool)area.GetParam(area.GetRoot(), key, paramType);
+                                bool value = false;
+                                if (area.ContainsParam(key))
+                                {
+                                    value = (bool)area.GetParam(area.GetRoot(), key, paramType);
+                                }
+                                ImGui.Checkbox($"##{key}", ref value);
+                                break;
                             }
-                            ImGui.Checkbox(key, ref value);
-                            break;
-                        }
-                    case "Int":
-                        {
-                            int value = 0;
-                            if (area.ContainsParam(key))
+                        case "Int":
                             {
-                                //value = (int)area.GetParam(area.GetRoot(), key, paramType);
+                                int value = 0;
+                                if (area.ContainsParam(key))
+                                {
+                                    //value = (int)area.GetParam(area.GetRoot(), key, paramType);
+                                }
+                                ImGui.InputInt($"##{key}", ref value);
+                                break;
                             }
-                            ImGui.InputInt(key, ref value);
-                            break;
-                        }
-                    case "Float":
-                        {
-                            float value = 0.0f;
-                            if (area.ContainsParam(key))
+                        case "Float":
                             {
-                                value = (float)area.GetParam(area.GetRoot(), key, paramType);
+                                float value = 0.0f;
+                                if (area.ContainsParam(key))
+                                {
+                                    value = (float)area.GetParam(area.GetRoot(), key, paramType);
+                                }
+                                ImGui.InputFloat($"##{key}", ref value);
+                                break;
                             }
-                            ImGui.InputFloat(key, ref value);
+                        default:
+                            Console.WriteLine(key);
                             break;
-                        }
-                    default:
-                        Console.WriteLine(key);
-                        break;
+                    }
+                    ImGui.PopItemWidth();
+
+                    ImGui.NextColumn();
                 }
+                ImGui.End();
             }
         }
 
