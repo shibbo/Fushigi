@@ -13,13 +13,13 @@ namespace Fushigi.ui
     {
         public string Name { get; set; }
 
-        public UnitRailRenderer Rail;
+        public BGUnitRail Rail;
 
-        public UnitRailRenderer.RailPoint Point;
+        public BGUnitRail.RailPoint Point;
 
         public int Index;
 
-        public UnitRailPointAddUndo(UnitRailRenderer rail, UnitRailRenderer.RailPoint point, int index = -1)
+        public UnitRailPointAddUndo(BGUnitRail rail, BGUnitRail.RailPoint point, int index = -1)
         {
             //Undo display name
             Name = $"Rail Point Add";
@@ -47,13 +47,13 @@ namespace Fushigi.ui
     {
         public string Name { get; set; }
 
-        public UnitRailRenderer Rail;
+        public BGUnitRail Rail;
 
-        public UnitRailRenderer.RailPoint Point;
+        public BGUnitRail.RailPoint Point;
 
         public int Index;
 
-        public UnitRailPointDeleteUndo(UnitRailRenderer rail, UnitRailRenderer.RailPoint point, int index = -1)
+        public UnitRailPointDeleteUndo(BGUnitRail rail, BGUnitRail.RailPoint point, int index = -1)
         {
             //Undo display name
             Name = $"Rail Point Remove";

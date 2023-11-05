@@ -94,36 +94,10 @@ namespace Fushigi.course
             {
                 mUnitHolder = new();
             }
-
-            //Load rail render tools
-            foreach (var unit in mUnitHolder.mUnits)
-            {
-                unit.WallUnitRenders.Clear();
-                unit.BeltUnitRenders.Clear();
-
-                foreach (var wall in unit.mWalls)
-                    unit.WallUnitRenders.Add(new UnitRailRenderer(unit, wall));
-                foreach (var wall in unit.mBeltRails)
-                    unit.BeltUnitRenders.Add(new UnitRailRenderer(unit, wall));
-            }
         }
 
         public void Save(RSTB resource_table)
         {
-            //Save each wall back attached to the renderer
-            //Clear each course unit holder
-            foreach (var unit in mUnitHolder.mUnits)
-            {
-                unit.mWalls.Clear();
-                unit.mBeltRails.Clear();
-
-                //Add each wall back from the renderer
-                foreach (var wall_rail in unit.WallUnitRenders)
-                    unit.mWalls.Add(wall_rail.Save());
-                foreach (var belt_rail in unit.BeltUnitRenders)
-                    unit.mBeltRails.Add(belt_rail.Save());
-            }
-
             //Save using the configured mod romfs path
             Save(resource_table, Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit"));
         }

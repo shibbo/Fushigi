@@ -32,7 +32,7 @@ namespace Fushigi.ui.widgets
 
         CourseActor? mSelectedActor = null;
         CourseUnit? mSelectedUnit = null;
-        UnitRailRenderer? mSelectedUnitRail = null;
+        BGUnitRail? mSelectedUnitRail = null;
 
         public CourseScene(Course course)
         {
@@ -76,8 +76,16 @@ namespace Fushigi.ui.widgets
 
             if (viewport.HasSelectionChanged())
             {
-                CourseActor selectedActor = viewport.GetSelectedActors().ElementAt(0);
-                mSelectedActor = selectedActor;
+                var selectedActors = viewport.GetSelectedActors();
+                var selectedBGunitRails = viewport.GetSelectedBGUnitRails();
+
+                DeselectAll();
+                if (selectedActors.Count > 0) mSelectedActor = selectedActors.ElementAt(0);
+                if (selectedBGunitRails.Count > 0)
+                {
+                    mSelectedUnitRail = selectedBGunitRails.ElementAt(0);
+                    mSelectedUnitRail.IsSelected = true;
+                }
             }
 
             if (status)
@@ -375,6 +383,9 @@ namespace Fushigi.ui.widgets
             {
                 unitHolder.mUnits.Add(new CourseUnit());
             }
+
+            List<CourseUnit> removed_tile_units = new List<CourseUnit>();
+
             foreach (var unit in unitHolder.mUnits)
             {
                 var tree_flags = ImGuiTreeNodeFlags.None;
@@ -386,8 +397,12 @@ namespace Fushigi.ui.widgets
                 ImGui.SameLine();
                 if (ImGui.Checkbox($"##Visible{name}", ref unit.Visible))
                 {
-                    foreach (var wall in unit.WallUnitRenders)
-                        wall.Visible = unit.Visible;
+                    foreach (var wall in unit.Walls)
+                    {
+                        wall.ExternalRail.Visible = unit.Visible;
+                        foreach (var rail in wall.InternalRails)
+                            rail.Visible = unit.Visible;
+                    }
                 }
                 ImGui.SetItemAllowOverlap();
                 ImGui.SameLine();
@@ -399,25 +414,14 @@ namespace Fushigi.ui.widgets
                 }
                 if (expanded)
                 {
-                    if (ImGui.Button("Add Wall", new Vector2(100, 22)))
-                        unit.WallUnitRenders.Add(new UnitRailRenderer(unit, new CourseUnit.Rail()));
-
-                    ImGui.SameLine();
-                    if (ImGui.Button("Remove Wall", new Vector2(100, 22)))
+                    void RailListItem(string type, BGUnitRail rail, int id)
                     {
-                        var selected = unit.WallUnitRenders.Where(x => x.IsSelected).ToList();
-                        foreach (var wall in selected)
-                            unit.WallUnitRenders.Remove(wall);
-                    }
-
-                    foreach (var wall in unit.WallUnitRenders)
-                    {
-                        bool isSelected = wall.IsSelected;
-                        string wallname = $"Wall {unit.WallUnitRenders.IndexOf(wall)}";
+                        bool isSelected = rail.IsSelected;
+                        string wallname = $"{name}{type} {id}";
 
                         ImGui.Indent();
 
-                        if (ImGui.Checkbox($"##Visible{wallname}", ref wall.Visible))
+                        if (ImGui.Checkbox($"##Visible{wallname}", ref rail.Visible))
                         {
 
                         }
@@ -425,18 +429,28 @@ namespace Fushigi.ui.widgets
 
                         ImGui.Columns(2);
 
-                        if (ImGui.Selectable($"##{wallname}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                        void SelectRail()
                         {
                             foreach (var u in unitHolder.mUnits)
-                                foreach (var w in u.WallUnitRenders)
-                                    w.IsSelected = false;
+                                foreach (var w in u.Walls)
+                                    w.ExternalRail.IsSelected = false;
 
-                            wall.IsSelected = true;
+                            rail.IsSelected = true;
                             //Remove actor properties to show path properties
                             DeselectAll();
                             //Show selection for rail with properties
-                            mSelectedUnitRail = wall;
+                            mSelectedUnitRail = rail;
                         }
+
+                        if (ImGui.Selectable($"##{wallname}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                        {
+                            SelectRail();
+                        }
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                        {
+                            SelectRail();
+                        }
+
                         ImGui.SameLine();
 
                         //Shift text from selection
@@ -445,14 +459,80 @@ namespace Fushigi.ui.widgets
 
                         ImGui.NextColumn();
 
-                        ImGui.TextDisabled($"(Num Points: {wall.Points.Count})");
+                        ImGui.TextDisabled($"(Num Points: {rail.Points.Count})");
 
                         ImGui.Columns(1);
 
                         ImGui.Unindent();
                     }
+
+                    if (unit == mSelectedUnit)
+                    {
+                        if (ImGui.BeginPopupContextWindow("RailMenu", ImGuiPopupFlags.MouseButtonRight))
+                        {
+                            if (ImGui.MenuItem("Add Wall"))
+                                unit.Walls.Add(new Wall(unit));
+
+                            if (ImGui.MenuItem($"Remove {name}"))
+                                removed_tile_units.Add(unit);
+
+                            ImGui.EndPopup();
+                        }
+                    }
+
+                    List<Wall> removed_walls = new List<Wall>();
+
+                    foreach (var wall in unit.Walls)
+                    {
+                        if (wall.InternalRails.Count > 0)
+                        {
+                            bool ex = ImGui.TreeNodeEx($"##{name}Wall{unit.Walls.IndexOf(wall)}", ImGuiTreeNodeFlags.DefaultOpen);
+                            ImGui.SameLine();
+
+                            RailListItem("Wall", wall.ExternalRail, unit.Walls.IndexOf(wall));
+
+                            ImGui.Indent();
+
+                            if (ex)
+                            {
+                                foreach (var rail in wall.InternalRails)
+                                    RailListItem("Internal Rail", rail, wall.InternalRails.IndexOf(rail));
+                            }
+                            ImGui.Unindent();
+
+                            ImGui.TreePop();
+                        }
+                        else
+                        {
+                            RailListItem("Wall", wall.ExternalRail, unit.Walls.IndexOf(wall));
+                        }
+                        if (wall.ExternalRail.IsSelected)
+                        {
+                            if (ImGui.BeginPopupContextWindow("RailMenu", ImGuiPopupFlags.MouseButtonRight))
+                            {
+                                if (ImGui.MenuItem($"Remove Wall {unit.Walls.IndexOf(wall)}"))
+                                {
+                                    removed_walls.Add(wall);
+                                }
+                                ImGui.EndPopup();
+                            }
+                        }
+                    }
+                    if (removed_walls.Count > 0)
+                    {
+                        foreach (var w in removed_walls)
+                            unit.Walls.Remove(w);
+                        removed_walls.Clear();
+                    }
                     ImGui.TreePop();
                 }
+            }
+      
+            if (removed_tile_units.Count > 0)
+            {
+                foreach (var tile in removed_tile_units)
+                    unitHolder.mUnits.Remove(tile);
+                removed_tile_units.Clear();
             }
         }
 
