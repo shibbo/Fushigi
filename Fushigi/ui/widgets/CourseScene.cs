@@ -116,7 +116,7 @@ namespace Fushigi.ui.widgets
                     ImGui.SetNextWindowSize(new Vector2(100, size.Y), ImGuiCond.Once);
                     ImGui.SetNextWindowCollapsed(true, ImGuiCond.Once);
                     ImGui.SetNextWindowSizeConstraints(new Vector2(5, 5), size);
-                    if(ImGui.Begin($"Area Parameters ({area.GetName()})", ImGuiWindowFlags.NoMove))
+                    if(ImGui.Begin($"Area Parameters ({area.GetName()})", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.ChildWindow))
                     {
                         AreaParameters(area.mAreaParams);
                         ImGui.End();
