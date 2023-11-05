@@ -16,6 +16,7 @@ using static Fushigi.course.CourseUnit;
 using System.Xml.Linq;
 using System.Reflection;
 using Microsoft.VisualBasic;
+using System.Runtime.CompilerServices;
 
 namespace Fushigi.ui.widgets
 {
@@ -46,6 +47,7 @@ namespace Fushigi.ui.widgets
             (Quaternion.Identity, Vector3.Zero, 10);
 
         public CourseActor? HoveredActor;
+        public CourseLink? SrcCourseLink = null;
         public Vector3? HoveredPoint;
 
         public uint GridColor = 0x77_FF_FF_FF;
@@ -59,7 +61,8 @@ namespace Fushigi.ui.widgets
         {
             Selecting,
             AddingActor,
-            DeletingActor
+            DeletingActor,
+            SelectingLink
         }
 
         public enum EditorMode
@@ -386,6 +389,38 @@ namespace Fushigi.ui.widgets
                                 mEditorState = EditorState.Selecting;
                             }
                         }
+                    }
+                }
+            }
+            else if (mEditorState == EditorState.SelectingLink)
+            {
+                /* when we are begining to select a link, we will not always be immediately focused */
+                if (!isFocused)
+                {
+                    ImGui.SetWindowFocus();
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                {
+                    mEditorState = EditorState.Selecting;
+                }
+
+                if (HoveredActor != null)
+                {
+                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {HoveredActor.mActorName}");
+                }
+                else
+                {
+                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.");
+                }
+
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                {
+                    if (HoveredActor != null)
+                    {
+                        ulong hash = HoveredActor.GetHash();
+                        SrcCourseLink.SetDestHash(hash, mArea.mActorHolder);
+                        mEditorState = EditorState.Selecting;
                     }
                 }
             }

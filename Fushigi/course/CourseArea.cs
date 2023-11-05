@@ -154,7 +154,6 @@ namespace Fushigi.course
         public CourseRailHolder mRailHolder;
         public CourseActorToRailLinks mRailLinks;
         public CourseLinkHolder mLinkHolder;
-        //public List<CourseLink> mLinks;
         public CourseGroupHolder mGroups;
         public CourseUnitHolder mUnitHolder;
 

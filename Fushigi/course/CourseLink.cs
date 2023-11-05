@@ -26,6 +26,26 @@ namespace Fushigi.course
             return tbl;
         }
 
+        public ulong GetSrcHash()
+        {
+            return mSource.GetHash();
+        }
+
+        public ulong GetDestHash()
+        {
+            return mDest.GetHash();
+        }
+
+        public void SetDestHash(ulong hash, CourseActorHolder actorHolder)
+        {
+            mDest = actorHolder[hash];
+        }
+
+        public string GetLinkName()
+        {
+            return mLinkName;
+        }
+
         CourseActor? mSource;
         CourseActor? mDest;
         string mLinkName;
@@ -44,6 +64,41 @@ namespace Fushigi.course
             {
                 mLinks.Add(new CourseLink(tbl, actorHolder));
             }
+        }
+
+        public Dictionary<string, List<ulong>> GetDestHashesFromSrc(ulong hash)
+        {
+            Dictionary<string, List<ulong>> hashes = new();
+
+            foreach (CourseLink link in mLinks)
+            {
+                if (link.GetSrcHash() == hash)
+                {
+                    if (hashes.ContainsKey(link.GetLinkName()))
+                    {
+                        hashes[link.GetLinkName()].Add(link.GetDestHash());
+                    }
+                    else
+                    {
+                        hashes.Add(link.GetLinkName(), new());
+                        hashes[link.GetLinkName()].Add(link.GetDestHash());
+                    }
+                }
+            }
+
+            return hashes;
+        }
+
+        public CourseLink GetLinkWithDestHash(ulong hash) {
+            foreach (CourseLink link in mLinks)
+            {
+                if (link.GetDestHash() == hash)
+                {
+                    return link;
+                }
+            }
+
+            return null;
         }
 
         public BymlArrayNode SerializeToArray()

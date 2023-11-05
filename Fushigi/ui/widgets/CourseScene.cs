@@ -238,7 +238,58 @@ namespace Fushigi.ui.widgets
                     DynamicParamNode(mSelectedActor);
                 }
 
-                // TODO: Put actor link editor here
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Links");
+                ImGui.Separator();
+                
+                if (ImGui.Button("Add Link"))
+                {
+
+                }
+
+                var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.GetHash());
+
+                foreach (KeyValuePair<string, List<ulong>> kvp in destHashes) {
+                    ImGui.Text(kvp.Key);
+                    var hashArray = kvp.Value;
+
+                    for (int i = 0; i < hashArray.Count; i++)
+                    {
+                        ImGui.Columns(4);
+                        ImGui.AlignTextToFramePadding();
+                        ImGui.Text("Destination");
+                        ImGui.NextColumn();
+
+                        CourseActor? destActor = selectedArea.mActorHolder[hashArray[i]];
+
+                        if (ImGui.Button(destActor.mName))
+                        {
+
+                        }
+
+                        ImGui.NextColumn();
+
+                        if (ImGui.Button("Replace (List)"))
+                        {
+
+                        }
+
+                        ImGui.NextColumn();
+                        ImGui.PushID($"{hashArray[i].ToString()}_{i}");
+                        if (ImGui.Button("Replace (Viewport)"))
+                        {
+                            viewport.mEditorState = LevelViewport.EditorState.SelectingLink;
+                            viewport.SrcCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
+                        }
+                        ImGui.PopID();
+
+                        ImGui.Columns(1);
+                    }
+
+                    ImGui.Separator();
+                    
+                }
+
             }
             else if (mSelectedUnit != null)
             {
