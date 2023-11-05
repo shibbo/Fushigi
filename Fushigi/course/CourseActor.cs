@@ -170,7 +170,7 @@ namespace Fushigi.course
             return mActorHash;
         }
 
-        public BymlHashTable BuildNode()
+        public BymlHashTable BuildNode(CourseLinkHolder linkHolder)
         {
             BymlHashTable table = new();
             table.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>("AreaHash", mAreaHash), "AreaHash");
@@ -209,6 +209,15 @@ namespace Fushigi.course
             }
 
             table.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
+
+            BymlHashTable inLinksNode = new();
+
+            foreach (var (linkName, links) in linkHolder.GetSrcHashesFromDest(mActorHash))
+            {
+                inLinksNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(linkName, (int)links.Count), linkName);
+            }
+
+            table.AddNode(BymlNodeId.Hash, inLinksNode, "InLinks");
 
             BymlArrayNode rotateNode = new(3);
             rotateNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mRotation.X));
@@ -292,13 +301,13 @@ namespace Fushigi.course
             return mCourseActors;
         }
 
-        public BymlArrayNode SerializeToArray()
+        public BymlArrayNode SerializeToArray(CourseLinkHolder linkHolder)
         {
             BymlArrayNode node = new((uint)mCourseActors.Count);
 
             foreach (CourseActor actor in mCourseActors)
             {
-                node.AddNodeToArray(actor.BuildNode());
+                node.AddNodeToArray(actor.BuildNode(linkHolder));
             }
 
             return node;

@@ -117,7 +117,7 @@ namespace Fushigi.course
             root.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>("RootAreaHash", mRootHash), "RootAreaHash");
             root.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("StageParam", mStageParams), "StageParam");
             root.AddNode(BymlNodeId.Array, mRailLinks.SerializeToArray(), "ActorToRailLinks");
-            root.AddNode(BymlNodeId.Array, mActorHolder.SerializeToArray(), "Actors");
+            root.AddNode(BymlNodeId.Array, mActorHolder.SerializeToArray(mLinkHolder), "Actors");
 
             if (mUnitHolder != null)
             {

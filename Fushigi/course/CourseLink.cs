@@ -68,22 +68,25 @@ namespace Fushigi.course
 
         public Dictionary<string, List<ulong>> GetDestHashesFromSrc(ulong hash)
         {
-            Dictionary<string, List<ulong>> hashes = new();
+            Dictionary<string, List<ulong>> hashes = [];
 
             foreach (CourseLink link in mLinks)
             {
                 if (link.GetSrcHash() == hash)
-                {
-                    if (hashes.ContainsKey(link.GetLinkName()))
-                    {
-                        hashes[link.GetLinkName()].Add(link.GetDestHash());
-                    }
-                    else
-                    {
-                        hashes.Add(link.GetLinkName(), new());
-                        hashes[link.GetLinkName()].Add(link.GetDestHash());
-                    }
-                }
+                    hashes.GetOrCreate(link.GetLinkName()).Add(link.GetDestHash());
+            }
+
+            return hashes;
+        }
+
+        public Dictionary<string, List<ulong>> GetSrcHashesFromDest(ulong hash)
+        {
+            Dictionary<string, List<ulong>> hashes = [];
+
+            foreach (CourseLink link in mLinks)
+            {
+                if (link.GetDestHash() == hash)
+                    hashes.GetOrCreate(link.GetLinkName()).Add(link.GetSrcHash());
             }
 
             return hashes;
