@@ -139,6 +139,11 @@ namespace Fushigi.course
                 {
                     var c = components[component];
 
+                    if (mActorParameters.ContainsKey(component))
+                    {
+                        continue;
+                    }
+
                     switch (c.Type)
                     {
                         case "S16":
