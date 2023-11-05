@@ -4,24 +4,28 @@ namespace Fushigi
 {
     public class RomFS
     {
-        public static bool SetRoot(string root)
-        {
-            sRomFSRoot = root;
-
-            /* common paths to check */
-            if (!RomFS.DirectoryExists("BancMapUnit") || !RomFS.DirectoryExists("Model") || !RomFS.DirectoryExists("Stage"))
+        public static void SetRoot(string root)
+        {           
+            if (!IsValidRoot(root))
             {
-                //Dialogs.MessageBox(Dialogs.MessageBoxButtons.Ok, Dialogs.MessageBoxIconType.Error, Dialogs.MessageBoxDefaultButton.OkYes, "Invalid RomFS Path", "The path you have selected is invalid. Please select a RomFS path that contains BancMapUnit, Model, and Stage.");
-                return false;
+                return;
             }
 
+            sRomFSRoot = root;
             CacheCourseFiles();
-            return true;
         }
 
         public static string GetRoot()
         {
             return sRomFSRoot;
+        }
+
+        public static bool IsValidRoot(string root)
+        {
+            /* common paths to check */
+            return Directory.Exists(Path.Combine(root, "BancMapUnit")) && 
+                Directory.Exists(Path.Combine(root, "Model")) && 
+                Directory.Exists(Path.Combine(root, "Stage"));
         }
 
         public static Dictionary<string, string[]> GetCourseEntries()
