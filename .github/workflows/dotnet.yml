@@ -20,6 +20,8 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
+    - name: Adding Project Fushigi
+      run: dotnet add Fushigi/Fushigi.csproj
     - name: Install NativeFileDialogSharp
       run: dotnet add package NativeFileDialogSharp 
     - name: Install Newtonsoft.Json
