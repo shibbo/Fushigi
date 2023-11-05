@@ -39,6 +39,6 @@ jobs:
     - name: Install ZstdNet
       run: dotnet add Fushigi/Fushigi.csproj package ZstdNet 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore Fushigi/Fushigi.sln
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln --no-restore 
