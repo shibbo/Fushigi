@@ -10,6 +10,8 @@
 
         public IBymlNode this[int i] => Array[i];
 
+        public BymlArrayNode() { }
+
         public BymlArrayNode(Byml by, Stream stream)
         {
             BinaryReader reader = new(stream);

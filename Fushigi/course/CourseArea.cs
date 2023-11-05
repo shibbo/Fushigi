@@ -1,5 +1,6 @@
 ﻿using Fushigi.Byml;
 using Fushigi.rstb;
+using Fushigi.ui.widgets;
 using Fushigi.util;
 using ImGuiNET;
 using System;
@@ -104,7 +105,7 @@ namespace Fushigi.course
         public void Save(RSTB resource_table)
         {
             //Save using the configured mod romfs path
-            Save(resource_table, $"{UserSettings.GetModRomFSPath()}/BancMapUnit");
+            Save(resource_table, Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit"));
         }
 
         public void Save(RSTB resource_table, string folder)

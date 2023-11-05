@@ -31,12 +31,24 @@ namespace Fushigi.ui.widgets
         bool mShowAddActor = false;
 
         CourseActor? mSelectedActor = null;
+        CourseUnit? mSelectedUnit = null;
+        BGUnitRail? mSelectedUnitRail = null;
 
         public CourseScene(Course course)
         {
             this.course = course;
             selectedArea = course.GetArea(0);
             viewport = new LevelViewport(selectedArea);
+        }
+
+        public void DeselectAll()
+        {
+            if (mSelectedUnitRail != null)
+                mSelectedUnitRail.IsSelected = false;
+
+            mSelectedActor = null;
+            mSelectedUnit = null;
+            mSelectedUnitRail = null;
         }
 
         public void DrawUI()
@@ -55,6 +67,8 @@ namespace Fushigi.ui.widgets
 
             RailsPanel();
 
+            BGUnitPanel();
+
             if (mShowAddActor)
             {
                 SelectActor();
@@ -62,8 +76,16 @@ namespace Fushigi.ui.widgets
 
             if (viewport.HasSelectionChanged())
             {
-                CourseActor selectedActor = viewport.GetSelectedActors().ElementAt(0);
-                mSelectedActor = selectedActor;
+                var selectedActors = viewport.GetSelectedActors();
+                var selectedBGunitRails = viewport.GetSelectedBGUnitRails();
+
+                DeselectAll();
+                if (selectedActors.Count > 0) mSelectedActor = selectedActors.ElementAt(0);
+                if (selectedBGunitRails.Count > 0)
+                {
+                    mSelectedUnitRail = selectedBGunitRails.ElementAt(0);
+                    mSelectedUnitRail.IsSelected = true;
+                }
             }
 
             if (status)
@@ -100,7 +122,7 @@ namespace Fushigi.ui.widgets
 
                         // Unselect actor
                         // This is so that users do not see an actor selected from another area
-                        mSelectedActor = null;
+                        DeselectAll();
                     }
 
                     ImGui.EndTabItem();
@@ -162,6 +184,15 @@ namespace Fushigi.ui.widgets
             ImGui.End();
         }
 
+        private void BGUnitPanel()
+        {
+            ImGui.Begin("Terrain Units");
+
+            CourseUnitView(selectedArea.mUnitHolder);
+
+            ImGui.End();
+        }
+
         private void RailsPanel()
         {
             ImGui.Begin("Rails");
@@ -177,12 +208,7 @@ namespace Fushigi.ui.widgets
         {
             bool status = ImGui.Begin("Actor Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
-            if (mSelectedActor is null)
-            {
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text("No Actor is selected");
-            }
-            else
+            if (mSelectedActor != null)
             {
                 string actorName = mSelectedActor.mActorName;
                 string name = mSelectedActor.mName;
@@ -214,7 +240,49 @@ namespace Fushigi.ui.widgets
 
                 // TODO: Put actor link editor here
             }
-            
+            else if (mSelectedUnit != null)
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"Selected BG Unit");
+
+                ImGui.Separator();
+
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Model Type"); ImGui.NextColumn();
+                    ImGui.InputInt("##mModelType", ref mSelectedUnit.mModelType); ImGui.NextColumn();
+
+                    ImGui.Text("Skin Division"); ImGui.NextColumn();
+                    ImGui.InputInt("##mSkinDivision", ref mSelectedUnit.mSkinDivision); ImGui.NextColumn();
+
+                    ImGui.Columns(1);
+                }
+            }
+            else if (mSelectedUnitRail != null)
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"Selected BG Unit Rail");
+
+                ImGui.Separator();
+
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("IsClosed"); ImGui.NextColumn();
+                    ImGui.Checkbox("##IsClosed", ref mSelectedUnitRail.IsClosed); ImGui.NextColumn();
+
+                    ImGui.Text("IsInternal"); ImGui.NextColumn();
+                    ImGui.Checkbox("##IsInternal", ref mSelectedUnitRail.IsInternal); ImGui.NextColumn();
+
+                    ImGui.Columns(1);
+                }
+            }
+            else
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("No actor or rail is selected");
+            }
 
             if (status)
             {
@@ -307,6 +375,165 @@ namespace Fushigi.ui.widgets
             }
 
             mHasFilledLayers = true;
+        }
+
+        private void CourseUnitView(CourseUnitHolder unitHolder)
+        {
+            if (ImGui.Button("Add Tile Unit", new Vector2(100, 22)))
+            {
+                unitHolder.mUnits.Add(new CourseUnit());
+            }
+
+            List<CourseUnit> removed_tile_units = new List<CourseUnit>();
+
+            foreach (var unit in unitHolder.mUnits)
+            {
+                var tree_flags = ImGuiTreeNodeFlags.None;
+                string name = $"Tile Unit {unitHolder.mUnits.IndexOf(unit)}";
+
+                ImGui.AlignTextToFramePadding();
+                bool expanded = ImGui.TreeNodeEx($"##{name}", ImGuiTreeNodeFlags.DefaultOpen);
+
+                ImGui.SameLine();
+                if (ImGui.Checkbox($"##Visible{name}", ref unit.Visible))
+                {
+                    foreach (var wall in unit.Walls)
+                    {
+                        wall.ExternalRail.Visible = unit.Visible;
+                        foreach (var rail in wall.InternalRails)
+                            rail.Visible = unit.Visible;
+                    }
+                }
+                ImGui.SetItemAllowOverlap();
+                ImGui.SameLine();
+
+                if (ImGui.Selectable(name, mSelectedUnit == unit))
+                {
+                    DeselectAll();
+                    mSelectedUnit = unit;
+                }
+                if (expanded)
+                {
+                    void RailListItem(string type, BGUnitRail rail, int id)
+                    {
+                        bool isSelected = rail.IsSelected;
+                        string wallname = $"{name}{type} {id}";
+
+                        ImGui.Indent();
+
+                        if (ImGui.Checkbox($"##Visible{wallname}", ref rail.Visible))
+                        {
+
+                        }
+                        ImGui.SameLine();
+
+                        ImGui.Columns(2);
+
+                        void SelectRail()
+                        {
+                            foreach (var u in unitHolder.mUnits)
+                                foreach (var w in u.Walls)
+                                    w.ExternalRail.IsSelected = false;
+
+                            rail.IsSelected = true;
+                            //Remove actor properties to show path properties
+                            DeselectAll();
+                            //Show selection for rail with properties
+                            mSelectedUnitRail = rail;
+                        }
+
+                        if (ImGui.Selectable($"##{wallname}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                        {
+                            SelectRail();
+                        }
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                        {
+                            SelectRail();
+                        }
+
+                        ImGui.SameLine();
+
+                        //Shift text from selection
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 22);
+                        ImGui.Text(wallname);
+
+                        ImGui.NextColumn();
+
+                        ImGui.TextDisabled($"(Num Points: {rail.Points.Count})");
+
+                        ImGui.Columns(1);
+
+                        ImGui.Unindent();
+                    }
+
+                    if (unit == mSelectedUnit)
+                    {
+                        if (ImGui.BeginPopupContextWindow("RailMenu", ImGuiPopupFlags.MouseButtonRight))
+                        {
+                            if (ImGui.MenuItem("Add Wall"))
+                                unit.Walls.Add(new Wall(unit));
+
+                            if (ImGui.MenuItem($"Remove {name}"))
+                                removed_tile_units.Add(unit);
+
+                            ImGui.EndPopup();
+                        }
+                    }
+
+                    List<Wall> removed_walls = new List<Wall>();
+
+                    foreach (var wall in unit.Walls)
+                    {
+                        if (wall.InternalRails.Count > 0)
+                        {
+                            bool ex = ImGui.TreeNodeEx($"##{name}Wall{unit.Walls.IndexOf(wall)}", ImGuiTreeNodeFlags.DefaultOpen);
+                            ImGui.SameLine();
+
+                            RailListItem("Wall", wall.ExternalRail, unit.Walls.IndexOf(wall));
+
+                            ImGui.Indent();
+
+                            if (ex)
+                            {
+                                foreach (var rail in wall.InternalRails)
+                                    RailListItem("Internal Rail", rail, wall.InternalRails.IndexOf(rail));
+                            }
+                            ImGui.Unindent();
+
+                            ImGui.TreePop();
+                        }
+                        else
+                        {
+                            RailListItem("Wall", wall.ExternalRail, unit.Walls.IndexOf(wall));
+                        }
+                        if (wall.ExternalRail.IsSelected)
+                        {
+                            if (ImGui.BeginPopupContextWindow("RailMenu", ImGuiPopupFlags.MouseButtonRight))
+                            {
+                                if (ImGui.MenuItem($"Remove Wall {unit.Walls.IndexOf(wall)}"))
+                                {
+                                    removed_walls.Add(wall);
+                                }
+                                ImGui.EndPopup();
+                            }
+                        }
+                    }
+                    if (removed_walls.Count > 0)
+                    {
+                        foreach (var w in removed_walls)
+                            unit.Walls.Remove(w);
+                        removed_walls.Clear();
+                    }
+                    ImGui.TreePop();
+                }
+            }
+      
+            if (removed_tile_units.Count > 0)
+            {
+                foreach (var tile in removed_tile_units)
+                    unitHolder.mUnits.Remove(tile);
+                removed_tile_units.Clear();
+            }
         }
 
         private void CourseRailsView(CourseRailHolder railHolder)
