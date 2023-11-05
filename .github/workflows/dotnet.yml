@@ -20,9 +20,11 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
+    - name: Install Dependencies
+      run: dotnet add package NativeFileDialogSharp Newtonsoft.Json Silk.NET.Core --version 2.17.1 Silk.NET.Input --version 2.17.1 Silk.NET.Core --version 2.17.1 Silk.NET.GLFW --version 2.17.1 Silk.NET.OpenGL.Extensions.ImGui --version 2.17.1 StbImageSharp ZstdNet
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build Fushigi/Fushigi.sln --no-restore 
     - name: Test
       run: dotnet test --no-build --verbosity normal
