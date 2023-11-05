@@ -11,8 +11,10 @@ namespace Fushigi.util
 {
     public static class UserSettings
     {
-        public static readonly string SettingsDir = 
-            $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Fushigi";
+        public static readonly string SettingsDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Fushigi"
+            );
         public static readonly string SettingsFile = Path.Combine(SettingsDir, "UserSettings.json");
         public static readonly int MaxRecents = 10;
         static Settings AppSettings;

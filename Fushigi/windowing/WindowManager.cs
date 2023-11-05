@@ -52,8 +52,10 @@ namespace Fushigi.windowing
                 if (_window.Native!.Win32.HasValue)
                     WindowsDarkmodeUtil.SetDarkmodeAware(_window.Native.Win32.Value.Hwnd);
 
-
-                ImGuiFontConfig? imGuiFontConfig = new ImGuiFontConfig("res/Font.ttf", 16);
+                
+                ImGuiFontConfig? imGuiFontConfig = new ImGuiFontConfig(
+                    Path.Combine("res", "Font.ttf"), 
+                    16);
 
                 var input = _window.CreateInput();
                 var imguiController = new ImGuiController(s_gl, _window, input, imGuiFontConfig);

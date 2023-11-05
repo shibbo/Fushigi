@@ -1,19 +1,11 @@
-﻿using Fushigi.course;
-using Fushigi.util;
+﻿using Fushigi.util;
 using Fushigi.windowing;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Fushigi.param;
 using Fushigi.ui.widgets;
 using ImGuiNET;
-using System.Numerics;
-using System.Diagnostics;
 
 namespace Fushigi.ui
 {
@@ -37,9 +29,16 @@ namespace Fushigi.ui
         void LoadFromSettings()
         {
             string romFSPath = UserSettings.GetRomFSPath();
-            if (!string.IsNullOrEmpty(romFSPath))
+            if (RomFS.IsValidRoot(romFSPath))
             {
-                RomFS.SetRoot(romFSPath);
+                RomFS.SetRoot(romFSPath); 
+            }
+
+            if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
+                !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
+            {
+                mIsChoosingPreferences = false;
+                mIsWelcome = false;
             }
 
             if (!ParamDB.sIsInit && !string.IsNullOrEmpty(RomFS.GetRoot()))
@@ -53,6 +52,8 @@ namespace Fushigi.ui
                 mCurrentCourseName = latestCourse;
                 mSelectedCourseScene = new(new(mCurrentCourseName));
                 mIsChoosingCourse = false;
+                mIsChoosingPreferences = false;
+                mIsWelcome = false;
             }
         }
 
@@ -62,33 +63,9 @@ namespace Fushigi.ui
             if (ImGui.BeginMainMenuBar())
             {
                 if (ImGui.BeginMenu("File"))
-                {
-                    if (ImGui.MenuItem("Set RomFS Path"))
-                    {
-                        /* open a new folder dialog to select the RomFS */
-                        var dialog = new FolderDialog();
-                        dialog.SelectedPath = UserSettings.GetRomFSPath();
-                        if (dialog.ShowDialog("Select Your RomFS Folder..."))
-                        {
-                            string basePath = dialog.SelectedPath.Replace("\0", "");
-
-                            /* set our root, but also set the root path in user setings */
-                            if (!RomFS.SetRoot(basePath))
-                            {
-                                return;
-                            }
-
-                            UserSettings.SetRomFSPath(basePath);
-
-                            /* if our parameter database isn't set, set it */
-                            if (!ParamDB.sIsInit)
-                            {
-                                ParamDB.Load();
-                            }
-                        }
-                    }
-
-                    if (RomFS.GetRoot() != null)
+                {                   
+                    if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
+                        !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                     {
                         if (ImGui.MenuItem("Open Course"))
                         {
@@ -140,6 +117,18 @@ namespace Fushigi.ui
                     /* end File menu */
                     ImGui.EndMenu();
                 }
+
+                if (ImGui.BeginMenu("Edit"))
+                {
+                    if (ImGui.MenuItem("Preferences"))
+                    {
+                        mIsChoosingPreferences = true;
+                    }
+
+                    /* end Edit menu */
+                    ImGui.EndMenu();
+                }
+
                 /* end entire menu bar */
                 ImGui.EndMenuBar();
             }
@@ -187,35 +176,19 @@ namespace Fushigi.ui
 
         void DrawWelcome()
         {
-            if (ImGui.Begin("Welcome"))
+            if (!ImGui.Begin("Welcome"))
             {
-                ImGui.Text("Welcome to Fushigi! Set the RomFS game path and save directory to get started.");
-
-                var romfs = UserSettings.GetRomFSPath();
-                var mod = UserSettings.GetModRomFSPath();
-
-                ImGui.Indent();
-
-                if (PathSelector.Show("RomFS Game Path", ref romfs, Directory.Exists($"{romfs}/BancMapUnit")))
-                {
-                    UserSettings.SetRomFSPath(romfs);
-                    RomFS.SetRoot(romfs);
-                    /* if our parameter database isn't set, set it */
-                    if (!ParamDB.sIsInit)
-                    {
-                        ParamDB.Load();
-                    }
-                }
-
-                Tooltip.Show("The game files which are stored under the romfs folder.");
-
-                if (PathSelector.Show("Save Directory", ref mod, !string.IsNullOrEmpty(mod)))
-                    UserSettings.SetModRomFSPath(mod);
-
-                Tooltip.Show("The save output where to save modified romfs files");
-
-                ImGui.End();
+                return;
             }
+
+            ImGui.Text("Welcome to Fushigi! Set the RomFS game path and save directory to get started.");
+
+            if (ImGui.Button("Close"))
+            {
+                mIsWelcome = false;
+            }
+
+            ImGui.End();
         }
 
         public void Render(GL gl, double delta, ImGuiController controller)
@@ -239,22 +212,29 @@ namespace Fushigi.ui
 
             DrawMainMenu();
 
-            // if our RomFS is selected, fill the course list
             // ImGui settings are available frame 3
-            if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
-                !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()) &&
-                ImGui.GetFrameCount() > 2)
+            if (ImGui.GetFrameCount() > 2)
             {
-                if (mIsChoosingCourse)
+                if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
+                    !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                 {
-                    DrawCourseList();
-                } 
+                    if (mIsChoosingCourse)
+                    {
+                        DrawCourseList();
+                    }
 
-                mSelectedCourseScene?.DrawUI();
-            }
-            else
-            {
-                DrawWelcome();
+                    mSelectedCourseScene?.DrawUI();
+                }
+
+                if (mIsChoosingPreferences)
+                {
+                    Preferences.Draw(ref mIsChoosingPreferences);
+                }
+
+                if (mIsWelcome)
+                {
+                    DrawWelcome();
+                }
             }
 
             /* render our ImGUI controller */
@@ -265,5 +245,7 @@ namespace Fushigi.ui
         string? mCurrentCourseName;
         CourseScene? mSelectedCourseScene;
         bool mIsChoosingCourse = true;
+        bool mIsChoosingPreferences = true;
+        bool mIsWelcome = true;
     }
 }
