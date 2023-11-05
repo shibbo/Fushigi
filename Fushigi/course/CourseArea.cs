@@ -138,8 +138,9 @@ namespace Fushigi.course
             string levelPath = Path.Combine(folder, $"{mAreaName}.bcett.byml.zs");
             File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
 
-            //Update resource table         
-            resource_table.SetResource(Path.Combine("BancMapUnit", $"{mAreaName}.bcett.byml"), decomp_size);
+            //Update resource table
+            // filePath is a key not an actual path so we cannot use Path.Combine
+            resource_table.SetResource($"BancMapUnit/{mAreaName}.bcett.byml", decomp_size);
         }
 
         public string GetName()
