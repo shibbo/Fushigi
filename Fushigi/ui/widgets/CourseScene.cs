@@ -22,7 +22,9 @@ namespace Fushigi.ui.widgets
     class CourseScene
     {
 
-        LevelViewport viewport;
+        Dictionary<CourseArea, LevelViewport> viewports = [];
+        LevelViewport activeViewport;
+
         readonly Course course;
         CourseArea selectedArea;
 
@@ -39,7 +41,13 @@ namespace Fushigi.ui.widgets
         {
             this.course = course;
             selectedArea = course.GetArea(0);
-            viewport = new LevelViewport(selectedArea, gl);
+
+            foreach (var area in course.GetAreas())
+            {
+                viewports[area] = new LevelViewport(area, gl);
+            }
+
+            activeViewport = viewports[selectedArea];
         }
 
         public void DeselectAll()
@@ -54,12 +62,6 @@ namespace Fushigi.ui.widgets
 
         public void DrawUI(GL gl)
         {
-            bool status = ImGui.Begin("Course");
-
-            CourseTabBar(gl);
-
-            viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
-
             AreaParameterPanel();
 
             ActorsPanel();
@@ -75,10 +77,10 @@ namespace Fushigi.ui.widgets
                 SelectActor();
             }
 
-            if (viewport.HasSelectionChanged())
+            if (activeViewport.HasSelectionChanged())
             {
-                var selectedActors = viewport.GetSelectedActors();
-                var selectedBGunitRails = viewport.GetSelectedBGUnitRails();
+                var selectedActors = activeViewport.GetSelectedActors();
+                var selectedBGunitRails = activeViewport.GetSelectedBGUnitRails();
 
                 DeselectAll();
                 if (selectedActors.Count > 0) mSelectedActor = selectedActors.ElementAt(0);
@@ -89,10 +91,32 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            if (status)
+            bool status = ImGui.Begin("Viewports");
+
+            ImGui.DockSpace(0x100, ImGui.GetContentRegionAvail());
+
+            foreach (var (area, viewport) in viewports)
             {
-                ImGui.End();
+                ImGui.SetNextWindowDockID(0x100, ImGuiCond.Once);
+
+                if (ImGui.Begin(area.GetName()))
+                {
+                    if(ImGui.IsWindowFocused())
+                    {
+                        selectedArea = area;
+                        activeViewport = viewport;
+                    }
+
+                    viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
+
+                    ImGui.End();
+                }
             }
+
+
+
+            if (status)
+                ImGui.End();
         }
 
         public void Save()
@@ -107,35 +131,6 @@ namespace Fushigi.ui.widgets
             resource_table.Save();
         }
 
-        private void CourseTabBar(GL gl)
-        {
-            bool tabStatus = ImGui.BeginTabBar("Courses TabBar"); // Not sure what the string argument is for
-
-            foreach (var area in course.GetAreas())
-            {
-                if (ImGui.BeginTabItem(area.GetName()))
-                {
-                    // Tab change
-                    if (selectedArea != area)
-                    {
-                        selectedArea = area;
-                        viewport = new(area, gl);
-
-                        // Unselect actor
-                        // This is so that users do not see an actor selected from another area
-                        DeselectAll();
-                    }
-
-                    ImGui.EndTabItem();
-                }
-            }
-
-            if (tabStatus)
-            {
-                ImGui.EndTabBar();
-            }
-        }
-
         private void SelectActor()
         {
             bool status = ImGui.Begin("Add Actor");
@@ -148,8 +143,8 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                 {
-                    viewport.mEditorState = LevelViewport.EditorState.AddingActor;
-                    viewport.mActorToAdd = actor;
+                    activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
+                    activeViewport.mActorToAdd = actor;
                     mShowAddActor = false;
                 }
             }
@@ -173,7 +168,7 @@ namespace Fushigi.ui.widgets
 
             if (ImGui.Button("Delete Actor"))
             {
-                viewport.mEditorState = LevelViewport.EditorState.DeletingActor;
+                activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
             }
 
             // actors are in an array
@@ -279,8 +274,8 @@ namespace Fushigi.ui.widgets
                         ImGui.PushID($"{hashArray[i].ToString()}_{i}");
                         if (ImGui.Button("Replace (Viewport)"))
                         {
-                            viewport.mEditorState = LevelViewport.EditorState.SelectingLink;
-                            viewport.SrcCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
+                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLink;
+                            activeViewport.SrcCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
                         }
                         ImGui.PopID();
 
@@ -668,11 +663,11 @@ namespace Fushigi.ui.widgets
                             if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
                             {
                                 mSelectedActor = actor;
-                                viewport.SelectedActor(actor);
+                                activeViewport.SelectedActor(actor);
                             }
                             if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                             {
-                                viewport.FrameSelectedActor(actor);
+                                activeViewport.FrameSelectedActor(actor);
                             }
 
                             ImGui.NextColumn();
