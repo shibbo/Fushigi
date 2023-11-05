@@ -109,6 +109,8 @@ namespace Fushigi.ui.widgets
                     var size = ImGui.GetContentRegionAvail();
 
                     viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
+                    if(activeViewport != viewport)
+                        ImGui.GetWindowDrawList().AddRectFilled(topLeft, topLeft + size, 0x44000000);
 
                     ImGui.SetNextWindowPos(topLeft);
                     ImGui.SetNextWindowSize(new Vector2(100, size.Y), ImGuiCond.Once);
@@ -119,7 +121,6 @@ namespace Fushigi.ui.widgets
                         AreaParameters(area.mAreaParams);
                         ImGui.End();
                     }
-
                 }
             }
 
