@@ -20,8 +20,24 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
-    - name: Install Dependencies
-      run: dotnet add package NativeFileDialogSharp Newtonsoft.Json Silk.NET.Core --version 2.17.1 Silk.NET.Input --version 2.17.1 Silk.NET.Core --version 2.17.1 Silk.NET.GLFW --version 2.17.1 Silk.NET.OpenGL.Extensions.ImGui --version 2.17.1 StbImageSharp ZstdNet
+    - name: Install NativeFileDialogSharp
+      run: dotnet add package NativeFileDialogSharp 
+    - name: Install Newtonsoft.Json
+      run: dotnet add package Newtonsoft.Json 
+    - name: Install Silk.NET.Core
+      run: dotnet add package Silk.NET.Core --version 2.17.1 
+    - name: Install Silk.NET.Input
+      run: dotnet add package Silk.NET.Input  --version 2.17.1 
+    - name: Install Silk.NET.Core
+      run: dotnet add package Silk.NET.Core  --version 2.17.1 
+    - name: Install Silk.NET.GLFW
+      run: dotnet add package Silk.NET.GLFW  --version 2.17.1 
+    - name: Install Silk.NET.OpenGL.Extensions.ImGui
+      run: dotnet add package Silk.NET.OpenGL.Extensions.ImGui  --version 2.17.1 
+    - name: Install StbImageSharp
+      run: dotnet add package StbImageSharp 
+    - name: Install ZstdNet
+      run: dotnet add package ZstdNet 
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
