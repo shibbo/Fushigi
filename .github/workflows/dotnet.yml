@@ -21,23 +21,23 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Install NativeFileDialogSharp
-      run: dotnet add Fushigi.csproj package NativeFileDialogSharp 
+      run: dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp 
     - name: Install Newtonsoft.Json
-      run: dotnet add Fushigi.csproj package Newtonsoft.Json 
+      run: dotnet add Fushigi/Fushigi.csproj package Newtonsoft.Json 
     - name: Install Silk.NET.Core
-      run: dotnet add Fushigi.csproj package Silk.NET.Core --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core --version 2.17.1 
     - name: Install Silk.NET.Input
-      run: dotnet add Fushigi.csproj package Silk.NET.Input  --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Input  --version 2.17.1 
     - name: Install Silk.NET.Core
-      run: dotnet add Fushigi.csproj package Silk.NET.Core  --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core  --version 2.17.1 
     - name: Install Silk.NET.GLFW
-      run: dotnet add Fushigi.csproj package Silk.NET.GLFW  --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.GLFW  --version 2.17.1 
     - name: Install Silk.NET.OpenGL.Extensions.ImGui
-      run: dotnet add Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui  --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui  --version 2.17.1 
     - name: Install StbImageSharp
-      run: dotnet add Fushigi.csproj package StbImageSharp 
+      run: dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
     - name: Install ZstdNet
-      run: dotnet add Fushigi.csproj package ZstdNet 
+      run: dotnet add Fushigi/Fushigi.csproj package ZstdNet 
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
