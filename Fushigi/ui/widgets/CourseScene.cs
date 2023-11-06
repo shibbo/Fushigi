@@ -15,6 +15,7 @@ using System.Net.Http.Headers;
 using System.Numerics;
 using System.Reflection.Emit;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace Fushigi.ui.widgets
@@ -31,6 +32,8 @@ namespace Fushigi.ui.widgets
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
+        string mErroringArea = "";
+        bool mShowErrors = false;
 
         CourseActor? mSelectedActor = null;
         CourseUnit? mSelectedUnit = null;
@@ -69,6 +72,11 @@ namespace Fushigi.ui.widgets
             if (mShowAddActor)
             {
                 SelectActor();
+            }
+
+            if (mShowErrors)
+            {
+                CourseErrorList();
             }
 
             ulong selectionVersionBefore = activeViewport.mEditContext.SelectionVersion;
@@ -134,12 +142,44 @@ namespace Fushigi.ui.widgets
         {
             RSTB resource_table = new RSTB();
             resource_table.Load();
+            bool badThingsHappened = false;
 
             //Save each course area to current romfs folder
             foreach (var area in this.course.GetAreas())
-                area.Save(resource_table);
+            {
+                List<int> badLinks = area.mLinkHolder.DoSanityCheck(area.mActorHolder);
 
-            resource_table.Save();
+                if (badLinks.Count > 0)
+                {
+                    badThingsHappened = true;
+                }
+
+                List<int> badActors = area.mGroups.DoSanityCheck(area.mActorHolder);
+
+                if (badActors.Count > 0)
+                {
+                    badThingsHappened = true;
+                }
+
+                if (badThingsHappened)
+                {
+                    mShowErrors = true;
+                    mErroringArea = area.GetName();
+                    // we stop saving immediately
+                    return;
+                }
+                else
+                {
+                    mShowErrors = false;
+                    mErroringArea = "";
+                    area.Save(resource_table);
+                }
+            }
+
+            if (!badThingsHappened)
+            {
+                resource_table.Save();
+            }
         }
 
         private void SelectActor()
@@ -161,6 +201,40 @@ namespace Fushigi.ui.widgets
             }
 
             ImGui.EndListBox();
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+
+        private void CourseErrorList()
+        {
+            bool status = ImGui.Begin("Course Saving Errors");
+            ImGui.Text($"Error(s) occured in: {mErroringArea}");
+            CourseArea? area = course.GetArea(mErroringArea);
+
+            List<int> badLinks = area.mLinkHolder.DoSanityCheck(area.mActorHolder);
+   
+            if (badLinks.Count > 0)
+            {
+                for (int i = 0; i < badLinks.Count; i++)
+                {
+                    ImGui.Text($"Link at idx {badLinks[i]} points to an actor that doesn't exist.");
+                    ImGui.NewLine();
+                    CourseLink link = area.mLinkHolder.GetLinks()[badLinks[i]];
+                    CourseActor src = area.mActorHolder[link.GetSrcHash()];
+                    ImGui.Text($"Source actor: {src.mActorName} [{src.mName}]");
+                    ImGui.NewLine();
+                }
+            }
+
+            List<int> badActors = area.mGroups.DoSanityCheck(area.mActorHolder);
+
+            if (badActors.Count > 0)
+            {
+
+            }
 
             if (status)
             {
