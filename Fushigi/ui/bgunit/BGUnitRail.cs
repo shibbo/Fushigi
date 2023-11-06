@@ -18,7 +18,7 @@ namespace Fushigi.ui.widgets
     {
         public List<RailPoint> Points = new List<RailPoint>();
 
-        public List<RailPoint> GetSelected() => Points.Where(x => x.IsSelected).ToList();
+        public List<RailPoint> GetSelected(CourseAreaEditContext ctx) => Points.Where(x => ctx.IsSelected(x)).ToList();
 
         public bool IsClosed = false;
 
@@ -97,7 +97,7 @@ namespace Fushigi.ui.widgets
 
         public void RemoveSelected(LevelViewport viewport)
         {
-            var selected = this.GetSelected();
+            var selected = this.GetSelected(viewport.mEditContext);
             if (selected.Count == 0)
                 return;
 
@@ -142,7 +142,7 @@ namespace Fushigi.ui.widgets
 
             mouseDownPos = viewport.ScreenToWorld(ImGui.GetMousePos());
 
-            var selected = GetSelected();
+            var selected = GetSelected(viewport.mEditContext);
 
             if (ImGui.GetIO().KeyAlt && selected.Count == 1)
             {
@@ -224,7 +224,7 @@ namespace Fushigi.ui.widgets
                 transformStart = true;
                 //Store each selected point for undoing
                 viewport.mEditContext.BeginUndoCollection();
-                foreach (var point in this.GetSelected())
+                foreach (var point in this.GetSelected(viewport.mEditContext))
                     viewport.mEditContext.AddToUndo(new TransformUndo(point.Transform));
                 viewport.mEditContext.EndUndoCollection();
             }
