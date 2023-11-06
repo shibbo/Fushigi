@@ -115,6 +115,33 @@ namespace Fushigi.course
                     }
                 }
             }
+
+            if (actorNode.ContainsKey("System"))
+            {
+                foreach(string node in ((BymlHashTable)actorNode["System"]).Keys)
+                {
+                    BymlHashTable systemNode = ((BymlHashTable)actorNode["System"]);
+                    var curNode = systemNode[node];
+                    object? data = null;
+
+                    switch (curNode.Id)
+                    {
+                        case BymlNodeId.Int:
+                            data = BymlUtil.GetNodeData<int>(curNode);
+                            break;
+                        case BymlNodeId.Float:
+                            data = BymlUtil.GetNodeData<float>(curNode);
+                            break;
+                        case BymlNodeId.Bool:
+                            data = BymlUtil.GetNodeData<bool>(curNode);
+                            break;
+                        default:
+                            throw new Exception("CourseActor::CourseActor() -- You are the chosen one. You have found a type we don't account for in the system params. WOAH!");
+                    }
+
+                    mSystemParameters.Add(node, data);
+                }
+            }
         }
 
         public CourseActor(string actorName, uint areaHash)
@@ -128,6 +155,7 @@ namespace Fushigi.course
             mScale = new System.Numerics.Vector3(1.0f);
             mActorHash = RandomUtil.GetRandom();
             mActorParameters = new();
+            mSystemParameters = new();
 
             List<string> paramList = ParamDB.GetActorComponents(mActorName);
 
@@ -210,6 +238,37 @@ namespace Fushigi.course
 
             table.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
 
+            BymlHashTable sysNode = new();
+
+            foreach (KeyValuePair<string, object> sysParam in mSystemParameters)
+            {
+                object param = mSystemParameters[sysParam.Key];
+                string shit = param.GetType().ToString();
+
+                switch (param.GetType().ToString())
+                {
+                    case "System.UInt32":
+                        sysNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(sysParam.Key, (uint)param), sysParam.Key);
+                        break;
+                    case "System.Int32":
+                        sysNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(sysParam.Key, (int)param), sysParam.Key);
+                        break;
+                    case "System.Boolean":
+                        sysNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(sysParam.Key, (bool)param), sysParam.Key);
+                        break;
+                    case "System.String":
+                        sysNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(sysParam.Key, (string)param), sysParam.Key);
+                        break;
+                    case "System.Single":
+                        sysNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(sysParam.Key, (float)param), sysParam.Key);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            table.AddNode(BymlNodeId.Hash, sysNode, "System");
+
             BymlHashTable inLinksNode = new();
 
             foreach (var (linkName, links) in linkHolder.GetSrcHashesFromDest(mActorHash))
@@ -252,6 +311,7 @@ namespace Fushigi.course
         public uint mAreaHash;
         public ulong mActorHash;
         public Dictionary<string, object> mActorParameters;
+        public Dictionary<string, object> mSystemParameters = new();
     }
 
     public class CourseActorHolder
