@@ -91,7 +91,8 @@ namespace Fushigi.param
                 SARC.SARC sarc = new SARC.SARC(new MemoryStream(fileBytes));
 
                 /* /Component/Blackboard/BlackboardParamTable is where all of the actor-specific parameters live */
-                string actorParamDir = Path.Combine("Component", "Blackboard", "BlackboardParamTable");
+                string actorParamDir = "Component/Blackboard/BlackboardParamTable";
+                //string actorParamDir = //Path.Combine("Component", "Blackboard", "BlackboardParamTable");
 
                 if (!sarc.DirectoryExists(actorParamDir))
                 {
