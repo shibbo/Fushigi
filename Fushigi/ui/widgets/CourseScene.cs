@@ -447,6 +447,9 @@ namespace Fushigi.ui.widgets
 
         private void CourseUnitView(CourseUnitHolder unitHolder)
         {
+            ImGui.Text("Select a Wall");
+            ImGui.Text("Alt + Left Click to add point");
+
             if (ImGui.Button("Add Tile Unit", new Vector2(100, 22)))
             {
                 unitHolder.mUnits.Add(new CourseUnit());
@@ -548,7 +551,14 @@ namespace Fushigi.ui.widgets
                         }
                     }
 
-                    List<Wall> removed_walls = new List<Wall>();
+                    if (ImGui.Button("Add Wall"))
+                        unit.Walls.Add(new Wall(unit));
+                    ImGui.SameLine();
+                    if (ImGui.Button("Remove Wall"))
+                    {
+                        foreach (var wall in unit.Walls.Where(x => x.ExternalRail.IsSelected).ToList())
+                            unit.Walls.Remove(wall);
+                    }
 
                     foreach (var wall in unit.Walls)
                     {
@@ -574,23 +584,6 @@ namespace Fushigi.ui.widgets
                         {
                             RailListItem("Wall", wall.ExternalRail, unit.Walls.IndexOf(wall));
                         }
-                        if (wall.ExternalRail.IsSelected)
-                        {
-                            if (ImGui.BeginPopupContextWindow("RailMenu", ImGuiPopupFlags.MouseButtonRight))
-                            {
-                                if (ImGui.MenuItem($"Remove Wall {unit.Walls.IndexOf(wall)}"))
-                                {
-                                    removed_walls.Add(wall);
-                                }
-                                ImGui.EndPopup();
-                            }
-                        }
-                    }
-                    if (removed_walls.Count > 0)
-                    {
-                        foreach (var w in removed_walls)
-                            unit.Walls.Remove(w);
-                        removed_walls.Clear();
                     }
                     ImGui.TreePop();
                 }
