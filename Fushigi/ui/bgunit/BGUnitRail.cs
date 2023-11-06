@@ -71,28 +71,30 @@ namespace Fushigi.ui.widgets
             return rail;
         }
 
-        public void DeselectAll()
+        public void DeselectAll(CourseAreaEditContext ctx)
         {
             foreach (var point in Points)
-                point.IsSelected = false;
+                if (ctx.IsSelected(point))
+                    ctx.Deselect(point);
         }
 
-        public void SelectAll()
+        public void SelectAll(CourseAreaEditContext ctx)
         {
-            foreach (var point in Points)
-                point.IsSelected = true;
+            ctx.Select(Points);
         }
 
         public void InsertPoint(LevelViewport viewport, RailPoint point, int index)
         {
             this.Points.Insert(index, point);
             viewport.mEditContext.AddToUndo(new UnitRailPointAddUndo(this, point, index));
+            viewport.mEditContext.Select(point);
         }
 
         public void AddPoint(LevelViewport viewport, RailPoint point)
         {
             this.Points.Add(point);
             viewport.mEditContext.AddToUndo(new UnitRailPointAddUndo(this, point));
+            viewport.mEditContext.Select(point);
         }
 
         public void RemoveSelected(LevelViewport viewport)
@@ -117,7 +119,7 @@ namespace Fushigi.ui.widgets
             if (ImGui.IsKeyPressed(ImGuiKey.Delete))
                 RemoveSelected(viewport);
             if (viewport.mEditContext.IsSelected(this) && ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGuiKey.A))
-                SelectAll();
+                SelectAll(viewport.mEditContext);
         }
 
         public bool HitTest(LevelViewport viewport)
@@ -128,7 +130,8 @@ namespace Fushigi.ui.widgets
 
         public void OnMouseDown(LevelViewport viewport)
         {
-            bool isSelected = viewport.mEditContext.IsSelected(this);
+            var ctx = viewport.mEditContext;
+            bool isSelected = ctx.IsSelected(this);
 
             //Line hit test
             if (!isSelected && viewport.HoveredObject==this)
@@ -154,12 +157,12 @@ namespace Fushigi.ui.widgets
                      MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
                      selected[0].Position.Z);
 
-                DeselectAll();
+                DeselectAll(viewport.mEditContext);
 
                 if (this.Points.Count - 1 == index) //is last point
-                    InsertPoint(viewport, new RailPoint(pos) { IsSelected = true }, 0);
+                    InsertPoint(viewport, new RailPoint(pos), 0);
                 else
-                    InsertPoint(viewport, new RailPoint(pos) { IsSelected = true }, index + 1);
+                    InsertPoint(viewport, new RailPoint(pos), index + 1);
             }
             else if (ImGui.GetIO().KeyAlt && selected.Count == 0) //Add new point from last 
             {
@@ -170,14 +173,14 @@ namespace Fushigi.ui.widgets
                      MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
                      2);
 
-                DeselectAll();
+                DeselectAll(viewport.mEditContext);
 
-                AddPoint(viewport, new RailPoint(pos) { IsSelected = true });
+                AddPoint(viewport, new RailPoint(pos));
             }
             else
                     {
                 if (!ImGui.GetIO().KeyCtrl && !ImGui.GetIO().KeyShift)
-                    DeselectAll();
+                    DeselectAll(viewport.mEditContext);
             }
 
             for (int i = 0; i < Points.Count; i++)
@@ -189,7 +192,7 @@ namespace Fushigi.ui.widgets
                 bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
 
                 if (isHovered)
-                    Points[i].IsSelected = true;
+                    ctx.Select(Points[i]);
 
                 Points[i].PreviousPosition = point;
             }
@@ -217,6 +220,8 @@ namespace Fushigi.ui.widgets
         {
             if (!mouseDown) return;
 
+            var ctx = viewport.mEditContext;
+
             Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
             Vector3 diff = posVec - mouseDownPos;
             if (diff.X != 0 && diff.Y != 0 && !transformStart)
@@ -231,7 +236,7 @@ namespace Fushigi.ui.widgets
 
             for (int i = 0; i < Points.Count; i++)
             {
-                if (transformStart && Points[i].IsSelected)
+                if (transformStart && ctx.IsSelected(Points[i]))
                 {
                     diff.X = MathF.Round(diff.X, MidpointRounding.AwayFromZero);
                     diff.Y = MathF.Round(diff.Y, MidpointRounding.AwayFromZero);
@@ -246,6 +251,7 @@ namespace Fushigi.ui.widgets
             if (!this.Visible)
                 return;
 
+            var ctx = viewport.mEditContext;
             bool isSelected = viewport.mEditContext.IsSelected(this);
 
             if (ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(ImGuiMouseButton.Left))
@@ -322,7 +328,7 @@ namespace Fushigi.ui.widgets
 
                     //Display point color
                     uint color = 0xFFFFFFFF;
-                    if (Points[i].IsHovered || Points[i].IsSelected)
+                    if (Points[i].IsHovered || ctx.IsSelected(Points[i]))
                         color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
 
                     mDrawList.AddCircleFilled(pos2D, 6.0f, color);
@@ -367,7 +373,6 @@ namespace Fushigi.ui.widgets
                 set { Transform.Position = value; }
             }
 
-            public bool IsSelected { get; set; }
             public bool IsHovered { get; set; }
 
             //For transforming
