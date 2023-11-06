@@ -1,8 +1,6 @@
 using Fushigi.Byml;
 using Fushigi.course;
 using ImGuiNET;
-using Silk.NET.Input;
-using Silk.NET.SDL;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -19,6 +17,7 @@ using Microsoft.VisualBasic;
 using System.Runtime.CompilerServices;
 using Silk.NET.OpenGL;
 using Fushigi.gl;
+using Fushigi.util;
 
 namespace Fushigi.ui.widgets
 {
@@ -503,24 +502,53 @@ namespace Fushigi.ui.widgets
 
             if (mArea.mRailHolder.mRails.Count > 0)
             {
+                uint color = Color.HotPink.ToAbgr();
+
                 foreach (CourseRail rail in mArea.mRailHolder.mRails)
                 {
                     List<Vector2> pointsList = [];
                     foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
                     {
-                        var pos2D = WorldToScreen(new(pnt.mTranslate.X, pnt.mTranslate.Y, pnt.mTranslate.Z));
-                        mDrawList.AddCircleFilled(pos2D, pointSize, (uint)System.Drawing.Color.HotPink.ToArgb());
+                        var pos2D = WorldToScreen(pnt.mTranslate);
+                        mDrawList.AddCircleFilled(pos2D, pointSize, color);
                         pointsList.Add(pos2D);
                     }
-                    for (int i = 0; i < pointsList.Count - 1; i++)
+
+
+                    var segmentCount = rail.mPoints.Count;
+                    if (!rail.mIsClosed)
+                        segmentCount--;
+
+                    mDrawList.PathLineTo(WorldToScreen(rail.mPoints[0].mTranslate));
+                    for (int i = 0; i < segmentCount; i++)
                     {
-                        mDrawList.AddLine(pointsList[i], pointsList[i + 1], (uint)System.Drawing.Color.HotPink.ToArgb(), 2.5f);
+                        var pointA = rail.mPoints[i];
+                        var pointB = rail.mPoints[(i + 1) % rail.mPoints.Count];
+
+                        var posA2D = WorldToScreen(pointA.mTranslate);
+                        var posB2D = WorldToScreen(pointB.mTranslate);
+
+                        Vector2 cpOutA2D = posA2D;
+                        Vector2 cpInB2D = posB2D;
+
+                        if (pointA.mControl.TryGetValue(out Vector3 control))
+                            cpOutA2D = WorldToScreen(control);
+
+                        if (pointB.mControl.TryGetValue(out control))
+                            //invert control point
+                            cpInB2D = WorldToScreen(pointB.mTranslate - (control - pointB.mTranslate)); 
+
+                        if (cpOutA2D == posA2D && cpInB2D == posB2D)
+                        {
+                            mDrawList.PathLineTo(posB2D);
+                            continue;
+                        }
+
+                        mDrawList.PathBezierCubicCurveTo(cpOutA2D, cpInB2D, posB2D);
+
                     }
-                    bool isClosed = rail.mIsClosed;
-                    if (isClosed)
-                    {
-                        mDrawList.AddLine(pointsList[pointsList.Count - 1], pointsList[0], (uint)System.Drawing.Color.HotPink.ToArgb(), 2.5f);
-                    }
+
+                    mDrawList.PathStroke(color, ImDrawFlags.None, 2.5f);
                 }
             }
 
@@ -644,5 +672,14 @@ namespace Fushigi.ui.widgets
                       Vector2.Dot(ba,ba), 0, 1 );
             return ( pa - ba*h ).Length() < thickness/2;
         }
+    }
+
+    static class ColorExtensions
+    {
+        public static uint ToAbgr(this Color c) => (uint)(
+            c.A << 24 |
+            c.B << 16 |
+            c.G << 8 |
+            c.R);
     }
 }
