@@ -260,7 +260,8 @@ namespace Fushigi.ui.widgets
                     {
                         mEditContext.DeselectAll();
                     }
-                    else if(HoveredObject is not BGUnitRail) { }
+                    else if(HoveredObject is not BGUnitRail &&
+                        HoveredObject is not BGUnitRail.RailPoint) 
                     {
                         if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {

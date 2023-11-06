@@ -80,7 +80,8 @@ namespace Fushigi.ui.widgets
 
         public void SelectAll(CourseAreaEditContext ctx)
         {
-            ctx.Select(Points);
+            foreach (var point in Points)
+                ctx.Select(point);
         }
 
         public void InsertPoint(LevelViewport viewport, RailPoint point, int index)
@@ -178,7 +179,7 @@ namespace Fushigi.ui.widgets
                 AddPoint(viewport, new RailPoint(pos));
             }
             else
-                    {
+            {
                 if (!ImGui.GetIO().KeyCtrl && !ImGui.GetIO().KeyShift)
                     DeselectAll(viewport.mEditContext);
             }
@@ -335,6 +336,8 @@ namespace Fushigi.ui.widgets
 
                     bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
                     Points[i].IsHovered = isHovered;
+                    if (isHovered)
+                        viewport.HoveredObject = Points[i];
                 }
             }
         }
