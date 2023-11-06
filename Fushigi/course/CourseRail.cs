@@ -1,6 +1,7 @@
 ﻿using Fushigi.Byml;
 using Fushigi.param;
 using Fushigi.util;
+using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -217,6 +218,11 @@ namespace Fushigi.course
                     return;
                 }
 
+                if (node.ContainsKey("Control1"))
+                {
+                    mControl = BymlUtil.GetVector3FromArray(node["Control1"] as BymlArrayNode);
+                }
+
                 var dynamicNode = node["Dynamic"] as BymlHashTable;
 
                 foreach (string component in comp.Keys)
@@ -291,6 +297,16 @@ namespace Fushigi.course
 
                 tbl.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
 
+                if (mControl != null)
+                {
+                    BymlArrayNode controlNode = new(3);
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mControl.Value.X));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mControl.Value.Y));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", mControl.Value.Z));
+
+                    tbl.AddNode(BymlNodeId.Array, controlNode, "Control1");
+                }
+
                 BymlArrayNode translateNode = new(3);
                 translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mTranslate.X));
                 translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mTranslate.Y));
@@ -304,6 +320,7 @@ namespace Fushigi.course
             ulong mHash;
             Dictionary<string, object> mParameters = new();
             public System.Numerics.Vector3 mTranslate;
+            public System.Numerics.Vector3? mControl = null;
         }
     }
 

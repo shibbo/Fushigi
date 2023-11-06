@@ -209,29 +209,59 @@ namespace Fushigi.course
 
             if (mActorParameters.Count > 0)
             {
+                List<string> paramList = ParamDB.GetActorComponents(mActorName);
                 BymlHashTable dynamicNode = new();
 
                 foreach (KeyValuePair<string, object> dynParam in mActorParameters)
                 {
+                    ParamDB.ComponentParam? compParam = null;
+
+                    foreach (string p in paramList)
+                    {
+                        foreach (KeyValuePair<string, ParamDB.ComponentParam> kvp in ParamDB.GetComponentParams(p))
+                        {
+                            if (kvp.Key == dynParam.Key)
+                            {
+                                compParam = kvp.Value;
+                            }
+                        }
+                    }
+
                     object param = mActorParameters[dynParam.Key];
                     string shit = param.GetType().ToString();
+                   
 
                     switch (param.GetType().ToString())
                     {
                         case "System.UInt32":
-                            dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
+                            if ((uint)param != Convert.ToUInt32(compParam.Value.InitValue))
+                            {
+                                dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
+                            }
                             break;
                         case "System.Int32":
-                            dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
+                            if ((int)param != Convert.ToInt32(compParam.Value.InitValue))
+                            {
+                                dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
+                            }
                             break;
                         case "System.Boolean":
-                            dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
+                            if ((bool)param != (bool)compParam.Value.InitValue)
+                            {
+                                dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
+                            }
                             break;
                         case "System.String":
-                            dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
+                            if ((string)param != (string)compParam.Value.InitValue)
+                            {
+                                dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
+                            }
                             break;
                         case "System.Single":
-                            dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
+                            if ((float)param != Convert.ToSingle(compParam.Value.InitValue))
+                            {
+                                dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
+                            }
                             break;
                         default:
                             break;
