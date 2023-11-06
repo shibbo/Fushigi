@@ -268,7 +268,11 @@ namespace Fushigi.course
                     }
                 }
 
-                table.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
+                // did all of the nodes get stripped away due to all being default? if so, this node will be empty and thus we can discard
+                if (dynamicNode.Keys.Count > 0)
+                {
+                    table.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
+                }
             }
 
             if (mSystemParameters.Count > 0)
