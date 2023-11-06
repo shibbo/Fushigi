@@ -24,7 +24,7 @@ namespace Fushigi.windowing
         private static readonly List<IWindow> s_pendingInits = [];
         private static readonly List<(IWindow window, WindowResources res)> s_windows = [];
 
-        public static void CreateWindow(out IWindow window, Vector2D<int>? initialWindowSize = null)
+        public static void CreateWindow(out IWindow window, Vector2D<int>? initialWindowSize = null, Action? onConfigureIO = null)
         {
             var options = WindowOptions.Default;
             options.API = new GraphicsAPI(
@@ -52,13 +52,8 @@ namespace Fushigi.windowing
                 if (_window.Native!.Win32.HasValue)
                     WindowsDarkmodeUtil.SetDarkmodeAware(_window.Native.Win32.Value.Hwnd);
 
-                
-                ImGuiFontConfig? imGuiFontConfig = new ImGuiFontConfig(
-                    Path.Combine("res", "Font.ttf"), 
-                    16);
-
                 var input = _window.CreateInput();
-                var imguiController = new ImGuiController(s_gl, _window, input, imGuiFontConfig);
+                var imguiController = new ImGuiController(s_gl, _window, input, onConfigureIO);
 
                 //update
                 _window.Update += ds => imguiController.Update((float)ds);

@@ -6,15 +6,40 @@ using Silk.NET.Windowing;
 using Fushigi.param;
 using Fushigi.ui.widgets;
 using ImGuiNET;
+using System.Runtime.CompilerServices;
+using System.Numerics;
 
 namespace Fushigi.ui
 {
     public class MainWindow
     {
 
+        private ImFontPtr mDefaultFont;
+
         public MainWindow()
         {
-            WindowManager.CreateWindow(out mWindow);   
+            WindowManager.CreateWindow(out mWindow, 
+                onConfigureIO: () => { 
+                    unsafe
+                    {
+                        var io = ImGui.GetIO();
+
+                        var nativeConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+                        //Add a higher horizontal/vertical sample rate for global scaling.
+                        nativeConfig->OversampleH = 8;
+                        nativeConfig->OversampleV = 8;
+                        nativeConfig->RasterizerMultiply = 1f;
+                        nativeConfig->GlyphOffset = new Vector2(0);
+
+                        {
+                            mDefaultFont = io.Fonts.AddFontFromFileTTF(
+                                Path.Combine("res", "Font.ttf"),
+                                16, nativeConfig);
+
+                            //other fonts go here and follow the same schema
+                        }
+                    }
+                });
             mWindow.Load += () => WindowManager.RegisterRenderDelegate(mWindow, Render);
             mWindow.Closing += Close;
             mWindow.Run();
