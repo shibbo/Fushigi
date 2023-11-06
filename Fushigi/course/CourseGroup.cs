@@ -27,6 +27,11 @@ namespace Fushigi.course
             return mHash;
         }
 
+        public bool IsActorValid(ulong hash, CourseActorHolder actorHolder)
+        {
+            return actorHolder.HasHash(hash);
+        }
+
         public BymlHashTable BuildNode()
         {
             BymlHashTable tableNode = new();
@@ -41,6 +46,11 @@ namespace Fushigi.course
 
             tableNode.AddNode(BymlNodeId.Array, actorsArray, "Actors");
             return tableNode;
+        }
+
+        public List<CourseActor> GetActors()
+        {
+            return mActors;
         }
 
         ulong mHash;
@@ -60,6 +70,25 @@ namespace Fushigi.course
             {
                 mGroups.Add(new CourseGroup(tbl, actorHolder));
             }
+        }
+
+        public List<int> DoSanityCheck(CourseActorHolder actorHolder)
+        {
+            List<int> badActors = new();
+
+            foreach (CourseGroup grp in mGroups)
+            {
+                foreach (CourseActor actor in grp.GetActors())
+                {
+                    if (!grp.IsActorValid(actor.GetHash(), actorHolder))
+                    {
+                        badActors.Add(grp.GetActors().IndexOf(actor));
+                    }
+                }
+            }
+            
+
+            return badActors;
         }
 
         CourseGroup GetGroup(ulong hash)

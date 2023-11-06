@@ -110,6 +110,27 @@ namespace Fushigi.course
 
         public void Save(RSTB resource_table, string folder)
         {
+            bool badThingsHappened = false;
+            List<int> badLinks = mLinkHolder.DoSanityCheck(mActorHolder);
+
+            if (badLinks.Count > 0)
+            {
+                /* RUH ROH! */
+                badThingsHappened = true;
+            }
+
+            List<int> badActors = mGroups.DoSanityCheck(mActorHolder);
+
+            if (badActors.Count > 0)
+            {
+                badThingsHappened = true;
+            }
+
+            if (badThingsHappened)
+            {
+                throw new Exception("bad things happeend...todo -- implement me");
+            }
+
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 

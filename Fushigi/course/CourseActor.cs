@@ -384,6 +384,11 @@ namespace Fushigi.course
             return null;
         }
 
+        public bool HasHash(ulong hash)
+        {
+            return mCourseActors.Any(x => x.GetHash() == hash);
+        }
+
         public void AddActor(CourseActor actor)
         {
             mCourseActors.Add(actor);

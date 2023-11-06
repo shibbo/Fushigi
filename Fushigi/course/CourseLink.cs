@@ -2,6 +2,7 @@
 using Fushigi.util;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,6 +42,11 @@ namespace Fushigi.course
             mDest = actorHolder[hash];
         }
 
+        public bool AreLinksValid(CourseActorHolder actorHolder)
+        {
+            return actorHolder.HasHash(mSource.GetHash()) && actorHolder.HasHash(mDest.GetHash());
+        }
+
         public string GetLinkName()
         {
             return mLinkName;
@@ -64,6 +70,21 @@ namespace Fushigi.course
             {
                 mLinks.Add(new CourseLink(tbl, actorHolder));
             }
+        }
+
+        public List<int> DoSanityCheck(CourseActorHolder actorHolder)
+        {
+            List<int> badLinks = new();
+
+            foreach (CourseLink link in GetLinks())
+            {
+                if (!link.AreLinksValid(actorHolder))
+                {
+                    badLinks.Add(GetLinks().IndexOf(link));
+                }
+            }
+
+            return badLinks;
         }
 
         public Dictionary<string, List<ulong>> GetDestHashesFromSrc(ulong hash)
@@ -102,6 +123,11 @@ namespace Fushigi.course
             }
 
             return null;
+        }
+
+        public List<CourseLink> GetLinks()
+        {
+            return mLinks;
         }
 
         public BymlArrayNode SerializeToArray()
