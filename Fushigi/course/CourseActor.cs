@@ -207,76 +207,85 @@ namespace Fushigi.course
             table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Layer", mLayer), "Layer");
             table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Name", mName), "Name");
 
-            BymlHashTable dynamicNode = new();
-
-            foreach(KeyValuePair<string, object> dynParam in mActorParameters)
+            if (mActorParameters.Count > 0)
             {
-                object param = mActorParameters[dynParam.Key];
-                string shit = param.GetType().ToString();
+                BymlHashTable dynamicNode = new();
 
-                switch (param.GetType().ToString())
+                foreach (KeyValuePair<string, object> dynParam in mActorParameters)
                 {
-                    case "System.UInt32":
-                        dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
-                        break;
-                    case "System.Int32":
-                        dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
-                        break;
-                    case "System.Boolean":
-                        dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
-                        break;
-                    case "System.String":
-                        dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
-                        break;
-                    case "System.Single":
-                        dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
-                        break;
-                    default:
-                        break;
+                    object param = mActorParameters[dynParam.Key];
+                    string shit = param.GetType().ToString();
+
+                    switch (param.GetType().ToString())
+                    {
+                        case "System.UInt32":
+                            dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
+                            break;
+                        case "System.Int32":
+                            dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
+                            break;
+                        case "System.Boolean":
+                            dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
+                            break;
+                        case "System.String":
+                            dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
+                            break;
+                        case "System.Single":
+                            dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
+                            break;
+                        default:
+                            break;
+                    }
                 }
+
+                table.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
             }
 
-            table.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
-
-            BymlHashTable sysNode = new();
-
-            foreach (KeyValuePair<string, object> sysParam in mSystemParameters)
+            if (mSystemParameters.Count > 0)
             {
-                object param = mSystemParameters[sysParam.Key];
-                string shit = param.GetType().ToString();
+                BymlHashTable sysNode = new();
 
-                switch (param.GetType().ToString())
+                foreach (KeyValuePair<string, object> sysParam in mSystemParameters)
                 {
-                    case "System.UInt32":
-                        sysNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(sysParam.Key, (uint)param), sysParam.Key);
-                        break;
-                    case "System.Int32":
-                        sysNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(sysParam.Key, (int)param), sysParam.Key);
-                        break;
-                    case "System.Boolean":
-                        sysNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(sysParam.Key, (bool)param), sysParam.Key);
-                        break;
-                    case "System.String":
-                        sysNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(sysParam.Key, (string)param), sysParam.Key);
-                        break;
-                    case "System.Single":
-                        sysNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(sysParam.Key, (float)param), sysParam.Key);
-                        break;
-                    default:
-                        break;
+                    object param = mSystemParameters[sysParam.Key];
+                    string shit = param.GetType().ToString();
+
+                    switch (param.GetType().ToString())
+                    {
+                        case "System.UInt32":
+                            sysNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(sysParam.Key, (uint)param), sysParam.Key);
+                            break;
+                        case "System.Int32":
+                            sysNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(sysParam.Key, (int)param), sysParam.Key);
+                            break;
+                        case "System.Boolean":
+                            sysNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(sysParam.Key, (bool)param), sysParam.Key);
+                            break;
+                        case "System.String":
+                            sysNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(sysParam.Key, (string)param), sysParam.Key);
+                            break;
+                        case "System.Single":
+                            sysNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(sysParam.Key, (float)param), sysParam.Key);
+                            break;
+                        default:
+                            break;
+                    }
                 }
+
+                table.AddNode(BymlNodeId.Hash, sysNode, "System");
             }
 
-            table.AddNode(BymlNodeId.Hash, sysNode, "System");
-
-            BymlHashTable inLinksNode = new();
-
-            foreach (var (linkName, links) in linkHolder.GetSrcHashesFromDest(mActorHash))
+            if (linkHolder.GetSrcHashesFromDest(mActorHash).Values.Count > 0)
             {
-                inLinksNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(linkName, (int)links.Count), linkName);
-            }
+                BymlHashTable inLinksNode = new();
 
-            table.AddNode(BymlNodeId.Hash, inLinksNode, "InLinks");
+                foreach (var (linkName, links) in linkHolder.GetSrcHashesFromDest(mActorHash))
+                {
+                    inLinksNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(linkName, (int)links.Count), linkName);
+                }
+
+                table.AddNode(BymlNodeId.Hash, inLinksNode, "InLinks");
+            }
 
             BymlArrayNode rotateNode = new(3);
             rotateNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mRotation.X));
