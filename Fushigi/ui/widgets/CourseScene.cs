@@ -488,7 +488,7 @@ namespace Fushigi.ui.widgets
                     void RailListItem(string type, BGUnitRail rail, int id)
                     {
                         bool isSelected = rail.IsSelected;
-                        string wallname = $"{name}{type} {id}";
+                        string wallname = $"{type} {id}";
 
                         ImGui.Indent();
 
@@ -513,7 +513,7 @@ namespace Fushigi.ui.widgets
                             mSelectedUnitRail = rail;
                         }
 
-                        if (ImGui.Selectable($"##{wallname}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                        if (ImGui.Selectable($"##{name}{wallname}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
                         {
                             SelectRail();
                         }
