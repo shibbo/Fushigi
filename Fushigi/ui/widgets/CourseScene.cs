@@ -21,7 +21,6 @@ namespace Fushigi.ui.widgets
 {
     class CourseScene
     {
-
         Dictionary<CourseArea, LevelViewport> viewports = [];
         LevelViewport activeViewport;
 
@@ -44,7 +43,7 @@ namespace Fushigi.ui.widgets
 
             foreach (var area in course.GetAreas())
             {
-                viewports[area] = new LevelViewport(area, gl);
+                viewports[area] = new LevelViewport(area, gl, new CourseAreaEditContext(area));
             }
 
             activeViewport = viewports[selectedArea];
@@ -52,9 +51,6 @@ namespace Fushigi.ui.widgets
 
         public void DeselectAll()
         {
-            if (mSelectedUnitRail != null)
-                mSelectedUnitRail.IsSelected = false;
-
             mSelectedActor = null;
             mSelectedUnit = null;
             mSelectedUnitRail = null;
@@ -75,19 +71,7 @@ namespace Fushigi.ui.widgets
                 SelectActor();
             }
 
-            if (activeViewport.HasSelectionChanged())
-            {
-                var selectedActors = activeViewport.GetSelectedActors();
-                var selectedBGunitRails = activeViewport.GetSelectedBGUnitRails();
-
-                DeselectAll();
-                if (selectedActors.Count > 0) mSelectedActor = selectedActors.ElementAt(0);
-                if (selectedBGunitRails.Count > 0)
-                {
-                    mSelectedUnitRail = selectedBGunitRails.ElementAt(0);
-                    mSelectedUnitRail.IsSelected = true;
-                }
-            }
+            ulong selectionVersionBefore = activeViewport.mEditContext.SelectionVersion;
 
             bool status = ImGui.Begin("Viewports");
 
@@ -131,7 +115,16 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-
+            if (activeViewport.mEditContext.SelectionVersion != selectionVersionBefore)
+            {
+                DeselectAll();
+                if (activeViewport.mEditContext.IsSingleObjectSelected<CourseActor>(out var actor))
+                    mSelectedActor = actor;
+                if (activeViewport.mEditContext.IsSingleObjectSelected<BGUnitRail>(out var bgUnitRail))
+                {
+                    mSelectedUnitRail = bgUnitRail;
+                }
+            }
 
             if (status)
                 ImGui.End();
@@ -487,7 +480,7 @@ namespace Fushigi.ui.widgets
                 {
                     void RailListItem(string type, BGUnitRail rail, int id)
                     {
-                        bool isSelected = rail.IsSelected;
+                        bool isSelected = activeViewport.mEditContext.IsSelected(rail);
                         string wallname = $"{type} {id}";
 
                         ImGui.Indent();
@@ -502,11 +495,10 @@ namespace Fushigi.ui.widgets
 
                         void SelectRail()
                         {
-                            foreach (var u in unitHolder.mUnits)
-                                foreach (var w in u.Walls)
-                                    w.ExternalRail.IsSelected = false;
+                            activeViewport.mEditContext.DeselectAllOfType<BGUnitRail>();
 
-                            rail.IsSelected = true;
+                            activeViewport.mEditContext.Select(rail);
+
                             //Remove actor properties to show path properties
                             DeselectAll();
                             //Show selection for rail with properties
@@ -556,7 +548,7 @@ namespace Fushigi.ui.widgets
                     ImGui.SameLine();
                     if (ImGui.Button("Remove Wall"))
                     {
-                        foreach (var wall in unit.Walls.Where(x => x.ExternalRail.IsSelected).ToList())
+                        foreach (var wall in unit.Walls.Where(x => activeViewport.mEditContext.IsSelected(x.ExternalRail)).ToList())
                             unit.Walls.Remove(wall);
                     }
 

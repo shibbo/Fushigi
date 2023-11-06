@@ -76,27 +76,31 @@ namespace Fushigi.ui
         /// <summary>
         /// Undo the current operation in the undo stack.
         /// </summary>
-        public void Undo()
-        { 
-            if (undoStack.Count > 0)
+        public bool Undo()
+        {
+            bool canUndo = undoStack.Count > 0;
+            if (canUndo)
             {
                 var undoable = undoStack.Pop();
                 var redoable = undoable.Revert();
                 redoStack.Push(new RedoEntry { undoable = undoable, redoable = redoable });
             }
+            return canUndo;
         }
 
         /// <summary>
         /// Redo the current operation in the redo stack.
         /// </summary>
-        public void Redo()
+        public bool Redo()
         {
-            if (redoStack.Count > 0)
+            bool canRedo = redoStack.Count > 0;
+            if (canRedo)
             {
                 var entry = redoStack.Pop();
                 entry.redoable.Revert();
                 undoStack.Push(entry.undoable);
             }
+            return canRedo;
         }
 
         public class MultiRevertable : IRevertable

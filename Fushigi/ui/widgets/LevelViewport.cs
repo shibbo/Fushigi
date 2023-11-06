@@ -22,9 +22,11 @@ using Fushigi.gl;
 
 namespace Fushigi.ui.widgets
 {
-    internal class LevelViewport(CourseArea area, GL gl)
+    internal class LevelViewport(CourseArea area, GL gl, CourseAreaEditContext editContext)
     {
         readonly CourseArea mArea = area;
+        public readonly CourseAreaEditContext mEditContext = editContext;
+
         Matrix4x4 mViewProjectionMatrix;
         Matrix4x4 mViewProjectionMatrixInverse;
         ImDrawListPtr mDrawList;
@@ -32,8 +34,6 @@ namespace Fushigi.ui.widgets
         public EditorState mEditorState = EditorState.Selecting;
 
         Vector2 mSize = Vector2.Zero;
-        private ISet<CourseActor> mSelectedActors = new HashSet<CourseActor>();
-        private ISet<BGUnitRail> mSelectedBGUnitRails = new HashSet<BGUnitRail>();
 
         private Vector3? mSelectedPoint;
         private int mWallIdx = -1;
@@ -48,16 +48,12 @@ namespace Fushigi.ui.widgets
         public (Quaternion rotation, Vector3 target, float distance) Camera = 
             (Quaternion.Identity, Vector3.Zero, 10);
 
-        public CourseActor? HoveredActor;
+        public object? HoveredObject;
         public CourseLink? SrcCourseLink = null;
         public Vector3? HoveredPoint;
 
         public uint GridColor = 0x77_FF_FF_FF;
         public float GridLineThickness = 1.5f;
-
-        UndoHandler UndoHandler = new UndoHandler();
-
-        bool mSelectionChanged = false;
 
         public enum EditorState
         {
@@ -103,26 +99,6 @@ namespace Fushigi.ui.widgets
             return new (world.X, world.Y, world.Z);
         }
 
-        public void AddToUndo(IRevertable revertable)
-        {
-            UndoHandler.AddToUndo(revertable);
-        }
-
-        public void AddToUndo(List<IRevertable> revertable)
-        {
-            UndoHandler.AddToUndo(revertable);
-        }
-
-        public void BeginUndoCollection()
-        {
-            UndoHandler.BeginUndoCollection();
-        }
-
-        public void EndUndoCollection()
-        {
-            UndoHandler.EndUndoCollection();
-        }
-
         public void FrameSelectedActor(CourseActor actor)
         {
             this.Camera.target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
@@ -130,23 +106,20 @@ namespace Fushigi.ui.widgets
 
         public void SelectBGUnit(BGUnitRail rail)
         {
-            mSelectedBGUnitRails.Clear();
-            mSelectedBGUnitRails.Add(rail);
-            mSelectionChanged = true;
+            mEditContext.DeselectAllOfType<BGUnitRail>();
+            mEditContext.Select(rail);
         }
 
         public void SelectedActor(CourseActor actor)
         {
             if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
             {
-                mSelectedActors.Add(actor);
-                mSelectionChanged = true;
+                mEditContext.Select(actor);
             }
             else
             {
-                mSelectedActors.Clear();
-                mSelectedActors.Add(actor);
-                mSelectionChanged = true;
+                mEditContext.DeselectAll();
+                mEditContext.Select(actor);
             }
         }
 
@@ -227,18 +200,20 @@ namespace Fushigi.ui.widgets
             DrawAreaContent();
 
             if (!mouseHover)
-                HoveredActor = null;
+                HoveredObject = null;
 
-            if(HoveredActor != null)
-                ImGui.SetTooltip($"{HoveredActor.mActorName}");
+            CourseActor? hoveredActor = HoveredObject as CourseActor;
+
+            if(hoveredActor != null)
+                ImGui.SetTooltip($"{hoveredActor.mActorName}");
 
             if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
             {
-                UndoHandler.Undo();
+                mEditContext.Undo();
             }
             if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeyCtrl)
             {
-                UndoHandler.Redo();
+                mEditContext.Redo();
             }
 
             bool isFocused = ImGui.IsWindowFocused();
@@ -247,27 +222,27 @@ namespace Fushigi.ui.widgets
             {
                 if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
                 {
-                    if (mSelectedActors.Count == 1)
+                    if (mEditContext.IsSingleObjectSelected(out CourseActor? actor))
                     {
                         Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
 
                         if (ImGui.GetIO().KeyShift)
                         {
-                            mSelectedActors.ElementAt(0).mTranslation = posVec;
+                            actor.mTranslation = posVec;
                         }
                         else
                         {
                             posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
                             posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
-                            posVec.Z = mSelectedActors.ElementAt(0).mTranslation.Z;
-                            mSelectedActors.ElementAt(0).mTranslation = posVec;
+                            posVec.Z = actor.mTranslation.Z;
+                            actor.mTranslation = posVec;
                         }
                     }
                 }
 
                 if (ImGui.IsItemClicked())
                 {
-                    bool isModeActor = HoveredActor != null;
+                    bool isModeActor = HoveredObject != null;
                     bool isModeUnit = HoveredPoint != null;
 
                     if (isModeActor && !isModeUnit)
@@ -282,24 +257,20 @@ namespace Fushigi.ui.widgets
 
                     /* if the user clicked somewhere and it was not hovered over an element, 
                         * we clear our selected actors array */
-                    if (HoveredActor == null)
+                    if (HoveredObject == null)
                     {
-                        if (mSelectedBGUnitRails.Count == 0)
-                            mSelectionChanged = false;
-                        mSelectedActors.Clear();
+                        mEditContext.DeselectAll();
                     }
-                    else
+                    else if(HoveredObject is not BGUnitRail) { }
                     {
                         if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {
-                            mSelectedActors.Add(HoveredActor);
-                            mSelectionChanged = true;
+                            mEditContext.Select(HoveredObject!);
                         }
                         else
                         {
-                            mSelectedActors.Clear();
-                            mSelectedActors.Add(HoveredActor);
-                            mSelectionChanged = true;
+                            mEditContext.DeselectAll();
+                            mEditContext.Select(HoveredObject!);
                         }
                     }
 
@@ -320,7 +291,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsKeyDown(ImGuiKey.Escape))
                 {
-                    mSelectedActors.Clear();
+                    mEditContext.DeselectAll();
                     mSelectedPoint = null;
                 }
             }
@@ -354,19 +325,16 @@ namespace Fushigi.ui.widgets
             }
             else if (isFocused && mEditorState == EditorState.DeletingActor)
             {
-                if (mSelectedActors.Count > 0)
+                if (mEditContext.IsAnySelected<CourseActor>())
                 {
-                    //TODO if undo/redo is ever implemented make sure this is just one operation
-                    foreach (var actor in mSelectedActors)
-                        mArea.mActorHolder.DeleteActor(actor);
-
+                    mEditContext.DeleteSelectedActors();
                     mEditorState = EditorState.Selecting;
                 }
                 else
                 {
-                    if(HoveredActor != null)
+                    if(hoveredActor != null)
                         ImGui.SetTooltip($"""
-                            Click to delete {HoveredActor.mActorName}.
+                            Click to delete {hoveredActor.mActorName}.
                             Hold SHIFT to delete multiple actors, ESCAPE to cancel.
                             """);
                     else
@@ -382,9 +350,9 @@ namespace Fushigi.ui.widgets
 
                     if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                     {
-                        if (HoveredActor != null)
+                        if (hoveredActor != null)
                         {
-                            mArea.mActorHolder.DeleteActor(HoveredActor);
+                            mArea.mActorHolder.DeleteActor(hoveredActor);
 
                             if (!ImGui.GetIO().KeyShift)
                             {
@@ -407,9 +375,9 @@ namespace Fushigi.ui.widgets
                     mEditorState = EditorState.Selecting;
                 }
 
-                if (HoveredActor != null)
+                if (hoveredActor != null)
                 {
-                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {HoveredActor.mActorName}");
+                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
                 }
                 else
                 {
@@ -418,9 +386,9 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    if (HoveredActor != null)
+                    if (hoveredActor != null)
                     {
-                        ulong hash = HoveredActor.GetHash();
+                        ulong hash = hoveredActor.GetHash();
                         SrcCourseLink.SetDestHash(hash, mArea.mActorHolder);
                         mEditorState = EditorState.Selecting;
                     }
@@ -428,23 +396,6 @@ namespace Fushigi.ui.widgets
             }
 
             ImGui.PopClipRect();
-        }
-
-        public bool HasSelectionChanged()
-        {
-            return mSelectionChanged;
-        }
-
-        public ISet<BGUnitRail> GetSelectedBGUnitRails()
-        {
-            mSelectionChanged = false;
-            return mSelectedBGUnitRails;
-        }
-
-        public ISet<CourseActor> GetSelectedActors()
-        {
-            mSelectionChanged = false;
-            return mSelectedActors;
         }
 
         void DrawGrid()
@@ -525,15 +476,24 @@ namespace Fushigi.ui.widgets
         {
             const float pointSize = 3.0f;
             Vector3? newHoveredPoint = null;
+            object? newHoveredObject = null;
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
                 foreach (var wall in unit.Walls)
                 {
                     if (wall.ExternalRail != null)
+                    {
                         wall.ExternalRail.Render(this, mDrawList);
-                    foreach (var rail in wall.InternalRails)
+                        if (wall.ExternalRail.HitTest(this))
+                            newHoveredObject = wall.ExternalRail;
+                    }
+                    foreach (BGUnitRail rail in wall.InternalRails)
+                    {
                         rail.Render(this, mDrawList);
+                        if(rail.HitTest(this))
+                            newHoveredObject = rail;
+                    }
                 }
 
                 //Hide belt for now. TODO how should this be handled?
@@ -564,8 +524,6 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            CourseActor? newHoveredActor = null;
-
             foreach (CourseActor actor in mArea.mActorHolder.GetActors())
             {
                 string layer = actor.mLayer;
@@ -593,11 +551,11 @@ namespace Fushigi.ui.widgets
                         //bottomLeft
                         s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(-0.5f, -0.5f, 0), transform));
 
-                        bool isHovered = HoveredActor == actor;
+                        bool isHovered = HoveredObject == actor;
 
                         uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
 
-                        if (mSelectedActors.Contains(actor))
+                        if (mEditContext.IsSelected(actor))
                         {
                             color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
                         }
@@ -624,12 +582,12 @@ namespace Fushigi.ui.widgets
 
                         if (isHovered)
                         {
-                            newHoveredActor = actor;
+                            newHoveredObject = actor;
                         }
                 }
             }
 
-            HoveredActor = newHoveredActor;
+            HoveredObject = newHoveredObject;
         }
 
         /// <summary>
