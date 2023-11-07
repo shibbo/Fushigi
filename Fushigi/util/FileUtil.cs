@@ -37,9 +37,10 @@ namespace Fushigi.util
             if (!IsFileCompressed(fileBytes)) {
                 throw new Exception("FileUtil::DecompressData -- File not ZSTD Compressed.");
             }
-            using (var decompressor = new ZstdNet.Decompressor())
+            using (var decompressor = new ZstdSharp.Decompressor())
             {
-                decompressedData = decompressor.Unwrap(fileBytes);
+                
+                decompressedData = decompressor.Unwrap(new System.Span<byte>(fileBytes)).ToArray();
             }
 
             return decompressedData;
@@ -63,10 +64,10 @@ namespace Fushigi.util
         public static byte[] CompressData(byte[] fileBytes)
         {
             byte[] compressedData;
-
-            using (var compressor = new ZstdNet.Compressor(new ZstdNet.CompressionOptions(19)))
+            
+            using (var compressor = new ZstdSharp.Compressor(19))
             {
-                compressedData = compressor.Wrap(fileBytes);
+                compressedData = compressor.Wrap(new System.Span<byte>(fileBytes)).ToArray();
             }
 
             return compressedData;

@@ -37,8 +37,12 @@ jobs:
     - name: Install StbImageSharp
       run: dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
     - name: Install ZstdNet
-      run: dotnet add Fushigi/Fushigi.csproj package ZstdNet 
+      run: dotnet add Fushigi/Fushigi.csproj package ZstdSharp.Port
     - name: Restore dependencies
       run: dotnet restore Fushigi/Fushigi.sln
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln --no-restore 
+    - name: Build Mac Silicon
+      run: dotnet build Fushigi/Fushigi.sln -r osx-arm64 --no-restore
+    - name: Build Mac x64
+      run: dotnet build Fushigi/Fushigi.sln -r osx-x64 --no-restore
