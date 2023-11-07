@@ -29,9 +29,15 @@ namespace Fushigi.ui.widgets
                     )
                 {
                     romfsTouched = true;
+ 
+                    UserSettings.SetRomFSPath(romfs);
+
+                    if (!RomFS.IsValidRoot(romfs))
+                    {
+                        return;
+                    }
 
                     RomFS.SetRoot(romfs);
-                    UserSettings.SetRomFSPath(romfs);
                     
                     /* if our parameter database isn't set, set it */
                     if (!ParamDB.sIsInit)

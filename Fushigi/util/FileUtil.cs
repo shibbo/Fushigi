@@ -22,7 +22,7 @@ namespace Fushigi.util
         {
             if (!File.Exists(filePath))
             {
-                throw new Exception("FileUtil::DecompressFile -- File not found.");
+                throw new Exception($"FileUtil::DecompressFile -- File not found. ({filePath})");
             }
 
             var compressedBytes = File.ReadAllBytes(filePath);

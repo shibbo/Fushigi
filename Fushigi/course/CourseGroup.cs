@@ -27,9 +27,14 @@ namespace Fushigi.course
             return mHash;
         }
 
-        public bool IsActorValid(ulong hash, CourseActorHolder actorHolder)
+        public bool IsActorValid(ulong hash)
         {
-            return actorHolder.HasHash(hash);
+            return mActors.Any(a => a.GetHash() == hash);
+        }
+
+        public void RemoveActor(ulong hash)
+        {
+            mActors.RemoveAt(mActors.FindIndex(a => a.GetHash() == hash));
         }
 
         public BymlHashTable BuildNode()
@@ -41,6 +46,11 @@ namespace Fushigi.course
 
             foreach (CourseActor actor in mActors)
             {
+                /* there are levels that were created in non-legit editors and that caused some things to be null when they should not have been */
+                if (actor == null)
+                {
+                    continue;
+                }
                 actorsArray.AddNodeToArray(BymlUtil.CreateNode<ulong>("", actor.GetHash()));
             }
 
@@ -66,29 +76,11 @@ namespace Fushigi.course
 
         public CourseGroupHolder(BymlArrayNode array, CourseActorHolder actorHolder)
         {
-            foreach(BymlHashTable tbl in array.Array)
+            foreach (BymlHashTable tbl in array.Array)
             {
                 mGroups.Add(new CourseGroup(tbl, actorHolder));
             }
-        }
 
-        public List<int> DoSanityCheck(CourseActorHolder actorHolder)
-        {
-            List<int> badActors = new();
-
-            foreach (CourseGroup grp in mGroups)
-            {
-                foreach (CourseActor actor in grp.GetActors())
-                {
-                    if (!grp.IsActorValid(actor.GetHash(), actorHolder))
-                    {
-                        badActors.Add(grp.GetActors().IndexOf(actor));
-                    }
-                }
-            }
-            
-
-            return badActors;
         }
 
         CourseGroup GetGroup(ulong hash)
@@ -109,6 +101,19 @@ namespace Fushigi.course
             get
             {
                 return GetGroup(hash);
+            }
+        }
+
+        public void RemoveFromGroup(ulong hash)
+        {
+            foreach (CourseGroup grp in mGroups)
+            {
+                if (!grp.IsActorValid(hash))
+                {
+                    continue;
+                }
+
+                grp.RemoveActor(hash);
             }
         }
 

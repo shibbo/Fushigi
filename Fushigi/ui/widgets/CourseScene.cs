@@ -2,6 +2,7 @@
 using Fushigi.course;
 using Fushigi.param;
 using Fushigi.rstb;
+using Fushigi.util;
 using ImGuiNET;
 using Newtonsoft.Json.Linq;
 using Silk.NET.Input;
@@ -17,12 +18,14 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Fushigi.ui.widgets
 {
     class CourseScene
     {
         Dictionary<CourseArea, LevelViewport> viewports = [];
+        Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
         LevelViewport activeViewport;
 
         readonly Course course;
@@ -32,8 +35,6 @@ namespace Fushigi.ui.widgets
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
-        string mErroringArea = "";
-        bool mShowErrors = false;
 
         CourseActor? mSelectedActor = null;
         CourseUnit? mSelectedUnit = null;
@@ -63,7 +64,7 @@ namespace Fushigi.ui.widgets
         {
             ActorsPanel();
 
-            ActorParameterPanel();
+            SelectionParameterPanel();
 
             RailsPanel();
 
@@ -74,19 +75,23 @@ namespace Fushigi.ui.widgets
                 SelectActor();
             }
 
-            if (mShowErrors)
+            if (activeViewport.mEditorState == LevelViewport.EditorState.DeleteActorLinkCheck)
             {
-                CourseErrorList();
+                LinkDeletionCheck();
             }
 
+            
             ulong selectionVersionBefore = activeViewport.mEditContext.SelectionVersion;
 
             bool status = ImGui.Begin("Viewports");
 
             ImGui.DockSpace(0x100, ImGui.GetContentRegionAvail());
 
-            foreach (var (area, viewport) in viewports)
+            for (int i = 0; i < course.GetAreaCount(); i++)
             {
+                var area = course.GetArea(i);
+                var viewport = viewports[area];
+
                 ImGui.SetNextWindowDockID(0x100, ImGuiCond.Once);
 
                 if (ImGui.Begin(area.GetName()))
@@ -123,6 +128,22 @@ namespace Fushigi.ui.widgets
                 }
             }
 
+            if (lastCreatedViewports != viewports)
+            {
+                for (int i = 0; i < course.GetAreaCount(); i++)
+                {
+                    var area = course.GetArea(i);
+                    if(area.mActorHolder.GetActors().Any(x=>x.mActorName=="PlayerLocator"))
+                    {
+                        ImGui.SetWindowFocus(area.GetName());
+                        break;
+                    }
+
+                }
+
+                lastCreatedViewports = viewports;
+            }
+
             if (activeViewport.mEditContext.SelectionVersion != selectionVersionBefore)
             {
                 DeselectAll();
@@ -142,49 +163,22 @@ namespace Fushigi.ui.widgets
         {
             RSTB resource_table = new RSTB();
             resource_table.Load();
-            bool badThingsHappened = false;
 
             //Save each course area to current romfs folder
             foreach (var area in this.course.GetAreas())
             {
-                List<int> badLinks = area.mLinkHolder.DoSanityCheck(area.mActorHolder);
+                Console.WriteLine($"Saving area {area.GetName()}...");
 
-                if (badLinks.Count > 0)
-                {
-                    badThingsHappened = true;
-                }
-
-                List<int> badActors = area.mGroups.DoSanityCheck(area.mActorHolder);
-
-                if (badActors.Count > 0)
-                {
-                    badThingsHappened = true;
-                }
-
-                if (badThingsHappened)
-                {
-                    mShowErrors = true;
-                    mErroringArea = area.GetName();
-                    // we stop saving immediately
-                    return;
-                }
-                else
-                {
-                    mShowErrors = false;
-                    mErroringArea = "";
-                    area.Save(resource_table);
-                }
+                area.Save(resource_table);
             }
 
-            if (!badThingsHappened)
-            {
-                resource_table.Save();
-            }
+            resource_table.Save();
         }
 
         private void SelectActor()
         {
-            bool status = ImGui.Begin("Add Actor");
+            bool button = true;
+            bool status = ImGui.Begin("Add Actor", ref button);
 
             ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail());
 
@@ -194,6 +188,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                 {
+                    Console.WriteLine("Switching state to EditorState.AddingActor");
                     activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
                     activeViewport.mActorToAdd = actor;
                     mShowAddActor = false;
@@ -202,38 +197,113 @@ namespace Fushigi.ui.widgets
 
             ImGui.EndListBox();
 
+            if (ImGui.IsKeyDown(ImGuiKey.Escape))
+            {
+                button = false;
+            }
+
+            if (!button)
+            {
+                Console.WriteLine("Switching state to EditorState.Selecting");
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
+                mShowAddActor = false;
+            }
+
             if (status)
             {
                 ImGui.End();
             }
         }
 
-        private void CourseErrorList()
+        private void LinkDeletionCheck()
         {
-            bool status = ImGui.Begin("Course Saving Errors");
-            ImGui.Text($"Error(s) occured in: {mErroringArea}");
-            CourseArea? area = course.GetArea(mErroringArea);
+            var actors = activeViewport.mEditContext.GetSelectedObjects<CourseActor>();
+            List<string> dstMsgStrs = new();
+            List<string> srcMsgStr = new();
 
-            List<int> badLinks = area.mLinkHolder.DoSanityCheck(area.mActorHolder);
-   
-            if (badLinks.Count > 0)
+            foreach (var actor in actors)
             {
-                for (int i = 0; i < badLinks.Count; i++)
+                if (activeViewport.mEditContext.IsActorDestForLink(actor))
                 {
-                    ImGui.Text($"Link at idx {badLinks[i]} points to an actor that doesn't exist.");
-                    ImGui.NewLine();
-                    CourseLink link = area.mLinkHolder.GetLinks()[badLinks[i]];
-                    CourseActor src = area.mActorHolder[link.GetSrcHash()];
-                    ImGui.Text($"Source actor: {src.mActorName} [{src.mName}]");
-                    ImGui.NewLine();
+                    var links = selectedArea.mLinkHolder.GetSrcHashesFromDest(actor.GetHash());
+
+                    foreach (KeyValuePair<string, List<ulong>> kvp in links)
+                    {
+                        var hashes = kvp.Value;
+
+                        foreach (var hash in hashes)
+                        {
+                            /* only delete actors that the hash exists for...this may be caused by a user already deleting the source actor */
+                            if (selectedArea.mActorHolder.HasHash(hash))
+                            {
+                                dstMsgStrs.Add($"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n");
+                            }
+                        }
+                    }
+
+                    var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(actor.GetHash());
+
+                    foreach (KeyValuePair<string, List<ulong>> kvp in destHashes)
+                    {
+                        var hashes = kvp.Value;
+
+                        foreach (var hash in hashes)
+                        {
+                            if (selectedArea.mActorHolder.HasHash(hash))
+                            {
+                                srcMsgStr.Add($"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n");
+                            }
+                        }
+                    }
                 }
             }
 
-            List<int> badActors = area.mGroups.DoSanityCheck(area.mActorHolder);
-
-            if (badActors.Count > 0)
+            /* nothing to worry about here */
+            if (dstMsgStrs.Count == 0 && srcMsgStr.Count == 0)
             {
+                Console.WriteLine("Switching state to EditorState.DeletingActor");
+                activeViewport.mEditContext.DeleteSelectedActors();
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
+                return;
+            }
 
+            bool status = ImGui.Begin("Link Warning");
+
+            if (srcMsgStr.Count > 0)
+            {
+                ImGui.Text("The actor you are about to delete is a source link for the following actors:");
+
+                foreach (string s in srcMsgStr)
+                {
+                    ImGui.Text(s);
+                }
+            }
+
+            if (dstMsgStrs.Count > 0)
+            {
+                ImGui.Text("The actor you are about to delete is a destination link for the following actors:");
+
+                foreach (string s in dstMsgStrs)
+                {
+                    ImGui.Text(s);
+                }
+            }
+
+            ImGui.Text(" Do you wish to continue?");
+
+            if (ImGui.Button("Yes"))
+            {
+                Console.WriteLine("Switching state to EditorState.Selecting");
+                activeViewport.mEditContext.DeleteSelectedActors();
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("No"))
+            {
+                Console.WriteLine("Switching state to EditorState.Selecting");
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
             }
 
             if (status)
@@ -251,9 +321,11 @@ namespace Fushigi.ui.widgets
                 mShowAddActor = true;
             }
 
+            ImGui.SameLine();
+
             if (ImGui.Button("Delete Actor"))
             {
-                activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
+                activeViewport.mEditorState = LevelViewport.EditorState.DeleteActorLinkCheck;
             }
 
             // actors are in an array
@@ -285,9 +357,9 @@ namespace Fushigi.ui.widgets
             ImGui.End();
         }
 
-        private void ActorParameterPanel()
+        private void SelectionParameterPanel()
         {
-            bool status = ImGui.Begin("Actor Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
+            bool status = ImGui.Begin("Selection Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
             if (mSelectedActor != null)
             {
@@ -413,7 +485,20 @@ namespace Fushigi.ui.widgets
             else
             {
                 ImGui.AlignTextToFramePadding();
-                ImGui.Text("No actor or rail is selected");
+
+                string text = "No item selected";
+
+                var windowWidth = ImGui.GetWindowSize().X;
+                var textWidth = ImGui.CalcTextSize(text).X;
+
+                var windowHight = ImGui.GetWindowSize().Y;
+                var textHeight = ImGui.CalcTextSize(text).Y;
+
+                ImGui.SetCursorPosX((windowWidth - textWidth) * 0.5f);
+                ImGui.SetCursorPosY((windowHight - textHeight) * 0.5f);
+                ImGui.BeginDisabled();
+                ImGui.Text(text);
+                ImGui.EndDisabled();
             }
 
             if (status)
