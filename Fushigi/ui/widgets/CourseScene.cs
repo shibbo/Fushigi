@@ -81,7 +81,7 @@ namespace Fushigi.ui.widgets
             {
                 CourseErrorList();
             }
-
+            
             ulong selectionVersionBefore = activeViewport.mEditContext.SelectionVersion;
 
             bool status = ImGui.Begin("Viewports");
