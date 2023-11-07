@@ -218,8 +218,8 @@ namespace Fushigi.ui.widgets
         private void LinkDeletionCheck()
         {
             var actors = activeViewport.mEditContext.GetSelectedObjects<CourseActor>();
-            string dstMsgStr = "";
-            string srcMsgStr = "";
+            List<string> dstMsgStrs = new();
+            List<string> srcMsgStr = new();
 
             foreach (var actor in actors)
             {
@@ -236,7 +236,7 @@ namespace Fushigi.ui.widgets
                             /* only delete actors that the hash exists for...this may be caused by a user already deleting the source actor */
                             if (selectedArea.mActorHolder.HasHash(hash))
                             {
-                                dstMsgStr += $"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n";
+                                dstMsgStrs.Add($"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n");
                             }
                         }
                     }
@@ -251,7 +251,7 @@ namespace Fushigi.ui.widgets
                         {
                             if (selectedArea.mActorHolder.HasHash(hash))
                             {
-                                srcMsgStr += $"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n";
+                                srcMsgStr.Add($"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n");
                             }
                         }
                     }
@@ -259,20 +259,43 @@ namespace Fushigi.ui.widgets
             }
 
             /* nothing to worry about here */
-            if (dstMsgStr == "" && srcMsgStr == "")
+            if (dstMsgStrs.Count == 0 && srcMsgStr.Count == 0)
             {
                 Console.WriteLine("Switching state to EditorState.DeletingActor");
-                activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
+                activeViewport.mEditContext.DeleteSelectedActors();
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
                 return;
             }
 
             bool status = ImGui.Begin("Link Warning");
-            ImGui.Text($"The actor you are about to delete is a destination link for the following actors.\n {dstMsgStr}\n\nThe actor you are about to delete is a source link for the following actors.\n {srcMsgStr} Do you wish to continue?");
+
+            if (srcMsgStr.Count > 0)
+            {
+                ImGui.Text("The actor you are about to delete is a source link for the following actors:");
+
+                foreach (string s in srcMsgStr)
+                {
+                    ImGui.Text(s);
+                }
+            }
+
+            if (dstMsgStrs.Count > 0)
+            {
+                ImGui.Text("The actor you are about to delete is a destination link for the following actors:");
+
+                foreach (string s in dstMsgStrs)
+                {
+                    ImGui.Text(s);
+                }
+            }
+
+            ImGui.Text(" Do you wish to continue?");
 
             if (ImGui.Button("Yes"))
             {
-                Console.WriteLine("Switching state to EditorState.DeletingActor");
-                activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
+                Console.WriteLine("Switching state to EditorState.Selecting");
+                activeViewport.mEditContext.DeleteSelectedActors();
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
             }
 
             ImGui.SameLine();
