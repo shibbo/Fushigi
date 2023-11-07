@@ -1,6 +1,7 @@
 ﻿using Fushigi.course;
 using Fushigi.ui.undo;
 using Fushigi.ui.widgets;
+using Fushigi.util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -17,6 +18,8 @@ namespace Fushigi.ui
         private readonly UndoHandler mUndoHandler = new();
 
         public ulong SelectionVersion { get; private set; } = 0;
+
+        private bool mHasDialog = false;
 
         public void Undo() => mUndoHandler.Undo();
         public void Redo() => mUndoHandler.Redo();
@@ -139,6 +142,11 @@ namespace Fushigi.ui
                 DeleteActor(actor);
 
             mUndoHandler.EndUndoCollection();
+        }
+
+        public bool IsActorDestForLink(CourseActor actor)
+        {
+            return area.mLinkHolder.GetLinkWithDestHash(actor.GetHash()) != null;
         }
     }
 }

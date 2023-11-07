@@ -18,6 +18,8 @@ using System.Runtime.CompilerServices;
 using Silk.NET.OpenGL;
 using Fushigi.gl;
 using Fushigi.util;
+using System.Reflection.PortableExecutable;
+using static Fushigi.util.MessageBox;
 
 namespace Fushigi.ui.widgets
 {
@@ -31,6 +33,7 @@ namespace Fushigi.ui.widgets
         ImDrawListPtr mDrawList;
         public EditorMode mEditorMode = EditorMode.Actors;
         public EditorState mEditorState = EditorState.Selecting;
+        private bool mIsDialogOpen = false;
 
         Vector2 mSize = Vector2.Zero;
 
@@ -58,6 +61,7 @@ namespace Fushigi.ui.widgets
         {
             Selecting,
             AddingActor,
+            DeleteActorLinkCheck,
             DeletingActor,
             SelectingLink
         }
@@ -286,7 +290,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsKeyDown(ImGuiKey.Delete))
                 {
-                    mEditorState = EditorState.DeletingActor;
+                    mEditorState = EditorState.DeleteActorLinkCheck;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.Escape))
@@ -322,6 +326,61 @@ namespace Fushigi.ui.widgets
                         mEditorState = EditorState.Selecting;
                     }
                 }
+            }
+            else if (isFocused && mEditorState == EditorState.DeleteActorLinkCheck)
+            {
+                var actors = mEditContext.GetSelectedObjects<CourseActor>();
+                string msgStr = "";
+
+                foreach (var actor in actors)
+                {
+                    if (mEditContext.IsActorDestForLink(actor))
+                    {
+                        var links = area.mLinkHolder.GetSrcHashesFromDest(actor.GetHash());
+
+                        foreach (KeyValuePair<string, List<ulong>> kvp in links)
+                        {
+                            var hashes = kvp.Value;
+
+                            foreach (var hash in hashes)
+                            {
+                                msgStr += $"{area.mActorHolder[hash].mActorName} [{area.mActorHolder[hash].mName}]\n";
+                            }
+                        }
+                    }
+                }
+
+                /*MessageBox box = new MessageBox(MessageBox.MessageBoxType.YesNo);
+                MessageBox.MessageBoxResult res;
+
+                if ((res = box.Show("Link Warning", $"The actor you are about to delete is a destination link for another actor.\n {msgStr} Do you wish to continue?")) != MessageBox.MessageBoxResult.Waiting)
+                {
+                    if (res == MessageBox.MessageBoxResult.Yes)
+                    {
+
+                    }
+                }*/
+
+                bool status = ImGui.Begin("Link Warning");
+                ImGui.Text($"The actor you are about to delete is a destination link for another actor.\n {msgStr} Do you wish to continue?");
+
+                if (ImGui.Button("Yes"))
+                {
+                    
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.Button("No"))
+                {
+                    
+                }
+
+                if (status)
+                {
+                    ImGui.End();
+                }
+
             }
             else if (isFocused && mEditorState == EditorState.DeletingActor)
             {

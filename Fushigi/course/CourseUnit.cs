@@ -129,7 +129,7 @@ namespace Fushigi.course
                     BymlHashTable railNode = new();
                     railNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>("IsClosed", rail.IsClosed), "IsClosed");
 
-                    BymlArrayNode pointsArrayNode = new((uint)rail.mPoints.Count);
+                    BymlArrayNode pointsArrayNode = new();
 
                     foreach (System.Numerics.Vector3 point in rail.mPoints)
                     {
