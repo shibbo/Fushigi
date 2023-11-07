@@ -25,6 +25,7 @@ namespace Fushigi.ui.widgets
     class CourseScene
     {
         Dictionary<CourseArea, LevelViewport> viewports = [];
+        Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
         LevelViewport activeViewport;
 
         readonly Course course;
@@ -87,8 +88,11 @@ namespace Fushigi.ui.widgets
 
             ImGui.DockSpace(0x100, ImGui.GetContentRegionAvail());
 
-            foreach (var (area, viewport) in viewports)
+            for (int i = 0; i < course.GetAreaCount(); i++)
             {
+                var area = course.GetArea(i);
+                var viewport = viewports[area];
+
                 ImGui.SetNextWindowDockID(0x100, ImGuiCond.Once);
 
                 if (ImGui.Begin(area.GetName()))
@@ -123,6 +127,22 @@ namespace Fushigi.ui.widgets
                         ImGui.EndPopup();
                     }
                 }
+            }
+
+            if (lastCreatedViewports != viewports)
+            {
+                for (int i = 0; i < course.GetAreaCount(); i++)
+                {
+                    var area = course.GetArea(i);
+                    if(area.mActorHolder.GetActors().Any(x=>x.mActorName=="PlayerLocator"))
+                    {
+                        ImGui.SetWindowFocus(area.GetName());
+                        break;
+                    }
+
+                }
+
+                lastCreatedViewports = viewports;
             }
 
             if (activeViewport.mEditContext.SelectionVersion != selectionVersionBefore)
