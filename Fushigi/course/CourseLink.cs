@@ -90,6 +90,24 @@ namespace Fushigi.course
 
             mLinks.RemoveAt(idx);
         }
+        public void DeleteLinkWithSrc(ulong hash)
+        {
+            int idx = -1;
+            foreach (CourseLink link in mLinks)
+            {
+                if (link.GetSrcHash() == hash)
+                {
+                    idx = mLinks.IndexOf(link);
+                }
+            }
+
+            if (idx == -1)
+            {
+                return;
+            }
+
+            mLinks.RemoveAt(idx);
+        }
 
         public Dictionary<string, List<ulong>> GetDestHashesFromSrc(ulong hash)
         {
@@ -121,6 +139,19 @@ namespace Fushigi.course
             foreach (CourseLink link in mLinks)
             {
                 if (link.GetDestHash() == hash)
+                {
+                    return link;
+                }
+            }
+
+            return null;
+        }
+
+        public CourseLink GetLinkWithSrcHash(ulong hash)
+        {
+            foreach (CourseLink link in mLinks)
+            {
+                if (link.GetSrcHash() == hash)
                 {
                     return link;
                 }

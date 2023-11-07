@@ -215,7 +215,8 @@ namespace Fushigi.ui.widgets
         private void LinkDeletionCheck()
         {
             var actors = activeViewport.mEditContext.GetSelectedObjects<CourseActor>();
-            string msgStr = "";
+            string dstMsgStr = "";
+            string srcMsgStr = "";
 
             foreach (var actor in actors)
             {
@@ -229,20 +230,40 @@ namespace Fushigi.ui.widgets
 
                         foreach (var hash in hashes)
                         {
-                            msgStr += $"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n";
+                            /* only delete actors that the hash exists for...this may be caused by a user already deleting the source actor */
+                            if (selectedArea.mActorHolder.HasHash(hash))
+                            {
+                                dstMsgStr += $"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n";
+                            }
+                        }
+                    }
+
+                    var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(actor.GetHash());
+
+                    foreach (KeyValuePair<string, List<ulong>> kvp in destHashes)
+                    {
+                        var hashes = kvp.Value;
+
+                        foreach (var hash in hashes)
+                        {
+                            if (selectedArea.mActorHolder.HasHash(hash))
+                            {
+                                srcMsgStr += $"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n";
+                            }
                         }
                     }
                 }
             }
 
-            if (msgStr == "")
+            /* nothing to worry about here */
+            if (dstMsgStr == "" && srcMsgStr == "")
             {
                 activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
                 return;
             }
 
             bool status = ImGui.Begin("Link Warning");
-            ImGui.Text($"The actor you are about to delete is a destination link for the following actors.\n {msgStr} Do you wish to continue?");
+            ImGui.Text($"The actor you are about to delete is a destination link for the following actors.\n {dstMsgStr}\n\nThe actor you are about to delete is a source link for the following actors.\n {srcMsgStr} Do you wish to continue?");
 
             if (ImGui.Button("Yes"))
             {

@@ -140,6 +140,8 @@ namespace Fushigi.ui
 
             foreach (var actor in selectedActors)
             {
+                DeleteActorFromGroups(actor.GetHash());
+                DeleteLinksWithSrcHash(actor.GetHash());
                 DeleteLinksWithDestHash(actor.GetHash());
                 DeleteActor(actor);
             }
@@ -148,9 +150,19 @@ namespace Fushigi.ui
             mUndoHandler.EndUndoCollection();
         }
 
+        public void DeleteActorFromGroups(ulong hash)
+        {
+            area.mGroups.RemoveFromGroup(hash);
+        }
+
         public void DeleteLinksWithDestHash(ulong hash)
         {
             area.mLinkHolder.DeleteLinkWithDest(hash);
+        }
+
+        public void DeleteLinksWithSrcHash(ulong hash)
+        {
+            area.mLinkHolder.DeleteLinkWithSrc(hash);
         }
 
         public bool IsActorDestForLink(CourseActor actor)

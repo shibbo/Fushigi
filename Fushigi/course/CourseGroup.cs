@@ -27,9 +27,14 @@ namespace Fushigi.course
             return mHash;
         }
 
-        public bool IsActorValid(ulong hash, CourseActorHolder actorHolder)
+        public bool IsActorValid(ulong hash)
         {
-            return actorHolder.HasHash(hash);
+            return mActors.Any(a => a.GetHash() == hash);
+        }
+
+        public void RemoveActor(ulong hash)
+        {
+            mActors.RemoveAt(mActors.FindIndex(a => a.GetHash() == hash));
         }
 
         public BymlHashTable BuildNode()
@@ -91,6 +96,19 @@ namespace Fushigi.course
             get
             {
                 return GetGroup(hash);
+            }
+        }
+
+        public void RemoveFromGroup(ulong hash)
+        {
+            foreach (CourseGroup grp in mGroups)
+            {
+                if (!grp.IsActorValid(hash))
+                {
+                    continue;
+                }
+
+                grp.RemoveActor(hash);
             }
         }
 
