@@ -2,6 +2,7 @@
 using Fushigi.course;
 using Fushigi.param;
 using Fushigi.rstb;
+using Fushigi.util;
 using ImGuiNET;
 using Newtonsoft.Json.Linq;
 using Silk.NET.Input;
@@ -17,6 +18,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Fushigi.ui.widgets
 {
@@ -63,7 +65,7 @@ namespace Fushigi.ui.widgets
         {
             ActorsPanel();
 
-            ActorParameterPanel();
+            SelectionParameterPanel();
 
             RailsPanel();
 
@@ -285,9 +287,9 @@ namespace Fushigi.ui.widgets
             ImGui.End();
         }
 
-        private void ActorParameterPanel()
+        private void SelectionParameterPanel()
         {
-            bool status = ImGui.Begin("Actor Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
+            bool status = ImGui.Begin("Selection Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
             if (mSelectedActor != null)
             {
@@ -413,7 +415,20 @@ namespace Fushigi.ui.widgets
             else
             {
                 ImGui.AlignTextToFramePadding();
-                ImGui.Text("No actor or rail is selected");
+
+                string text = "No item selected";
+
+                var windowWidth = ImGui.GetWindowSize().X;
+                var textWidth = ImGui.CalcTextSize(text).X;
+
+                var windowHight = ImGui.GetWindowSize().Y;
+                var textHeight = ImGui.CalcTextSize(text).Y;
+
+                ImGui.SetCursorPosX((windowWidth - textWidth) * 0.5f);
+                ImGui.SetCursorPosY((windowHight - textHeight) * 0.5f);
+                ImGui.BeginDisabled();
+                ImGui.Text(text);
+                ImGui.EndDisabled();
             }
 
             if (status)
