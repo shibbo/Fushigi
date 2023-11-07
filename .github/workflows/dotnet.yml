@@ -21,7 +21,7 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Install NativeFileDialogSharp
-      run: dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp 
+      run: dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp --version 0.6.0-alpha
     - name: Install Newtonsoft.Json
       run: dotnet add Fushigi/Fushigi.csproj package Newtonsoft.Json 
     - name: Install Silk.NET.Core
