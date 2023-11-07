@@ -206,7 +206,8 @@ namespace Fushigi.ui.widgets
 
         private void SelectActor()
         {
-            bool status = ImGui.Begin("Add Actor");
+            bool button = true;
+            bool status = ImGui.Begin("Add Actor", ref button);
 
             ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail());
 
@@ -223,6 +224,17 @@ namespace Fushigi.ui.widgets
             }
 
             ImGui.EndListBox();
+
+            if (ImGui.IsKeyDown(ImGuiKey.Escape))
+            {
+                button = false;
+            }
+
+            if (!button)
+            {
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
+                mShowAddActor = false;
+            }
 
             if (status)
             {
