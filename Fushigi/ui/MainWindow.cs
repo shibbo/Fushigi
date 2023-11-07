@@ -95,6 +95,7 @@ namespace Fushigi.ui
 
             if (!ParamDB.sIsInit && !string.IsNullOrEmpty(RomFS.GetRoot()))
             {
+                Console.WriteLine("Parameter database needs to be initialized...");
                 ParamDB.Load();
             }
 
@@ -143,6 +144,7 @@ namespace Fushigi.ui
                             FolderDialog dlg = new FolderDialog();
                             if (dlg.ShowDialog("Select the romfs directory to save to."))
                             {
+                                Console.WriteLine($"Setting RomFS path to {dlg.SelectedPath}");
                                 UserSettings.SetModRomFSPath(dlg.SelectedPath);
                                 mSelectedCourseScene.Save();
                             }
@@ -210,6 +212,7 @@ namespace Fushigi.ui
                             // Only change the course if it is different from current
                             if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
                             {
+                                Console.WriteLine($"Selected course {courseLocation}!");
                                 mSelectedCourseScene = new(new(courseLocation), gl);
                                 UserSettings.AppendRecentCourse(courseLocation);
                             }

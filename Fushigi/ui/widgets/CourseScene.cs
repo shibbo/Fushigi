@@ -168,6 +168,7 @@ namespace Fushigi.ui.widgets
             //Save each course area to current romfs folder
             foreach (var area in this.course.GetAreas())
             {
+                Console.WriteLine($"Saving area {area.GetName()}...");
                 area.Save(resource_table);
             }
 
@@ -187,6 +188,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                 {
+                    Console.WriteLine("Switching state to EditorState.AddingActor");
                     activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
                     activeViewport.mActorToAdd = actor;
                     mShowAddActor = false;
@@ -202,6 +204,7 @@ namespace Fushigi.ui.widgets
 
             if (!button)
             {
+                Console.WriteLine("Switching state to EditorState.Selecting");
                 activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
                 mShowAddActor = false;
             }
@@ -258,6 +261,7 @@ namespace Fushigi.ui.widgets
             /* nothing to worry about here */
             if (dstMsgStr == "" && srcMsgStr == "")
             {
+                Console.WriteLine("Switching state to EditorState.DeletingActor");
                 activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
                 return;
             }
@@ -267,6 +271,7 @@ namespace Fushigi.ui.widgets
 
             if (ImGui.Button("Yes"))
             {
+                Console.WriteLine("Switching state to EditorState.DeletingActor");
                 activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
             }
 
@@ -274,6 +279,7 @@ namespace Fushigi.ui.widgets
 
             if (ImGui.Button("No"))
             {
+                Console.WriteLine("Switching state to EditorState.Selecting");
                 activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
             }
 

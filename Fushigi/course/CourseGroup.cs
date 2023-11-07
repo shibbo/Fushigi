@@ -46,6 +46,11 @@ namespace Fushigi.course
 
             foreach (CourseActor actor in mActors)
             {
+                /* there are levels that were created in non-legit editors and that caused some things to be null when they should not have been */
+                if (actor == null)
+                {
+                    continue;
+                }
                 actorsArray.AddNodeToArray(BymlUtil.CreateNode<ulong>("", actor.GetHash()));
             }
 
