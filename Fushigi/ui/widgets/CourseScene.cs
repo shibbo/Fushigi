@@ -265,6 +265,12 @@ namespace Fushigi.ui.widgets
                 }
             }
 
+            if (msgStr == "")
+            {
+                activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
+                return;
+            }
+
             bool status = ImGui.Begin("Link Warning");
             ImGui.Text($"The actor you are about to delete is a destination link for the following actors.\n {msgStr} Do you wish to continue?");
 
@@ -286,40 +292,6 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        private void CourseErrorList()
-        {
-            bool status = ImGui.Begin("Course Saving Errors");
-            ImGui.Text($"Error(s) occured in: {mErroringArea}");
-            CourseArea? area = course.GetArea(mErroringArea);
-
-            List<int> badLinks = area.mLinkHolder.DoSanityCheck(area.mActorHolder);
-   
-            if (badLinks.Count > 0)
-            {
-                for (int i = 0; i < badLinks.Count; i++)
-                {
-                    ImGui.Text($"Link at idx {badLinks[i]} points to an actor that doesn't exist.");
-                    ImGui.NewLine();
-                    CourseLink link = area.mLinkHolder.GetLinks()[badLinks[i]];
-                    CourseActor src = area.mActorHolder[link.GetSrcHash()];
-                    ImGui.Text($"Source actor: {src.mActorName} [{src.mName}]");
-                    ImGui.NewLine();
-                }
-            }
-
-            List<int> badActors = area.mGroups.DoSanityCheck(area.mActorHolder);
-
-            if (badActors.Count > 0)
-            {
-
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
         private void ActorsPanel()
         {
             ImGui.Begin("Actors");
@@ -329,9 +301,11 @@ namespace Fushigi.ui.widgets
                 mShowAddActor = true;
             }
 
+            ImGui.SameLine();
+
             if (ImGui.Button("Delete Actor"))
             {
-                activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
+                activeViewport.mEditorState = LevelViewport.EditorState.DeleteActorLinkCheck;
             }
 
             // actors are in an array

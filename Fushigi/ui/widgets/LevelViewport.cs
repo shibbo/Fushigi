@@ -332,6 +332,11 @@ namespace Fushigi.ui.widgets
             }
             else if (isFocused && mEditorState == EditorState.DeletingActor)
             {
+                if (!isFocused)
+                {
+                    ImGui.SetWindowFocus();
+                }
+
                 if (mEditContext.IsAnySelected<CourseActor>())
                 {
                     mEditContext.DeleteSelectedActors();

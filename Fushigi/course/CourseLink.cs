@@ -98,6 +98,11 @@ namespace Fushigi.course
                 }
             }
 
+            if (idx == -1)
+            {
+                return;
+            }
+
             mLinks.RemoveAt(idx);
         }
 
