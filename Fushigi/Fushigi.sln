@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fushigi", "Fushigi.csproj",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fushigi.Byml", "..\Fushigi.Byml\Fushigi.Byml.csproj", "{7CF7FF10-2ADA-47B1-8CC8-DCAB1A1464A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fushigi.SARC", "..\SARC\Fushigi.SARC.csproj", "{C011B164-569B-450C-A552-F6D2E4A7A2C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fushigi.SARC", "..\SARC\Fushigi.SARC.csproj", "{C011B164-569B-450C-A552-F6D2E4A7A2C5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fushigi.Bfres", "..\Fushigi.Bfres\Fushigi.Bfres.csproj", "{1AED611D-03D2-4D8B-B3BF-494429D727FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{C011B164-569B-450C-A552-F6D2E4A7A2C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C011B164-569B-450C-A552-F6D2E4A7A2C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C011B164-569B-450C-A552-F6D2E4A7A2C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AED611D-03D2-4D8B-B3BF-494429D727FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AED611D-03D2-4D8B-B3BF-494429D727FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AED611D-03D2-4D8B-B3BF-494429D727FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AED611D-03D2-4D8B-B3BF-494429D727FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
