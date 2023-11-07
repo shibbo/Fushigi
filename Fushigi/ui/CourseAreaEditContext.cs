@@ -118,6 +118,10 @@ namespace Fushigi.ui
             return mSelectedObjects.Any(x => x is T);
         }
 
+        public List<CourseLink> GetLinks()
+        {
+            return area.mLinkHolder.GetLinks();
+        }
 
         public void AddActor(CourseActor actor)
         {
@@ -128,6 +132,9 @@ namespace Fushigi.ui
         public void DeleteActor(CourseActor actor)
         {
             Deselect(actor);
+            DeleteActorFromGroups(actor.GetHash());
+            DeleteLinksWithSrcHash(actor.GetHash());
+            DeleteLinksWithDestHash(actor.GetHash());
             mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
                 .RevertableRemove(actor, $"Removing {actor.mActorName}"));
         }
@@ -140,9 +147,6 @@ namespace Fushigi.ui
 
             foreach (var actor in selectedActors)
             {
-                DeleteActorFromGroups(actor.GetHash());
-                DeleteLinksWithSrcHash(actor.GetHash());
-                DeleteLinksWithDestHash(actor.GetHash());
                 DeleteActor(actor);
             }
                 
@@ -168,6 +172,11 @@ namespace Fushigi.ui
         public bool IsActorDestForLink(CourseActor actor)
         {
             return area.mLinkHolder.GetLinkWithDestHash(actor.GetHash()) != null;
+        }
+
+        public bool IsAnyLinkInvalid()
+        {
+            return area.mLinkHolder.IsAnyLinkInvalid(area.mActorHolder);
         }
     }
 }

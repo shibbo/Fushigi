@@ -35,8 +35,6 @@ namespace Fushigi.ui.widgets
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
-        string mErroringArea = "";
-        bool mShowErrors = false;
 
         CourseActor? mSelectedActor = null;
         CourseUnit? mSelectedUnit = null;
@@ -81,6 +79,7 @@ namespace Fushigi.ui.widgets
             {
                 LinkDeletionCheck();
             }
+
             
             ulong selectionVersionBefore = activeViewport.mEditContext.SelectionVersion;
 
@@ -169,6 +168,7 @@ namespace Fushigi.ui.widgets
             foreach (var area in this.course.GetAreas())
             {
                 Console.WriteLine($"Saving area {area.GetName()}...");
+
                 area.Save(resource_table);
             }
 

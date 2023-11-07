@@ -52,6 +52,16 @@ namespace Fushigi.course
             return mLinkName;
         }
 
+        public bool IsSourceValid(CourseActorHolder actorHolder)
+        {
+            return actorHolder.HasHash(mSource.GetHash());
+        }
+
+        public bool IsDestValid(CourseActorHolder actorHolder)
+        {
+            return actorHolder.HasHash(mDest.GetHash());
+        }
+
         CourseActor? mSource;
         CourseActor? mDest;
         string mLinkName;
@@ -163,6 +173,19 @@ namespace Fushigi.course
         public List<CourseLink> GetLinks()
         {
             return mLinks;
+        }
+
+        public bool IsAnyLinkInvalid(CourseActorHolder holder)
+        {
+            foreach (CourseLink link in mLinks)
+            {
+                if (!link.IsSourceValid(holder) || !link.IsDestValid(holder))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public BymlArrayNode SerializeToArray()
