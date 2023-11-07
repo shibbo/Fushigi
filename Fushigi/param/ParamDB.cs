@@ -92,10 +92,10 @@ namespace Fushigi.param
 
                 /* /Component/Blackboard/BlackboardParamTable is where all of the actor-specific parameters live */
                 string actorParamDir = "Component/Blackboard/BlackboardParamTable";
-                //string actorParamDir = //Path.Combine("Component", "Blackboard", "BlackboardParamTable");
 
                 if (!sarc.DirectoryExists(actorParamDir))
                 {
+                    sActors.Add(actorName, param);
                     continue;
                 }
 
