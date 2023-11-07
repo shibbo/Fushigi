@@ -66,29 +66,11 @@ namespace Fushigi.course
 
         public CourseGroupHolder(BymlArrayNode array, CourseActorHolder actorHolder)
         {
-            foreach(BymlHashTable tbl in array.Array)
+            foreach (BymlHashTable tbl in array.Array)
             {
                 mGroups.Add(new CourseGroup(tbl, actorHolder));
             }
-        }
 
-        public List<int> DoSanityCheck(CourseActorHolder actorHolder)
-        {
-            List<int> badActors = new();
-
-            foreach (CourseGroup grp in mGroups)
-            {
-                foreach (CourseActor actor in grp.GetActors())
-                {
-                    if (!grp.IsActorValid(actor.GetHash(), actorHolder))
-                    {
-                        badActors.Add(grp.GetActors().IndexOf(actor));
-                    }
-                }
-            }
-            
-
-            return badActors;
         }
 
         CourseGroup GetGroup(ulong hash)

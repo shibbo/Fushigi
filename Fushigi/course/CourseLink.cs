@@ -72,21 +72,6 @@ namespace Fushigi.course
             }
         }
 
-        public List<int> DoSanityCheck(CourseActorHolder actorHolder)
-        {
-            List<int> badLinks = new();
-
-            foreach (CourseLink link in GetLinks())
-            {
-                if (!link.AreLinksValid(actorHolder))
-                {
-                    badLinks.Add(GetLinks().IndexOf(link));
-                }
-            }
-
-            return badLinks;
-        }
-
         public void DeleteLinkWithDest(ulong hash)
         {
             int idx = -1;

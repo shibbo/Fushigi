@@ -164,44 +164,14 @@ namespace Fushigi.ui.widgets
         {
             RSTB resource_table = new RSTB();
             resource_table.Load();
-            bool badThingsHappened = false;
 
             //Save each course area to current romfs folder
             foreach (var area in this.course.GetAreas())
             {
-                List<int> badLinks = area.mLinkHolder.DoSanityCheck(area.mActorHolder);
-
-                if (badLinks.Count > 0)
-                {
-                    badThingsHappened = true;
-                }
-
-                List<int> badActors = area.mGroups.DoSanityCheck(area.mActorHolder);
-
-                if (badActors.Count > 0)
-                {
-                    badThingsHappened = true;
-                }
-
-                if (badThingsHappened)
-                {
-                    mShowErrors = true;
-                    mErroringArea = area.GetName();
-                    // we stop saving immediately
-                    return;
-                }
-                else
-                {
-                    mShowErrors = false;
-                    mErroringArea = "";
-                    area.Save(resource_table);
-                }
+                area.Save(resource_table);
             }
 
-            if (!badThingsHappened)
-            {
-                resource_table.Save();
-            }
+            resource_table.Save();
         }
 
         private void SelectActor()
