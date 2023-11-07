@@ -134,21 +134,13 @@ namespace Fushigi.course
 
             var decomp_size = (uint)mem.Length;
 
-            try
-            {
-                //Compress and save the course area           
-                string levelPath = Path.Combine(folder, $"{mAreaName}.bcett.byml.zs");
-                File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
+            //Compress and save the course area           
+            string levelPath = Path.Combine(folder, $"{mAreaName}.bcett.byml.zs");
+            File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
 
-                //Update resource table
-                // filePath is a key not an actual path so we cannot use Path.Combine
-                resource_table.SetResource($"BancMapUnit/{mAreaName}.bcett.byml", decomp_size);
-            }
-            catch(IOException e)
-            {
-                //Likely due to the course being open in the game, caught to prevent crash
-                //TODO: notify the user
-            }
+            //Update resource table
+            // filePath is a key not an actual path so we cannot use Path.Combine
+            resource_table.SetResource($"BancMapUnit/{mAreaName}.bcett.byml", decomp_size);
         }
 
         public string GetName()

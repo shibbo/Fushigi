@@ -35,6 +35,7 @@ namespace Fushigi.ui.widgets
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
+        bool mShowSaveFailureAlert = false;
 
         CourseActor? mSelectedActor = null;
         CourseUnit? mSelectedUnit = null;
@@ -78,6 +79,11 @@ namespace Fushigi.ui.widgets
             if (activeViewport.mEditorState == LevelViewport.EditorState.DeleteActorLinkCheck)
             {
                 LinkDeletionCheck();
+            }
+
+            if (mShowSaveFailureAlert)
+            {
+                SaveFailureAlert();
             }
 
             
@@ -164,6 +170,16 @@ namespace Fushigi.ui.widgets
             RSTB resource_table = new RSTB();
             resource_table.Load();
 
+            IEnumerable<string> pathsToWriteTo = course.GetAreas().Select(a=> Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit", $"{a.GetName()}.bcett.byml.zs"));
+            pathsToWriteTo.Concat([FileUtil.FindContentPath(Path.Combine("System", "Resource", "ResourceSizeTable.Product.100.rsizetable.zs"))]);
+
+            if (!pathsToWriteTo.All(EnsureFileIsWritable))
+            {
+                //one or more of the files are locked, due to being open externally. abandon save and show popup informing user
+                mShowSaveFailureAlert = true;
+                return;
+            }
+
             //Save each course area to current romfs folder
             foreach (var area in this.course.GetAreas())
             {
@@ -174,6 +190,23 @@ namespace Fushigi.ui.widgets
 
             resource_table.Save();
         }
+
+        bool EnsureFileIsWritable(string path)
+        {
+            if (!File.Exists(path))
+                return true;
+            try
+            {
+                using (var fs = new FileStream(path, FileMode.Open))
+                {
+                    return fs.CanWrite;
+                }
+            }
+            catch(IOException e)
+            {
+                return false;
+            }
+}
 
         private void SelectActor()
         {
@@ -304,6 +337,23 @@ namespace Fushigi.ui.widgets
             {
                 Console.WriteLine("Switching state to EditorState.Selecting");
                 activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
+            }
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+
+        private void SaveFailureAlert()
+        {
+            bool status = ImGui.Begin("Save Failed");
+
+            ImGui.Text("The course files may be open in an external app, or Super Mario Wonder may currently be running in an emulator. Close the emulator or external app and try again.");
+
+            if (ImGui.Button("Okay"))
+            {
+                mShowSaveFailureAlert = false;
             }
 
             if (status)
