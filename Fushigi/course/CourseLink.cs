@@ -52,6 +52,16 @@ namespace Fushigi.course
             return mLinkName;
         }
 
+        public bool IsSourceValid(CourseActorHolder actorHolder)
+        {
+            return actorHolder.HasHash(mSource.GetHash());
+        }
+
+        public bool IsDestValid(CourseActorHolder actorHolder)
+        {
+            return actorHolder.HasHash(mDest.GetHash());
+        }
+
         CourseActor? mSource;
         CourseActor? mDest;
         string mLinkName;
@@ -72,19 +82,41 @@ namespace Fushigi.course
             }
         }
 
-        public List<int> DoSanityCheck(CourseActorHolder actorHolder)
+        public void DeleteLinkWithDest(ulong hash)
         {
-            List<int> badLinks = new();
-
-            foreach (CourseLink link in GetLinks())
+            int idx = -1;
+            foreach (CourseLink link in mLinks)
             {
-                if (!link.AreLinksValid(actorHolder))
+                if (link.GetDestHash() == hash)
                 {
-                    badLinks.Add(GetLinks().IndexOf(link));
+                    idx = mLinks.IndexOf(link);
                 }
             }
 
-            return badLinks;
+            if (idx == -1)
+            {
+                return;
+            }
+
+            mLinks.RemoveAt(idx);
+        }
+        public void DeleteLinkWithSrc(ulong hash)
+        {
+            int idx = -1;
+            foreach (CourseLink link in mLinks)
+            {
+                if (link.GetSrcHash() == hash)
+                {
+                    idx = mLinks.IndexOf(link);
+                }
+            }
+
+            if (idx == -1)
+            {
+                return;
+            }
+
+            mLinks.RemoveAt(idx);
         }
 
         public Dictionary<string, List<ulong>> GetDestHashesFromSrc(ulong hash)
@@ -125,9 +157,35 @@ namespace Fushigi.course
             return null;
         }
 
+        public CourseLink GetLinkWithSrcHash(ulong hash)
+        {
+            foreach (CourseLink link in mLinks)
+            {
+                if (link.GetSrcHash() == hash)
+                {
+                    return link;
+                }
+            }
+
+            return null;
+        }
+
         public List<CourseLink> GetLinks()
         {
             return mLinks;
+        }
+
+        public bool IsAnyLinkInvalid(CourseActorHolder holder)
+        {
+            foreach (CourseLink link in mLinks)
+            {
+                if (!link.IsSourceValid(holder) || !link.IsDestValid(holder))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public BymlArrayNode SerializeToArray()

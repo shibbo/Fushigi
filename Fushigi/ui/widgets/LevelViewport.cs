@@ -18,6 +18,8 @@ using System.Runtime.CompilerServices;
 using Silk.NET.OpenGL;
 using Fushigi.gl;
 using Fushigi.util;
+using System.Reflection.PortableExecutable;
+using static Fushigi.util.MessageBox;
 
 namespace Fushigi.ui.widgets
 {
@@ -58,6 +60,7 @@ namespace Fushigi.ui.widgets
         {
             Selecting,
             AddingActor,
+            DeleteActorLinkCheck,
             DeletingActor,
             SelectingLink
         }
@@ -260,7 +263,8 @@ namespace Fushigi.ui.widgets
                     {
                         mEditContext.DeselectAll();
                     }
-                    else if(HoveredObject is not BGUnitRail) { }
+                    else if(HoveredObject is not BGUnitRail &&
+                        HoveredObject is not BGUnitRail.RailPoint) 
                     {
                         if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {
@@ -285,7 +289,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsKeyDown(ImGuiKey.Delete))
                 {
-                    mEditorState = EditorState.DeletingActor;
+                    mEditorState = EditorState.DeleteActorLinkCheck;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.Escape))
@@ -322,8 +326,17 @@ namespace Fushigi.ui.widgets
                     }
                 }
             }
+            else if (isFocused && mEditorState == EditorState.DeleteActorLinkCheck)
+            {
+                
+            }
             else if (isFocused && mEditorState == EditorState.DeletingActor)
             {
+                if (!isFocused)
+                {
+                    ImGui.SetWindowFocus();
+                }
+
                 if (mEditContext.IsAnySelected<CourseActor>())
                 {
                     mEditContext.DeleteSelectedActors();

@@ -1,6 +1,7 @@
 ﻿using Fushigi.course;
 using Fushigi.ui.undo;
 using Fushigi.ui.widgets;
+using Fushigi.util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -17,6 +18,8 @@ namespace Fushigi.ui
         private readonly UndoHandler mUndoHandler = new();
 
         public ulong SelectionVersion { get; private set; } = 0;
+
+        private bool mHasDialog = false;
 
         public void Undo() => mUndoHandler.Undo();
         public void Redo() => mUndoHandler.Redo();
@@ -115,6 +118,10 @@ namespace Fushigi.ui
             return mSelectedObjects.Any(x => x is T);
         }
 
+        public List<CourseLink> GetLinks()
+        {
+            return area.mLinkHolder.GetLinks();
+        }
 
         public void AddActor(CourseActor actor)
         {
@@ -125,6 +132,9 @@ namespace Fushigi.ui
         public void DeleteActor(CourseActor actor)
         {
             Deselect(actor);
+            DeleteActorFromGroups(actor.GetHash());
+            DeleteLinksWithSrcHash(actor.GetHash());
+            DeleteLinksWithDestHash(actor.GetHash());
             mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
                 .RevertableRemove(actor, $"Removing {actor.mActorName}"));
         }
@@ -136,9 +146,37 @@ namespace Fushigi.ui
             mUndoHandler.BeginUndoCollection();
 
             foreach (var actor in selectedActors)
+            {
                 DeleteActor(actor);
+            }
+                
 
             mUndoHandler.EndUndoCollection();
+        }
+
+        public void DeleteActorFromGroups(ulong hash)
+        {
+            area.mGroups.RemoveFromGroup(hash);
+        }
+
+        public void DeleteLinksWithDestHash(ulong hash)
+        {
+            area.mLinkHolder.DeleteLinkWithDest(hash);
+        }
+
+        public void DeleteLinksWithSrcHash(ulong hash)
+        {
+            area.mLinkHolder.DeleteLinkWithSrc(hash);
+        }
+
+        public bool IsActorDestForLink(CourseActor actor)
+        {
+            return area.mLinkHolder.GetLinkWithDestHash(actor.GetHash()) != null;
+        }
+
+        public bool IsAnyLinkInvalid()
+        {
+            return area.mLinkHolder.IsAnyLinkInvalid(area.mActorHolder);
         }
     }
 }

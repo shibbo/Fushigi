@@ -8,6 +8,8 @@ using Fushigi.ui.widgets;
 using ImGuiNET;
 using System.Runtime.CompilerServices;
 using System.Numerics;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Fushigi.ui
 {
@@ -15,6 +17,7 @@ namespace Fushigi.ui
     {
 
         private ImFontPtr mDefaultFont;
+        private ImFontPtr mIconFont;
 
         public MainWindow()
         {
@@ -30,13 +33,37 @@ namespace Fushigi.ui
                         nativeConfig->OversampleV = 8;
                         nativeConfig->RasterizerMultiply = 1f;
                         nativeConfig->GlyphOffset = new Vector2(0);
-
                         {
                             mDefaultFont = io.Fonts.AddFontFromFileTTF(
                                 Path.Combine("res", "Font.ttf"),
-                                16, nativeConfig);
+                                16, nativeConfig, io.Fonts.GetGlyphRangesJapanese());
 
                             //other fonts go here and follow the same schema
+
+                            nativeConfig->MergeMode = 1;
+
+                            GCHandle rangeHandle = GCHandle.Alloc(new ushort[] { IconUtil.MIN_GLYPH_RANGE, IconUtil.MAX_GLYPH_RANGE, 0 }, GCHandleType.Pinned);
+                            try
+                            {
+                                io.Fonts.AddFontFromFileTTF(
+                                    Path.Combine("res", "la-regular-400.ttf"),
+                                    16, nativeConfig, rangeHandle.AddrOfPinnedObject());
+
+                                io.Fonts.AddFontFromFileTTF(
+                                    Path.Combine("res", "la-solid-900.ttf"),
+                                    16, nativeConfig, rangeHandle.AddrOfPinnedObject());
+
+                                io.Fonts.AddFontFromFileTTF(
+                                    Path.Combine("res", "la-brands-400.ttf"),
+                                    16, nativeConfig, rangeHandle.AddrOfPinnedObject());
+
+                                io.Fonts.Build();
+                            }
+                            finally
+                            {
+                                if (rangeHandle.IsAllocated)
+                                    rangeHandle.Free();
+                            }
                         }
                     }
                 });
@@ -68,6 +95,7 @@ namespace Fushigi.ui
 
             if (!ParamDB.sIsInit && !string.IsNullOrEmpty(RomFS.GetRoot()))
             {
+                Console.WriteLine("Parameter database needs to be initialized...");
                 ParamDB.Load();
             }
 
@@ -116,6 +144,7 @@ namespace Fushigi.ui
                             FolderDialog dlg = new FolderDialog();
                             if (dlg.ShowDialog("Select the romfs directory to save to."))
                             {
+                                Console.WriteLine($"Setting RomFS path to {dlg.SelectedPath}");
                                 UserSettings.SetModRomFSPath(dlg.SelectedPath);
                                 mSelectedCourseScene.Save();
                             }
@@ -183,6 +212,7 @@ namespace Fushigi.ui
                             // Only change the course if it is different from current
                             if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
                             {
+                                Console.WriteLine($"Selected course {courseLocation}!");
                                 mSelectedCourseScene = new(new(courseLocation), gl);
                                 UserSettings.AppendRecentCourse(courseLocation);
                             }

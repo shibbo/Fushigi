@@ -10,9 +10,11 @@ namespace Fushigi.ui.widgets
         static readonly Vector4 errCol = new Vector4(1f, 0, 0, 1);
         static bool romfsTouched = false;
         static bool modRomfsTouched = false;
+
         public static void Draw(ref bool continueDisplay)
         {
-            if (ImGui.Begin("Preferences"))
+            ImGui.SetNextWindowSize(new Vector2(700, 250), ImGuiCond.Once);
+            if (ImGui.Begin("Preferences", ImGuiWindowFlags.NoDocking))
             {
                 var romfs = UserSettings.GetRomFSPath();
                 var mod = UserSettings.GetModRomFSPath();
@@ -27,9 +29,15 @@ namespace Fushigi.ui.widgets
                     )
                 {
                     romfsTouched = true;
+ 
+                    UserSettings.SetRomFSPath(romfs);
+
+                    if (!RomFS.IsValidRoot(romfs))
+                    {
+                        return;
+                    }
 
                     RomFS.SetRoot(romfs);
-                    UserSettings.SetRomFSPath(romfs);
                     
                     /* if our parameter database isn't set, set it */
                     if (!ParamDB.sIsInit)
