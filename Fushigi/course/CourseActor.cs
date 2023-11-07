@@ -54,6 +54,7 @@ namespace Fushigi.course
 
                                 switch (c.Type)
                                 {
+                                    case "U8":
                                     case "S16":
                                     case "U32":
                                     case "S32":
@@ -96,6 +97,7 @@ namespace Fushigi.course
 
                             switch (c.Type)
                             {
+                                case "U8":
                                 case "S16":
                                 case "U32":
                                 case "S32":
@@ -174,6 +176,7 @@ namespace Fushigi.course
 
                     switch (c.Type)
                     {
+                        case "U8":
                         case "S16":
                         case "U32":
                         case "S32":

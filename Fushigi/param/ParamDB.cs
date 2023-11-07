@@ -201,6 +201,9 @@ namespace Fushigi.param
             {
                 switch (pair.Name)
                 {
+                    case "BlackboardParamU8Array":
+                        type = "U8";
+                        break;
                     case "BlackboardParamS16Array":
                         type = "S16";
                         break;
@@ -267,6 +270,7 @@ namespace Fushigi.param
                             /* we look through the type that we set earlier to assign the proper initial value */
                             switch (type)
                             {
+                                case "U8":
                                 case "U32":
                                     comp.InitValue = ((BymlNode<uint>)ht["InitVal"]).Data;
                                     break;
