@@ -36,13 +36,15 @@ jobs:
       run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui  --version 2.17.1 
     - name: Install StbImageSharp
       run: dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
-    - name: Install ZstdNet
+    - name: Install ZstdSharp
       run: dotnet add Fushigi/Fushigi.csproj package ZstdSharp.Port
     - name: Restore dependencies
       run: dotnet restore Fushigi/Fushigi.sln
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln --no-restore 
-    - name: Build Mac Silicon
-      run: dotnet build Fushigi/Fushigi.sln -r osx-arm64 --no-restore
-    - name: Build Mac x64
-      run: dotnet build Fushigi/Fushigi.sln -r osx-x64 --no-restore
+    - name: Publish Mac Silicon
+      run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
+    - name: Publish Mac x64
+      run: dotnet publish Fushigi/Fushigi.sln -r osx-x64 --no-restore
+    - name: Publish Linux x64
+      run: dotnet publish Fushigi/Fushigi.sln --os linux --no-restore
