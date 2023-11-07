@@ -87,6 +87,20 @@ namespace Fushigi.course
             return badLinks;
         }
 
+        public void DeleteLinkWithDest(ulong hash)
+        {
+            int idx = -1;
+            foreach (CourseLink link in mLinks)
+            {
+                if (link.GetDestHash() == hash)
+                {
+                    idx = mLinks.IndexOf(link);
+                }
+            }
+
+            mLinks.RemoveAt(idx);
+        }
+
         public Dictionary<string, List<ulong>> GetDestHashesFromSrc(ulong hash)
         {
             Dictionary<string, List<ulong>> hashes = [];

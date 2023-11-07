@@ -77,9 +77,9 @@ namespace Fushigi.ui.widgets
                 SelectActor();
             }
 
-            if (mShowErrors)
+            if (activeViewport.mEditorState == LevelViewport.EditorState.DeleteActorLinkCheck)
             {
-                CourseErrorList();
+                LinkDeletionCheck();
             }
             
             ulong selectionVersionBefore = activeViewport.mEditContext.SelectionVersion;
@@ -234,6 +234,50 @@ namespace Fushigi.ui.widgets
             {
                 activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
                 mShowAddActor = false;
+            }
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+
+        private void LinkDeletionCheck()
+        {
+            var actors = activeViewport.mEditContext.GetSelectedObjects<CourseActor>();
+            string msgStr = "";
+
+            foreach (var actor in actors)
+            {
+                if (activeViewport.mEditContext.IsActorDestForLink(actor))
+                {
+                    var links = selectedArea.mLinkHolder.GetSrcHashesFromDest(actor.GetHash());
+
+                    foreach (KeyValuePair<string, List<ulong>> kvp in links)
+                    {
+                        var hashes = kvp.Value;
+
+                        foreach (var hash in hashes)
+                        {
+                            msgStr += $"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n";
+                        }
+                    }
+                }
+            }
+
+            bool status = ImGui.Begin("Link Warning");
+            ImGui.Text($"The actor you are about to delete is a destination link for the following actors.\n {msgStr} Do you wish to continue?");
+
+            if (ImGui.Button("Yes"))
+            {
+                activeViewport.mEditorState = LevelViewport.EditorState.DeletingActor;
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("No"))
+            {
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
             }
 
             if (status)

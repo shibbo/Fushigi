@@ -139,9 +139,18 @@ namespace Fushigi.ui
             mUndoHandler.BeginUndoCollection();
 
             foreach (var actor in selectedActors)
+            {
+                DeleteLinksWithDestHash(actor.GetHash());
                 DeleteActor(actor);
+            }
+                
 
             mUndoHandler.EndUndoCollection();
+        }
+
+        public void DeleteLinksWithDestHash(ulong hash)
+        {
+            area.mLinkHolder.DeleteLinkWithDest(hash);
         }
 
         public bool IsActorDestForLink(CourseActor actor)
