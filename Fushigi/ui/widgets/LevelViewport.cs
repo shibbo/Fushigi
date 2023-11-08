@@ -128,7 +128,7 @@ namespace Fushigi.ui.widgets
         public void HandleCameraControls(bool mouseHover, bool mouseActive)
         {
             bool isPanGesture = (ImGui.IsMouseDragging(ImGuiMouseButton.Middle)) ||
-                (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyAlt);
+                (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyShift);
 
             if (mouseActive && isPanGesture)
             {
