@@ -42,11 +42,15 @@ jobs:
       run: dotnet restore Fushigi/Fushigi.sln
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln --no-restore 
-    - name: Switch Build Targets to MacOS
-      run: dotnet restore
+    - name: Restore dependancies for MacOS Silicon
+      run: dotnet restore -r osx-arm64 Fushigi/Fushigi.sln
     - name: Publish Mac Silicon
       run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
+    - name: Restore dependancies for MacOS x64
+      run: dotnet restore -r osx-x64 Fushigi/Fushigi.sln
     - name: Publish Mac x64
       run: dotnet publish Fushigi/Fushigi.sln -r osx-x64 --no-restore
+    - name: Restore dependancies for Linux
+      run: dotnet restore -r linux Fushigi/Fushigi.sln
     - name: Publish Linux x64
       run: dotnet publish Fushigi/Fushigi.sln --os linux --no-restore
