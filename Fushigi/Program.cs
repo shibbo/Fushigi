@@ -11,3 +11,4 @@ Console.WriteLine("Loading area parameter loader...");
 ParamLoader.Load();
 
 MainWindow window = new MainWindow();
+Console.Read();
