@@ -82,6 +82,16 @@ namespace Fushigi.course
             return actorHolder.HasHash(mDest.GetHash());
         }
 
+        public bool IsSourceActorExist()
+        {
+            return mSource != null;
+        }
+
+        public bool IsDestActorExist()
+        {
+            return mDest != null;
+        }
+
         CourseActor? mSource;
         CourseActor? mDest;
         string mLinkName;
@@ -215,11 +225,14 @@ namespace Fushigi.course
 
         public BymlArrayNode SerializeToArray()
         {
-            BymlArrayNode node = new((uint)mLinks.Count);
+            BymlArrayNode node = new();
 
             foreach(CourseLink link in mLinks)
             {
-                node.AddNodeToArray(link.BuildNode());
+                if (link.IsSourceActorExist() && link.IsDestActorExist())
+                {
+                    node.AddNodeToArray(link.BuildNode());
+                }
             }
 
             return node;
