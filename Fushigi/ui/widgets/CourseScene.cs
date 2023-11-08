@@ -123,7 +123,7 @@ namespace Fushigi.ui.widgets
                         ImGui.Text("X: " + Math.Round(_mousePos.X, 3) + "\nY: " + Math.Round(_mousePos.Y, 3));
                     }
                     else
-                        ImGui.TextWrapped("X:\nY:");
+                        ImGui.Text("X:\nY:");
 
                     //Fixed popup pos, render popup
                     var pos = ImGui.GetCursorScreenPos();
