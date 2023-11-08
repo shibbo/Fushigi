@@ -422,9 +422,19 @@ namespace Fushigi.ui.widgets
 
                         CourseActor? destActor = selectedArea.mActorHolder[hashArray[i]];
 
-                        if (ImGui.Button(destActor.mName))
+                        if (destActor != null)
                         {
+                            if (ImGui.Button(destActor.mName))
+                            {
 
+                            }
+                        }
+                        else
+                        {
+                            if (ImGui.Button("Actor Not Found"))
+                            {
+
+                            }
                         }
 
                         ImGui.NextColumn();
