@@ -411,12 +411,19 @@ namespace Fushigi.course
 
         public void RemoveLinkFromSrc(ulong hash)
         {
+            int idx = -1;
             foreach (Link link in mLinks)
             {
                 if (link.Source.GetHash() == hash)
                 {
-                    mLinks.RemoveAt(mLinks.IndexOf(link));
+                    idx = mLinks.IndexOf(link);
+                    break;
                 }
+            }
+
+            if (idx != -1)
+            {
+                mLinks.RemoveAt(idx);
             }
         }
 
