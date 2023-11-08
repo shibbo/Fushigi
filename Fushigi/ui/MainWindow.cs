@@ -10,6 +10,9 @@ using System.Runtime.CompilerServices;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using static System.Net.Mime.MediaTypeNames;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace Fushigi.ui
 {
@@ -177,6 +180,11 @@ namespace Fushigi.ui
                     if (ImGui.MenuItem("Preferences"))
                     {
                         mIsChoosingPreferences = true;
+                    }
+
+                    if (ImGui.MenuItem("Regenerate Parameter Database", ParamDB.sIsInit)) {
+                        ParamDB.sIsInit = false;
+                        ParamDB.Reload();
                     }
 
                     /* end Edit menu */

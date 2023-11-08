@@ -183,6 +183,15 @@ namespace Fushigi.param
             sIsInit = true;
         }
 
+        public static void Reload()
+        {
+            sActors.Clear();
+            sComponents.Clear();
+            sRails.Clear();
+            sRailParamList.Clear();
+            Load();
+        }
+
         static Component ReadByml(Byml.Byml byml)
         {
             var root = (BymlHashTable)byml.Root;
