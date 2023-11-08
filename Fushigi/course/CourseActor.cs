@@ -359,16 +359,6 @@ namespace Fushigi.course
             return mCourseActors.Any(x => x.GetHash() == hash);
         }
 
-        public void AddActor(CourseActor actor)
-        {
-            mCourseActors.Add(actor);
-        }
-        
-        public void DeleteActor(CourseActor actor)
-        {
-            mCourseActors.Remove(actor);
-        }
-
         public CourseActor this[ulong hash]
         {
             get => GetActor(hash);

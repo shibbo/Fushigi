@@ -43,6 +43,8 @@ namespace Fushigi.ui.widgets
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
         public string mActorToAdd = "";
+        public bool mIsLinkNew = false;
+        public string mNewLinkType = "";
 
         public float FOV = MathF.PI / 2;
 
@@ -50,7 +52,7 @@ namespace Fushigi.ui.widgets
             (Quaternion.Identity, Vector3.Zero, 10);
 
         public object? HoveredObject;
-        public CourseLink? SrcCourseLink = null;
+        public CourseLink? CurCourseLink = null;
         public Vector3? HoveredPoint;
 
         public uint GridColor = 0x77_FF_FF_FF;
@@ -62,7 +64,8 @@ namespace Fushigi.ui.widgets
             AddingActor,
             DeleteActorLinkCheck,
             DeletingActor,
-            SelectingLink
+            SelectingLinkSource,
+            SelectingLinkDest
         }
 
         public enum EditorMode
@@ -317,7 +320,7 @@ namespace Fushigi.ui.widgets
                     posVec.Z = 0.0f;
                     actor.mTranslation = posVec;
 
-                    mArea.mActorHolder.AddActor(actor);
+                    mEditContext.AddActor(actor);
 
                     if (!ImGui.GetIO().KeyShift)
                     {
@@ -364,7 +367,7 @@ namespace Fushigi.ui.widgets
                     {
                         if (hoveredActor != null)
                         {
-                            mArea.mActorHolder.DeleteActor(hoveredActor);
+                            mEditContext.DeleteActor(hoveredActor);
 
                             if (!ImGui.GetIO().KeyShift)
                             {
@@ -374,7 +377,7 @@ namespace Fushigi.ui.widgets
                     }
                 }
             }
-            else if (mEditorState == EditorState.SelectingLink)
+            else if (isFocused && (mEditorState == EditorState.SelectingLinkSource || mEditorState == EditorState.SelectingLinkDest))
             {
                 /* when we are begining to select a link, we will not always be immediately focused */
                 if (!isFocused)
@@ -387,23 +390,58 @@ namespace Fushigi.ui.widgets
                     mEditorState = EditorState.Selecting;
                 }
 
-                if (hoveredActor != null)
+                if (mEditorState == EditorState.SelectingLinkSource)
                 {
-                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
+                    if (hoveredActor != null)
+                    {
+                        ImGui.SetTooltip($"Select the source actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
+                    }
+                    else
+                    {
+                        ImGui.SetTooltip($"Select the source actor you wish to link to. Press ESCAPE to cancel.");
+                    }
                 }
-                else
+
+                if (mEditorState == EditorState.SelectingLinkDest)
                 {
-                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.");
+                    if (hoveredActor != null)
+                    {
+                        ImGui.SetTooltip($"Select the destination actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
+                    }
+                    else
+                    {
+                        ImGui.SetTooltip($"Select the destination actor you wish to link to. Press ESCAPE to cancel.");
+                    }
+                }
+
+                /* if our link is new, it means that we don't have to check for hovered actors for the source designation */
+                if (mIsLinkNew)
+                {
+                    CurCourseLink = new(mNewLinkType);
+                    CourseActor selActor = mEditContext.GetSelectedObjects<CourseActor>().ElementAt(0);
+                    CurCourseLink.SetSrcHash(selActor.GetHash(), mEditContext.GetActorHolder());
+                    mIsLinkNew = false;
                 }
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    if (hoveredActor != null)
-                    {
-                        ulong hash = hoveredActor.GetHash();
-                        SrcCourseLink.SetDestHash(hash, mArea.mActorHolder);
-                        mEditorState = EditorState.Selecting;
+                    if (mEditorState == EditorState.SelectingLinkDest) {
+                        if (hoveredActor != null)
+                        {
+                            /* new links have a destination of 0 because there is no hash associated with a null actor */
+                            bool isNewLink = CurCourseLink.GetDestHash() == 0;
+                            ulong hash = hoveredActor.GetHash();
+                            CurCourseLink.SetDestHash(hash, mEditContext.GetActorHolder());
+
+                            if (isNewLink)
+                            {
+                                mEditContext.AddLink(CurCourseLink);
+                            }
+
+                            mEditorState = EditorState.Selecting;
+                        }
                     }
+
                 }
             }
 
@@ -565,7 +603,7 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            foreach (CourseActor actor in mArea.mActorHolder.GetActors())
+            foreach (CourseActor actor in mEditContext.GetActorHolder().GetActors())
             {
                 string layer = actor.mLayer;
 

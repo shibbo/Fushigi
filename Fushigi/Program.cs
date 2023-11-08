@@ -2,7 +2,13 @@
 using Fushigi.param;
 using Fushigi.ui;
 
-Console.WriteLine("Starting Fushigi...");
+FileStream outputStream = new FileStream("output.log", FileMode.Create);
+var consoleWriter = new StreamWriter(outputStream);
+consoleWriter.AutoFlush = true;
+Console.SetOut(consoleWriter);
+Console.SetError(consoleWriter);
+
+Console.WriteLine("Starting Fushigi v0.3...");
 Console.WriteLine("Loading user settings...");
 UserSettings.Load();
 Console.WriteLine("Loading parameter database...");
@@ -11,3 +17,5 @@ Console.WriteLine("Loading area parameter loader...");
 ParamLoader.Load();
 
 MainWindow window = new MainWindow();
+
+outputStream.Close();
