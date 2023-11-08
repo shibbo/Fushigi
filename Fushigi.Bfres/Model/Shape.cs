@@ -72,7 +72,7 @@ namespace Fushigi.Bfres
         private Vector4[] TryGetAttributeData(string name)
         {
             if (this.Attributes.ContainsKey(name))
-                return Attributes[name].GetData(this);
+                return ((VertexAttribute)Attributes[name]).GetData(this);
 
             return new Vector4[0];
         }
