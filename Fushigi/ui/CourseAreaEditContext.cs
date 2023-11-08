@@ -131,6 +131,7 @@ namespace Fushigi.ui
 
         public void DeleteActor(CourseActor actor)
         {
+            Console.WriteLine($"Deleting actor {actor.mActorName} [{actor.GetHash()}]");
             Deselect(actor);
             DeleteActorFromGroups(actor.GetHash());
             DeleteLinksWithSrcHash(actor.GetHash());
@@ -149,13 +150,13 @@ namespace Fushigi.ui
             {
                 DeleteActor(actor);
             }
-                
 
             mUndoHandler.EndUndoCollection();
         }
 
         public void DeleteActorFromGroups(ulong hash)
         {
+            Console.WriteLine($"Deleting actor with {hash} from groups.");
             area.mGroups.RemoveFromGroup(hash);
         }
 
@@ -181,6 +182,7 @@ namespace Fushigi.ui
 
         public void AddLink(CourseLink link)
         {
+            Console.WriteLine($"Adding Link: Source: {link.GetSrcHash()} -- Dest: {link.GetDestHash()}");
             area.mLinkHolder.AddLink(link);
         }
 

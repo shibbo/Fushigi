@@ -319,7 +319,7 @@ namespace Fushigi.ui.widgets
                     posVec.Z = 0.0f;
                     actor.mTranslation = posVec;
 
-                    mArea.mActorHolder.AddActor(actor);
+                    mEditContext.AddActor(actor);
 
                     if (!ImGui.GetIO().KeyShift)
                     {
@@ -366,7 +366,7 @@ namespace Fushigi.ui.widgets
                     {
                         if (hoveredActor != null)
                         {
-                            mArea.mActorHolder.DeleteActor(hoveredActor);
+                            mEditContext.DeleteActor(hoveredActor);
 
                             if (!ImGui.GetIO().KeyShift)
                             {
@@ -602,7 +602,7 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            foreach (CourseActor actor in mArea.mActorHolder.GetActors())
+            foreach (CourseActor actor in mEditContext.GetActorHolder().GetActors())
             {
                 string layer = actor.mLayer;
 
