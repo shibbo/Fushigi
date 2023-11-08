@@ -409,6 +409,24 @@ namespace Fushigi.course
 
         }
 
+        public void RemoveLinkFromSrc(ulong hash)
+        {
+            int idx = -1;
+            foreach (Link link in mLinks)
+            {
+                if (link.Source.GetHash() == hash)
+                {
+                    idx = mLinks.IndexOf(link);
+                    break;
+                }
+            }
+
+            if (idx != -1)
+            {
+                mLinks.RemoveAt(idx);
+            }
+        }
+
         public BymlArrayNode SerializeToArray()
         {
             BymlArrayNode node = new((uint)mLinks.Count);

@@ -128,6 +128,7 @@ namespace Fushigi.ui
             DeleteActorFromAllGroups(actor.GetHash());
             DeleteLinksWithSrcHash(actor.GetHash());
             DeleteLinksWithDestHash(actor.GetHash());
+            DeleteRail(actor.GetHash());
             mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
                 .RevertableRemove(actor));
 
@@ -214,6 +215,12 @@ namespace Fushigi.ui
         public CourseActorHolder GetActorHolder()
         {
             return area.mActorHolder;
+        }
+
+        public void DeleteRail(ulong hash)
+        {
+            Console.WriteLine($"Removing Rail attached to {hash}");
+            area.mRailLinks.RemoveLinkFromSrc(hash);
         }
     }
 }

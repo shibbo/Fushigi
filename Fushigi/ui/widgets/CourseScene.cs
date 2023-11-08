@@ -435,10 +435,20 @@ namespace Fushigi.ui.widgets
                         ImGui.NextColumn();
 
                         CourseActor? destActor = selectedArea.mActorHolder[hashArray[i]];
-
-                        if (ImGui.Button(destActor.mName, new Vector2(ImGui.GetContentRegionAvail().X, 0)))
+                        
+                        if (destActor != null)
                         {
+                            if (ImGui.Button(destActor.mName, new Vector2(ImGui.GetContentRegionAvail().X, 0)))
+                            {
 
+                            }
+                        }
+                        else
+                        {
+                            if (ImGui.Button("Actor Not Found"))
+                            {
+
+                            }
                         }
 
                         ImGui.NextColumn();
