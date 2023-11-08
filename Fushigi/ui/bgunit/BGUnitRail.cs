@@ -109,7 +109,7 @@ namespace Fushigi.ui.widgets
             foreach (var point in selected)
                 viewport.mEditContext.AddToUndo(new UnitRailPointDeleteUndo(this, point));
 
-            viewport.mEditContext.EndUndoCollection();
+            viewport.mEditContext.EndUndoCollection("Delete Rail Points");
 
             foreach (var point in selected)
                 this.Points.Remove(point);
@@ -232,7 +232,7 @@ namespace Fushigi.ui.widgets
                 viewport.mEditContext.BeginUndoCollection();
                 foreach (var point in this.GetSelected(viewport.mEditContext))
                     viewport.mEditContext.AddToUndo(new TransformUndo(point.Transform));
-                viewport.mEditContext.EndUndoCollection();
+                viewport.mEditContext.EndUndoCollection("Move Rail Points");
             }
 
             for (int i = 0; i < Points.Count; i++)

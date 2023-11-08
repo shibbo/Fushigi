@@ -97,46 +97,29 @@ namespace Fushigi.course
             }
         }
 
-        public void AddLink(CourseLink newLink)
+        public IEnumerable<int> GetIndicesOfLinksWithDest_ForDelete(ulong hash)
         {
-            mLinks.Add(newLink);
+            for (int i = mLinks.Count - 1; i >= 0; i--)
+            {
+                if (mLinks[i].GetDestHash() == hash)
+                    yield return i;
+            }
+        }
+        public IEnumerable<int> GetIndicesOfLinksWithSrc_ForDelete(ulong hash)
+        {
+            for (int i = mLinks.Count - 1; i >= 0; i--)
+            {
+                if (mLinks[i].GetSrcHash() == hash)
+                    yield return i;
+            }
         }
 
-        public void DeleteLinkWithDest(ulong hash)
+        public bool TryGetIndexOfLink(string name, ulong src, ulong dest, out int index)
         {
-            int idx = -1;
-            foreach (CourseLink link in mLinks)
-            {
-                if (link.GetDestHash() == hash)
-                {
-                    idx = mLinks.IndexOf(link);
-                }
-            }
+            index = mLinks.FindIndex(x => x.GetLinkName() == name &&
+                x.GetSrcHash() == src && x.GetDestHash() == dest);
 
-            if (idx == -1)
-            {
-                return;
-            }
-
-            mLinks.RemoveAt(idx);
-        }
-        public void DeleteLinkWithSrc(ulong hash)
-        {
-            int idx = -1;
-            foreach (CourseLink link in mLinks)
-            {
-                if (link.GetSrcHash() == hash)
-                {
-                    idx = mLinks.IndexOf(link);
-                }
-            }
-
-            if (idx == -1)
-            {
-                return;
-            }
-
-            mLinks.RemoveAt(idx);
+            return index != -1;
         }
 
         public Dictionary<string, List<ulong>> GetDestHashesFromSrc(ulong hash)

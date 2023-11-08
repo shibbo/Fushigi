@@ -32,9 +32,10 @@ namespace Fushigi.course
             return mActors.Any(a => a.GetHash() == hash);
         }
 
-        public void RemoveActor(ulong hash)
+        public bool TryGetIndexOfActor(ulong hash, out int index)
         {
-            mActors.RemoveAt(mActors.FindIndex(a => a.GetHash() == hash));
+            index = mActors.FindIndex(a => a.GetHash() == hash);
+            return index != -1;
         }
 
         public BymlHashTable BuildNode()
@@ -104,16 +105,12 @@ namespace Fushigi.course
             }
         }
 
-        public void RemoveFromGroup(ulong hash)
+        public IEnumerable<CourseGroup> GetGroupsContaining(ulong hash)
         {
-            foreach (CourseGroup grp in mGroups)
+            foreach (CourseGroup group in mGroups)
             {
-                if (!grp.IsActorValid(hash))
-                {
-                    continue;
-                }
-
-                grp.RemoveActor(hash);
+                if (group.IsActorValid(hash))
+                    yield return group;
             }
         }
 

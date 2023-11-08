@@ -25,24 +25,15 @@ namespace Fushigi.ui
         public void Redo() => mUndoHandler.Redo();
 
         public void AddToUndo(IRevertable revertable)
-        {
-            mUndoHandler.AddToUndo(revertable);
-        }
+            => mUndoHandler.AddToUndo(revertable);
 
         public void AddToUndo(List<IRevertable> revertable)
-        {
-            mUndoHandler.AddToUndo(revertable);
-        }
+            => mUndoHandler.AddToUndo(revertable);
 
-        public void BeginUndoCollection()
-        {
-            mUndoHandler.BeginUndoCollection();
-        }
-
-        public void EndUndoCollection()
-        {
-            mUndoHandler.EndUndoCollection();
-        }
+        public void BeginUndoCollection() 
+            => mUndoHandler.BeginUndoCollection();
+        public void EndUndoCollection(string actionName) 
+            => mUndoHandler.EndUndoCollection(actionName);
 
         public void DeselectAll()
         {
@@ -126,18 +117,21 @@ namespace Fushigi.ui
         public void AddActor(CourseActor actor)
         {
             mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
-                .RevertableAdd(actor, $"Adding {actor.mActorName}"));
+                .RevertableAdd(actor, $"Add {actor.mActorName}"));
         }
 
         public void DeleteActor(CourseActor actor)
         {
+            mUndoHandler.BeginUndoCollection();
             Console.WriteLine($"Deleting actor {actor.mActorName} [{actor.GetHash()}]");
             Deselect(actor);
-            DeleteActorFromGroups(actor.GetHash());
+            DeleteActorFromAllGroups(actor.GetHash());
             DeleteLinksWithSrcHash(actor.GetHash());
             DeleteLinksWithDestHash(actor.GetHash());
             mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
-                .RevertableRemove(actor, $"Removing {actor.mActorName}"));
+                .RevertableRemove(actor));
+
+            mUndoHandler.EndUndoCollection($"Delete {actor.mActorName}");
         }
 
         public void DeleteSelectedActors()
@@ -154,20 +148,48 @@ namespace Fushigi.ui
             mUndoHandler.EndUndoCollection();
         }
 
-        public void DeleteActorFromGroups(ulong hash)
+        private void DeleteActorFromAllGroups(ulong hash)
         {
             Console.WriteLine($"Deleting actor with {hash} from groups.");
-            area.mGroups.RemoveFromGroup(hash);
+            foreach (var group in area.mGroups.GetGroupsContaining(hash))
+                DeleteActorFromGroup(group, hash);
         }
 
-        public void DeleteLinksWithDestHash(ulong hash)
+        public void DeleteActorFromGroup(CourseGroup group, ulong hash)
         {
-            area.mLinkHolder.DeleteLinkWithDest(hash);
+            if (group.TryGetIndexOfActor(hash, out int index))
+            {
+                AddToUndo(
+                        group.GetActors().RevertableRemoveAt(index,
+                        $"Remove actor {hash} from group")
+                    );
+            }     
         }
 
-        public void DeleteLinksWithSrcHash(ulong hash)
+        private void DeleteLinksWithDestHash(ulong hash)
         {
-            area.mLinkHolder.DeleteLinkWithSrc(hash);
+            foreach (var index in area.mLinkHolder.GetIndicesOfLinksWithDest_ForDelete(hash))
+                DeleteLinkByIndex(index);
+        }
+
+        private void DeleteLinksWithSrcHash(ulong hash)
+        {
+            foreach (var index in area.mLinkHolder.GetIndicesOfLinksWithSrc_ForDelete(hash))
+                DeleteLinkByIndex(index);
+        }
+
+        public void DeleteLink(string name, ulong src, ulong dest)
+        {
+            if (area.mLinkHolder.TryGetIndexOfLink(name, src, dest, out int index))
+                DeleteLinkByIndex(index);
+        }
+
+        private void DeleteLinkByIndex(int index)
+        {
+            var name = area.mLinkHolder.GetLinks()[index].GetLinkName();
+            AddToUndo(
+                area.mLinkHolder.GetLinks().RevertableRemoveAt(index, $"Delete {name} Link")
+            );
         }
 
         public bool IsActorDestForLink(CourseActor actor)
@@ -183,7 +205,10 @@ namespace Fushigi.ui
         public void AddLink(CourseLink link)
         {
             Console.WriteLine($"Adding Link: Source: {link.GetSrcHash()} -- Dest: {link.GetDestHash()}");
-            area.mLinkHolder.AddLink(link);
+            AddToUndo(
+                area.mLinkHolder.GetLinks().RevertableAdd(link, 
+                    $"Add {link.GetLinkName()} Link")
+            );
         }
 
         public CourseActorHolder GetActorHolder()
