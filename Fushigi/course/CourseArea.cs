@@ -10,7 +10,6 @@ using System.Net.Mime;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using ZstdNet;
 
 namespace Fushigi.course
 {
