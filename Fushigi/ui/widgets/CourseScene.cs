@@ -395,16 +395,29 @@ namespace Fushigi.ui.widgets
                 ImGui.Text("Links");
                 ImGui.Separator();
 
-                string[] linkTypes = new string[] { "BasicSignal", "Create", "Delete", "CreateRelativePos", 
-                                                    "CullingReference", "NextGoToParallel", "Bind", "NoticeDeath", 
-                                                    "Contents", "PopUp",  };
-                int idx = 0;
+                string[] linkTypes = [ 
+                    "BasicSignal", "Create", "Delete", "CreateRelativePos", 
+                    "CullingReference", "NextGoToParallel", "Bind", "NoticeDeath", 
+                    "Contents", "PopUp", 
+                ];
 
-                if (ImGui.Combo("Add Link", ref idx, linkTypes, linkTypes.Length))
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                if (ImGui.BeginCombo("##Add Link", "Add Link"))
                 {
-                    activeViewport.mNewLinkType = linkTypes[idx];
-                    activeViewport.mIsLinkNew = true;
-                    activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
+                    for (int i = 0; i < linkTypes.Length; i++)
+                    {
+                        var linkType = linkTypes[i];
+
+                        if (ImGui.Selectable(linkType))
+                        {
+                            activeViewport.mNewLinkType = linkType;
+                            activeViewport.mIsLinkNew = true;
+                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
+                            ImGui.SetWindowFocus(selectedArea.GetName());
+                        }
+                    }
+
+                    ImGui.EndCombo();
                 }
 
                 var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.GetHash());
@@ -413,37 +426,73 @@ namespace Fushigi.ui.widgets
                     ImGui.Text(kvp.Key);
                     var hashArray = kvp.Value;
 
+                    ImGui.Columns(3);
+
                     for (int i = 0; i < hashArray.Count; i++)
                     {
-                        ImGui.Columns(4);
-                        ImGui.AlignTextToFramePadding();
+                        ImGui.PushID($"{hashArray[i].ToString()}_{i}");
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetStyle().FramePadding.X);
                         ImGui.Text("Destination");
                         ImGui.NextColumn();
 
                         CourseActor? destActor = selectedArea.mActorHolder[hashArray[i]];
 
-                        if (ImGui.Button(destActor.mName))
+                        if (ImGui.Button(destActor.mName, new Vector2(ImGui.GetContentRegionAvail().X, 0)))
                         {
 
                         }
 
                         ImGui.NextColumn();
 
-                        if (ImGui.Button("Replace (List)"))
+                        var cursorSP = ImGui.GetCursorScreenPos();
+                        var padding = ImGui.GetStyle().FramePadding;
+
+                        uint WithAlphaFactor(uint color, float factor) => color & 0xFFFFFF | ((uint)((color >> 24)*factor) << 24);
+
+                        float deleteButtonWidth = ImGui.GetFrameHeight() * 1.6f;
+
+                        float columnWidth = ImGui.GetContentRegionAvail().X;
+
+                        ImGui.PushClipRect(cursorSP, 
+                            cursorSP + new Vector2(columnWidth - deleteButtonWidth, ImGui.GetFrameHeight()), true);
+
+                        var cursor = ImGui.GetCursorPos();
+                        ImGui.BeginDisabled();
+                        if (ImGui.Button("Replace"))
                         {
 
                         }
+                        ImGui.EndDisabled();
+                        cursor.X += ImGui.GetItemRectSize().X + 2;
 
-                        ImGui.NextColumn();
-                        ImGui.PushID($"{hashArray[i].ToString()}_{i}");
-                        if (ImGui.Button("Replace (Viewport)"))
+                        ImGui.SetCursorPos(cursor);
+                        if (ImGui.Button(IconUtil.ICON_EYE_DROPPER))
                         {
                             activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
                             activeViewport.CurCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
+                            ImGui.SetWindowFocus(selectedArea.GetName());
                         }
-                        ImGui.PopID();
 
-                        ImGui.Columns(1);
+                        ImGui.PopClipRect();
+                        cursorSP.X += columnWidth - deleteButtonWidth;
+                        ImGui.SetCursorScreenPos(cursorSP);
+
+                        bool clicked = ImGui.InvisibleButton("##Delete Link", new Vector2(deleteButtonWidth, ImGui.GetFrameHeight()));
+                        string deleteIcon = IconUtil.ICON_TRASH_ALT;
+                        ImGui.GetWindowDrawList().AddText(cursorSP + new Vector2((deleteButtonWidth - ImGui.CalcTextSize(deleteIcon).X)/2, padding.Y),
+                            WithAlphaFactor(ImGui.GetColorU32(ImGuiCol.Text), ImGui.IsItemHovered() ? 1 : 0.5f), 
+                            deleteIcon);
+
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Delete Link");
+
+                        if (clicked)
+                        {
+
+                        }
+                        ImGui.NextColumn();
+
+                        ImGui.PopID();
                     }
 
                     ImGui.Separator();
