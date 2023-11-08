@@ -9,14 +9,22 @@ using System.Xml.Linq;
 
 namespace Fushigi.Bfres.Common
 {
-    public abstract class ResDict : Dictionary<string, IResData>
-    {
-
-    }
-
-    public class ResDict<T> : ResDict, IResData where T : IResData, new()
+    public class ResDict<T> :  Dictionary<string, T>, IResData where T : IResData, new()
     {
         public ResDict() { }
+
+        public T this[int index]
+        {
+            get
+            {
+                for (int i = 0; i < this.Count; i++)
+                {
+                    if (i ==  index)
+                        return this[GetKey(i)];
+                }
+                return new T();
+            }
+        }
 
         public string GetKey(int index)
         {
@@ -32,7 +40,9 @@ namespace Fushigi.Bfres.Common
             int numNodes = reader.ReadInt32();
 
             List<Node> nodes = new List<Node>();
-            for (int i = 0; i < numNodes; i++) 
+
+            int i = 0;
+            for (; numNodes >= 0; numNodes--)
             {
                 nodes.Add(new Node()
                 {
@@ -41,10 +51,11 @@ namespace Fushigi.Bfres.Common
                     IdxRight = reader.ReadUInt16(),
                     Key = reader.ReadStringOffset(reader.ReadUInt64()),
                 });
+                i++;
             }
 
-            for (int i = 1; i < nodes.Count; i++)
-                this.Add(nodes[i].Key, null);
+            for (int j = 1; j < nodes.Count; j++)
+                this.Add(nodes[j].Key, new T());
         }
 
         protected class Node

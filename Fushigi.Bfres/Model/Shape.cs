@@ -48,10 +48,14 @@ namespace Fushigi.Bfres
         {
             header = new VertexBufferHeader();
             reader.BaseStream.Read(Utils.AsSpan(ref header));
-            Attributes = reader.ReadDictionary<VertexAttribute>(header.AttributeArrayDictionary, header.AttributeArrayOffset);
 
+            long pos = reader.BaseStream.Position;
+
+            Attributes = reader.ReadDictionary<VertexAttribute>(header.AttributeArrayDictionary, header.AttributeArrayOffset);
             BufferInfo = reader.ReadArray<VertexBufferInfo>(header.VertexBufferInfoArray, header.VertexBufferCount);
             BufferStrides = reader.ReadArray<VertexStrideInfo>(header.VertexBufferStrideArray, header.VertexBufferCount);
+
+            reader.SeekBegin(pos);
         }
 
         public void InitBuffers(BinaryReader reader, BufferMemoryPool bufferPoolInfo)
@@ -72,7 +76,7 @@ namespace Fushigi.Bfres
         private Vector4[] TryGetAttributeData(string name)
         {
             if (this.Attributes.ContainsKey(name))
-                return ((VertexAttribute)Attributes[name]).GetData(this);
+                return Attributes[name].GetData(this);
 
             return new Vector4[0];
         }
@@ -186,12 +190,17 @@ namespace Fushigi.Bfres
         /// The mesh list for handling level of details.
         /// The first mesh is used by default without LODs.
         /// </summary>
-        public List<Mesh> Meshes { get; set; }
+        public List<Mesh> Meshes { get; set; } = new List<Mesh>();
 
         /// <summary>
         /// The vertex buffer for handling vertices.
         /// </summary>
-        public VertexBuffer VertexBuffer { get; set; }
+        public VertexBuffer VertexBuffer { get; set; } = new VertexBuffer();
+
+        /// <summary>
+        /// Bounding boxes used to frustum check mesh LODs and submeshes.
+        /// </summary>
+        public List<ShapeBounding> BoundingBoxes { get; set; } = new List<ShapeBounding>();
 
         private ShapeHeader header;
 
@@ -202,9 +211,10 @@ namespace Fushigi.Bfres
             long pos = reader.BaseStream.Position;
 
             Name = reader.ReadStringOffset(header.NameOffset);
+            Meshes = reader.ReadArray<Mesh>(header.MeshArrayOffset, header.MeshCount);
 
-            reader.Seek(header.MeshArrayOffset);
-            Meshes = reader.ReadArray<Mesh>(header.MeshCount);
+            var numBounding = (int)Meshes.Sum(x => x.SubMeshes.Count + 1);
+            BoundingBoxes = reader.ReadArray<ShapeBounding>(header.BoundingBoxOffset, numBounding);
 
             Console.WriteLine($"Shape - {Name} -");
 
@@ -274,6 +284,18 @@ namespace Fushigi.Bfres
         {
             reader.SeekBegin((long)bufferPoolInfo.Offset + (int)header.BufferOffset);
             this.IndexBuffer = reader.ReadBytes((int)this.BufferInfo.Size);
+        }
+    }
+
+    public class ShapeBounding : IResData
+    {
+        public Vector3 Center;
+        public Vector3 Extent;
+
+        public void Read(BinaryReader reader)
+        {
+            Center = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            Extent = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
         }
     }
 

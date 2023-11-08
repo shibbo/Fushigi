@@ -25,6 +25,29 @@ namespace Fushigi.Bfres
             return MemoryMarshal.Cast<T, byte>(valSpan);
         }
 
+        public static ulong[] ReadUInt64s(this BinaryReader reader, int count)
+        {
+            ulong[] values = new ulong[count];
+            for (int i = 0; i < count; i++)
+                values[i] = reader.ReadUInt64();
+            return values;
+        }
+
+        public static T ReadCustom<T>(this BinaryReader reader, Func<T> value, ulong offset)
+        {
+            if (offset == 0) return default(T);
+
+            long pos = reader.BaseStream.Position;
+
+            reader.SeekBegin((long)offset);
+
+            var result = value.Invoke();
+
+            reader.SeekBegin((long)pos);
+
+            return result;
+        }
+
         public static ResDict<T> ReadDictionary<T>(this BinaryReader reader, ulong offset) where T : IResData, new()
         {
             reader.SeekBegin((long)offset);
