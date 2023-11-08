@@ -178,5 +178,15 @@ namespace Fushigi.ui
         {
             return area.mLinkHolder.IsAnyLinkInvalid(area.mActorHolder);
         }
+
+        public void AddLink(CourseLink link)
+        {
+            area.mLinkHolder.AddLink(link);
+        }
+
+        public CourseActorHolder GetActorHolder()
+        {
+            return area.mActorHolder;
+        }
     }
 }

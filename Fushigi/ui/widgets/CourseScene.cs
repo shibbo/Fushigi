@@ -397,7 +397,8 @@ namespace Fushigi.ui.widgets
                 
                 if (ImGui.Button("Add Link"))
                 {
-
+                    activeViewport.mIsLinkNew = true;
+                    activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
                 }
 
                 var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.GetHash());
@@ -431,8 +432,8 @@ namespace Fushigi.ui.widgets
                         ImGui.PushID($"{hashArray[i].ToString()}_{i}");
                         if (ImGui.Button("Replace (Viewport)"))
                         {
-                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLink;
-                            activeViewport.SrcCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
+                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
+                            activeViewport.CurCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
                         }
                         ImGui.PopID();
 

@@ -11,6 +11,11 @@ namespace Fushigi.course
 {
     public class CourseLink
     {
+        public CourseLink()
+        {
+            mLinkName = "Create";
+        }
+
         public CourseLink(BymlHashTable table, CourseActorHolder actorHolder)
         {
             mSource = actorHolder[BymlUtil.GetNodeData<ulong>(table["Src"])];
@@ -40,6 +45,11 @@ namespace Fushigi.course
             }
 
             return mDest.GetHash();
+        }
+
+        public void SetSrcHash(ulong hash, CourseActorHolder actorHolder)
+        {
+            mSource = actorHolder[hash];
         }
 
         public void SetDestHash(ulong hash, CourseActorHolder actorHolder)
@@ -85,6 +95,11 @@ namespace Fushigi.course
             {
                 mLinks.Add(new CourseLink(tbl, actorHolder));
             }
+        }
+
+        public void AddLink(CourseLink newLink)
+        {
+            mLinks.Add(newLink);
         }
 
         public void DeleteLinkWithDest(ulong hash)
