@@ -395,13 +395,9 @@ namespace Fushigi.ui.widgets
                 ImGui.Text("Links");
                 ImGui.Separator();
 
-                /*if (ImGui.Button("Add Link"))
-                {
-                    activeViewport.mIsLinkNew = true;
-                    activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
-                }*/
-
-                string[] linkTypes = new string[] { "BasicSignal", "Create", "Delete", "CreateRelativePos", "CullingReference", "NextGoToParallel", "Bind",  };
+                string[] linkTypes = new string[] { "BasicSignal", "Create", "Delete", "CreateRelativePos", 
+                                                    "CullingReference", "NextGoToParallel", "Bind", "NoticeDeath", 
+                                                    "Contents", "PopUp",  };
                 int idx = 0;
 
                 if (ImGui.Combo("Add Link", ref idx, linkTypes, linkTypes.Length))
