@@ -43,7 +43,7 @@ jobs:
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln --no-restore 
     - name: Switch Build Targets to MacOS
-      run: dotnet workload install macos
+      run: dotnet restore
     - name: Publish Mac Silicon
       run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
     - name: Publish Mac x64
