@@ -34,6 +34,11 @@ namespace Fushigi.course
 
         public ulong GetDestHash()
         {
+            if (mDest == null)
+            {
+                return 0;
+            }
+
             return mDest.GetHash();
         }
 
