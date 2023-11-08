@@ -11,9 +11,9 @@ namespace Fushigi.course
 {
     public class CourseLink
     {
-        public CourseLink()
+        public CourseLink(string linkName)
         {
-            mLinkName = "Create";
+            mLinkName = linkName;
         }
 
         public CourseLink(BymlHashTable table, CourseActorHolder actorHolder)

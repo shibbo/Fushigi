@@ -44,6 +44,7 @@ namespace Fushigi.ui.widgets
         Vector2 mTopLeft = Vector2.Zero;
         public string mActorToAdd = "";
         public bool mIsLinkNew = false;
+        public string mNewLinkType = "";
 
         public float FOV = MathF.PI / 2;
 
@@ -416,7 +417,7 @@ namespace Fushigi.ui.widgets
                 /* if our link is new, it means that we don't have to check for hovered actors for the source designation */
                 if (mIsLinkNew)
                 {
-                    CurCourseLink = new();
+                    CurCourseLink = new(mNewLinkType);
                     CourseActor selActor = mEditContext.GetSelectedObjects<CourseActor>().ElementAt(0);
                     CurCourseLink.SetSrcHash(selActor.GetHash(), mEditContext.GetActorHolder());
                     mIsLinkNew = false;
