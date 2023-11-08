@@ -34,6 +34,11 @@ namespace Fushigi.course
 
         public ulong GetSrcHash()
         {
+            if (mSource == null)
+            {
+                return 0;
+            }
+
             return mSource.GetHash();
         }
 
