@@ -18,6 +18,11 @@ namespace Fushigi.Bfres.Common
     {
         public ResDict() { }
 
+        public T this[string key]
+        {
+            get { return this[key]; }
+        }
+
         public string GetKey(int index)
         {
             if (index >= 0 && index < Keys.Count)

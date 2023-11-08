@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fushigi.Bfres.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -19,17 +20,17 @@ namespace Fushigi.Bfres
         /// <summary>
         /// A list of shapes for drawing meshes.
         /// </summary>
-        public List<Shape> Shapes { get; set; }
+        public ResDict<Shape> Shapes { get; set; } = new ResDict<Shape>();
 
         /// <summary>
         /// 
         /// </summary>
-        public List<Material> Materials { get; set; }
+        public ResDict<Material> Materials { get; set; } = new ResDict<Material>();
 
         /// <summary>
         /// A list of vertex buffers used for loading vertex data for shapes.
         /// </summary>
-        internal List<VertexBuffer> VertexBuffers { get; set; }
+        internal List<VertexBuffer> VertexBuffers { get; set; } = new List<VertexBuffer>();
 
         public void Read(BinaryReader reader)
         {
@@ -42,8 +43,9 @@ namespace Fushigi.Bfres
             Console.WriteLine($"Model - {Name} -");
 
             VertexBuffers = reader.ReadArray<VertexBuffer>(header.VertexArrayOffset, header.VertexBufferCount);
-            Shapes = reader.ReadArray<Shape>(header.ShapeArrayOffset, header.ShapeCount);
-            Materials = reader.ReadArray<Material>(header.MaterialArrayOffset, header.MaterialCount);
+
+            Shapes = reader.ReadDictionary<Shape>(header.ShapeDictionaryOffset, header.ShapeArrayOffset);
+            Materials = reader.ReadDictionary<Material>(header.MaterialDictionaryOffset, header.MaterialArrayOffset);
 
             //return
             reader.SeekBegin(pos);
@@ -52,7 +54,7 @@ namespace Fushigi.Bfres
         internal void Init(BinaryReader reader, BufferMemoryPool memoryInfo)
         {
             //Prepare each shape and setup the memory for each buffer
-            foreach (var shape in Shapes)
+            foreach (Shape shape in Shapes.Values)
                 shape.Init(reader, VertexBuffers[shape.VertexBufferIndex], memoryInfo);
         }
     }

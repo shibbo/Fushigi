@@ -36,8 +36,6 @@ namespace Fushigi.Bfres
                 header.SamplerDictionaryOffset, header.SamplerOffset);
 
             reader.SeekBegin(pos);
-
-            Console.WriteLine();
         }
     }
 

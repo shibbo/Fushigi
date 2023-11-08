@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fushigi.Bfres.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -26,12 +27,12 @@ namespace Fushigi.Bfres
         /// <summary>
         /// The buffer data used to store attribute data.
         /// </summary>
-        public List<BufferData> Buffers = new List<BufferData>();
+        public List<BufferData> Buffers { get; set; } = new List<BufferData>();
 
         /// <summary>
         /// A list of vertex attributes for handling vertex data.
         /// </summary>
-        public Dictionary<string, VertexAttribute> Attributes = new Dictionary<string, VertexAttribute>();
+        public ResDict<VertexAttribute> Attributes { get; set; } = new ResDict<VertexAttribute>();
 
         /// <summary>
         /// The total number of vertices used in the buffer.
@@ -47,12 +48,10 @@ namespace Fushigi.Bfres
         {
             header = new VertexBufferHeader();
             reader.BaseStream.Read(Utils.AsSpan(ref header));
-            var attributes = reader.ReadArray<VertexAttribute>(header.AttributeArrayOffset, header.VertexAttributeCount);
+            Attributes = reader.ReadDictionary<VertexAttribute>(header.AttributeArrayDictionary, header.AttributeArrayOffset);
+
             BufferInfo = reader.ReadArray<VertexBufferInfo>(header.VertexBufferInfoArray, header.VertexBufferCount);
             BufferStrides = reader.ReadArray<VertexStrideInfo>(header.VertexBufferStrideArray, header.VertexBufferCount);
-
-            foreach (var att in attributes)
-                Attributes.Add(att.Name, att); 
         }
 
         public void InitBuffers(BinaryReader reader, BufferMemoryPool bufferPoolInfo)

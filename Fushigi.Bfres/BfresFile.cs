@@ -1,10 +1,11 @@
-﻿using System.Reflection;
+﻿using Fushigi.Bfres.Common;
+using System.Reflection;
 
 namespace Fushigi.Bfres
 {
     public class BfresFile
     {
-        public Dictionary<string, Model> Models = new Dictionary<string, Model>();
+        public ResDict<Model> Models = new ResDict<Model>();
 
         public string Name;
 
@@ -34,18 +35,14 @@ namespace Fushigi.Bfres
             reader.Seek(Header.MemoryPoolInfoOffset);
             stream.Read(Utils.AsSpan(ref BufferMemoryPoolInfo));
 
-            reader.Seek(Header.ModelOffset);
-            var models = reader.ReadArray<Model>(Header.ModelCount);
-
-            for (int i = 0; i < models.Count; i++)
-                Models.Add(models[i].Name, models[i]);
+            Models = reader.ReadDictionary<Model>(Header.ModelDictionaryOffset, Header.ModelOffset);
 
             Init(reader);
         }
 
         internal void Init(BinaryReader reader)
         {
-            foreach (var model in Models.Values)
+            foreach (Model model in Models.Values)
                 model.Init(reader, this.BufferMemoryPoolInfo);
         }
     }
