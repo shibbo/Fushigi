@@ -422,9 +422,8 @@ namespace Fushigi.ui.widgets
 
                 var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.GetHash());
 
-                foreach (KeyValuePair<string, List<ulong>> kvp in destHashes) {
-                    ImGui.Text(kvp.Key);
-                    var hashArray = kvp.Value;
+                foreach ((string linkName, List<ulong> hashArray) in destHashes) {
+                    ImGui.Text(linkName);
 
                     ImGui.Columns(3);
 
@@ -487,9 +486,8 @@ namespace Fushigi.ui.widgets
                             ImGui.SetTooltip("Delete Link");
 
                         if (clicked)
-                        {
+                            activeViewport.mEditContext.DeleteLink(linkName, mSelectedActor.mActorHash, hashArray[i]);
 
-                        }
                         ImGui.NextColumn();
 
                         ImGui.PopID();
