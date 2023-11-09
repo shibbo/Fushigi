@@ -409,7 +409,7 @@ namespace Fushigi.ui.widgets
                 string[] linkTypes = [ 
                     "BasicSignal", "Create", "Delete", "CreateRelativePos", 
                     "CullingReference", "NextGoToParallel", "Bind", "NoticeDeath", 
-                    "Contents", "PopUp", ParamRefForChild", "Connection", "Follow",
+                    "Contents", "PopUp", "ParamRefForChild", "Connection", "Follow",
                     "Reference",
                 ];
 
