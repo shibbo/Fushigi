@@ -368,7 +368,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.AlignTextToFramePadding();
                 string tempName = mSelectedActor.mActorName;
-                if (ImGui.InputText("Name", ref tempName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
+                if (ImGui.InputText("Actor Name", ref tempName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
                     if (ParamDB.GetActors().Contains(tempName))
                     {
