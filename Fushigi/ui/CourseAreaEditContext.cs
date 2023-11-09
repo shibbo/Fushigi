@@ -125,6 +125,10 @@ namespace Fushigi.ui
             actor.mActorName = newName;
         }
 
+        public void SetObjectName(CourseActor actor, string newName)
+        {
+            actor.mName = newName;
+        }
         public void DeleteActor(CourseActor actor)
         {
             mUndoHandler.BeginUndoCollection();

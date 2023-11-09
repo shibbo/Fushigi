@@ -386,7 +386,10 @@ namespace Fushigi.ui.widgets
 
                 ImGui.NextColumn();
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
-                ImGui.InputText($"##{name}", ref name, 512);
+                if (ImGui.InputText($"##{name}", ref name, 512, ImGuiInputTextFlags.EnterReturnsTrue)) {
+                    activeViewport.mEditContext.SetObjectName(mSelectedActor, name);
+                }
+
                 ImGui.PopItemWidth();
 
                 ImGui.Columns(1);
