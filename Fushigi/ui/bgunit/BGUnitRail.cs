@@ -44,7 +44,12 @@ namespace Fushigi.ui.widgets
             this.Points.Clear();
 
             foreach (var pt in rail.mPoints)
-                Points.Add(new RailPoint(pt.Value));
+            {
+                var railPoint = new RailPoint(pt.Value);
+                railPoint.Transform.Update += unit.GenerateTileSubUnits;
+                Points.Add(railPoint);
+                
+            }
 
             IsClosed = rail.IsClosed;
             IsInternal = rail.IsInternal;
@@ -219,8 +224,6 @@ namespace Fushigi.ui.widgets
         {
             mouseDown = false;
             transformStart = false;
-
-            CourseUnit.GenerateTileSubUnits();
         }
 
         public void OnSelecting(LevelViewport viewport)
@@ -241,6 +244,8 @@ namespace Fushigi.ui.widgets
                 viewport.mEditContext.EndUndoCollection("Move Rail Points");
             }
 
+            bool anyTransformed = false;
+
             for (int i = 0; i < Points.Count; i++)
             {
                 if (transformStart && ctx.IsSelected(Points[i]))
@@ -249,8 +254,12 @@ namespace Fushigi.ui.widgets
                     diff.Y = MathF.Round(diff.Y, MidpointRounding.AwayFromZero);
                     posVec.Z = Points[i].Position.Z;
                     Points[i].Position = Points[i].PreviousPosition + diff;
+                    anyTransformed = true;
                 }
             }
+
+            if(anyTransformed)
+                CourseUnit.GenerateTileSubUnits();
         }
 
         public void Render(LevelViewport viewport, ImDrawListPtr mDrawList)

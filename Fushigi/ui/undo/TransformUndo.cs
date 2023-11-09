@@ -36,7 +36,7 @@ namespace Fushigi.ui
             Transform.Position = this.PreviousPosition;
             Transform.RotationEuler = this.PreviousRotation;
             Transform.Scale = this.PreviousScale;
-            Transform.Update();
+            Transform.OnUpdate();
 
             //Create revert stack
             return new TransformUndo(Transform);
