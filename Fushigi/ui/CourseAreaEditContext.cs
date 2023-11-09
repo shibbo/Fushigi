@@ -198,11 +198,6 @@ namespace Fushigi.ui
             return area.mLinkHolder.GetLinkWithDestHash(actor.GetHash()) != null;
         }
 
-        public bool IsAnyLinkInvalid()
-        {
-            return area.mLinkHolder.IsAnyLinkInvalid(area.mActorHolder);
-        }
-
         public void AddLink(CourseLink link)
         {
             Console.WriteLine($"Adding Link: Source: {link.GetSrcHash()} -- Dest: {link.GetDestHash()}");

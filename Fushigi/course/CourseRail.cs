@@ -379,9 +379,9 @@ namespace Fushigi.course
     {
         struct Link
         {
-            public CourseActor? Source;
-            public CourseRail? Dest;
-            public CourseRail.CourseRailPoint? Point;
+            public ulong Source;
+            public ulong Dest;
+            public ulong Point;
             public string Name;
         }
 
@@ -395,9 +395,9 @@ namespace Fushigi.course
                 string name = BymlUtil.GetNodeData<string>(railLink["Name"]);
 
                 Link link = new();
-                link.Source = actorHolder[sourceHash];
-                link.Dest = railHolder[destHash];
-                link.Point = link.Dest[pointHash];
+                link.Source = sourceHash;
+                link.Dest = destHash;
+                link.Point = pointHash;
                 link.Name = name;
 
                 mLinks.Add(link);
@@ -414,7 +414,7 @@ namespace Fushigi.course
             int idx = -1;
             foreach (Link link in mLinks)
             {
-                if (link.Source.GetHash() == hash)
+                if (link.Source == hash)
                 {
                     idx = mLinks.IndexOf(link);
                     break;
@@ -434,10 +434,10 @@ namespace Fushigi.course
             foreach (Link link in mLinks)
             {
                 BymlHashTable tbl = new();
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Dst", link.Dest.GetHash()), "Dst");
+                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Dst", link.Dest), "Dst");
                 tbl.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Name", link.Name), "Name");
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Point", link.Point.GetHash()), "Point");
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Src", link.Source.GetHash()), "Src");
+                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Point", link.Point), "Point");
+                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Src", link.Source), "Src");
                 node.AddNodeToArray(tbl);
             }
 

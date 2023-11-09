@@ -419,7 +419,7 @@ namespace Fushigi.ui.widgets
                 {
                     CurCourseLink = new(mNewLinkType);
                     CourseActor selActor = mEditContext.GetSelectedObjects<CourseActor>().ElementAt(0);
-                    CurCourseLink.SetSrcHash(selActor.GetHash(), mEditContext.GetActorHolder());
+                    CurCourseLink.mSource = selActor.GetHash();
                     mIsLinkNew = false;
                 }
 
@@ -431,7 +431,7 @@ namespace Fushigi.ui.widgets
                             /* new links have a destination of 0 because there is no hash associated with a null actor */
                             bool isNewLink = CurCourseLink.GetDestHash() == 0;
                             ulong hash = hoveredActor.GetHash();
-                            CurCourseLink.SetDestHash(hash, mEditContext.GetActorHolder());
+                            CurCourseLink.mDest = hash;
 
                             if (isNewLink)
                             {
