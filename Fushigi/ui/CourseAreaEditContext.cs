@@ -120,6 +120,11 @@ namespace Fushigi.ui
                 .RevertableAdd(actor, $"Add {actor.mActorName}"));
         }
 
+        public void SetActorName(CourseActor actor, string newName)
+        {
+            actor.mActorName = newName;
+        }
+
         public void DeleteActor(CourseActor actor)
         {
             mUndoHandler.BeginUndoCollection();

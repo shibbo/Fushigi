@@ -367,7 +367,15 @@ namespace Fushigi.ui.widgets
                 string name = mSelectedActor.mName;
 
                 ImGui.AlignTextToFramePadding();
-                ImGui.Text(actorName);
+                string tempName = mSelectedActor.mActorName;
+                if (ImGui.InputText("Name", ref tempName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    if (ParamDB.GetActors().Contains(tempName))
+                    {
+                        activeViewport.mEditContext.SetActorName(mSelectedActor, tempName);
+                        mSelectedActor.InitializeDefaultDynamicParams();
+                    }
+                }
 
                 ImGui.Separator();
 
@@ -1031,6 +1039,7 @@ namespace Fushigi.ui.widgets
 
                             switch (pair.Value.Type)
                             {
+                                case "U8":
                                 case "S16":
                                 case "S32":
                                     int val_int = (int)actorParam;
