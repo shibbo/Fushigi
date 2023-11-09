@@ -58,10 +58,10 @@ namespace Fushigi.util
         {
             switch (type)
             {
-                case "U8":
                 case "U16":
                 case "U32":
                     return BymlUtil.GetNodeData<uint>(node);
+                case "U8":
                 case "S16":
                 case "S32":
                     return BymlUtil.GetNodeData<int>(node);
