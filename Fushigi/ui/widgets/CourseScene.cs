@@ -1,4 +1,4 @@
-﻿using Fushigi.Byml;
+using Fushigi.Byml;
 using Fushigi.course;
 using Fushigi.param;
 using Fushigi.rstb;
@@ -409,7 +409,8 @@ namespace Fushigi.ui.widgets
                 string[] linkTypes = [ 
                     "BasicSignal", "Create", "Delete", "CreateRelativePos", 
                     "CullingReference", "NextGoToParallel", "Bind", "NoticeDeath", 
-                    "Contents", "PopUp", 
+                    "Contents", "PopUp", ParamRefForChild", "Connection", "Follow",
+                    "Reference",
                 ];
 
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
