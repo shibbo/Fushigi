@@ -407,11 +407,33 @@ namespace Fushigi.ui.widgets
                 ImGui.Text("Links");
                 ImGui.Separator();
 
-                string[] linkTypes = [ 
-                    "BasicSignal", "Create", "Delete", "CreateRelativePos", 
-                    "CullingReference", "NextGoToParallel", "Bind", "NoticeDeath", 
-                    "Contents", "PopUp", "ParamRefForChild", "Connection", "Follow",
+                string[] linkTypes = [
+                    "BasicSignal",
+                    "Create",
+                    "CreateRelativePos",
+                    "CreateAfterDied",
+                    "Delete",
                     "Reference",
+                    "NextGoTo",
+                    "NextGoToParallel",
+                    "Bind",
+                    "Bind_NoRot",
+                    "Connection",
+                    "Follow",
+                    "PopUp",
+                    "Contents",
+                    "NoticeDeath",
+                    "Relocation",
+                    "ParamRefForChild",
+                    "CullingReference",
+                    "EventJoinMember",
+                    "EventGuest_04",
+                    "EventGuest_05",
+                    "EventGuest_06",
+                    "EventGuest_08",
+                    "EventGuest_09",
+                    "EventGuest_10",
+                    "EventGuest_11",
                 ];
 
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
