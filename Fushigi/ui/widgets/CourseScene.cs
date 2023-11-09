@@ -183,6 +183,19 @@ namespace Fushigi.ui.widgets
 
             ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail());
 
+            if (mSelectedActor != null)
+            {
+                 ImGui.Selectable("Selected Actor");
+
+                 if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                 {
+                     Console.WriteLine("Switching state to EditorState.AddingActor");
+                     activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
+                     activeViewport.mActorToAdd = mSelectedActor.mActorName;
+                     mShowAddActor = false;
+                 }
+            }
+            
             foreach (string actor in ParamDB.GetActors())
             {
                 ImGui.Selectable(actor);
