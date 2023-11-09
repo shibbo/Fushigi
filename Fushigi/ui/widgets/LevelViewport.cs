@@ -530,6 +530,85 @@ namespace Fushigi.ui.widgets
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
+                var clipMin = new Vector2(float.NegativeInfinity);
+                var clipMax = new Vector2(float.PositiveInfinity);
+
+                var nearZ = unit.mTileSubUnits.Min(x=>x.mOrigin.Z);
+                var farZ = unit.mTileSubUnits.Max(x=>x.mOrigin.Z);
+
+                foreach (TileSubUnits subUnit in unit.mTileSubUnits.OrderBy(x=>x.mOrigin.Z))
+                {
+                    float blend = ((subUnit.mOrigin.Z - farZ) / (nearZ - farZ));
+                    if(float.IsNaN(blend)) blend = 0;
+
+                    uint color = ImGui.ColorConvertFloat4ToU32(
+                        (1 - blend) * new Vector4(0f, 0f, 1f, 1f) +
+                        blend       * new Vector4(0f, 1f, 1f, 1f)
+                        );
+
+                    var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+
+                    foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
+                    {
+                        mDrawList.AddRectFilled(
+                            WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
+                            new Vector3(0, unit.mModelType == ModelType.Bridge ? .5f : 0, 0)),
+                            WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) + 
+                            new Vector3(1, 1, 0)),
+                            color
+                            );
+                    }
+
+                    foreach (var (x, y, width, height, type) in subUnit.mSlopes)
+                    {
+                        var bbMin = subUnit.mOrigin + new Vector3(x, y, 0);
+                        var bbMax = bbMin + new Vector3(width, height, 0);
+
+                        var bbTL = new Vector3(bbMin.X, bbMax.Y, 0);
+                        var bbTR = new Vector3(bbMax.X, bbMax.Y, 0);
+                        var bbBL = new Vector3(bbMin.X, bbMin.Y, 0);
+                        var bbBR = new Vector3(bbMax.X, bbMin.Y, 0);
+
+                        switch (type)
+                        {
+                            case TileSubUnits.SlopeType.UpperLeft:
+                                mDrawList.AddTriangleFilled(
+                                    WorldToScreen(bbTL),
+                                    WorldToScreen(bbBL),
+                                    WorldToScreen(bbTR),
+                                    color
+                                );
+                                break;
+                            case TileSubUnits.SlopeType.UpperRight:
+                                mDrawList.AddTriangleFilled(
+                                    WorldToScreen(bbTL),
+                                    WorldToScreen(bbBR),
+                                    WorldToScreen(bbTR),
+                                    color
+                                );
+                                break;
+                            case TileSubUnits.SlopeType.LowerLeft:
+                                mDrawList.AddTriangleFilled(
+                                    WorldToScreen(bbTL),
+                                    WorldToScreen(bbBL),
+                                    WorldToScreen(bbBR),
+                                    color
+                                );
+                                break;
+                            case TileSubUnits.SlopeType.LowerRight:
+                                mDrawList.AddTriangleFilled(
+                                    WorldToScreen(bbTR),
+                                    WorldToScreen(bbBL),
+                                    WorldToScreen(bbBR),
+                                    color
+                                );
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+
                 foreach (var wall in unit.Walls)
                 {
                     if (wall.ExternalRail != null)

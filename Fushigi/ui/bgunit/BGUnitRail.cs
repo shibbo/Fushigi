@@ -89,6 +89,7 @@ namespace Fushigi.ui.widgets
             this.Points.Insert(index, point);
             viewport.mEditContext.AddToUndo(new UnitRailPointAddUndo(this, point, index));
             viewport.mEditContext.Select(point);
+            CourseUnit.GenerateTileSubUnits();
         }
 
         public void AddPoint(LevelViewport viewport, RailPoint point)
@@ -96,6 +97,7 @@ namespace Fushigi.ui.widgets
             this.Points.Add(point);
             viewport.mEditContext.AddToUndo(new UnitRailPointAddUndo(this, point));
             viewport.mEditContext.Select(point);
+            CourseUnit.GenerateTileSubUnits();
         }
 
         public void RemoveSelected(LevelViewport viewport)
@@ -113,6 +115,8 @@ namespace Fushigi.ui.widgets
 
             foreach (var point in selected)
                 this.Points.Remove(point);
+
+            CourseUnit.GenerateTileSubUnits();
         }
 
         public void OnKeyDown(LevelViewport viewport)
@@ -215,6 +219,8 @@ namespace Fushigi.ui.widgets
         {
             mouseDown = false;
             transformStart = false;
+
+            CourseUnit.GenerateTileSubUnits();
         }
 
         public void OnSelecting(LevelViewport viewport)

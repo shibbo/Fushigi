@@ -21,7 +21,7 @@ namespace Fushigi.util
                 Debug.Assert(0 <= x && x < ChunkSize);
                 Debug.Assert(0 <= y && y < ChunkSize);
                 tileID = mTiles[x + y * ChunkSize] - 1;
-                return tileID == -1;
+                return tileID != -1;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetTileAt(int x, int y, int? tileID)
@@ -45,23 +45,34 @@ namespace Fushigi.util
             }
         }
 
-        static Chunk8x8 mTempChunk;
-        public void AddTile(int x, int y)
+        public static void CalcTileChunkPos(int x, int y, 
+            out int chunkX, out int chunkY, out int inChunkX, out int inChunkY)
         {
-            int chunkX = x / ChunkSize; int inChunkX = x % ChunkSize;
-            int chunkY = y / ChunkSize; int inChunkY = y % ChunkSize;
+            inChunkX = ((x % ChunkSize) + ChunkSize) % ChunkSize;
+            chunkX = (x - inChunkX) / ChunkSize;
+            inChunkY = ((y % ChunkSize) + ChunkSize) % ChunkSize;
+            chunkY = (y - inChunkY) / ChunkSize;
+        }
+
+        static Chunk8x8 mTempChunk;
+        public void AddTile(int x, int y, int tileID = 0)
+        {
+            CalcTileChunkPos(x, y, out int chunkX, out int chunkY, 
+                out int inChunkX, out int inChunkY);
+
             if (!mChunks.TryGetValue((chunkX, chunkY), out mTempChunk))
                 mTempChunk = default;
 
-            mTempChunk.SetTileAt(inChunkX, inChunkY, 0);
+            mTempChunk.SetTileAt(inChunkX, inChunkY, tileID);
 
             mChunks[(chunkX, chunkY)] = mTempChunk;
         }
 
         public void RemoveTile(int x, int y)
         {
-            int chunkX = x / ChunkSize; int inChunkX = x % ChunkSize;
-            int chunkY = y / ChunkSize; int inChunkY = y % ChunkSize;
+            CalcTileChunkPos(x, y, out int chunkX, out int chunkY,
+                out int inChunkX, out int inChunkY);
+
             if (!mChunks.TryGetValue((chunkX, chunkY), out mTempChunk))
                 return;
 
@@ -126,7 +137,7 @@ namespace Fushigi.util
             {
                 for (int chunkY = minClippedChunkY; chunkY <= maxClippedChunkY; chunkY++)
                 {
-                    if (!mChunks.TryGetValue((chunkY, chunkY), out mTempChunk))
+                    if (!mChunks.TryGetValue((chunkX, chunkY), out mTempChunk))
                         mTempChunk = default;
 
                     bool anyTileRemoved = false;

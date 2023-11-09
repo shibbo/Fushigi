@@ -103,6 +103,8 @@ namespace Fushigi.course
                     }
                 }
             }
+
+            GenerateTileSubUnits();
         }
 
         public BymlHashTable BuildNode()
@@ -187,6 +189,28 @@ namespace Fushigi.course
             return table;
         }
 
+        public void GenerateTileSubUnits()
+        {
+            mTileSubUnits.Clear();
+
+            if(mModelType == ModelType.Bridge)
+            {
+                foreach (var rail in mBeltRails)
+                {
+                    mTileSubUnits.Add(TileSubUnits.CreateFromRails(rail, Array.Empty<BGUnitRail>(), 
+                        isBridgeModel: true));
+                }
+            }
+            else
+            {
+                foreach (var wall in Walls)
+                {
+                    mTileSubUnits.Add(TileSubUnits.CreateFromRails(wall.ExternalRail, wall.InternalRails,
+                        isBridgeModel: false));
+                }
+            }
+        }
+
         public struct Rail
         {
             public bool IsClosed;
@@ -208,6 +232,8 @@ namespace Fushigi.course
         internal List<Wall> Walls = new List<Wall>();
         internal List<BGUnitRail> mBeltRails = new List<BGUnitRail>();
 
+        internal List<TileSubUnits> mTileSubUnits = new List<TileSubUnits>();
+
         //Editor toggle
         public bool Visible = true;
     }
@@ -223,7 +249,7 @@ namespace Fushigi.course
         }
     }
 
-    public class TilesComponent
+    public class TileSubUnits
     {
         public enum SlopeType
         {
@@ -235,48 +261,43 @@ namespace Fushigi.course
 
         public Vector3 mOrigin;
         public readonly InfiniteTileMap mTileMap = new();
-        public readonly List<(int width, int height, SlopeType type)> mSlopes = [];
+        public readonly List<(int x, int y, int width, int height, SlopeType type)> mSlopes = [];
 
-        public static TilesComponent CreateFromWall(Wall wall)
+        internal static TileSubUnits CreateFromRails(BGUnitRail mainRail, IReadOnlyList<BGUnitRail> internalRails, bool isBridgeModel)
         {
-            TilesComponent component = new TilesComponent();
+            TileSubUnits component = new();
 
             HashSet<(int x, int y)> blockedTiles = [];
+            List<(int x, int y)> bridgeTiles = [];
 
-            Vector2[] externPoints2D = new Vector2[wall.ExternalRail.Points.Count];
-            Vector2[][] internPoints2D = new Vector2[wall.InternalRails.Count][];
+            Vector2[] mainPolyPoints2D = new Vector2[mainRail.Points.Count];
+            Vector2[][] subtractPolyPoints2D = new Vector2[internalRails.Count][];
 
             var min = new Vector3(float.PositiveInfinity);
             var max = new Vector3(float.NegativeInfinity);
 
-            for (int i = 0; i < wall.ExternalRail.Points.Count; i++)
+            for (int i = 0; i < mainRail.Points.Count; i++)
             {
-                BGUnitRail.RailPoint? point = wall.ExternalRail.Points[i];
-                externPoints2D[i] = new Vector2(point.Position.X, point.Position.Y);
-                min.X = MathF.Min(min.X, point.Position.X);
-                min.Y = MathF.Min(min.Y, point.Position.Y);
-                min.Z = MathF.Min(min.Z, point.Position.Z);
-                max.X = MathF.Max(max.X, point.Position.X);
-                max.Y = MathF.Max(max.Y, point.Position.Y);
-                max.Z = MathF.Max(max.Z, point.Position.Z);
+                Vector3 point = mainRail.Points[i].Position;
+                mainPolyPoints2D[i] = new Vector2(point.X, point.Y);
+                min.X = MathF.Min(min.X, point.X);
+                min.Y = MathF.Min(min.Y, point.Y);
+                min.Z = MathF.Min(min.Z, point.Z);
+                max.X = MathF.Max(max.X, point.X);
+                max.Y = MathF.Max(max.Y, point.Y);
+                max.Z = MathF.Max(max.Z, point.Z);
             }
 
-            for (int iInternalRail = 0; iInternalRail < wall.InternalRails.Count; iInternalRail++)
+            for (int iInternalRail = 0; iInternalRail < internalRails.Count; iInternalRail++)
             {
-                var internalRail = wall.InternalRails[iInternalRail];
-                internPoints2D[iInternalRail] = new Vector2[internalRail.Points.Count];
+                var internalRail = internalRails[iInternalRail];
+                subtractPolyPoints2D[iInternalRail] = new Vector2[internalRail.Points.Count];
 
                 for (int i = 0; i < internalRail.Points.Count; i++)
                 {
-                    BGUnitRail.RailPoint? point = internalRail.Points[i];
-                    var point2D = new Vector2(point.Position.X, point.Position.Y);
-                    internPoints2D[iInternalRail][i] = point2D;
-                    min.X = MathF.Min(min.X, point.Position.X);
-                    min.Y = MathF.Min(min.Y, point.Position.Y);
-                    min.Z = MathF.Min(min.Z, point.Position.Z);
-                    max.X = MathF.Max(max.X, point.Position.X);
-                    max.Y = MathF.Max(max.Y, point.Position.Y);
-                    max.Z = MathF.Max(max.Z, point.Position.Z);
+                    Vector3 point = internalRail.Points[i].Position;
+                    var point2D = new Vector2(point.X, point.Y);
+                    subtractPolyPoints2D[iInternalRail][i] = point2D;
                 }
             }
 
@@ -285,11 +306,15 @@ namespace Fushigi.course
             component.mOrigin = min;
             var origin2D = new Vector2(min.X, min.Y);
 
-            #region Slopes
-            for (int iSegment = 0; iSegment < externPoints2D.Length; iSegment++)
+            #region Slopes (and bridges)
+            int segmentCount = mainPolyPoints2D.Length;
+            if (!mainRail.IsClosed)
+                segmentCount--;
+
+            for (int iSegment = 0; iSegment < segmentCount; iSegment++)
             {
-                var p0 = externPoints2D[iSegment];
-                var p1 = externPoints2D[(iSegment + 1) % externPoints2D.Length];
+                var p0 = mainPolyPoints2D[iSegment];
+                var p1 = mainPolyPoints2D[(iSegment + 1) % mainPolyPoints2D.Length];
 
                 if (
                     MathF.IEEERemainder(p0.X - min.X, 1) != 0 ||
@@ -298,14 +323,14 @@ namespace Fushigi.course
                     MathF.IEEERemainder(p1.Y - min.Y, 1) != 0
                     )
                 {
-                    //slope cannot be placed off (tile)grid
+                    //slope/bridge cannot be placed off (tile)grid
                     continue;
                 }
 
                 var slope = Math.Abs((p1.Y - p0.Y) / (p1.X - p0.X));
 
-                if (slope is not (1 or 0.5f))
-                    //slope is not supported by the game
+                if (slope is not (1 or 0.5f or 0))
+                    // slope/bridge angle is not supported by the game
                     continue;
 
                 SlopeType slopeType = default;
@@ -318,8 +343,8 @@ namespace Fushigi.course
                 else if (p0.X > p1.X && p0.Y > p1.Y)
                     slopeType = SlopeType.UpperLeft;
 
-                int slopeWidth = (int)Math.Min(slope, 1);
-                int slopeHeight = (int)slope;
+                int slopeWidth = slope == 0 ? 1 : (int)Math.Max(1f / slope, 1);
+                int slopeHeight = (int)Math.Max(slope, 1);
 
                 int slopeCount = (int)Math.Abs(p1.X - p0.X) / slopeWidth;
 
@@ -327,25 +352,35 @@ namespace Fushigi.course
                 {
                     var triP0 = p0 + (p1 - p0) * iSlope / slopeCount - origin2D;
                     var triP1 = p0 + (p1 - p0) * (iSlope + 1) / slopeCount - origin2D;
-                    var triP2 =
-                        (slopeType is SlopeType.LowerRight or SlopeType.UpperLeft) ?
-                        new Vector2(triP0.X, triP1.Y) :
-                        new Vector2(triP1.X, triP0.Y);
 
                     int tileX = Math.Min((int)triP0.X, (int)triP1.X);
                     int tileY = Math.Min((int)triP0.Y, (int)triP1.Y);
 
-                    blockedTiles.Add((tileX, tileY));
+                    
 
-                    if (slope == 0.5f)
+                    if(slope == 0.0f)
+                    {
+                        bridgeTiles.Add((tileX, tileY - 1));
+                        continue;
+                    }
+
+                    blockedTiles.Add((tileX, tileY)); 
+                    if(isBridgeModel) 
+                        bridgeTiles.Add((tileX, tileY - 1));
+
+                    if (slopeWidth == 2)
+                    {
                         blockedTiles.Add((tileX + 1, tileY));
+                        if (isBridgeModel) 
+                            bridgeTiles.Add((tileX + 1, tileY - 1));
+                    }
 
-                    component.mSlopes.Add((slopeWidth, slopeHeight, slopeType));
+                    component.mSlopes.Add((tileX, tileY, slopeWidth, slopeHeight, slopeType));
                 }
             }
             #endregion
 
-            int? FillFunction((int x, int y) tilePos)
+            int? IsInside((int x, int y) tilePos)
             {
                 var (x, y) = tilePos;
 
@@ -355,14 +390,14 @@ namespace Fushigi.course
 
                 bool isHole = false;
 
-                for (int iInternalRail = 0; iInternalRail < wall.InternalRails.Count; iInternalRail++)
+                for (int iInternalRail = 0; iInternalRail < internalRails.Count; iInternalRail++)
                 {
-                    Array.Reverse(internPoints2D[iInternalRail]);
+                    Array.Reverse(subtractPolyPoints2D[iInternalRail]);
 
                     windingNum = MathUtil.PolygonWindingNumber(
-                    origin2D + new Vector2(x, y) + new Vector2(0.5f), internPoints2D[iInternalRail]);
+                    origin2D + new Vector2(x, y) + new Vector2(0.5f), subtractPolyPoints2D[iInternalRail]);
 
-                    Array.Reverse(internPoints2D[iInternalRail]);
+                    Array.Reverse(subtractPolyPoints2D[iInternalRail]);
 
                     if (windingNum != 0)
                     {
@@ -376,13 +411,22 @@ namespace Fushigi.course
 
 
                 windingNum = MathUtil.PolygonWindingNumber(
-                    origin2D + new Vector2(x, y) + new Vector2(0.5f), externPoints2D);
+                    origin2D + new Vector2(x, y) + new Vector2(0.5f), mainPolyPoints2D);
                 bool isInside = windingNum != 0;
 
                 return isInside ? 0 : null;
             }
 
-            component.mTileMap.FillTiles(FillFunction, Vector2.Zero, size2D);
+            if (!isBridgeModel)
+            {
+                component.mTileMap.FillTiles(IsInside, Vector2.Zero, size2D);
+                return component;
+            }
+
+            foreach (var (x,y) in bridgeTiles)
+            {
+                component.mTileMap.AddTile(x, y);
+            }
 
             return component;
         }
