@@ -16,6 +16,9 @@ namespace Fushigi.course
 {
     public class CourseUnit
     {
+        public readonly static string[] ModelTypeNames = Enum.GetNames(typeof(ModelType));
+        public readonly static string[] SkinDivisionNames = Enum.GetNames(typeof(SkinDivision));
+
         public enum ModelType
         {
             Solid,

@@ -15,6 +15,7 @@ using System.Drawing;
 using System.Net.Http.Headers;
 using System.Numerics;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -531,10 +532,14 @@ namespace Fushigi.ui.widgets
                 {
                     ImGui.Columns(2);
                     ImGui.Text("Model Type"); ImGui.NextColumn();
-                    ImGui.InputInt("##mModelType", ref mSelectedUnit.mModelType); ImGui.NextColumn();
+
+                    ImGui.Combo("##mModelType", ref Unsafe.As<CourseUnit.ModelType, int>(ref mSelectedUnit.mModelType),
+                        CourseUnit.ModelTypeNames, CourseUnit.ModelTypeNames.Length);
+                    ImGui.NextColumn();
 
                     ImGui.Text("Skin Division"); ImGui.NextColumn();
-                    ImGui.InputInt("##mSkinDivision", ref mSelectedUnit.mSkinDivision); ImGui.NextColumn();
+                    ImGui.Combo("##SkinDivision", ref Unsafe.As<CourseUnit.SkinDivision, int>(ref mSelectedUnit.mSkinDivision),
+                        CourseUnit.SkinDivisionNames, CourseUnit.SkinDivisionNames.Length);
 
                     ImGui.Columns(1);
                 }
