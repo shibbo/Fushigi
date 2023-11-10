@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -9,6 +10,12 @@ namespace Fushigi.util
 {
     internal static class MathUtil
     {
+        [Pure]
+        public static float Clamp(float value, float min, float max)
+        {
+            return value < min ? min : value > max ? max : value;
+        }
+
         public static int PolygonWindingNumber(Vector2 p, Span<Vector2> points)
         {
             static float isLeft(Vector2 p0, Vector2 p1, Vector2 point) =>

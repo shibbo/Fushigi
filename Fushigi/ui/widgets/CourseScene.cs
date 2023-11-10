@@ -119,7 +119,7 @@ namespace Fushigi.ui.widgets
                         ImGui.GetWindowDrawList().AddRectFilled(topLeft, topLeft + size, 0x44000000);
 
                     //Allow button press, align to top of the screen
-                    ImGui.SetItemAllowOverlap();
+                    ImGui.SetNextItemAllowOverlap();
                     ImGui.SetCursorScreenPos(topLeft);
 
                     //Load popup when button is pressed
@@ -729,7 +729,7 @@ namespace Fushigi.ui.widgets
                             rail.Visible = unit.Visible;
                     }
                 }
-                ImGui.SetItemAllowOverlap();
+                ImGui.SetNextItemAllowOverlap();
                 ImGui.SameLine();
 
                 if (ImGui.Selectable(name, mSelectedUnit == unit))

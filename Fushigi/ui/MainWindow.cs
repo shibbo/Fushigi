@@ -1,6 +1,5 @@
 ﻿using Fushigi.util;
 using Fushigi.windowing;
-using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Fushigi.param;
