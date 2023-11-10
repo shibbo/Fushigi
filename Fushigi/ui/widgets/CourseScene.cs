@@ -3,6 +3,8 @@ using Fushigi.course;
 using Fushigi.param;
 using Fushigi.rstb;
 using Fushigi.util;
+using FuzzySharp.SimilarityRatio;
+using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
 using ImGuiNET;
 using Newtonsoft.Json.Linq;
 using Silk.NET.Input;
@@ -10,8 +12,12 @@ using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using Silk.NET.Windowing;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Numerics;
 using System.Reflection.Emit;
@@ -40,6 +46,8 @@ namespace Fushigi.ui.widgets
         CourseActor? mSelectedActor = null;
         CourseUnit? mSelectedUnit = null;
         BGUnitRail? mSelectedUnitRail = null;
+
+        string mAddActorSearchQuery = "";
 
         public CourseScene(Course course, GL gl)
         {
@@ -73,7 +81,7 @@ namespace Fushigi.ui.widgets
 
             if (mShowAddActor)
             {
-                SelectActor();
+                SelectActorToAdd();
             }
 
             if (activeViewport.mEditorState == LevelViewport.EditorState.DeleteActorLinkCheck)
@@ -176,27 +184,40 @@ namespace Fushigi.ui.widgets
             resource_table.Save();
         }
 
-        private void SelectActor()
+        private void SelectActorToAdd()
         {
             bool button = true;
             bool status = ImGui.Begin("Add Actor", ref button);
 
-            ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail());
+            ImGui.InputText("Search", ref mAddActorSearchQuery, 256);
 
-            foreach (string actor in ParamDB.GetActors())
+            var filteredActors = ParamDB.GetActors().ToImmutableList();
+
+            if (mAddActorSearchQuery != "")
             {
-                ImGui.Selectable(actor);
-
-                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                {
-                    Console.WriteLine("Switching state to EditorState.AddingActor");
-                    activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
-                    activeViewport.mActorToAdd = actor;
-                    mShowAddActor = false;
-                }
+                filteredActors = FuzzySharp.Process.ExtractAll(mAddActorSearchQuery, ParamDB.GetActors(), cutoff: 65)
+                    .OrderByDescending(result => result.Score)
+                    .Select(result => result.Value)
+                    .ToImmutableList();
             }
 
-            ImGui.EndListBox();
+            if (ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail()))
+            { 
+                foreach (string actor in filteredActors)
+                {
+                    ImGui.Selectable(actor);
+
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                    {
+                        Console.WriteLine("Switching state to EditorState.AddingActor");
+                        activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
+                        activeViewport.mActorToAdd = actor;
+                        mShowAddActor = false;
+                    }
+                }
+
+                ImGui.EndListBox();
+            }
 
             if (ImGui.IsKeyDown(ImGuiKey.Escape))
             {
