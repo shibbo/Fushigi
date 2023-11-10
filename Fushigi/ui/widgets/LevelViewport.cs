@@ -530,6 +530,9 @@ namespace Fushigi.ui.widgets
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
+                if(!unit.Visible)
+                    continue;
+
                 var clipMin = new Vector2(float.NegativeInfinity);
                 var clipMax = new Vector2(float.PositiveInfinity);
 
