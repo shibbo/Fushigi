@@ -496,7 +496,7 @@ namespace Fushigi.ui.widgets
                         {
                             if (ImGui.Button(destActor.mName, new Vector2(ImGui.GetContentRegionAvail().X, 0)))
                             {
-
+                                mSelectedActor = destActor;
                             }
                         }
                         else
