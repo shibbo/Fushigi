@@ -975,86 +975,116 @@ namespace Fushigi.ui.widgets
             }
         }
 
+        private void UpdateAllLayerVisiblity()
+        {
+            foreach (string layer in mLayersVisibility.Keys)
+            {
+                mLayersVisibility[layer] = mAllLayersVisible;
+            }
+        }
+
         private void CourseActorsLayerView(CourseActorHolder actorArray)
         {
+            float em = ImGui.GetFrameHeight();
+
             if (!mHasFilledLayers)
             {
                 FillLayers(actorArray);
             }
 
-            if (ImGui.Checkbox("All Layers", ref mAllLayersVisible))
-            {
-                foreach (string layer in mLayersVisibility.Keys)
-                {
-                    mLayersVisibility[layer] = mAllLayersVisible;
-                }
-            }
+            float margin = 1.5f * em;
 
+            float headerHeight = 1.4f * em;
+            Vector2 cp = ImGui.GetCursorScreenPos();
+            ImGui.GetWindowDrawList().AddRectFilled(
+                cp,
+                cp + new Vector2(ImGui.GetContentRegionAvail().X, headerHeight),
+                ImGui.GetColorU32(ImGuiCol.FrameBg));
+            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), em * 0.9f, 
+                cp + new Vector2(em, (headerHeight - em) / 2 + 0.05f), 0xFF_FF_FF_FF,
+                "Layers");
+
+            ImGui.SetCursorScreenPos(new Vector2(ImGui.GetWindowContentRegionMax().X - margin, cp.Y + (headerHeight - em) / 2));
+            if (ImGui.Checkbox($"##VisibleCheckbox All", ref mAllLayersVisible))
+                UpdateAllLayerVisiblity();
+
+            ImGui.SetCursorScreenPos(cp + new Vector2(0, headerHeight));
+
+            ImGui.BeginChild("Layers");
+
+            var wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
+            var wcMax = wcMin + ImGui.GetContentRegionAvail();
+
+            ImGui.PushClipRect(wcMin, wcMax - new Vector2(margin, 0), true);
+
+            ImGui.Spacing();
             foreach (string layer in mLayersVisibility.Keys)
             {
+                ImGui.PushID(layer);
+                cp = ImGui.GetCursorScreenPos();
+                bool expanded = ImGui.TreeNodeEx("TreeNode", ImGuiTreeNodeFlags.FramePadding, 
+                    layer);
+
+                ImGui.PushClipRect(wcMin, wcMax, false);
+                ImGui.SetCursorScreenPos(new Vector2(wcMax.X - margin, cp.Y));
                 bool isVisible = mLayersVisibility[layer];
-                if (ImGui.Checkbox("##" + layer, ref isVisible))
-                {
+                if (ImGui.Checkbox("##VisibleCheckbox" + layer, ref isVisible))
                     mLayersVisibility[layer] = isVisible;
-                }
+                ImGui.PopClipRect();
 
-                    ImGui.SameLine();
 
                 if (!isVisible)
-                {
                     ImGui.BeginDisabled();
-                }
 
-                if (ImGui.CollapsingHeader(layer, ImGuiTreeNodeFlags.Selected))
+                if (expanded)
                 {
-                    ImGui.Indent();
-                    ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                    if (ImGui.BeginListBox("##" + layer))
+                    foreach (CourseActor actor in actorArray.GetActors())
                     {
-                        foreach (CourseActor actor in actorArray.GetActors())
+                        string actorName = actor.mActorName;
+                        string name = actor.mName;
+                        ulong actorHash = actor.mActorHash;
+                        string actorLayer = actor.mLayer;
+
+                        if (actorLayer != layer)
                         {
-                            string actorName = actor.mActorName;
-                            string name = actor.mName;
-                            ulong actorHash = actor.mActorHash;
-                            string actorLayer = actor.mLayer;
-
-                            if (actorLayer != layer)
-                            {
-                                continue;
-                            }
-
-                            bool isSelected = (actor == mSelectedActor);
-
-                            ImGui.PushID(actorHash.ToString());
-                            ImGui.Columns(2);
-                            if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
-                            {
-                                mSelectedActor = actor;
-                                activeViewport.SelectedActor(actor);
-                            }
-                            if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                            {
-                                activeViewport.FrameSelectedActor(actor);
-                            }
-
-                            ImGui.NextColumn();
-                            ImGui.BeginDisabled();
-                            ImGui.Text(name);
-                            ImGui.EndDisabled();
-                            ImGui.Columns(1);
-
-                            ImGui.PopID();
+                            continue;
                         }
-                        ImGui.EndListBox();
+
+                        bool isSelected = (actor == mSelectedActor);
+
+                        ImGui.PushID(actorHash.ToString());
+                        ImGui.Columns(2);
+                        if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                        {
+                            mSelectedActor = actor;
+                            activeViewport.SelectedActor(actor);
+                        }
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                        {
+                            activeViewport.FrameSelectedActor(actor);
+                        }
+
+                        ImGui.NextColumn();
+                        ImGui.BeginDisabled();
+                        ImGui.Text(name);
+                        ImGui.EndDisabled();
+                        ImGui.Columns(1);
+
+                        ImGui.PopID();
                     }
-                    ImGui.Unindent();
+
+                    ImGui.TreePop();
                 }
 
                 if (!isVisible)
-                {
                     ImGui.EndDisabled();
-                }
+
+                ImGui.PopID();
             }
+
+            ImGui.PopClipRect();
+
+            ImGui.EndChild();
         }
 
         private static void PlacementNode(CourseActor actor)
