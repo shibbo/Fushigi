@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Fushigi.Byml;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Fushigi.param
 {
@@ -53,7 +54,16 @@ namespace Fushigi.param
         public static List<string> GetActorComponents(string actor) => sActors[actor].Components;
 
         public static Dictionary<string, ComponentParam> GetComponentParams(string componentName) => sComponents[componentName].Parameters;
-        public static List<string> GetRailComponents(string railName) => sRailParamList[railName].Components;
+        public static string GetRailComponent(string railName) => sRailParamList[railName].Components[0];
+        public static bool TryGetRailPointComponent(string railName, [NotNullWhen(true)] out string? componentName)
+        {
+            componentName = sRailParamList[railName].Components[1];
+
+            if(componentName=="null")
+                componentName = null;
+
+            return componentName is not null;
+        }
 
         public static Dictionary<string, ComponentParam> GetRailComponentParams(string componentName) => sRails[componentName].Parameters;
 
@@ -317,8 +327,8 @@ namespace Fushigi.param
         }
 
         static Dictionary<string, ParamList>? sActors = new Dictionary<string, ParamList>();
-        static Dictionary<string, Component>? sRails = new Dictionary<string, Component>();
         static Dictionary<string, Component>? sComponents = new Dictionary<string, Component>();
+        static Dictionary<string, Component>? sRails = new Dictionary<string, Component>();
         static Dictionary<string, ParamList>? sRailParamList = new Dictionary<string, ParamList>();
         public static bool sIsInit = false;
     }

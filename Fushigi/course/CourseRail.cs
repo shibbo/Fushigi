@@ -4,6 +4,7 @@ using Fushigi.util;
 using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection.Metadata.Ecma335;
@@ -23,7 +24,7 @@ namespace Fushigi.course
             mIsClosed = BymlUtil.GetNodeData<bool>(node["IsClosed"]);
 
             string pointParam = Path.GetFileNameWithoutExtension(BymlUtil.GetNodeData<string>(node["Gyaml"])).Split(".game")[0];
-            var railParams = ParamDB.GetRailComponents(pointParam)[0];
+            var railParams = ParamDB.GetRailComponent(pointParam);
             var comp = ParamDB.GetRailComponentParams(railParams);
 
             if (!node.ContainsKey("Dynamic"))
@@ -185,9 +186,12 @@ namespace Fushigi.course
             {
                 mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);
                 mTranslate = BymlUtil.GetVector3FromArray(node["Translate"] as BymlArrayNode);
-                // we will always use the second entry in the components, since the first one is only used by the rail itself
-                var pointParams = ParamDB.GetRailComponents(pointParam)[1];
-                var comp = ParamDB.GetRailComponentParams(pointParams);
+
+                IDictionary<string, ParamDB.ComponentParam> comp;
+                if (ParamDB.TryGetRailPointComponent(pointParam, out var componentName))
+                    comp = ParamDB.GetRailComponentParams(componentName);
+                else
+                    comp = ImmutableDictionary.Create<string, ParamDB.ComponentParam>();
 
                 if (!node.ContainsKey("Dynamic"))
                 {
