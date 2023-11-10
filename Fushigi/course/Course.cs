@@ -9,6 +9,7 @@ using Fushigi.Byml.Writer;
 using Fushigi.Byml.Writer.Primitives;
 using Fushigi;
 using Fushigi.course;
+using Fushigi.rstb;
 
 namespace Fushigi.course
 {
@@ -28,8 +29,6 @@ namespace Fushigi.course
 
         public void LoadFromRomFS()
         {
-            
-            
             var courseFilePath = FileUtil.FindContentPath(
                 Path.Combine("BancMapUnit", $"{mCourseName}.bcett.byml.zs")
                 );
@@ -41,13 +40,13 @@ namespace Fushigi.course
             Byml.Byml stageParam = new Byml.Byml(new MemoryStream(File.ReadAllBytes(stageParamFilePath)));
 
             var stageParamRoot = (BymlHashTable)stageParam.Root;
+            var root = (BymlHashTable)courseInfo.Root;
 
             if (((BymlNode<string>)stageParamRoot["Category"]).Data == "Course1Area") {
                 mAreas.Add(new CourseArea(mCourseName));
             }
             else
             {
-                var root = (BymlHashTable)courseInfo.Root;
                 var stageList = (BymlArrayNode)root["RefStages"];
 
                 for (int i = 0; i < stageList.Length; i++)
@@ -58,6 +57,11 @@ namespace Fushigi.course
                 }
             }
 
+            if (root.ContainsKey("Links"))
+            {
+                var linksArr = root["Links"] as BymlArrayNode;
+                mGlobalLinks = new(linksArr);
+            }
         }
 
         public List<CourseArea> GetAreas()
@@ -88,7 +92,40 @@ namespace Fushigi.course
             return mAreas.Count;
         }
 
+        public void AddGlobalLink()
+        {
+            CourseLink link = new("Reference");
+            mGlobalLinks.GetLinks().Add(link);
+        }
+
+        public CourseLinkHolder GetGlobalLinks()
+        {
+            return mGlobalLinks;
+        }
+
+        public void Save()
+        {
+            RSTB resource_table = new RSTB();
+            resource_table.Load();
+
+            SaveAreas(resource_table);
+
+            resource_table.Save();
+        }
+
+        public void SaveAreas(RSTB resTable)
+        {
+            //Save each course area to current romfs folder
+            foreach (var area in GetAreas())
+            {
+                Console.WriteLine($"Saving area {area.GetName()}...");
+
+                area.Save(resTable);
+            }
+        }
+
         string mCourseName;
         List<CourseArea> mAreas;
+        CourseLinkHolder mGlobalLinks;
     }
 }

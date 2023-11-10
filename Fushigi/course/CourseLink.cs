@@ -51,7 +51,7 @@ namespace Fushigi.course
 
         public ulong mSource;
         public ulong mDest;
-        string mLinkName;
+        public string mLinkName;
     }
 
     public class CourseLinkHolder

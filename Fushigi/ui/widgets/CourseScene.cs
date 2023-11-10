@@ -46,8 +46,38 @@ namespace Fushigi.ui.widgets
         CourseActor? mSelectedActor = null;
         CourseUnit? mSelectedUnit = null;
         BGUnitRail? mSelectedUnitRail = null;
+        CourseLink? mSelectedGlobalLink = null;
 
         string mAddActorSearchQuery = "";
+
+        string[] linkTypes = [
+                    "BasicSignal",
+            "Create",
+            "CreateRelativePos",
+            "CreateAfterDied",
+            "Delete",
+            "Reference",
+            "NextGoTo",
+            "NextGoToParallel",
+            "Bind",
+            "Bind_NoRot",
+            "Connection",
+            "Follow",
+            "PopUp",
+            "Contents",
+            "NoticeDeath",
+            "Relocation",
+            "ParamRefForChild",
+            "CullingReference",
+            "EventJoinMember",
+            "EventGuest_04",
+            "EventGuest_05",
+            "EventGuest_06",
+            "EventGuest_08",
+            "EventGuest_09",
+            "EventGuest_10",
+            "EventGuest_11",
+        ];
 
         public CourseScene(Course course, GL gl)
         {
@@ -76,6 +106,8 @@ namespace Fushigi.ui.widgets
             SelectionParameterPanel();
 
             RailsPanel();
+
+            GlobalLinksPanel();
 
             BGUnitPanel();
 
@@ -170,18 +202,7 @@ namespace Fushigi.ui.widgets
 
         public void Save()
         {
-            RSTB resource_table = new RSTB();
-            resource_table.Load();
-
-            //Save each course area to current romfs folder
-            foreach (var area in this.course.GetAreas())
-            {
-                Console.WriteLine($"Saving area {area.GetName()}...");
-
-                area.Save(resource_table);
-            }
-
-            resource_table.Save();
+            course.Save();
         }
 
         private void SelectActorToAdd()
@@ -379,6 +400,22 @@ namespace Fushigi.ui.widgets
             ImGui.End();
         }
 
+        private void GlobalLinksPanel()
+        {
+            ImGui.Begin("Global Links");
+
+            if (ImGui.Button("Add Link"))
+            {
+                course.AddGlobalLink();
+            }
+
+            ImGui.Separator();
+
+            CourseGlobalLinksView(course.GetGlobalLinks());
+
+            ImGui.End();
+        }
+
         private void SelectionParameterPanel()
         {
             bool status = ImGui.Begin("Selection Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
@@ -443,34 +480,7 @@ namespace Fushigi.ui.widgets
                 ImGui.Text("Links");
                 ImGui.Separator();
 
-                string[] linkTypes = [
-                    "BasicSignal",
-                    "Create",
-                    "CreateRelativePos",
-                    "CreateAfterDied",
-                    "Delete",
-                    "Reference",
-                    "NextGoTo",
-                    "NextGoToParallel",
-                    "Bind",
-                    "Bind_NoRot",
-                    "Connection",
-                    "Follow",
-                    "PopUp",
-                    "Contents",
-                    "NoticeDeath",
-                    "Relocation",
-                    "ParamRefForChild",
-                    "CullingReference",
-                    "EventJoinMember",
-                    "EventGuest_04",
-                    "EventGuest_05",
-                    "EventGuest_06",
-                    "EventGuest_08",
-                    "EventGuest_09",
-                    "EventGuest_10",
-                    "EventGuest_11",
-                ];
+                
 
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
                 if (ImGui.BeginCombo("##Add Link", "Add Link"))
@@ -620,6 +630,46 @@ namespace Fushigi.ui.widgets
 
                     ImGui.Text("IsInternal"); ImGui.NextColumn();
                     ImGui.Checkbox("##IsInternal", ref mSelectedUnitRail.IsInternal); ImGui.NextColumn();
+
+                    ImGui.Columns(1);
+                }
+            }
+            else if (mSelectedGlobalLink != null)
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"Selected Global Link");
+                ImGui.Separator();
+
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Source Hash"); ImGui.NextColumn();
+                    string srcHash = mSelectedGlobalLink.mSource.ToString();
+                    if (ImGui.InputText("##Source Hash", ref srcHash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue)) 
+                    {
+                        mSelectedGlobalLink.mSource = Convert.ToUInt64(srcHash);
+                    }
+
+                    ImGui.NextColumn();
+
+                    ImGui.Text("Destination Hash"); ImGui.NextColumn();
+                    string destHash = mSelectedGlobalLink.mDest.ToString();
+                    if (ImGui.InputText("##Dest Hash", ref destHash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue))
+                    {
+                        mSelectedGlobalLink.mDest = Convert.ToUInt64(destHash);
+                    }
+                    
+                    ImGui.NextColumn();
+
+                    ImGui.Text("Link Type"); ImGui.NextColumn();
+
+                    List<string> types = linkTypes.ToList();
+                    int idx = types.IndexOf(mSelectedGlobalLink.GetLinkName());
+                    ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                    if (ImGui.Combo("##Link Type", ref idx, linkTypes, linkTypes.Length))
+                    {
+                        mSelectedGlobalLink.mLinkName = linkTypes[idx];
+                    }
 
                     ImGui.Columns(1);
                 }
@@ -911,6 +961,16 @@ namespace Fushigi.ui.widgets
                     {
                         
                     }*/
+                }
+            }
+        }
+
+        private void CourseGlobalLinksView(CourseLinkHolder linkHolder) {
+            foreach (CourseLink link in linkHolder.GetLinks())
+            {
+                if (ImGui.Selectable($"Link {linkHolder.GetLinks().IndexOf(link)}"))
+                {
+                    mSelectedGlobalLink = link;
                 }
             }
         }
