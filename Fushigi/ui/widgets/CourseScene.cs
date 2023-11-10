@@ -496,7 +496,10 @@ namespace Fushigi.ui.widgets
                         {
                             if (ImGui.Button(destActor.mName, new Vector2(ImGui.GetContentRegionAvail().X, 0)))
                             {
-
+                                   mSelectedActor = destActor;
+                                   activeViewport.SelectedActor(destActor);
+                                   activeViewport.Camera.target.X = destActor.mTranslation.X;
+                                   activeViewport.Camera.target.Y = destActor.mTranslation.Y;
                             }
                         }
                         else
