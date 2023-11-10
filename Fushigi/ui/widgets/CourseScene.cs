@@ -388,9 +388,14 @@ namespace Fushigi.ui.widgets
                 string actorName = mSelectedActor.mActorName;
                 string name = mSelectedActor.mName;
 
+                ImGui.Columns(2);
                 ImGui.AlignTextToFramePadding();
                 string tempName = mSelectedActor.mActorName;
-                if (ImGui.InputText("Actor Name", ref tempName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
+
+                ImGui.Text("Actor Name");
+                ImGui.NextColumn();
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+                if (ImGui.InputText("##Actor Name", ref tempName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
                     if (ParamDB.GetActors().Contains(tempName))
                     {
@@ -398,6 +403,16 @@ namespace Fushigi.ui.widgets
                         mSelectedActor.InitializeDefaultDynamicParams();
                     }
                 }
+                ImGui.PopItemWidth();
+                ImGui.NextColumn();
+
+                ImGui.Text("Actor Hash");
+                ImGui.NextColumn();
+                string hash = mSelectedActor.mActorHash.ToString();
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+                ImGui.InputText("##Actor Hash", ref hash, 256, ImGuiInputTextFlags.ReadOnly);
+                ImGui.PopItemWidth();
+                ImGui.NextColumn();
 
                 ImGui.Separator();
 
