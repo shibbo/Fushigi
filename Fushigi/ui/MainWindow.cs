@@ -85,7 +85,8 @@ namespace Fushigi.ui
             string romFSPath = UserSettings.GetRomFSPath();
             if (RomFS.IsValidRoot(romFSPath))
             {
-                RomFS.SetRoot(romFSPath); 
+                RomFS.SetRoot(romFSPath);
+                ChildActorParam.Load();
             }
 
             if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&

@@ -38,6 +38,7 @@ namespace Fushigi.ui.widgets
                     }
 
                     RomFS.SetRoot(romfs);
+                    ChildActorParam.Load();
                     
                     /* if our parameter database isn't set, set it */
                     if (!ParamDB.sIsInit)

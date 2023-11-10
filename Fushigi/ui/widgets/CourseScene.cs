@@ -1025,7 +1025,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f, 0.0f);
+                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f, 0.0f, float.MaxValue);
                 ImGui.PopItemWidth();
 
                 ImGui.NextColumn();
@@ -1062,6 +1062,7 @@ namespace Fushigi.ui.widgets
                 {
                     Dictionary<string, ParamDB.ComponentParam> dict = ParamDB.GetComponentParams(param);
 
+
                     if (dict.Keys.Count == 0)
                     {
                         continue;
@@ -1075,65 +1076,82 @@ namespace Fushigi.ui.widgets
 
                     ImGui.Columns(2);
 
-                    foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
+                    if (param == "ChildActorSelectName" && ChildActorParam.ActorHasChildParam(actor.mActorName))
                     {
-                        string id = $"##{pair.Key}";
-
-                        ImGui.AlignTextToFramePadding();
-                        ImGui.Text(pair.Key);
+                        string id = $"##{param}";
+                        List<string> list = ChildActorParam.GetActorParams(actor.mActorName);
+                        int selected = list.IndexOf(actor.mActorParameters["ChildActorSelectName"].ToString());
+                        ImGui.Text("ChildParameters");
                         ImGui.NextColumn();
-
                         ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                        if (actor.mActorParameters.ContainsKey(pair.Key))
+                        if (ImGui.Combo("##Parameters", ref selected, list.ToArray(), list.Count))
                         {
-                            var actorParam = actor.mActorParameters[pair.Key];
-
-                            switch (pair.Value.Type)
-                            {
-                                case "U8":
-                                case "S16":
-                                case "S32":
-                                    int val_int = (int)actorParam;
-                                    if (ImGui.InputInt(id, ref val_int))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_int;
-                                    }
-                                    break;
-                                case "Bool":
-                                    bool val_bool = (bool)actorParam;
-                                    if (ImGui.Checkbox(id, ref val_bool))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_bool;
-                                    }
-                                    break;
-                                case "F32":
-                                    float val_float = (float)actorParam;
-                                    if (ImGui.InputFloat(id, ref val_float)) 
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_float;
-                                    }
-                                    break;
-                                case "String":
-                                    string val_string = (string)actorParam;
-                                    if (ImGui.InputText(id, ref val_string, 1024))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_string;
-                                    }
-                                    break;
-                                case "F64":
-                                    double val = (double)actorParam;
-                                    if (ImGui.InputDouble(id, ref val))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val;
-                                    }
-                                    break;
-                            }
+                            actor.mActorParameters["ChildActorSelectName"] = list[selected];
                         }
+                    }
+                    else
+                    {
+                        foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
+                        {
+                            string id = $"##{pair.Key}";
 
-                        ImGui.PopItemWidth();
+                            ImGui.AlignTextToFramePadding();
+                            ImGui.Text(pair.Key);
+                            ImGui.NextColumn();
 
-                        ImGui.NextColumn();
+                            ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+
+                            if (actor.mActorParameters.ContainsKey(pair.Key))
+                            {
+                                var actorParam = actor.mActorParameters[pair.Key];
+
+                                switch (pair.Value.Type)
+                                {
+                                    case "U8":
+                                    case "S16":
+                                    case "S32":
+                                        int val_int = (int)actorParam;
+                                        if (ImGui.InputInt(id, ref val_int))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_int;
+                                        }
+                                        break;
+                                    case "Bool":
+                                        bool val_bool = (bool)actorParam;
+                                        if (ImGui.Checkbox(id, ref val_bool))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_bool;
+                                        }
+                                        break;
+                                    case "F32":
+                                        float val_float = (float)actorParam;
+                                        if (ImGui.InputFloat(id, ref val_float))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_float;
+                                        }
+                                        break;
+                                    case "String":
+                                        string val_string = (string)actorParam;
+                                        if (ImGui.InputText(id, ref val_string, 1024))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_string;
+                                        }
+                                        break;
+                                    case "F64":
+                                        double val = (double)actorParam;
+                                        if (ImGui.InputDouble(id, ref val))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val;
+                                        }
+                                        break;
+                                }
+                            }
+
+                            ImGui.PopItemWidth();
+
+                            ImGui.NextColumn();
+                        }
                     }
 
                     ImGui.Columns(1);
