@@ -43,6 +43,8 @@ namespace Fushigi.ui.widgets
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
         public string mActorToAdd = "";
+        public bool mIsLinkNew = false;
+        public string mNewLinkType = "";
 
         public float FOV = MathF.PI / 2;
 
@@ -50,7 +52,7 @@ namespace Fushigi.ui.widgets
             (Quaternion.Identity, Vector3.Zero, 10);
 
         public object? HoveredObject;
-        public CourseLink? SrcCourseLink = null;
+        public CourseLink? CurCourseLink = null;
         public Vector3? HoveredPoint;
 
         public uint GridColor = 0x77_FF_FF_FF;
@@ -62,7 +64,8 @@ namespace Fushigi.ui.widgets
             AddingActor,
             DeleteActorLinkCheck,
             DeletingActor,
-            SelectingLink
+            SelectingLinkSource,
+            SelectingLinkDest
         }
 
         public enum EditorMode
@@ -317,7 +320,7 @@ namespace Fushigi.ui.widgets
                     posVec.Z = 0.0f;
                     actor.mTranslation = posVec;
 
-                    mArea.mActorHolder.AddActor(actor);
+                    mEditContext.AddActor(actor);
 
                     if (!ImGui.GetIO().KeyShift)
                     {
@@ -364,7 +367,7 @@ namespace Fushigi.ui.widgets
                     {
                         if (hoveredActor != null)
                         {
-                            mArea.mActorHolder.DeleteActor(hoveredActor);
+                            mEditContext.DeleteActor(hoveredActor);
 
                             if (!ImGui.GetIO().KeyShift)
                             {
@@ -374,7 +377,7 @@ namespace Fushigi.ui.widgets
                     }
                 }
             }
-            else if (mEditorState == EditorState.SelectingLink)
+            else if (isFocused && (mEditorState == EditorState.SelectingLinkSource || mEditorState == EditorState.SelectingLinkDest))
             {
                 /* when we are begining to select a link, we will not always be immediately focused */
                 if (!isFocused)
@@ -387,23 +390,58 @@ namespace Fushigi.ui.widgets
                     mEditorState = EditorState.Selecting;
                 }
 
-                if (hoveredActor != null)
+                if (mEditorState == EditorState.SelectingLinkSource)
                 {
-                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
+                    if (hoveredActor != null)
+                    {
+                        ImGui.SetTooltip($"Select the source actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
+                    }
+                    else
+                    {
+                        ImGui.SetTooltip($"Select the source actor you wish to link to. Press ESCAPE to cancel.");
+                    }
                 }
-                else
+
+                if (mEditorState == EditorState.SelectingLinkDest)
                 {
-                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.");
+                    if (hoveredActor != null)
+                    {
+                        ImGui.SetTooltip($"Select the destination actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
+                    }
+                    else
+                    {
+                        ImGui.SetTooltip($"Select the destination actor you wish to link to. Press ESCAPE to cancel.");
+                    }
+                }
+
+                /* if our link is new, it means that we don't have to check for hovered actors for the source designation */
+                if (mIsLinkNew)
+                {
+                    CurCourseLink = new(mNewLinkType);
+                    CourseActor selActor = mEditContext.GetSelectedObjects<CourseActor>().ElementAt(0);
+                    CurCourseLink.mSource = selActor.GetHash();
+                    mIsLinkNew = false;
                 }
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    if (hoveredActor != null)
-                    {
-                        ulong hash = hoveredActor.GetHash();
-                        SrcCourseLink.SetDestHash(hash, mArea.mActorHolder);
-                        mEditorState = EditorState.Selecting;
+                    if (mEditorState == EditorState.SelectingLinkDest) {
+                        if (hoveredActor != null)
+                        {
+                            /* new links have a destination of 0 because there is no hash associated with a null actor */
+                            bool isNewLink = CurCourseLink.GetDestHash() == 0;
+                            ulong hash = hoveredActor.GetHash();
+                            CurCourseLink.mDest = hash;
+
+                            if (isNewLink)
+                            {
+                                mEditContext.AddLink(CurCourseLink);
+                            }
+
+                            mEditorState = EditorState.Selecting;
+                        }
                     }
+
                 }
             }
 
@@ -492,6 +530,88 @@ namespace Fushigi.ui.widgets
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
+                if(!unit.Visible)
+                    continue;
+
+                var clipMin = new Vector2(float.NegativeInfinity);
+                var clipMax = new Vector2(float.PositiveInfinity);
+
+                var nearZ = unit.mTileSubUnits.Min(x=>x.mOrigin.Z);
+                var farZ = unit.mTileSubUnits.Max(x=>x.mOrigin.Z);
+
+                foreach (TileSubUnits subUnit in unit.mTileSubUnits.OrderBy(x=>x.mOrigin.Z))
+                {
+                    float blend = ((subUnit.mOrigin.Z - farZ) / (nearZ - farZ));
+                    if(float.IsNaN(blend)) blend = 0;
+
+                    uint color = ImGui.ColorConvertFloat4ToU32(
+                        (1 - blend) * new Vector4(0f, 0f, 1f, 1f) +
+                        blend       * new Vector4(0f, 1f, 1f, 1f)
+                        );
+
+                    var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+
+                    foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
+                    {
+                        mDrawList.AddRectFilled(
+                            WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
+                            new Vector3(0, unit.mModelType == ModelType.Bridge ? .5f : 0, 0)),
+                            WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) + 
+                            new Vector3(1, 1, 0)),
+                            color
+                            );
+                    }
+
+                    foreach (var (x, y, width, height, type) in subUnit.mSlopes)
+                    {
+                        var bbMin = subUnit.mOrigin + new Vector3(x, y, 0);
+                        var bbMax = bbMin + new Vector3(width, height, 0);
+
+                        var bbTL = new Vector3(bbMin.X, bbMax.Y, 0);
+                        var bbTR = new Vector3(bbMax.X, bbMax.Y, 0);
+                        var bbBL = new Vector3(bbMin.X, bbMin.Y, 0);
+                        var bbBR = new Vector3(bbMax.X, bbMin.Y, 0);
+
+                        switch (type)
+                        {
+                            case TileSubUnits.SlopeType.UpperLeft:
+                                mDrawList.AddTriangleFilled(
+                                    WorldToScreen(bbTL),
+                                    WorldToScreen(bbBL),
+                                    WorldToScreen(bbTR),
+                                    color
+                                );
+                                break;
+                            case TileSubUnits.SlopeType.UpperRight:
+                                mDrawList.AddTriangleFilled(
+                                    WorldToScreen(bbTL),
+                                    WorldToScreen(bbBR),
+                                    WorldToScreen(bbTR),
+                                    color
+                                );
+                                break;
+                            case TileSubUnits.SlopeType.LowerLeft:
+                                mDrawList.AddTriangleFilled(
+                                    WorldToScreen(bbTL),
+                                    WorldToScreen(bbBL),
+                                    WorldToScreen(bbBR),
+                                    color
+                                );
+                                break;
+                            case TileSubUnits.SlopeType.LowerRight:
+                                mDrawList.AddTriangleFilled(
+                                    WorldToScreen(bbTR),
+                                    WorldToScreen(bbBL),
+                                    WorldToScreen(bbBR),
+                                    color
+                                );
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+
                 foreach (var wall in unit.Walls)
                 {
                     if (wall.ExternalRail != null)
@@ -565,7 +685,7 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            foreach (CourseActor actor in mArea.mActorHolder.GetActors())
+            foreach (CourseActor actor in mEditContext.GetActorHolder().GetActors())
             {
                 string layer = actor.mLayer;
 

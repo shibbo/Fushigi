@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Fushigi.Bfres
 {
-    public class Material : IResData
+    public class Material : IResData, INamed
     {
         public string Name { get; set; }
 

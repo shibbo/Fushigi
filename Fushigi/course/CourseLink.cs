@@ -11,40 +11,37 @@ namespace Fushigi.course
 {
     public class CourseLink
     {
-        public CourseLink(BymlHashTable table, CourseActorHolder actorHolder)
+        public CourseLink(string linkName)
         {
-            mSource = actorHolder[BymlUtil.GetNodeData<ulong>(table["Src"])];
-            mDest = actorHolder[BymlUtil.GetNodeData<ulong>(table["Dst"])];
+            mSource = 0;
+            mDest = 0;
+            mLinkName = linkName;
+        }
+
+        public CourseLink(BymlHashTable table)
+        {
+            mSource = BymlUtil.GetNodeData<ulong>(table["Src"]);
+            mDest = BymlUtil.GetNodeData<ulong>(table["Dst"]);
             mLinkName = BymlUtil.GetNodeData<string>(table["Name"]);
         }
 
         public BymlHashTable BuildNode()
         {
             BymlHashTable tbl = new();
-            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Dst", mDest.GetHash()), "Dst");
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Dst", mDest), "Dst");
             tbl.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Name", mLinkName), "Name");
-            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Src", mSource.GetHash()), "Src");
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Src", mSource), "Src");
             return tbl;
         }
 
         public ulong GetSrcHash()
         {
-            return mSource.GetHash();
+            return mSource;
         }
 
         public ulong GetDestHash()
         {
-            return mDest.GetHash();
-        }
-
-        public void SetDestHash(ulong hash, CourseActorHolder actorHolder)
-        {
-            mDest = actorHolder[hash];
-        }
-
-        public bool AreLinksValid(CourseActorHolder actorHolder)
-        {
-            return actorHolder.HasHash(mSource.GetHash()) && actorHolder.HasHash(mDest.GetHash());
+            return mDest;
         }
 
         public string GetLinkName()
@@ -52,18 +49,8 @@ namespace Fushigi.course
             return mLinkName;
         }
 
-        public bool IsSourceValid(CourseActorHolder actorHolder)
-        {
-            return actorHolder.HasHash(mSource.GetHash());
-        }
-
-        public bool IsDestValid(CourseActorHolder actorHolder)
-        {
-            return actorHolder.HasHash(mDest.GetHash());
-        }
-
-        CourseActor? mSource;
-        CourseActor? mDest;
+        public ulong mSource;
+        public ulong mDest;
         string mLinkName;
     }
 
@@ -74,49 +61,37 @@ namespace Fushigi.course
 
         }
 
-        public CourseLinkHolder(BymlArrayNode linkArray, CourseActorHolder actorHolder)
+        public CourseLinkHolder(BymlArrayNode linkArray)
         {
             foreach (BymlHashTable tbl in linkArray.Array)
             {
-                mLinks.Add(new CourseLink(tbl, actorHolder));
+                mLinks.Add(new CourseLink(tbl));
             }
         }
 
-        public void DeleteLinkWithDest(ulong hash)
+        public IEnumerable<int> GetIndicesOfLinksWithDest_ForDelete(ulong hash)
         {
-            int idx = -1;
-            foreach (CourseLink link in mLinks)
+            for (int i = mLinks.Count - 1; i >= 0; i--)
             {
-                if (link.GetDestHash() == hash)
-                {
-                    idx = mLinks.IndexOf(link);
-                }
+                if (mLinks[i].GetDestHash() == hash)
+                    yield return i;
             }
-
-            if (idx == -1)
-            {
-                return;
-            }
-
-            mLinks.RemoveAt(idx);
         }
-        public void DeleteLinkWithSrc(ulong hash)
+        public IEnumerable<int> GetIndicesOfLinksWithSrc_ForDelete(ulong hash)
         {
-            int idx = -1;
-            foreach (CourseLink link in mLinks)
+            for (int i = mLinks.Count - 1; i >= 0; i--)
             {
-                if (link.GetSrcHash() == hash)
-                {
-                    idx = mLinks.IndexOf(link);
-                }
+                if (mLinks[i].GetSrcHash() == hash)
+                    yield return i;
             }
+        }
 
-            if (idx == -1)
-            {
-                return;
-            }
+        public bool TryGetIndexOfLink(string name, ulong src, ulong dest, out int index)
+        {
+            index = mLinks.FindIndex(x => x.GetLinkName() == name &&
+                x.GetSrcHash() == src && x.GetDestHash() == dest);
 
-            mLinks.RemoveAt(idx);
+            return index != -1;
         }
 
         public Dictionary<string, List<ulong>> GetDestHashesFromSrc(ulong hash)
@@ -175,22 +150,9 @@ namespace Fushigi.course
             return mLinks;
         }
 
-        public bool IsAnyLinkInvalid(CourseActorHolder holder)
-        {
-            foreach (CourseLink link in mLinks)
-            {
-                if (!link.IsSourceValid(holder) || !link.IsDestValid(holder))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public BymlArrayNode SerializeToArray()
         {
-            BymlArrayNode node = new((uint)mLinks.Count);
+            BymlArrayNode node = new();
 
             foreach(CourseLink link in mLinks)
             {

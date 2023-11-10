@@ -4,7 +4,6 @@ using Silk.NET.OpenGL;
 using ImGuiNET;
 using Fushigi.util;
 using Fushigi.windowing;
-using Silk.NET.OpenGL.Extensions.ImGui;
 using Fushigi.Byml;
 using Fushigi.Byml.Writer;
 using Fushigi.Byml.Writer.Primitives;

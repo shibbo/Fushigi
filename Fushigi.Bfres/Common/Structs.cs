@@ -182,18 +182,6 @@ namespace Fushigi.Bfres
     }
 
     [StructLayout(LayoutKind.Sequential, Size = 0x10)]
-    public struct ShapeBounding
-    {
-        public float CenterX;
-        public float CenterY;
-        public float CenterZ;
-
-        public float ExtentX;
-        public float ExtentY;
-        public float ExtentZ;
-    }
-
-    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
     public struct ShapeRadius
     {
         public float CenterX;
@@ -259,5 +247,67 @@ namespace Fushigi.Bfres
         public ushort RenderInfoDataSize;
         public ushort Reserved2;
         public uint Reserved3;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct BntxHeader
+    {
+        public uint Target; //NX 
+        public uint TextureCount;
+        public ulong TextureTableOffset;
+        public ulong TextureArrayOffset;
+        public ulong TextureDictionaryOffset;
+        public ulong MemoryPoolOffset;
+        public ulong RuntimePointer;
+        public uint Padding1;
+        public uint Padding2;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct TextureHeader
+    {
+        public uint Magic; //BRTI  
+        public uint NextBlockOffset;
+        public uint BlockSize;
+        public uint Reserved;
+
+        public byte Flag;
+        public Dim Dim;
+
+        public TileMode TileMode;
+        public ushort Swizzle;
+        public ushort MipCount;
+        public uint SampleCount;
+
+        public SurfaceFormat Format;
+        public AccessFlags AccessFlags;
+        public uint Width;
+        public uint Height;
+        public uint Depth;
+        public uint ArrayCount;
+
+        public uint TextureLayout1;
+        public uint TextureLayout2;
+
+        public ulong Reserved1;
+        public ulong Reserved2;
+
+        public uint ImageSize;
+        public uint Alignment;
+
+        public uint ChannelSwizzle;
+
+        public SurfaceDim TextureDim;
+        public byte Padding0;
+        public ushort Padding2;
+
+        public ulong NameOffset;
+        public ulong TextureContainerOffset;
+        public ulong ImageDataTableOffset;
+        public ulong UserDataOffset;
+        public ulong RuntimePointer;
+        public ulong RuntimeViewPointer;
+        public ulong DescriptorPointer;
+        public ulong UserDataDictionaryOffset;
     }
 }

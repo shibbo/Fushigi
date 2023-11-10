@@ -1,8 +1,10 @@
-﻿using Fushigi.Byml;
+using Fushigi.Byml;
 using Fushigi.course;
 using Fushigi.param;
 using Fushigi.rstb;
 using Fushigi.util;
+using FuzzySharp.SimilarityRatio;
+using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
 using ImGuiNET;
 using Newtonsoft.Json.Linq;
 using Silk.NET.Input;
@@ -10,11 +12,16 @@ using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using Silk.NET.Windowing;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Numerics;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -39,6 +46,8 @@ namespace Fushigi.ui.widgets
         CourseActor? mSelectedActor = null;
         CourseUnit? mSelectedUnit = null;
         BGUnitRail? mSelectedUnitRail = null;
+
+        string mAddActorSearchQuery = "";
 
         public CourseScene(Course course, GL gl)
         {
@@ -72,7 +81,7 @@ namespace Fushigi.ui.widgets
 
             if (mShowAddActor)
             {
-                SelectActor();
+                SelectActorToAdd();
             }
 
             if (activeViewport.mEditorState == LevelViewport.EditorState.DeleteActorLinkCheck)
@@ -105,12 +114,12 @@ namespace Fushigi.ui.widgets
                     var topLeft = ImGui.GetCursorScreenPos();
                     var size = ImGui.GetContentRegionAvail();
 
+                    ImGui.SetNextItemAllowOverlap();
                     viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
                     if(activeViewport != viewport)
                         ImGui.GetWindowDrawList().AddRectFilled(topLeft, topLeft + size, 0x44000000);
 
                     //Allow button press, align to top of the screen
-                    ImGui.SetItemAllowOverlap();
                     ImGui.SetCursorScreenPos(topLeft);
 
                     //Load popup when button is pressed
@@ -183,27 +192,40 @@ namespace Fushigi.ui.widgets
             resource_table.Save();
         }
 
-        private void SelectActor()
+        private void SelectActorToAdd()
         {
             bool button = true;
             bool status = ImGui.Begin("Add Actor", ref button);
 
-            ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail());
+            ImGui.InputText("Search", ref mAddActorSearchQuery, 256);
 
-            foreach (string actor in ParamDB.GetActors())
+            var filteredActors = ParamDB.GetActors().ToImmutableList();
+
+            if (mAddActorSearchQuery != "")
             {
-                ImGui.Selectable(actor);
-
-                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                {
-                    Console.WriteLine("Switching state to EditorState.AddingActor");
-                    activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
-                    activeViewport.mActorToAdd = actor;
-                    mShowAddActor = false;
-                }
+                filteredActors = FuzzySharp.Process.ExtractAll(mAddActorSearchQuery, ParamDB.GetActors(), cutoff: 65)
+                    .OrderByDescending(result => result.Score)
+                    .Select(result => result.Value)
+                    .ToImmutableList();
             }
 
-            ImGui.EndListBox();
+            if (ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail()))
+            { 
+                foreach (string actor in filteredActors)
+                {
+                    ImGui.Selectable(actor);
+
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                    {
+                        Console.WriteLine("Switching state to EditorState.AddingActor");
+                        activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
+                        activeViewport.mActorToAdd = actor;
+                        mShowAddActor = false;
+                    }
+                }
+
+                ImGui.EndListBox();
+            }
 
             if (ImGui.IsKeyDown(ImGuiKey.Escape))
             {
@@ -374,8 +396,31 @@ namespace Fushigi.ui.widgets
                 string actorName = mSelectedActor.mActorName;
                 string name = mSelectedActor.mName;
 
+                ImGui.Columns(2);
                 ImGui.AlignTextToFramePadding();
-                ImGui.Text(actorName);
+                string tempName = mSelectedActor.mActorName;
+
+                ImGui.Text("Actor Name");
+                ImGui.NextColumn();
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+                if (ImGui.InputText("##Actor Name", ref tempName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    if (ParamDB.GetActors().Contains(tempName))
+                    {
+                        activeViewport.mEditContext.SetActorName(mSelectedActor, tempName);
+                        mSelectedActor.InitializeDefaultDynamicParams();
+                    }
+                }
+                ImGui.PopItemWidth();
+                ImGui.NextColumn();
+
+                ImGui.Text("Actor Hash");
+                ImGui.NextColumn();
+                string hash = mSelectedActor.mActorHash.ToString();
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+                ImGui.InputText("##Actor Hash", ref hash, 256, ImGuiInputTextFlags.ReadOnly);
+                ImGui.PopItemWidth();
+                ImGui.NextColumn();
 
                 ImGui.Separator();
 
@@ -386,7 +431,10 @@ namespace Fushigi.ui.widgets
 
                 ImGui.NextColumn();
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
-                ImGui.InputText($"##{name}", ref name, 512);
+                if (ImGui.InputText($"##{name}", ref name, 512, ImGuiInputTextFlags.EnterReturnsTrue)) {
+                    activeViewport.mEditContext.SetObjectName(mSelectedActor, name);
+                }
+
                 ImGui.PopItemWidth();
 
                 ImGui.Columns(1);
@@ -402,49 +450,139 @@ namespace Fushigi.ui.widgets
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Links");
                 ImGui.Separator();
-                
-                if (ImGui.Button("Add Link"))
-                {
 
+                string[] linkTypes = [
+                    "BasicSignal",
+                    "Create",
+                    "CreateRelativePos",
+                    "CreateAfterDied",
+                    "Delete",
+                    "Reference",
+                    "NextGoTo",
+                    "NextGoToParallel",
+                    "Bind",
+                    "Bind_NoRot",
+                    "Connection",
+                    "Follow",
+                    "PopUp",
+                    "Contents",
+                    "NoticeDeath",
+                    "Relocation",
+                    "ParamRefForChild",
+                    "CullingReference",
+                    "EventJoinMember",
+                    "EventGuest_04",
+                    "EventGuest_05",
+                    "EventGuest_06",
+                    "EventGuest_08",
+                    "EventGuest_09",
+                    "EventGuest_10",
+                    "EventGuest_11",
+                ];
+
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                if (ImGui.BeginCombo("##Add Link", "Add Link"))
+                {
+                    for (int i = 0; i < linkTypes.Length; i++)
+                    {
+                        var linkType = linkTypes[i];
+
+                        if (ImGui.Selectable(linkType))
+                        {
+                            activeViewport.mNewLinkType = linkType;
+                            activeViewport.mIsLinkNew = true;
+                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
+                            ImGui.SetWindowFocus(selectedArea.GetName());
+                        }
+                    }
+
+                    ImGui.EndCombo();
                 }
 
                 var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.GetHash());
 
-                foreach (KeyValuePair<string, List<ulong>> kvp in destHashes) {
-                    ImGui.Text(kvp.Key);
-                    var hashArray = kvp.Value;
+                foreach ((string linkName, List<ulong> hashArray) in destHashes) {
+                    ImGui.Text(linkName);
+
+                    ImGui.Columns(3);
 
                     for (int i = 0; i < hashArray.Count; i++)
                     {
-                        ImGui.Columns(4);
-                        ImGui.AlignTextToFramePadding();
+                        ImGui.PushID($"{hashArray[i].ToString()}_{i}");
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetStyle().FramePadding.X);
                         ImGui.Text("Destination");
                         ImGui.NextColumn();
 
                         CourseActor? destActor = selectedArea.mActorHolder[hashArray[i]];
-
-                        if (ImGui.Button(destActor.mName))
+                        
+                        if (destActor != null)
                         {
+                            if (ImGui.Button(destActor.mName, new Vector2(ImGui.GetContentRegionAvail().X, 0)))
+                            {
+                                   mSelectedActor = destActor;
+                                   activeViewport.SelectedActor(destActor);
+                                   activeViewport.Camera.target.X = destActor.mTranslation.X;
+                                   activeViewport.Camera.target.Y = destActor.mTranslation.Y;
+                            }
+                        }
+                        else
+                        {
+                            if (ImGui.Button("Actor Not Found"))
+                            {
 
+                            }
                         }
 
                         ImGui.NextColumn();
 
-                        if (ImGui.Button("Replace (List)"))
+                        var cursorSP = ImGui.GetCursorScreenPos();
+                        var padding = ImGui.GetStyle().FramePadding;
+
+                        uint WithAlphaFactor(uint color, float factor) => color & 0xFFFFFF | ((uint)((color >> 24)*factor) << 24);
+
+                        float deleteButtonWidth = ImGui.GetFrameHeight() * 1.6f;
+
+                        float columnWidth = ImGui.GetContentRegionAvail().X;
+
+                        ImGui.PushClipRect(cursorSP, 
+                            cursorSP + new Vector2(columnWidth - deleteButtonWidth, ImGui.GetFrameHeight()), true);
+
+                        var cursor = ImGui.GetCursorPos();
+                        ImGui.BeginDisabled();
+                        if (ImGui.Button("Replace"))
                         {
 
                         }
+                        ImGui.EndDisabled();
+                        cursor.X += ImGui.GetItemRectSize().X + 2;
+
+                        ImGui.SetCursorPos(cursor);
+                        if (ImGui.Button(IconUtil.ICON_EYE_DROPPER))
+                        {
+                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
+                            activeViewport.CurCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
+                            ImGui.SetWindowFocus(selectedArea.GetName());
+                        }
+
+                        ImGui.PopClipRect();
+                        cursorSP.X += columnWidth - deleteButtonWidth;
+                        ImGui.SetCursorScreenPos(cursorSP);
+
+                        bool clicked = ImGui.InvisibleButton("##Delete Link", new Vector2(deleteButtonWidth, ImGui.GetFrameHeight()));
+                        string deleteIcon = IconUtil.ICON_TRASH_ALT;
+                        ImGui.GetWindowDrawList().AddText(cursorSP + new Vector2((deleteButtonWidth - ImGui.CalcTextSize(deleteIcon).X)/2, padding.Y),
+                            WithAlphaFactor(ImGui.GetColorU32(ImGuiCol.Text), ImGui.IsItemHovered() ? 1 : 0.5f), 
+                            deleteIcon);
+
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Delete Link");
+
+                        if (clicked)
+                            activeViewport.mEditContext.DeleteLink(linkName, mSelectedActor.mActorHash, hashArray[i]);
 
                         ImGui.NextColumn();
-                        ImGui.PushID($"{hashArray[i].ToString()}_{i}");
-                        if (ImGui.Button("Replace (Viewport)"))
-                        {
-                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLink;
-                            activeViewport.SrcCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
-                        }
+
                         ImGui.PopID();
-
-                        ImGui.Columns(1);
                     }
 
                     ImGui.Separator();
@@ -463,10 +601,14 @@ namespace Fushigi.ui.widgets
                 {
                     ImGui.Columns(2);
                     ImGui.Text("Model Type"); ImGui.NextColumn();
-                    ImGui.InputInt("##mModelType", ref mSelectedUnit.mModelType); ImGui.NextColumn();
+
+                    ImGui.Combo("##mModelType", ref Unsafe.As<CourseUnit.ModelType, int>(ref mSelectedUnit.mModelType),
+                        CourseUnit.ModelTypeNames, CourseUnit.ModelTypeNames.Length);
+                    ImGui.NextColumn();
 
                     ImGui.Text("Skin Division"); ImGui.NextColumn();
-                    ImGui.InputInt("##mSkinDivision", ref mSelectedUnit.mSkinDivision); ImGui.NextColumn();
+                    ImGui.Combo("##SkinDivision", ref Unsafe.As<CourseUnit.SkinDivision, int>(ref mSelectedUnit.mSkinDivision),
+                        CourseUnit.SkinDivisionNames, CourseUnit.SkinDivisionNames.Length);
 
                     ImGui.Columns(1);
                 }
@@ -626,6 +768,7 @@ namespace Fushigi.ui.widgets
                 bool expanded = ImGui.TreeNodeEx($"##{name}", ImGuiTreeNodeFlags.DefaultOpen);
 
                 ImGui.SameLine();
+                ImGui.SetNextItemAllowOverlap();
                 if (ImGui.Checkbox($"##Visible{name}", ref unit.Visible))
                 {
                     foreach (var wall in unit.Walls)
@@ -635,7 +778,6 @@ namespace Fushigi.ui.widgets
                             rail.Visible = unit.Visible;
                     }
                 }
-                ImGui.SetItemAllowOverlap();
                 ImGui.SameLine();
 
                 if (ImGui.Selectable(name, mSelectedUnit == unit))
@@ -909,7 +1051,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f);
+                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f, 0, float.MaxValue);
                 ImGui.PopItemWidth();
 
                 ImGui.NextColumn();
@@ -946,6 +1088,7 @@ namespace Fushigi.ui.widgets
                 {
                     Dictionary<string, ParamDB.ComponentParam> dict = ParamDB.GetComponentParams(param);
 
+
                     if (dict.Keys.Count == 0)
                     {
                         continue;
@@ -959,64 +1102,82 @@ namespace Fushigi.ui.widgets
 
                     ImGui.Columns(2);
 
-                    foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
+                    if (param == "ChildActorSelectName" && ChildActorParam.ActorHasChildParam(actor.mActorName))
                     {
-                        string id = $"##{pair.Key}";
-
-                        ImGui.AlignTextToFramePadding();
-                        ImGui.Text(pair.Key);
+                        string id = $"##{param}";
+                        List<string> list = ChildActorParam.GetActorParams(actor.mActorName);
+                        int selected = list.IndexOf(actor.mActorParameters["ChildActorSelectName"].ToString());
+                        ImGui.Text("ChildParameters");
                         ImGui.NextColumn();
-
                         ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                        if (actor.mActorParameters.ContainsKey(pair.Key))
+                        if (ImGui.Combo("##Parameters", ref selected, list.ToArray(), list.Count))
                         {
-                            var actorParam = actor.mActorParameters[pair.Key];
-
-                            switch (pair.Value.Type)
-                            {
-                                case "S16":
-                                case "S32":
-                                    int val_int = (int)actorParam;
-                                    if (ImGui.InputInt(id, ref val_int))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_int;
-                                    }
-                                    break;
-                                case "Bool":
-                                    bool val_bool = (bool)actorParam;
-                                    if (ImGui.Checkbox(id, ref val_bool))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_bool;
-                                    }
-                                    break;
-                                case "F32":
-                                    float val_float = (float)actorParam;
-                                    if (ImGui.InputFloat(id, ref val_float)) 
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_float;
-                                    }
-                                    break;
-                                case "String":
-                                    string val_string = (string)actorParam;
-                                    if (ImGui.InputText(id, ref val_string, 1024))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_string;
-                                    }
-                                    break;
-                                case "F64":
-                                    double val = (double)actorParam;
-                                    if (ImGui.InputDouble(id, ref val))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val;
-                                    }
-                                    break;
-                            }
+                            actor.mActorParameters["ChildActorSelectName"] = list[selected];
                         }
+                    }
+                    else
+                    {
+                        foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
+                        {
+                            string id = $"##{pair.Key}";
 
-                        ImGui.PopItemWidth();
+                            ImGui.AlignTextToFramePadding();
+                            ImGui.Text(pair.Key);
+                            ImGui.NextColumn();
 
-                        ImGui.NextColumn();
+                            ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+
+                            if (actor.mActorParameters.ContainsKey(pair.Key))
+                            {
+                                var actorParam = actor.mActorParameters[pair.Key];
+
+                                switch (pair.Value.Type)
+                                {
+                                    case "U8":
+                                    case "S16":
+                                    case "S32":
+                                        int val_int = (int)actorParam;
+                                        if (ImGui.InputInt(id, ref val_int))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_int;
+                                        }
+                                        break;
+                                    case "Bool":
+                                        bool val_bool = (bool)actorParam;
+                                        if (ImGui.Checkbox(id, ref val_bool))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_bool;
+                                        }
+                                        break;
+                                    case "F32":
+                                        float val_float = (float)actorParam;
+                                        if (ImGui.InputFloat(id, ref val_float))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_float;
+                                        }
+                                        break;
+                                    case "String":
+                                        string val_string = (string)actorParam;
+                                        if (ImGui.InputText(id, ref val_string, 1024))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_string;
+                                        }
+                                        break;
+                                    case "F64":
+                                        double val = (double)actorParam;
+                                        if (ImGui.InputDouble(id, ref val))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val;
+                                        }
+                                        break;
+                                }
+                            }
+
+                            ImGui.PopItemWidth();
+
+                            ImGui.NextColumn();
+                        }
                     }
 
                     ImGui.Columns(1);

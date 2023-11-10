@@ -4,6 +4,7 @@ using Fushigi.util;
 using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection.Metadata.Ecma335;
@@ -23,7 +24,7 @@ namespace Fushigi.course
             mIsClosed = BymlUtil.GetNodeData<bool>(node["IsClosed"]);
 
             string pointParam = Path.GetFileNameWithoutExtension(BymlUtil.GetNodeData<string>(node["Gyaml"])).Split(".game")[0];
-            var railParams = ParamDB.GetRailComponents(pointParam)[0];
+            var railParams = ParamDB.GetRailComponent(pointParam);
             var comp = ParamDB.GetRailComponentParams(railParams);
 
             if (!node.ContainsKey("Dynamic"))
@@ -185,9 +186,12 @@ namespace Fushigi.course
             {
                 mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);
                 mTranslate = BymlUtil.GetVector3FromArray(node["Translate"] as BymlArrayNode);
-                // we will always use the second entry in the components, since the first one is only used by the rail itself
-                var pointParams = ParamDB.GetRailComponents(pointParam)[1];
-                var comp = ParamDB.GetRailComponentParams(pointParams);
+
+                IDictionary<string, ParamDB.ComponentParam> comp;
+                if (ParamDB.TryGetRailPointComponent(pointParam, out var componentName))
+                    comp = ParamDB.GetRailComponentParams(componentName);
+                else
+                    comp = ImmutableDictionary.Create<string, ParamDB.ComponentParam>();
 
                 if (!node.ContainsKey("Dynamic"))
                 {
@@ -379,9 +383,9 @@ namespace Fushigi.course
     {
         struct Link
         {
-            public CourseActor? Source;
-            public CourseRail? Dest;
-            public CourseRail.CourseRailPoint? Point;
+            public ulong Source;
+            public ulong Dest;
+            public ulong Point;
             public string Name;
         }
 
@@ -395,9 +399,9 @@ namespace Fushigi.course
                 string name = BymlUtil.GetNodeData<string>(railLink["Name"]);
 
                 Link link = new();
-                link.Source = actorHolder[sourceHash];
-                link.Dest = railHolder[destHash];
-                link.Point = link.Dest[pointHash];
+                link.Source = sourceHash;
+                link.Dest = destHash;
+                link.Point = pointHash;
                 link.Name = name;
 
                 mLinks.Add(link);
@@ -409,6 +413,24 @@ namespace Fushigi.course
 
         }
 
+        public void RemoveLinkFromSrc(ulong hash)
+        {
+            int idx = -1;
+            foreach (Link link in mLinks)
+            {
+                if (link.Source == hash)
+                {
+                    idx = mLinks.IndexOf(link);
+                    break;
+                }
+            }
+
+            if (idx != -1)
+            {
+                mLinks.RemoveAt(idx);
+            }
+        }
+
         public BymlArrayNode SerializeToArray()
         {
             BymlArrayNode node = new((uint)mLinks.Count);
@@ -416,10 +438,10 @@ namespace Fushigi.course
             foreach (Link link in mLinks)
             {
                 BymlHashTable tbl = new();
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Dst", link.Dest.GetHash()), "Dst");
+                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Dst", link.Dest), "Dst");
                 tbl.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Name", link.Name), "Name");
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Point", link.Point.GetHash()), "Point");
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Src", link.Source.GetHash()), "Src");
+                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Point", link.Point), "Point");
+                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Src", link.Source), "Src");
                 node.AddNodeToArray(tbl);
             }
 

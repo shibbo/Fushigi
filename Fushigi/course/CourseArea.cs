@@ -73,7 +73,7 @@ namespace Fushigi.course
             if (root.ContainsKey("Links"))
             {
                 BymlArrayNode? linksArray = root["Links"] as BymlArrayNode;
-                mLinkHolder = new(linksArray, mActorHolder);
+                mLinkHolder = new(linksArray);
             }
             else
             { 
@@ -83,7 +83,7 @@ namespace Fushigi.course
             if (root.ContainsKey("SimultaneousGroups"))
             {
                 BymlArrayNode? groupsArray = root["SimultaneousGroups"] as BymlArrayNode;
-                mGroups = new CourseGroupHolder(groupsArray, mActorHolder);
+                mGroups = new CourseGroupHolder(groupsArray);
             }
             else
             {

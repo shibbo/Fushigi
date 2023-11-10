@@ -1,6 +1,5 @@
 ﻿using Fushigi.util;
 using Fushigi.windowing;
-using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Fushigi.param;
@@ -10,6 +9,9 @@ using System.Runtime.CompilerServices;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using static System.Net.Mime.MediaTypeNames;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace Fushigi.ui
 {
@@ -83,7 +85,8 @@ namespace Fushigi.ui
             string romFSPath = UserSettings.GetRomFSPath();
             if (RomFS.IsValidRoot(romFSPath))
             {
-                RomFS.SetRoot(romFSPath); 
+                RomFS.SetRoot(romFSPath);
+                ChildActorParam.Load();
             }
 
             if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
@@ -177,6 +180,11 @@ namespace Fushigi.ui
                     if (ImGui.MenuItem("Preferences"))
                     {
                         mIsChoosingPreferences = true;
+                    }
+
+                    if (ImGui.MenuItem("Regenerate Parameter Database", ParamDB.sIsInit)) {
+                        ParamDB.sIsInit = false;
+                        ParamDB.Reload();
                     }
 
                     /* end Edit menu */

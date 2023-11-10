@@ -13,9 +13,11 @@ namespace Fushigi.ui
         public Vector3 RotationEuler { get; set; }
         public Vector3 Scale { get; set; } = Vector3.One;
 
-        public virtual void Update()
-        {
+        public event Action? Update;
 
+        internal virtual void OnUpdate()
+        {
+            Update?.Invoke();
         }
     }
 }

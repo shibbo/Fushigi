@@ -77,45 +77,7 @@ namespace Fushigi.course
             }
             else
             {
-                // does our actor have no dynamic node? well, let's set up our default settings then
-                if (ParamDB.HasActorComponents(mActorName))
-                {
-                    List<string> paramList = ParamDB.GetActorComponents(mActorName);
-
-                    foreach (string p in paramList)
-                    {
-                        var components = ParamDB.GetComponentParams(p);
-
-                        foreach (string component in components.Keys)
-                        {
-                            if (mActorParameters.ContainsKey(component))
-                            {
-                                continue;
-                            }
-
-                            var c = components[component];
-
-                            switch (c.Type)
-                            {
-                                case "U8":
-                                case "S16":
-                                case "U32":
-                                case "S32":
-                                    mActorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
-                                    break;
-                                case "F32":
-                                    mActorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
-                                    break;
-                                case "Bool":
-                                    mActorParameters.Add(component, (bool)components[component].InitValue);
-                                    break;
-                                case "String":
-                                    mActorParameters.Add(component, (string)components[component].InitValue);
-                                    break;
-                            }
-                        }
-                    }
-                }
+                InitializeDefaultDynamicParams();
             }
 
             if (actorNode.ContainsKey("System"))
@@ -159,38 +121,48 @@ namespace Fushigi.course
             mActorParameters = new();
             mSystemParameters = new();
 
-            List<string> paramList = ParamDB.GetActorComponents(mActorName);
+            InitializeDefaultDynamicParams();
+        }
 
-            foreach (string p in paramList)
+        public void InitializeDefaultDynamicParams()
+        {
+            mActorParameters.Clear();
+
+            if (ParamDB.HasActorComponents(mActorName))
             {
-                var components = ParamDB.GetComponentParams(p);
+                List<string> paramList = ParamDB.GetActorComponents(mActorName);
 
-                foreach (string component in components.Keys)
+                foreach (string p in paramList)
                 {
-                    var c = components[component];
+                    var components = ParamDB.GetComponentParams(p);
 
-                    if (mActorParameters.ContainsKey(component))
+                    foreach (string component in components.Keys)
                     {
-                        continue;
-                    }
+                        if (mActorParameters.ContainsKey(component))
+                        {
+                            continue;
+                        }
 
-                    switch (c.Type)
-                    {
-                        case "U8":
-                        case "S16":
-                        case "U32":
-                        case "S32":
-                            mActorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
-                            break;
-                        case "F32":
-                            mActorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
-                            break;
-                        case "Bool":
-                            mActorParameters.Add(component, (bool)components[component].InitValue);
-                            break;
-                        case "String":
-                            mActorParameters.Add(component, (string)components[component].InitValue);
-                            break;
+                        var c = components[component];
+
+                        switch (c.Type)
+                        {
+                            case "U8":
+                            case "S16":
+                            case "U32":
+                            case "S32":
+                                mActorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
+                                break;
+                            case "F32":
+                                mActorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
+                                break;
+                            case "Bool":
+                                mActorParameters.Add(component, (bool)components[component].InitValue);
+                                break;
+                            case "String":
+                                mActorParameters.Add(component, (string)components[component].InitValue);
+                                break;
+                        }
                     }
                 }
             }
@@ -357,16 +329,6 @@ namespace Fushigi.course
         public bool HasHash(ulong hash)
         {
             return mCourseActors.Any(x => x.GetHash() == hash);
-        }
-
-        public void AddActor(CourseActor actor)
-        {
-            mCourseActors.Add(actor);
-        }
-        
-        public void DeleteActor(CourseActor actor)
-        {
-            mCourseActors.Remove(actor);
         }
 
         public CourseActor this[ulong hash]
