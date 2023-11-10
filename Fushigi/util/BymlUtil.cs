@@ -56,12 +56,20 @@ namespace Fushigi.util
         
         public static object GetValueFromDynamicNode(IBymlNode node, string dynNode, string type)
         {
+            if (type == "U8" && node.Id == BymlNodeId.Int)
+            {
+                type = "S32";
+            }
+            else if (type == "U8" && node.Id == BymlNodeId.UInt)
+            {
+                type = "U32";
+            }
+
             switch (type)
             {
                 case "U16":
                 case "U32":
                     return BymlUtil.GetNodeData<uint>(node);
-                case "U8":
                 case "S16":
                 case "S32":
                     return BymlUtil.GetNodeData<int>(node);
