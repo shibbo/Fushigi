@@ -114,12 +114,12 @@ namespace Fushigi.ui.widgets
                     var topLeft = ImGui.GetCursorScreenPos();
                     var size = ImGui.GetContentRegionAvail();
 
+                    ImGui.SetNextItemAllowOverlap();
                     viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
                     if(activeViewport != viewport)
                         ImGui.GetWindowDrawList().AddRectFilled(topLeft, topLeft + size, 0x44000000);
 
                     //Allow button press, align to top of the screen
-                    ImGui.SetNextItemAllowOverlap();
                     ImGui.SetCursorScreenPos(topLeft);
 
                     //Load popup when button is pressed
@@ -742,6 +742,7 @@ namespace Fushigi.ui.widgets
                 bool expanded = ImGui.TreeNodeEx($"##{name}", ImGuiTreeNodeFlags.DefaultOpen);
 
                 ImGui.SameLine();
+                ImGui.SetNextItemAllowOverlap();
                 if (ImGui.Checkbox($"##Visible{name}", ref unit.Visible))
                 {
                     foreach (var wall in unit.Walls)
@@ -751,7 +752,6 @@ namespace Fushigi.ui.widgets
                             rail.Visible = unit.Visible;
                     }
                 }
-                ImGui.SetNextItemAllowOverlap();
                 ImGui.SameLine();
 
                 if (ImGui.Selectable(name, mSelectedUnit == unit))
@@ -1025,7 +1025,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f, 0.0f, float.MaxValue);
+                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f, 0, float.MaxValue);
                 ImGui.PopItemWidth();
 
                 ImGui.NextColumn();
