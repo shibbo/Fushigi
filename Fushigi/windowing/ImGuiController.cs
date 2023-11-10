@@ -96,7 +96,8 @@ public class ImGuiController : IDisposable
                 {
                     if (Key.A <= key && key <= Key.Z)
                     {
-                        char keyNameChar = sdl.GetKeyNameS(scanCode)[0];
+                        var sdlKey = sdl.GetKeyFromScancode((Silk.NET.SDL.Scancode)scanCode);
+                        char keyNameChar = sdl.GetKeyNameS(sdlKey)[0];
 
                         key = Key.A + (char.ToLower(keyNameChar) - 'a');
                     }
