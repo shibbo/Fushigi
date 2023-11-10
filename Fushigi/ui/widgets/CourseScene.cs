@@ -1025,7 +1025,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f);
+                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f, 0.0f);
                 ImGui.PopItemWidth();
 
                 ImGui.NextColumn();
