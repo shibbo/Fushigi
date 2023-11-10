@@ -62,6 +62,10 @@ namespace Fushigi.course
                 var linksArr = root["Links"] as BymlArrayNode;
                 mGlobalLinks = new(linksArr);
             }
+            else
+            {
+                mGlobalLinks = new(new BymlArrayNode());
+            }
         }
 
         public List<CourseArea> GetAreas()
