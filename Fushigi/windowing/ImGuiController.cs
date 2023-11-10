@@ -1,9 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
 using Silk.NET.Input;
@@ -17,7 +14,8 @@ using System.Diagnostics;
 using Fushigi.util;
 using Silk.NET.Input.Extensions;
 using Silk.NET.Windowing.Glfw;
-using Glfw = Silk.NET.GLFW.Glfw;
+using Sdl = Silk.NET.SDL.Sdl;
+using Silk.NET.Windowing.Sdl;
 
 
 namespace Fushigi.windowing;
@@ -72,11 +70,12 @@ public class ImGuiController : IDisposable
 
         unsafe
         {
-            var glfwWindowHandle = GlfwWindowing.GetHandle(window);
+            var glfw = GlfwWindowing.GetExistingApi(window);
+            var sdl = SdlWindowing.GetExistingApi(window);
 
-            if (glfwWindowHandle is not null)
+            if (glfw is not null)
             {
-                var glfw = GlfwWindowing.GetExistingApi(window)!;
+                
                 TranslateKeyFunc = (key, scanCode) =>
                 {
                     if(Key.A <= key && key <= Key.Z)
@@ -84,7 +83,22 @@ public class ImGuiController : IDisposable
                         int glfwKey = (int)Silk.NET.GLFW.Keys.A + (key - Key.A);
                         char keyNameChar = glfw.GetKeyName(glfwKey, scanCode)[0];
 
-                        key = Key.A + (keyNameChar - 'a');
+                        key = Key.A + (char.ToLower(keyNameChar) - 'a');
+                    }
+
+                    return key;
+                };
+            }
+            else if (sdl is not null)
+            {
+
+                TranslateKeyFunc = (key, scanCode) =>
+                {
+                    if (Key.A <= key && key <= Key.Z)
+                    {
+                        char keyNameChar = sdl.GetKeyNameS(scanCode)[0];
+
+                        key = Key.A + (char.ToLower(keyNameChar) - 'a');
                     }
 
                     return key;
@@ -248,8 +262,7 @@ public class ImGuiController : IDisposable
         io.MouseDown[1] = mouseState.IsButtonPressed(MouseButton.Right);
         io.MouseDown[2] = mouseState.IsButtonPressed(MouseButton.Middle);
 
-        var point = new Point((int)mouseState.Position.X, (int)mouseState.Position.Y);
-        io.MousePos = new Vector2(point.X, point.Y);
+        io.MousePos = new Vector2((int)mouseState.Position.X, (int)mouseState.Position.Y);
 
         var wheel = mouseState.GetScrollWheels()[0];
         io.MouseWheel = wheel.Y;
