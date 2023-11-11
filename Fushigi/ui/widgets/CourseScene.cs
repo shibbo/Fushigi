@@ -1038,6 +1038,37 @@ namespace Fushigi.ui.widgets
             }
         }
 
+        private static bool ToggleButton(string id, string textOn, string textOff, ref bool value, Vector2 size = default)
+        {
+            var textOnSize = ImGui.CalcTextSize(textOn) * 1.2f;
+            var textOffSize = ImGui.CalcTextSize(textOff) * 1.2f;
+
+            if (size.X <= 0 || size.Y <= 0)
+            {
+                
+                size.X = MathF.Max(textOffSize.X, textOnSize.X) + ImGui.GetStyle().FramePadding.X * 2;
+                size.Y = MathF.Max(textOffSize.Y, textOnSize.Y) + ImGui.GetStyle().FramePadding.Y * 2;
+            }
+
+            Vector2 cp = ImGui.GetCursorScreenPos();
+            bool clicked = ImGui.InvisibleButton(id, size);
+            if (clicked)
+                value = !value;
+
+            float alpha = value ? 1f : 0.5f;
+
+            if (!ImGui.IsItemHovered())
+                alpha -= 0.2f;
+
+            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 1.2f,
+                cp + (size - (value ? textOnSize : textOffSize)) / 2,
+                (ImGui.GetColorU32(ImGuiCol.Text) & 0xFF_FF_FF) | (uint)(0xFF * alpha) << 24,
+                value ? textOn : textOff
+                );
+
+            return clicked;
+        }
+
         private void CourseActorsLayerView(CourseActorHolder actorArray)
         {
             float em = ImGui.GetFrameHeight();
@@ -1063,7 +1094,8 @@ namespace Fushigi.ui.widgets
             var wcMax = wcMin + ImGui.GetContentRegionAvail();
 
             ImGui.SetCursorScreenPos(new Vector2(wcMax.X - margin, cp.Y + (headerHeight - em) / 2));
-            if (ImGui.Checkbox($"##VisibleCheckbox All", ref mAllLayersVisible))
+            if (ToggleButton($"VisibleCheckbox All", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH, 
+                ref mAllLayersVisible, new Vector2(em)))
                 UpdateAllLayerVisiblity();
 
             ImGui.SetCursorScreenPos(cp + new Vector2(0, headerHeight));
@@ -1084,9 +1116,10 @@ namespace Fushigi.ui.widgets
                     layer);
 
                 ImGui.PushClipRect(wcMin, wcMax, false);
-                ImGui.SetCursorScreenPos(new Vector2(wcMax.X - margin, cp.Y));
+                ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em) /2, cp.Y));
                 bool isVisible = mLayersVisibility[layer];
-                if (ImGui.Checkbox("##VisibleCheckbox" + layer, ref isVisible))
+                if (ToggleButton($"VisibleCheckbox", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH,
+                    ref isVisible, new Vector2(em)))
                     mLayersVisibility[layer] = isVisible;
                 ImGui.PopClipRect();
 
