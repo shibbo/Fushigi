@@ -1109,6 +1109,9 @@ namespace Fushigi.ui.widgets
                 bool expanded = ImGui.TreeNodeEx($"Rail {railHolder.mRails.IndexOf(rail)}", rail_node_flags);
                 if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
                 {
+                    /* deselect from viewport and list */
+                    mSelectedActor = null;
+                    activeViewport.mEditContext.DeselectAll();
                     mSelectedRailPoint = null;
                     mSelectedRail = rail;
                 }
