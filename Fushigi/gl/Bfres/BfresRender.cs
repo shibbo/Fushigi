@@ -31,9 +31,9 @@ namespace Fushigi.gl.Primitives
                 Models.Add(new BfresModel(gl, model));
         }
 
-        internal void Render(GL gl, LevelViewport viewport)
+        internal void Render(GL gl, Matrix4x4 transform, Camera camera)
         {
-            var cameraMatrix = viewport.GetCameraMatrix();
+            var cameraMatrix = camera.ViewProjectionMatrix;
             foreach (var model in Models)
             {
                 if (!model.IsVisible)
@@ -44,7 +44,7 @@ namespace Fushigi.gl.Primitives
                     if (!mesh.IsVisible)
                         continue;
 
-                    mesh.Render(gl, cameraMatrix);
+                    mesh.Render(gl, transform, cameraMatrix);
                 }
             }
         }
@@ -115,7 +115,7 @@ namespace Fushigi.gl.Primitives
                 });
             }
 
-            public void Render(GL gl, Matrix4x4 cameraMatrix)
+            public void Render(GL gl, Matrix4x4 transform, Matrix4x4 cameraMatrix)
             {
                 var mesh = this.LodMeshes[0]; //only use first level of detail
 
@@ -125,6 +125,7 @@ namespace Fushigi.gl.Primitives
 
                 Shader.Use();
                 Shader.SetUniform("mtxCam", cameraMatrix);
+                Shader.SetUniform("mtxMdl", transform);
 
                 vbo.Enable(Shader);
                 vbo.Use();
