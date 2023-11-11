@@ -1,5 +1,6 @@
 using Fushigi.Byml;
 using Fushigi.course;
+using Fushigi.gl;
 using Fushigi.param;
 using Fushigi.rstb;
 using Fushigi.util;
@@ -145,6 +146,11 @@ namespace Fushigi.ui.widgets
 
                     var topLeft = ImGui.GetCursorScreenPos();
                     var size = ImGui.GetContentRegionAvail();
+
+                   // viewport.DrawScene3D(size);
+
+                    ImGui.SetNextItemAllowOverlap();
+                    ImGui.SetCursorScreenPos(topLeft);
 
                     ImGui.SetNextItemAllowOverlap();
                     viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);

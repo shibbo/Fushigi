@@ -45,6 +45,7 @@ namespace Fushigi.ui.widgets
         public string mNewLinkType = "";
 
         public Camera Camera = new Camera();
+        public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
 
         public object? HoveredObject;
         public CourseLink? CurCourseLink = null;
@@ -160,6 +161,38 @@ namespace Fushigi.ui.widgets
                     Camera.Target.Y -= 0.25f;
                 }
             }
+        }
+
+        Plane2DRenderer Plane2DRenderer;
+
+        public void DrawScene3D(Vector2 size)
+        {
+            if (Framebuffer == null)
+                Framebuffer = new GLFramebuffer(gl, FramebufferTarget.Framebuffer, (uint)size.X, (uint)size.Y);
+
+            if (Plane2DRenderer == null)
+                Plane2DRenderer = new Plane2DRenderer(gl, 10);
+
+            //Resize if needed
+            if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
+                Framebuffer.Resize((uint)size.X, (uint)size.Y);
+
+            Framebuffer.Bind();
+
+            gl.ClearColor(0, 0, 0, 0);
+            gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            gl.Viewport(0, 0, Framebuffer.Width, Framebuffer.Height);
+
+            gl.Enable(EnableCap.DepthTest);
+
+            //Draw gl scene objects here
+            Plane2DRenderer.Render(this.Camera);
+
+            Framebuffer.Unbind();
+
+            //Draw framebuffer
+            ImGui.Image((IntPtr)((GLTexture)Framebuffer.Attachments[0]).ID, new Vector2(size.X, size.Y),
+                new Vector2(0, 1), new Vector2(1, 0));
         }
 
         public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility)

@@ -20,7 +20,7 @@ namespace Fushigi.gl
 
         }
 
-        public void Render(Matrix4x4 cameraMatrix)
+        public void Render(Camera camera)
         {
             if (Image == null)
                 Image = GLTexture2D.Load(_gl, "Wood.png");
@@ -32,7 +32,7 @@ namespace Fushigi.gl
             shader.Use();
             shader.SetUniform("hasTexture", 1);
 
-            shader.SetUniform("mtxCam", cameraMatrix);
+            shader.SetUniform("mtxCam", camera.ViewProjectionMatrix);
             shader.SetTexture("image", Image, 1);
 
             Draw(shader);

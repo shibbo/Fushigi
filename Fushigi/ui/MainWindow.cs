@@ -300,6 +300,9 @@ namespace Fushigi.ui
                 }
             }
 
+            //Update viewport from any framebuffers being used
+            gl.Viewport(mWindow.FramebufferSize);
+
             /* render our ImGUI controller */
             controller.Render();
         }
