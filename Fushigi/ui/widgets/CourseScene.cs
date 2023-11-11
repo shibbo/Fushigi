@@ -48,6 +48,8 @@ namespace Fushigi.ui.widgets
         CourseUnit? mSelectedUnit = null;
         BGUnitRail? mSelectedUnitRail = null;
         CourseLink? mSelectedGlobalLink = null;
+        CourseRail? mSelectedRail = null;
+        CourseRail.CourseRailPoint? mSelectedRailPoint = null;
 
         string mAddActorSearchQuery = "";
 
@@ -697,6 +699,32 @@ namespace Fushigi.ui.widgets
                     ImGui.Columns(1);
                 }
             }
+            else if (mSelectedRail != null)
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"Selected Rail");
+                ImGui.NewLine();
+                ImGui.Separator();
+
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Hash"); ImGui.NextColumn();
+                    string hash = mSelectedRail.mHash.ToString();
+                    if (ImGui.InputText("##Hash", ref hash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue))
+                    {
+                        
+                    }
+
+                    ImGui.NextColumn();
+                    ImGui.Text("IsClosed"); 
+                    ImGui.NextColumn();
+                    ImGui.Checkbox("##IsClosed", ref mSelectedRail.mIsClosed);
+
+                    ImGui.Columns(1);
+                }
+
+            }
             else
             {
                 ImGui.AlignTextToFramePadding();
@@ -969,12 +997,16 @@ namespace Fushigi.ui.widgets
             {
                 if (ImGui.TreeNode($"Rail {railHolder.mRails.IndexOf(rail)}"))
                 {
+                    mSelectedRail = rail;
+                    mSelectedRailPoint = null;
                     //ImGui.Checkbox("IsClosed", ref rail.mIsClosed);
 
                     foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
                     {
                         if (ImGui.TreeNode($"Point {rail.mPoints.IndexOf(pnt)}"))
                         {
+                            mSelectedRail = null;
+                            mSelectedRailPoint = pnt;
                             ImGui.TreePop();
                         }
                     }
