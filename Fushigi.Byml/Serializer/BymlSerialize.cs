@@ -170,15 +170,7 @@ namespace Fushigi.Byml.Serializer
                 var value = properties[i].GetValue(section);
 
                 if (byamlAttribute != null)
-                {
-                    //Skip null optional values
-                    if (byamlAttribute.Optional && value == null)
-                        continue;
-
-                    //If value is null, use a default value
-                    if (value == null)
-                        value = byamlAttribute.DefaultValue;
-                }
+                    value = byamlAttribute.DefaultValue;
 
                 //Set custom keys as property name if used
                 string name = byamlAttribute != null && byamlAttribute.Key != null ? byamlAttribute.Key : properties[i].Name;
@@ -186,7 +178,7 @@ namespace Fushigi.Byml.Serializer
                 if (value == null)
                     continue;
 
-                var node = SetBymlValue(properties[i].GetValue(section));
+                var node = SetBymlValue(value);
                 bymlProperties.AddNode(node.Id, node, name); 
             }
             return bymlProperties;
