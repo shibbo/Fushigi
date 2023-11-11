@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Fushigi.actor_pack.components
 {
     [Serializable]
-    public class ModelInfo : IComponent
+    public class ModelInfo 
     {
         [BymlProperty("FmdbName", DefaultValue = "")]
         public string mModelName { get; set; }
