@@ -99,7 +99,7 @@ namespace Fushigi.ui
             if (!ParamDB.sIsInit && !string.IsNullOrEmpty(RomFS.GetRoot()))
             {
                 Console.WriteLine("Parameter database needs to be initialized...");
-                ParamDB.Load();
+                mIsGeneratingParamDB = true;
             }
 
             string? latestCourse = UserSettings.GetLatestCourse();
@@ -183,8 +183,7 @@ namespace Fushigi.ui
                     }
 
                     if (ImGui.MenuItem("Regenerate Parameter Database", ParamDB.sIsInit)) {
-                        ParamDB.sIsInit = false;
-                        ParamDB.Reload();
+                        mIsGeneratingParamDB = true;
                     }
 
                     /* end Edit menu */
@@ -298,6 +297,12 @@ namespace Fushigi.ui
                 {
                     DrawWelcome();
                 }
+
+                if (mIsGeneratingParamDB)
+                {
+                    ParamDBDialog.Draw(ref mIsGeneratingParamDB);
+                }
+
             }
 
             //Update viewport from any framebuffers being used
@@ -313,5 +318,6 @@ namespace Fushigi.ui
         bool mIsChoosingCourse = true;
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
+        bool mIsGeneratingParamDB = false;
     }
 }

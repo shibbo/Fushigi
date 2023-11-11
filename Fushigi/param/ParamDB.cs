@@ -199,6 +199,7 @@ namespace Fushigi.param
             sComponents.Clear();
             sRails.Clear();
             sRailParamList.Clear();
+            sIsInit = false;
             Load();
         }
 
