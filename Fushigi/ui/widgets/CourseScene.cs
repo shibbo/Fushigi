@@ -644,6 +644,15 @@ namespace Fushigi.ui.widgets
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Selected Global Link");
+                ImGui.NewLine();
+                
+                if (ImGui.Button("Delete Link"))
+                {
+                    course.RemoveGlobalLink(mSelectedGlobalLink);
+                    mSelectedGlobalLink = null;
+                    return;
+                }
+
                 ImGui.Separator();
 
                 if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))

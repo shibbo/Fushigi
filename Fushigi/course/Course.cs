@@ -29,12 +29,9 @@ namespace Fushigi.course
 
         public void LoadFromRomFS()
         {
-            var courseFilePath = FileUtil.FindContentPath(
-                Path.Combine("BancMapUnit", $"{mCourseName}.bcett.byml.zs")
-                );
-            var stageParamFilePath = FileUtil.FindContentPath(
-                Path.Combine("Stage", "StageParam", $"{mCourseName}.game__stage__StageParam.bgyml")
-                );
+            var courseFilePath = FileUtil.FindContentPath(Path.Combine("BancMapUnit", $"{mCourseName}.bcett.byml.zs"));
+            var stageParamFilePath = FileUtil.FindContentPath(Path.Combine("Stage", "StageParam", $"{mCourseName}.game__stage__StageParam.bgyml"));
+
             /* grab our course information file */
             Byml.Byml courseInfo = new Byml.Byml(new MemoryStream(FileUtil.DecompressFile(courseFilePath)));
             Byml.Byml stageParam = new Byml.Byml(new MemoryStream(File.ReadAllBytes(stageParamFilePath)));
@@ -102,6 +99,11 @@ namespace Fushigi.course
             mGlobalLinks.GetLinks().Add(link);
         }
 
+        public void RemoveGlobalLink(CourseLink link)
+        {
+            mGlobalLinks.GetLinks().Remove(link);
+        }
+
         public CourseLinkHolder GetGlobalLinks()
         {
             return mGlobalLinks;
@@ -111,6 +113,27 @@ namespace Fushigi.course
         {
             RSTB resource_table = new RSTB();
             resource_table.Load();
+
+            BymlHashTable stageParamRoot = new();
+            stageParamRoot.AddNode(BymlNodeId.Array, new BymlArrayNode(), "Actors");
+            stageParamRoot.AddNode(BymlNodeId.Array, mGlobalLinks.SerializeToArray(), "Links");
+
+            BymlArrayNode refArr = new();
+
+            foreach (CourseArea area in mAreas)
+            {
+                refArr.AddNodeToArray(BymlUtil.CreateNode<string>("", $"Work/Stage/StageParam/{area.GetName()}.game__stage__StageParam.gyml"));
+            }
+
+            stageParamRoot.AddNode(BymlNodeId.Array, refArr, "RefStages");
+
+            var byml = new Byml.Byml(stageParamRoot);
+            var mem = new MemoryStream();
+            byml.Save(mem);
+            resource_table.SetResource($"BancMapUnit/{mCourseName}.bcett.byml", (uint)mem.Length);
+            string folder = Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit");
+            string levelPath = Path.Combine(folder, $"{mCourseName}.bcett.byml.zs");
+            File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
 
             SaveAreas(resource_table);
 
