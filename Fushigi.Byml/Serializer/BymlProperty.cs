@@ -11,7 +11,7 @@ namespace Fushigi.Byml.Serializer
         public string Key { get; set; }
         public dynamic DefaultValue { get; set; }
 
-        public bool Optional = false;
+        public bool Optional = true;
 
         public BymlProperty() { }
 
