@@ -1103,12 +1103,13 @@ namespace Fushigi.ui.widgets
             foreach(CourseRail rail in railHolder.mRails)
             {
                 var rail_node_flags = ImGuiTreeNodeFlags.None;
-                if (mSelectedRail == rail)
+                if (mSelectedRail == rail && mSelectedRailPoint == null)
                     rail_node_flags |= ImGuiTreeNodeFlags.Selected;
 
                 bool expanded = ImGui.TreeNodeEx($"Rail {railHolder.mRails.IndexOf(rail)}", rail_node_flags);
                 if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
                 {
+                    mSelectedRailPoint = null;
                     mSelectedRail = rail;
                 }
 
