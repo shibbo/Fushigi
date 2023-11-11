@@ -12,6 +12,11 @@ namespace Fushigi.Byml.Serializer
 {
     public static class BymlSerialize
     {
+        public static T Deserialize<T>(byte[] data)
+        {
+            return Deserialize<T>(new Byml(new MemoryStream(data)).Root);
+        }
+
         public static T Deserialize<T>(IBymlNode node)
         {
             T instance = (T)CreateInstance(typeof(T));
