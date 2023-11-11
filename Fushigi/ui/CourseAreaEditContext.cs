@@ -64,6 +64,7 @@ namespace Fushigi.ui
 
         public void Select(object obj)
         {
+            CloseConfirmationDialog.needConfirmation = true;//TODO Imrpove CloseConfirmation Detection
             int countBefore = mSelectedObjects.Count;
             mSelectedObjects.Add(obj);
 
