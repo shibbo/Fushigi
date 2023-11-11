@@ -167,17 +167,22 @@ namespace Fushigi.Byml.Serializer
                 if (bymlIgnoreAttribute != null)
                     continue;
 
-                //Skip null optional values
+                var value = properties[i].GetValue(section);
+
                 if (byamlAttribute != null)
                 {
-                    if (byamlAttribute.Optional && properties[i].GetValue(section) == null)
+                    //Skip null optional values
+                    if (byamlAttribute.Optional && value == null)
                         continue;
+
+                    //If value is null, use a default value
+                    if (value == null)
+                        value = byamlAttribute.DefaultValue;
                 }
 
                 //Set custom keys as property name if used
                 string name = byamlAttribute != null && byamlAttribute.Key != null ? byamlAttribute.Key : properties[i].Name;
 
-                var value = properties[i].GetValue(section);
                 if (value == null)
                     continue;
 
