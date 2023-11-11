@@ -164,6 +164,14 @@ namespace Fushigi.ui.widgets
                     if (ImGui.Button("Area Parameters"))
                         ImGui.OpenPopup("AreaParams");
 
+                    //Display Mouse Position  
+                    if(ImGui.IsWindowHovered()){
+                        var _mousePos = activeViewport.ScreenToWorld(ImGui.GetMousePos());
+                        ImGui.Text("X: " + Math.Round(_mousePos.X, 3) + "\nY: " + Math.Round(_mousePos.Y, 3));
+                    }
+                    else
+                        ImGui.Text("X:\nY:");
+
                     //Fixed popup pos, render popup
                     var pos = ImGui.GetCursorScreenPos();
                     ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
