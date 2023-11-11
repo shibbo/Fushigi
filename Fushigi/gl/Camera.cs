@@ -23,8 +23,13 @@ namespace Fushigi.gl
         public Matrix4x4 ProjectionMatrix { get; private set; }
         public Matrix4x4 ViewMatrix { get; private set; }
         public Matrix4x4 ViewProjectionMatrix { get; private set; }
-
         public Matrix4x4 ViewProjectionMatrixInverse { get; private set; }
+
+        public CameraFrustum CameraFrustum = new CameraFrustum();
+
+        public bool InFrustum(BoundingBox box) {
+            return CameraFrustum.CheckIntersection(this, box, 1f);
+        }
 
         public bool UpdateMatrices()
         {
@@ -38,7 +43,13 @@ namespace Fushigi.gl
             if (!Matrix4x4.Invert(ViewProjectionMatrix, out var inv))
                 return false;
 
+            //Temp. since matrices are updated per frame, check for any changes
+            //So we don't have to keep updating frustum info each frame
+            if (inv != ViewProjectionMatrixInverse)
+                CameraFrustum.UpdateCamera(this);
+
             ViewProjectionMatrixInverse = inv;
+
 
             return true;
         }
