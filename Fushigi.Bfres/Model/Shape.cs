@@ -187,6 +187,14 @@ namespace Fushigi.Bfres
         }
 
         /// <summary>
+        /// The index for the material data.
+        /// </summary>
+        public int MaterialIndex
+        {
+            get { return header.MaterialIndex; }
+        }
+
+        /// <summary>
         /// The mesh list for handling level of details.
         /// The first mesh is used by default without LODs.
         /// </summary>
@@ -232,6 +240,10 @@ namespace Fushigi.Bfres
     }
     public class Mesh : IResData
     {
+        public uint IndexCount => header.IndexCount;
+        public BfresIndexFormat IndexFormat => header.IndexFormat;
+        public BfresPrimitiveType PrimitiveType => header.PrimType;
+
         /// <summary>
         /// The raw mesh buffer.
         /// </summary>

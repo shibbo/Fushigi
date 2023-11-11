@@ -74,6 +74,8 @@ namespace Fushigi.ui.widgets
             Units
         }
 
+        public Matrix4x4 GetCameraMatrix() => this.mViewProjectionMatrix;
+
         public Vector2 WorldToScreen(Vector3 pos) => WorldToScreen(pos, out _);
         public Vector2 WorldToScreen(Vector3 pos, out float ndcDepth)
         {
