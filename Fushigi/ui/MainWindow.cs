@@ -103,7 +103,7 @@ namespace Fushigi.ui
             }
 
             string? latestCourse = UserSettings.GetLatestCourse();
-            if (latestCourse != null)
+            if (latestCourse != null && ParamDB.sIsInit)
             {
                 mCurrentCourseName = latestCourse;
                 mSelectedCourseScene = new(new(mCurrentCourseName), gl);
