@@ -26,6 +26,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using ZstdSharp.Unsafe;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Fushigi.ui.widgets
@@ -44,13 +45,7 @@ namespace Fushigi.ui.widgets
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
 
-        CourseActor? mSelectedActor = null;
-        CourseUnit? mSelectedUnit = null;
-        BGUnitRail? mSelectedUnitRail = null;
         CourseLink? mSelectedGlobalLink = null;
-        CourseRail? mSelectedRail = null;
-        CourseRail.CourseRailPoint? mSelectedRailPoint = null;
-
         string mAddActorSearchQuery = "";
 
         string[] linkTypes = [
@@ -93,13 +88,6 @@ namespace Fushigi.ui.widgets
             }
 
             activeViewport = viewports[selectedArea];
-        }
-
-        public void DeselectAll()
-        {
-            mSelectedActor = null;
-            mSelectedUnit = null;
-            mSelectedUnitRail = null;
         }
 
         public void DrawUI(GL gl)
@@ -199,17 +187,6 @@ namespace Fushigi.ui.widgets
                 }
 
                 lastCreatedViewports = viewports;
-            }
-
-            if (activeViewport.mEditContext.SelectionVersion != selectionVersionBefore)
-            {
-                DeselectAll();
-                if (activeViewport.mEditContext.IsSingleObjectSelected<CourseActor>(out var actor))
-                    mSelectedActor = actor;
-                if (activeViewport.mEditContext.IsSingleObjectSelected<BGUnitRail>(out var bgUnitRail))
-                {
-                    mSelectedUnitRail = bgUnitRail;
-                }
             }
 
             if (status)
@@ -434,9 +411,10 @@ namespace Fushigi.ui.widgets
 
         private void SelectionParameterPanel()
         {
+
             bool status = ImGui.Begin("Selection Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
-            if (mSelectedActor != null)
+            if (activeViewport.mEditContext.IsSingleObjectSelected(out CourseActor? mSelectedActor))
             {
                 string actorName = mSelectedActor.mActorName;
                 string name = mSelectedActor.mName;
@@ -608,7 +586,7 @@ namespace Fushigi.ui.widgets
                 }
 
             }
-            else if (mSelectedUnit != null)
+            else if (activeViewport.mEditContext.IsSingleObjectSelected(out CourseUnit? mSelectedUnit))
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Selected BG Unit");
@@ -631,7 +609,7 @@ namespace Fushigi.ui.widgets
                     ImGui.Columns(1);
                 }
             }
-            else if (mSelectedUnitRail != null)
+            else if (activeViewport.mEditContext.IsSingleObjectSelected(out BGUnitRail? mSelectedUnitRail))
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Selected BG Unit Rail");
@@ -699,7 +677,7 @@ namespace Fushigi.ui.widgets
                     ImGui.Columns(1);
                 }
             }
-            else if (mSelectedRail != null)
+            else if (activeViewport.mEditContext.IsSingleObjectSelected(out CourseRail? mSelectedRail))
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Selected Rail");
@@ -756,7 +734,7 @@ namespace Fushigi.ui.widgets
                     }
                 }
             }
-            else if (mSelectedRailPoint != null)
+            else if (activeViewport.mEditContext.IsSingleObjectSelected(out CourseRail.CourseRailPoint? mSelectedRailPoint))
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Selected Rail Point");
@@ -980,10 +958,10 @@ namespace Fushigi.ui.widgets
                 }
                 ImGui.SameLine();
 
-                if (ImGui.Selectable(name, mSelectedUnit == unit))
+                if (ImGui.Selectable(name, activeViewport.mEditContext.IsSelected(unit)))
                 {
-                    DeselectAll();
-                    mSelectedUnit = unit;
+                    activeViewport.mEditContext.DeselectAllOfType<CourseUnit>();
+                    activeViewport.mEditContext.Select(unit);
                 }
                 if (expanded)
                 {
@@ -1007,11 +985,6 @@ namespace Fushigi.ui.widgets
                             activeViewport.mEditContext.DeselectAllOfType<BGUnitRail>();
 
                             activeViewport.mEditContext.Select(rail);
-
-                            //Remove actor properties to show path properties
-                            DeselectAll();
-                            //Show selection for rail with properties
-                            mSelectedUnitRail = rail;
                         }
 
                         if (ImGui.Selectable($"##{name}{wallname}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
@@ -1038,7 +1011,7 @@ namespace Fushigi.ui.widgets
                         ImGui.Unindent();
                     }
 
-                    if (unit == mSelectedUnit)
+                    if (activeViewport.mEditContext.IsSelected(unit))
                     {
                         if (ImGui.BeginPopupContextWindow("RailMenu", ImGuiPopupFlags.MouseButtonRight))
                         {
@@ -1103,17 +1076,15 @@ namespace Fushigi.ui.widgets
             foreach(CourseRail rail in railHolder.mRails)
             {
                 var rail_node_flags = ImGuiTreeNodeFlags.None;
-                if (mSelectedRail == rail && mSelectedRailPoint == null)
+                if (activeViewport.mEditContext.IsSelected(rail) ||
+                    !activeViewport.mEditContext.IsAnySelected<CourseRail.CourseRailPoint>())
                     rail_node_flags |= ImGuiTreeNodeFlags.Selected;
 
                 bool expanded = ImGui.TreeNodeEx($"Rail {railHolder.mRails.IndexOf(rail)}", rail_node_flags);
                 if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
                 {
-                    /* deselect from viewport and list */
-                    mSelectedActor = null;
                     activeViewport.mEditContext.DeselectAll();
-                    mSelectedRailPoint = null;
-                    mSelectedRail = rail;
+                    activeViewport.mEditContext.Select(rail);
                 }
 
                 if (expanded)
@@ -1121,7 +1092,7 @@ namespace Fushigi.ui.widgets
                     foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
                     {
                         var flags = ImGuiTreeNodeFlags.Leaf;
-                        if (mSelectedRailPoint == pnt)
+                        if (activeViewport.mEditContext.IsSelected(pnt))
                             flags |= ImGuiTreeNodeFlags.Selected;
 
                         if (ImGui.TreeNodeEx($"Point {rail.mPoints.IndexOf(pnt)}", flags))
@@ -1129,8 +1100,8 @@ namespace Fushigi.ui.widgets
 
                         if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
                         {
-                            mSelectedRail = null;
-                            mSelectedRailPoint = pnt;
+                            activeViewport.mEditContext.DeselectAll();
+                            activeViewport.mEditContext.Select(pnt);
                         }
                     }
 
@@ -1260,13 +1231,12 @@ namespace Fushigi.ui.widgets
                             continue;
                         }
 
-                        bool isSelected = (actor == mSelectedActor);
+                        bool isSelected = activeViewport.mEditContext.IsSelected(actor);
 
                         ImGui.PushID(actorHash.ToString());
                         ImGui.Columns(2);
                         if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
                         {
-                            mSelectedActor = actor;
                             activeViewport.SelectedActor(actor);
                         }
                         if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
