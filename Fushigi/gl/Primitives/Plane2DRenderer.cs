@@ -20,9 +20,9 @@ namespace Fushigi.gl
 
         }
 
-        public void Render(Camera camera)
+        public void RenderTest(Camera camera)
         {
-            if (Image == null)
+            if (Image == null && File.Exists("Wood.png"))
                 Image = GLTexture2D.Load(_gl, "Wood.png");
 
             var shader = GLShaderCache.GetShader(_gl, "Basic",
@@ -30,10 +30,12 @@ namespace Fushigi.gl
                Path.Combine("res", "shaders", "Basic.frag"));
 
             shader.Use();
-            shader.SetUniform("hasTexture", 1);
+            shader.SetUniform("hasTexture", Image != null ? 1 : 0);
 
             shader.SetUniform("mtxCam", camera.ViewProjectionMatrix);
-            shader.SetTexture("image", Image, 1);
+
+            if (Image != null)
+                shader.SetTexture("image", Image, 1);
 
             Draw(shader);
         }

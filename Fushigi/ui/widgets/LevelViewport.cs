@@ -186,7 +186,7 @@ namespace Fushigi.ui.widgets
             gl.Enable(EnableCap.DepthTest);
 
             //Draw gl scene objects here
-            Plane2DRenderer.Render(this.Camera);
+            Plane2DRenderer.RenderTest(this.Camera);
 
             Framebuffer.Unbind();
 
