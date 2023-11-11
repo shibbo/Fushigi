@@ -1126,7 +1126,7 @@ namespace Fushigi.ui.widgets
 
                         if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
                         {
-                            mSelectedRail = rail;
+                            mSelectedRail = null;
                             mSelectedRailPoint = pnt;
                         }
                     }
