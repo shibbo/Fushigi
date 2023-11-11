@@ -51,7 +51,7 @@ namespace Fushigi.ui.widgets
         string mAddActorSearchQuery = "";
 
         string[] linkTypes = [
-                    "BasicSignal",
+            "BasicSignal",
             "Create",
             "CreateRelativePos",
             "CreateAfterDied",
@@ -523,8 +523,8 @@ namespace Fushigi.ui.widgets
                             {
                                    mSelectedActor = destActor;
                                    activeViewport.SelectedActor(destActor);
-                                   activeViewport.Camera.target.X = destActor.mTranslation.X;
-                                   activeViewport.Camera.target.Y = destActor.mTranslation.Y;
+                                   activeViewport.Camera.Target.X = destActor.mTranslation.X;
+                                   activeViewport.Camera.Target.Y = destActor.mTranslation.Y;
                             }
                         }
                         else

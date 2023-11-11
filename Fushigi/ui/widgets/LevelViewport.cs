@@ -28,8 +28,6 @@ namespace Fushigi.ui.widgets
         readonly CourseArea mArea = area;
         public readonly CourseAreaEditContext mEditContext = editContext;
 
-        Matrix4x4 mViewProjectionMatrix;
-        Matrix4x4 mViewProjectionMatrixInverse;
         ImDrawListPtr mDrawList;
         public EditorMode mEditorMode = EditorMode.Actors;
         public EditorState mEditorState = EditorState.Selecting;
@@ -46,10 +44,7 @@ namespace Fushigi.ui.widgets
         public bool mIsLinkNew = false;
         public string mNewLinkType = "";
 
-        public float FOV = MathF.PI / 2;
-
-        public (Quaternion rotation, Vector3 target, float distance) Camera = 
-            (Quaternion.Identity, Vector3.Zero, 10);
+        public Camera Camera = new Camera();
 
         public object? HoveredObject;
         public CourseLink? CurCourseLink = null;
@@ -74,12 +69,12 @@ namespace Fushigi.ui.widgets
             Units
         }
 
-        public Matrix4x4 GetCameraMatrix() => this.mViewProjectionMatrix;
+        public Matrix4x4 GetCameraMatrix() => Camera.ViewProjectionMatrix;
 
         public Vector2 WorldToScreen(Vector3 pos) => WorldToScreen(pos, out _);
         public Vector2 WorldToScreen(Vector3 pos, out float ndcDepth)
         {
-            var ndc = Vector4.Transform(pos, mViewProjectionMatrix);
+            var ndc = Vector4.Transform(pos, Camera.ViewProjectionMatrix);
             ndc /= ndc.W;
 
             ndcDepth = ndc.Z;
@@ -100,7 +95,7 @@ namespace Fushigi.ui.widgets
                 ndcDepth
             );
 
-            var world = Vector4.Transform(ndc, mViewProjectionMatrixInverse);
+            var world = Vector4.Transform(ndc, Camera.ViewProjectionMatrixInverse);
             world /= world.W;
 
             return new (world.X, world.Y, world.Z);
@@ -108,7 +103,7 @@ namespace Fushigi.ui.widgets
 
         public void FrameSelectedActor(CourseActor actor)
         {
-            this.Camera.target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
+            this.Camera.Target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
         }
 
         public void SelectBGUnit(BGUnitRail rail)
@@ -137,32 +132,32 @@ namespace Fushigi.ui.widgets
 
             if (mouseActive && isPanGesture)
             {
-                Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
+                Camera.Target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
                     ScreenToWorld(ImGui.GetMousePos());
             }
 
             if (mouseHover)
             {
-                Camera.distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
+                Camera.Distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
 
                 if (ImGui.IsKeyDown(ImGuiKey.LeftArrow))
                 {
-                    Camera.target.X -= 0.25f;
+                    Camera.Target.X -= 0.25f;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.RightArrow))
                 {
-                    Camera.target.X += 0.25f;
+                    Camera.Target.X += 0.25f;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.UpArrow))
                 {
-                    Camera.target.Y += 0.25f;
+                    Camera.Target.Y += 0.25f;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.DownArrow))
                 {
-                    Camera.target.Y -= 0.25f;
+                    Camera.Target.Y -= 0.25f;
                 }
             }
         }
@@ -188,19 +183,14 @@ namespace Fushigi.ui.widgets
 
             HandleCameraControls(mouseHover, mouseActive);
 
-            float ratio = mSize.X / mSize.Y;
+            if (Camera.Width != mSize.X || Camera.Height != mSize.Y)
             {
-                float tanFOV = MathF.Tan(FOV / 2);
-                mViewProjectionMatrix =
-                    Matrix4x4.CreateTranslation(-Camera.target) *
-                    Matrix4x4.CreateOrthographic(ratio * tanFOV * Camera.distance, tanFOV * Camera.distance,
-                    -1000, 1000);
+                Camera.Width = mSize.X;
+                Camera.Height = mSize.Y;
             }
 
-            if (!Matrix4x4.Invert(mViewProjectionMatrix, out var inv))
+            if (!Camera.UpdateMatrices())
                 return;
-
-            mViewProjectionMatrixInverse = inv;
 
             DrawGrid();
 
