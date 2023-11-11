@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ryujinx.Graphics.Texture.Astc;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -171,6 +172,24 @@ namespace Fushigi.Bfres
         public byte[] DeswizzleSurface(int surface_level = 0, int mip_level = 0)
         {
             return TegraX1Swizzle.GetSurface(this, surface_level, mip_level);
+        }
+
+        public uint GetBlockWidth() => TegraX1Swizzle.GetBlockWidth(this.Format);
+        public uint GetBlockHeight() => TegraX1Swizzle.GetBlockHeight(this.Format);
+        public uint GetBytesPerPixel() => TegraX1Swizzle.GetBytesPerPixel(this.Format);
+
+        public Span<byte> DecodeAstc(int array_level = 0, int mip_level = 0)
+        {
+            var surface = this.DeswizzleSurface(array_level, mip_level);
+
+            AstcDecoder.TryDecodeToRgba8(
+                surface,
+            (int)this.GetBlockWidth(),
+            (int)this.GetBlockHeight(),
+            (int)this.Width,
+            (int)this.Height, 1, 1, 1, out Span<byte> decoded);
+
+            return decoded;
         }
     }
 }
