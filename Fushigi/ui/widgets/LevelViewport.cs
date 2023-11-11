@@ -20,6 +20,7 @@ using Fushigi.gl;
 using Fushigi.util;
 using System.Reflection.PortableExecutable;
 using static Fushigi.util.MessageBox;
+using System.Runtime.InteropServices;
 
 namespace Fushigi.ui.widgets
 {
@@ -234,17 +235,34 @@ namespace Fushigi.ui.widgets
 
             CourseActor? hoveredActor = HoveredObject as CourseActor;
 
-            if(hoveredActor != null)
-                ImGui.SetTooltip($"{hoveredActor.mActorName}");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                if(hoveredActor != null)
+                    ImGui.SetTooltip($"{hoveredActor.mActorName}");
+                
+                if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeySuper)
+                {
+                    mEditContext.Undo();
+                }
+                if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeySuper || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeySuper)
+                {
+                    mEditContext.Redo();
+                }
+            } else {
+                if(hoveredActor != null)
+                    ImGui.SetTooltip($"{hoveredActor.mActorName}");
+                
+                if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
+                {
+                    mEditContext.Undo();
+                }
+                if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeyCtrl || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl)
+                {
+                    mEditContext.Redo();
+                }
+            };
 
-            if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
-            {
-                mEditContext.Undo();
-            }
-            if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeyCtrl)
-            {
-                mEditContext.Redo();
-            }
+
 
             bool isFocused = ImGui.IsWindowFocused();
 
