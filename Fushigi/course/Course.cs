@@ -10,6 +10,7 @@ using Fushigi.Byml.Writer.Primitives;
 using Fushigi;
 using Fushigi.course;
 using Fushigi.rstb;
+using Fushigi.ui.widgets;
 
 namespace Fushigi.course
 {
@@ -138,6 +139,8 @@ namespace Fushigi.course
             SaveAreas(resource_table);
 
             resource_table.Save();
+
+            CloseConfirmationDialog.needConfirmation = false;
         }
 
         public void SaveAreas(RSTB resTable)

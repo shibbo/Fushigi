@@ -5,7 +5,9 @@ using Fushigi.ui;
 FileStream outputStream = new FileStream("output.log", FileMode.Create);
 var consoleWriter = new StreamWriter(outputStream);
 consoleWriter.AutoFlush = true;
+#if !DEBUG
 Console.SetOut(consoleWriter);
+#endif
 Console.SetError(consoleWriter);
 
 AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
