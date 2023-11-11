@@ -1,4 +1,4 @@
-﻿using Fushigi.util;
+using Fushigi.util;
 using Fushigi.windowing;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
@@ -77,6 +77,11 @@ namespace Fushigi.ui
 
         public void Close()
         {
+            if (CloseConfirmationDialog.needConfirmation)
+            {
+                mIsCloseConfirmation = true;
+                mWindow.IsClosing = false;
+            }
             UserSettings.Save();
         }
 
@@ -303,6 +308,18 @@ namespace Fushigi.ui
                     ParamDBDialog.Draw(ref mIsGeneratingParamDB);
                 }
 
+                if (mIsCloseConfirmation)
+                {
+                    bool shouldClose = false;
+                    CloseConfirmationDialog.Draw(ref mIsCloseConfirmation, ref shouldClose);
+                    if (!mIsCloseConfirmation)
+                    {
+                        if (shouldClose)
+                        {
+                            mWindow.Close();
+                        }
+                    }
+                }
             }
 
             //Update viewport from any framebuffers being used
@@ -319,5 +336,6 @@ namespace Fushigi.ui
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
         bool mIsGeneratingParamDB = false;
+        bool mIsCloseConfirmation = false;
     }
 }
