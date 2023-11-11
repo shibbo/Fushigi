@@ -16,14 +16,13 @@ namespace Fushigi.gl.Bfres
     public class BfresRender
     {
         public Dictionary<string, BfresTextureRender> Textures = new Dictionary<string, BfresTextureRender>();
-
-        public List<BfresModel> Models = new List<BfresModel>();
+        public Dictionary<string, BfresModel> Models = new Dictionary<string, BfresModel>();
 
         public BfresRender(GL gl, string filePath)
         {
             BfresFile file = new BfresFile(filePath);
             foreach (var model in file.Models.Values)
-                Models.Add(new BfresModel(gl, model));
+                Models.Add(model.Name, new BfresModel(gl, model));
 
             foreach (var texture in file.TryGetTextureBinary().Textures)
                 Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
@@ -33,13 +32,13 @@ namespace Fushigi.gl.Bfres
         {
             BfresFile file = new BfresFile(stream);
             foreach (var model in file.Models.Values)
-                Models.Add(new BfresModel(gl, model));
+                Models.Add(model.Name, new BfresModel(gl, model));
         }
 
         internal void Render(GL gl, Matrix4x4 transform, Camera camera)
         {
             var cameraMatrix = camera.ViewProjectionMatrix;
-            foreach (var model in Models)
+            foreach (var model in Models.Values)
             {
                 if (!model.IsVisible)
                     continue;
