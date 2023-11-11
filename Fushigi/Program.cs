@@ -16,6 +16,14 @@ ParamDB.Init();
 Console.WriteLine("Loading area parameter loader...");
 ParamLoader.Load();
 
+Console.WriteLine("Checking for imgui.ini");
+if (!Path.Exists("imgui.ini"))
+{
+  Console.WriteLine("Creating imgui.ini...");
+  File.WriteAllText("imgui.ini", File.ReadAllText(Path.Combine("res", "imgui-default.ini")));
+  Console.WriteLine("Created!");
+};
+
 MainWindow window = new MainWindow();
 
 outputStream.Close();
