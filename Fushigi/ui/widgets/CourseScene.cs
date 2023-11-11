@@ -713,7 +713,7 @@ namespace Fushigi.ui.widgets
                     string hash = mSelectedRail.mHash.ToString();
                     if (ImGui.InputText("##Hash", ref hash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue))
                     {
-                        
+                        mSelectedRail.mHash = Convert.ToUInt64(hash);
                     }
 
                     ImGui.NextColumn();
@@ -724,6 +724,113 @@ namespace Fushigi.ui.widgets
                     ImGui.Columns(1);
                 }
 
+                if (ImGui.CollapsingHeader("Dynamic Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+
+                    foreach(KeyValuePair<string, object> param in mSelectedRail.mParameters)
+                    {
+                        string type = param.Value.GetType().ToString();
+                        ImGui.Text(param.Key);
+                        ImGui.NextColumn();
+
+                        switch (type)
+                        {
+                            case "System.Int32":
+                                int int_val = (int)param.Value;
+                                if (ImGui.InputInt($"##{param.Key}", ref int_val))
+                                {
+                                    mSelectedRail.mParameters[param.Key] = int_val;
+                                }
+                                break;
+                            case "System.Boolean":
+                                bool bool_val = (bool)param.Value;
+                                if (ImGui.Checkbox($"##{param.Key}", ref bool_val))
+                                {
+                                    mSelectedRail.mParameters[param.Key] = bool_val;
+                                }
+                                break;
+                        }
+
+                        ImGui.NextColumn();
+                    }
+                }
+            }
+            else if (mSelectedRailPoint != null)
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"Selected Rail Point");
+                ImGui.NewLine();
+                ImGui.Separator();
+
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Hash"); ImGui.NextColumn();
+                    string hash = mSelectedRailPoint.mHash.ToString();
+                    if (ImGui.InputText("##Hash", ref hash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue))
+                    {
+                        mSelectedRailPoint.mHash = Convert.ToUInt64(hash);
+                    }
+                    ImGui.NextColumn();
+
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Translation");
+                    ImGui.NextColumn();
+
+                    ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+
+                    ImGui.DragFloat3("##Translation", ref mSelectedRailPoint.mTranslate, 0.25f);
+                    ImGui.PopItemWidth();
+
+                    ImGui.Columns(1);
+                }
+
+                if (ImGui.CollapsingHeader("Dynamic Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+
+                    foreach (KeyValuePair<string, object> param in mSelectedRailPoint.mParameters)
+                    {
+                        string type = param.Value.GetType().ToString();
+                        ImGui.Text(param.Key);
+                        ImGui.NextColumn();
+
+                        switch (type)
+                        {
+                            case "System.UInt32":
+                                int uint_val = Convert.ToInt32(param.Value);
+                                if (ImGui.InputInt($"##{param.Key}", ref uint_val))
+                                {
+                                    mSelectedRailPoint.mParameters[param.Key] = Convert.ToUInt32(uint_val);
+                                }
+                                break;
+                            case "System.Int32":
+                                int int_val = (int)param.Value;
+                                if (ImGui.InputInt($"##{param.Key}", ref int_val))
+                                {
+                                    mSelectedRailPoint.mParameters[param.Key] = int_val;
+                                }
+                                break;
+                            case "System.Single":
+                                float float_val = (float)param.Value;
+                                if (ImGui.InputFloat($"##{param.Key}", ref float_val))
+                                {
+                                    mSelectedRailPoint.mParameters[param.Key] = float_val;
+                                }
+                                break;
+                            case "System.Boolean":
+                                bool bool_val = (bool)param.Value;
+                                if (ImGui.Checkbox($"##{param.Key}", ref bool_val))
+                                {
+                                    mSelectedRailPoint.mParameters[param.Key] = bool_val;
+                                }
+                                break;
+                        }
+
+                        ImGui.NextColumn();
+                    }
+                }
             }
             else
             {
@@ -1208,6 +1315,7 @@ namespace Fushigi.ui.widgets
                     rad.Y = DegToRad(deg.Y);
                     rad.Z = DegToRad(deg.Z);
                 }
+
                 ImGui.PopItemWidth();
 
                 ImGui.NextColumn();
