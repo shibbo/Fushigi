@@ -995,27 +995,35 @@ namespace Fushigi.ui.widgets
         {
             foreach(CourseRail rail in railHolder.mRails)
             {
-                if (ImGui.TreeNode($"Rail {railHolder.mRails.IndexOf(rail)}"))
+                var rail_node_flags = ImGuiTreeNodeFlags.None;
+                if (mSelectedRail == rail)
+                    rail_node_flags |= ImGuiTreeNodeFlags.Selected;
+
+                bool expanded = ImGui.TreeNodeEx($"Rail {railHolder.mRails.IndexOf(rail)}", rail_node_flags);
+                if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
                 {
                     mSelectedRail = rail;
-                    mSelectedRailPoint = null;
-                    //ImGui.Checkbox("IsClosed", ref rail.mIsClosed);
+                }
 
+                if (expanded)
+                {
                     foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
                     {
-                        if (ImGui.TreeNode($"Point {rail.mPoints.IndexOf(pnt)}"))
-                        {
-                            mSelectedRail = null;
-                            mSelectedRailPoint = pnt;
+                        var flags = ImGuiTreeNodeFlags.Leaf;
+                        if (mSelectedRailPoint == pnt)
+                            flags |= ImGuiTreeNodeFlags.Selected;
+
+                        if (ImGui.TreeNodeEx($"Point {rail.mPoints.IndexOf(pnt)}", flags))
                             ImGui.TreePop();
+
+                        if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
+                        {
+                            mSelectedRail = rail;
+                            mSelectedRailPoint = pnt;
                         }
                     }
 
                     ImGui.TreePop();
-                    /*if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
-                    {
-                        
-                    }*/
                 }
             }
         }
