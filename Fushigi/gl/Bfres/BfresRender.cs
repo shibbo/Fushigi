@@ -11,10 +11,12 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Fushigi.gl.Primitives
+namespace Fushigi.gl.Bfres
 {
     public class BfresRender
     {
+        public Dictionary<string, BfresTextureRender> Textures = new Dictionary<string, BfresTextureRender>();
+
         public List<BfresModel> Models = new List<BfresModel>();
 
         public BfresRender(GL gl, string filePath)
@@ -22,6 +24,9 @@ namespace Fushigi.gl.Primitives
             BfresFile file = new BfresFile(filePath);
             foreach (var model in file.Models.Values)
                 Models.Add(new BfresModel(gl, model));
+
+            foreach (var texture in file.TryGetTextureBinary().Textures)
+                Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
         }
 
         public BfresRender(GL gl, Stream stream)
@@ -44,7 +49,7 @@ namespace Fushigi.gl.Primitives
                     if (!mesh.IsVisible)
                         continue;
 
-                    mesh.Render(gl, transform, cameraMatrix);
+                    mesh.Render(gl, this, transform, cameraMatrix);
                 }
             }
         }
@@ -68,6 +73,8 @@ namespace Fushigi.gl.Primitives
 
             private List<DetailLevel> LodMeshes = new List<DetailLevel>();
 
+            public BfresMaterialRender MaterialRender = new BfresMaterialRender();
+
             //Resources
             private List<BufferObject> Buffers = new List<BufferObject>();
             private BufferObject IndexBuffer;
@@ -76,6 +83,7 @@ namespace Fushigi.gl.Primitives
             public BfresMesh(GL gl, Model model, Shape shape)
             {
                 var material = model.Materials[shape.MaterialIndex];
+                MaterialRender.Init(gl, material);
 
                 IndexBuffer = new BufferObject(gl, BufferTargetARB.ElementArrayBuffer);
                 IndexBuffer.SetData(shape.Meshes[0].IndexBuffer);
@@ -115,19 +123,13 @@ namespace Fushigi.gl.Primitives
                 });
             }
 
-            public void Render(GL gl, Matrix4x4 transform, Matrix4x4 cameraMatrix)
+            public void Render(GL gl, BfresRender renderer, Matrix4x4 transform, Matrix4x4 cameraMatrix)
             {
                 var mesh = this.LodMeshes[0]; //only use first level of detail
 
-                var Shader = GLShaderCache.GetShader(gl, "Bfres",
-                       Path.Combine("res", "shaders", "Bfres.vert"),
-                       Path.Combine("res", "shaders", "Bfres.frag"));
+                MaterialRender.Render(gl, renderer, transform, cameraMatrix);
 
-                Shader.Use();
-                Shader.SetUniform("mtxCam", cameraMatrix);
-                Shader.SetUniform("mtxMdl", transform);
-
-                vbo.Enable(Shader);
+                vbo.Enable(MaterialRender.Shader);
                 vbo.Use();
 
                 unsafe
@@ -190,8 +192,8 @@ namespace Fushigi.gl.Primitives
                 { BfresAttribFormat.Format_16_16_Single, new FormatInfo(2, false, VertexAttribPointerType.HalfFloat) },
                 { BfresAttribFormat.Format_16_Single, new FormatInfo(2, false, VertexAttribPointerType.HalfFloat) },
 
-                { BfresAttribFormat.Format_16_16_SNorm, new FormatInfo(2, false, VertexAttribPointerType.Short) },
-                { BfresAttribFormat.Format_16_16_UNorm, new FormatInfo(2, false, VertexAttribPointerType.UnsignedShort) },
+                { BfresAttribFormat.Format_16_16_SNorm, new FormatInfo(2, true, VertexAttribPointerType.Short) },
+                { BfresAttribFormat.Format_16_16_UNorm, new FormatInfo(2, true, VertexAttribPointerType.UnsignedShort) },
 
                 { BfresAttribFormat.Format_10_10_10_2_SNorm, new FormatInfo(4, true, VertexAttribPointerType.Int2101010Rev) },
                 { BfresAttribFormat.Format_10_10_10_2_UNorm, new FormatInfo(4, true, VertexAttribPointerType.UnsignedInt2101010Rev) },
