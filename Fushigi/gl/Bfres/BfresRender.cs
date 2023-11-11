@@ -24,6 +24,13 @@ namespace Fushigi.gl.Primitives
                 Models.Add(new BfresModel(gl, model));
         }
 
+        public BfresRender(GL gl, Stream stream)
+        {
+            BfresFile file = new BfresFile(stream);
+            foreach (var model in file.Models.Values)
+                Models.Add(new BfresModel(gl, model));
+        }
+
         internal void Render(GL gl, LevelViewport viewport)
         {
             var cameraMatrix = viewport.GetCameraMatrix();
