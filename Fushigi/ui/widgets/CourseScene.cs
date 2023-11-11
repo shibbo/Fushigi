@@ -1059,7 +1059,10 @@ namespace Fushigi.ui.widgets
                 cp + new Vector2(em, (headerHeight - em) / 2 + 0.05f), 0xFF_FF_FF_FF,
                 "Layers");
 
-            ImGui.SetCursorScreenPos(new Vector2(ImGui.GetWindowContentRegionMax().X - margin, cp.Y + (headerHeight - em) / 2));
+            var wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
+            var wcMax = wcMin + ImGui.GetContentRegionAvail();
+
+            ImGui.SetCursorScreenPos(new Vector2(wcMax.X - margin, cp.Y + (headerHeight - em) / 2));
             if (ImGui.Checkbox($"##VisibleCheckbox All", ref mAllLayersVisible))
                 UpdateAllLayerVisiblity();
 
@@ -1067,8 +1070,8 @@ namespace Fushigi.ui.widgets
 
             ImGui.BeginChild("Layers");
 
-            var wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
-            var wcMax = wcMin + ImGui.GetContentRegionAvail();
+            wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
+            wcMax = wcMin + ImGui.GetContentRegionAvail();
 
             ImGui.PushClipRect(wcMin, wcMax - new Vector2(margin, 0), true);
 

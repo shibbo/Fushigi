@@ -555,7 +555,7 @@ namespace Fushigi.ui.widgets
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
-                if(!unit.Visible)
+                if(!unit.Visible || unit.mTileSubUnits.Count == 0)
                     continue;
 
                 var clipMin = new Vector2(float.NegativeInfinity);
