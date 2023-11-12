@@ -75,7 +75,7 @@ namespace Fushigi.ui
             mWindow.Dispose();
         }
 
-        public bool TryCloseCourse(Action retryAction)
+        public bool TryCloseCourse(Action onSuccessRetryAction)
         {
             if (mCloseCourseRequest.TryGetValue(out var request))
             {
@@ -89,7 +89,7 @@ namespace Fushigi.ui
             if(mSelectedCourseScene is not null &&
                 mSelectedCourseScene.HasUnsavedChanges())
             {
-                mCloseCourseRequest = (retryAction, success: false);
+                mCloseCourseRequest = (onSuccessRetryAction, success: false);
                 return false;
             }
 
@@ -98,7 +98,7 @@ namespace Fushigi.ui
 
         public void Close()
         {
-            if (!TryCloseCourse(retryAction: mWindow.Close))
+            if (!TryCloseCourse(onSuccessRetryAction: mWindow.Close))
             {
                 mWindow.IsClosing = false;
                 return;
@@ -240,17 +240,26 @@ namespace Fushigi.ui
                             )
                         )
                         {
-                            // Close course selection whether or not this is a different course
-                            mIsChoosingCourse = false;
-
                             // Only change the course if it is different from current
-                            if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
+                            if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
+                                mIsChoosingCourse = false;
+                            else
                             {
-                                Console.WriteLine($"Selected course {courseLocation}!");
-                                mSelectedCourseScene = new(new(courseLocation), gl);
-                                UserSettings.AppendRecentCourse(courseLocation);
-                            }
+                                void SwitchCourse()
+                                {
+                                    if (!TryCloseCourse(onSuccessRetryAction: SwitchCourse))
+                                        return;
 
+                                    Console.WriteLine($"Selected course {courseLocation}!");
+
+                                    mSelectedCourseScene = new(new(courseLocation), gl);
+                                    UserSettings.AppendRecentCourse(courseLocation);
+
+                                    mIsChoosingCourse = false;
+                                }
+
+                                SwitchCourse();
+                            }
                         }
                     }
                     ImGui.TreePop();
@@ -339,7 +348,7 @@ namespace Fushigi.ui
                     {
                         mSelectedCourseScene = null;
                         mCloseCourseRequest = request with { success = true };
-                        request.retryAction.Invoke();
+                        request.onSuccessRetryAction.Invoke();
                     }
                     else if(result == CloseConfirmationDialog.Result.No)
                     {
@@ -362,6 +371,6 @@ namespace Fushigi.ui
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
         bool mIsGeneratingParamDB = false;
-        (Action retryAction, bool success)? mCloseCourseRequest = null;
+        (Action onSuccessRetryAction, bool success)? mCloseCourseRequest = null;
     }
 }
