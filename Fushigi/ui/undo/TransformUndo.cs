@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fushigi.util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -18,7 +19,7 @@ namespace Fushigi.ui
         public Vector3 PreviousRotation;
         public Vector3 PreviousScale;
 
-        public TransformUndo(Transform transform, string name = "Transform")
+        public TransformUndo(Transform transform, string name = $"{IconUtil.ICON_ARROWS_ALT} Transform")
         {
             //Undo display name
             Name = name;
@@ -33,13 +34,15 @@ namespace Fushigi.ui
         public IRevertable Revert()
         {
             //Revert transform instance
+            var redo = new TransformUndo(Transform);
+
             Transform.Position = this.PreviousPosition;
             Transform.RotationEuler = this.PreviousRotation;
             Transform.Scale = this.PreviousScale;
             Transform.OnUpdate();
 
             //Create revert stack
-            return new TransformUndo(Transform);
+            return redo;
         }
     }
 }
