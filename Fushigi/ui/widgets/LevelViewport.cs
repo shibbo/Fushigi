@@ -165,6 +165,7 @@ namespace Fushigi.ui.widgets
         }
 
         Plane2DRenderer Plane2DRenderer;
+        BfresRender BfresRender;
 
         public void DrawScene3D(Vector2 size)
         {
@@ -173,6 +174,9 @@ namespace Fushigi.ui.widgets
 
             if (Plane2DRenderer == null)
                 Plane2DRenderer = new Plane2DRenderer(gl, 10);
+
+            //if (BfresRender == null)
+             //   BfresRender = new BfresRender(gl, "PlayerMarioSuper.bfres"); 
 
             //Resize if needed
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
@@ -186,12 +190,23 @@ namespace Fushigi.ui.widgets
 
             gl.Enable(EnableCap.DepthTest);
 
-            //Draw gl scene objects here
-            MemoryStream strm = new MemoryStream(FileUtil.DecompressFile($"{RomFS.GetRoot()}/Model/ObjectCoin.bfres.zs"));
-            BfresRender renderer = new BfresRender(gl, strm);
+            foreach (var actor in this.mArea.GetActors())
+            {
+                if (actor.mActorPack.ModelInfoRef != null)
+                {
+                    var resourceName = actor.mActorPack.ModelInfoRef.mFilePath;
+                    var modelName = actor.mActorPack.ModelInfoRef.mModelName;
 
-            renderer.Render(gl, Matrix4x4.Identity, this.Camera);
+                    var render = BfresCache.Load(gl, resourceName);
+                    if (render == null || !render.Models.ContainsKey(modelName))
+                        continue;
 
+                    var mat = Matrix4x4.CreateTranslation(actor.mTranslation);
+
+                    var model = render.Models[modelName];
+                    model.Render(gl, render, mat, this.Camera);
+                }
+            }
             Framebuffer.Unbind();
 
             //Draw framebuffer
