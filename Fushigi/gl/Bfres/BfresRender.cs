@@ -25,6 +25,9 @@ namespace Fushigi.gl.Bfres
             BfresFile file = new BfresFile(stream);
             foreach (var model in file.Models.Values)
                 Models.Add(model.Name, new BfresModel(gl, model));
+
+            foreach (var texture in file.TryGetTextureBinary().Textures)
+                Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
         }
 
         internal void Render(GL gl, Matrix4x4 transform, Camera camera)

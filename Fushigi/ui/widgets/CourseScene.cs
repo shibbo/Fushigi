@@ -159,7 +159,7 @@ namespace Fushigi.ui.widgets
                     var topLeft = ImGui.GetCursorScreenPos();
                     var size = ImGui.GetContentRegionAvail();
 
-                   // viewport.DrawScene3D(size);
+                    viewport.DrawScene3D(size);
 
                     ImGui.SetNextItemAllowOverlap();
                     ImGui.SetCursorScreenPos(topLeft);

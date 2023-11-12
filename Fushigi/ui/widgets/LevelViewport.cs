@@ -20,6 +20,7 @@ using Fushigi.gl;
 using Fushigi.util;
 using System.Reflection.PortableExecutable;
 using static Fushigi.util.MessageBox;
+using Fushigi.gl.Bfres;
 
 namespace Fushigi.ui.widgets
 {
@@ -186,7 +187,10 @@ namespace Fushigi.ui.widgets
             gl.Enable(EnableCap.DepthTest);
 
             //Draw gl scene objects here
-            Plane2DRenderer.RenderTest(this.Camera);
+            MemoryStream strm = new MemoryStream(FileUtil.DecompressFile($"{RomFS.GetRoot()}/Model/ObjectCoin.bfres.zs"));
+            BfresRender renderer = new BfresRender(gl, strm);
+
+            renderer.Render(gl, Matrix4x4.Identity, this.Camera);
 
             Framebuffer.Unbind();
 
