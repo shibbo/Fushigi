@@ -692,12 +692,24 @@ namespace Fushigi.ui.widgets
                         wall.ExternalRail.Render(this, mDrawList);
                         if (wall.ExternalRail.HitTest(this))
                             newHoveredObject = wall.ExternalRail;
+
+                        foreach (var pt in wall.ExternalRail.Points)
+                        {
+                            if (pt.HitTest(this))
+                                newHoveredObject = pt;
+                        }
                     }
                     foreach (BGUnitRail rail in wall.InternalRails)
                     {
                         rail.Render(this, mDrawList);
                         if(rail.HitTest(this))
                             newHoveredObject = rail;
+
+                        foreach (var pt in rail.Points)
+                        {
+                            if (pt.HitTest(this))
+                                newHoveredObject = pt;
+                        }
                     }
                 }
 

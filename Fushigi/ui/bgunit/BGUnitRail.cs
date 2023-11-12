@@ -1,4 +1,5 @@
 ﻿using Fushigi.course;
+using Fushigi.util;
 using ImGuiNET;
 using Microsoft.VisualBasic;
 using Silk.NET.Maths;
@@ -241,7 +242,7 @@ namespace Fushigi.ui.widgets
                 viewport.mEditContext.BeginUndoCollection();
                 foreach (var point in this.GetSelected(viewport.mEditContext))
                     viewport.mEditContext.AddToUndo(new TransformUndo(point.Transform));
-                viewport.mEditContext.EndUndoCollection("Move Rail Points");
+                viewport.mEditContext.EndUndoCollection($"{IconUtil.ICON_ARROWS_ALT} Move Rail Points");
             }
 
             bool anyTransformed = false;
@@ -399,6 +400,15 @@ namespace Fushigi.ui.widgets
             public RailPoint(Vector3 pos)
             {
                 Position = pos;
+            }
+
+            public bool HitTest(LevelViewport viewport)
+            {
+                Vector3 point = this.Position;
+
+                var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
+                Vector2 pnt = new(pos2D.X, pos2D.Y);
+                return (ImGui.GetMousePos() - pnt).Length() < 6.0f;
             }
         }
     }
