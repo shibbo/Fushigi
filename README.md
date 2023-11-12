@@ -18,30 +18,6 @@ dotnet add Fushigi/Fushigi.csproj package Silk.NET.GLFW
 dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui
 dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
 dotnet add Fushigi/Fushigi.csproj package ZstdSharp.Port
-```
-
-Then run the following depending on which operating system you are using:
-
-### Windows
-```
 dotnet restore Fushigi/Fushigi.sln
 dotnet build Fushigi/Fushigi.sln --no-restore
-```
-
-### Linux x64
-```
-dotnet restore -r linux-x64 Fushigi/Fushigi.sln
-dotnet publish Fushigi/Fushigi.sln -r linux-x64 --no-restore
-```
-
-### MacOS x64 (Intel)
-```
-dotnet restore -r osx-x64 Fushigi/Fushigi.sln
-dotnet publish Fushigi/Fushigi.sln -r osx-x64 --no-restore
-```
-
-### MacOS Silicon (M1, M2, etc.)
-```
-dotnet restore -r osx-arm64 Fushigi/Fushigi.sln
-dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
 ```
