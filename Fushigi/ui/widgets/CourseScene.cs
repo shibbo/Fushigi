@@ -107,10 +107,18 @@ namespace Fushigi.ui.widgets
 
         public void Save()
         {
-            course.Save();
-            foreach (var area in course.GetAreas())
+            try
             {
-                lastSavedAction[area] = viewports[area].mEditContext.GetLastAction();
+                course.Save();
+                foreach (var area in course.GetAreas())
+                {
+                    lastSavedAction[area] = viewports[area].mEditContext.GetLastAction();
+                }
+            }
+            catch (Exception ex) 
+            {
+                MessageBox box = new MessageBox(MessageBox.MessageBoxType.Ok);
+                box.Show("Error", ex.Message);
             }
         }
 
