@@ -37,6 +37,18 @@ namespace Fushigi
 
         public ActorPack(string path)
         {
+            try
+            {
+                Load(path);
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void Load(string path)
+        {
             byte[] fileBytes = FileUtil.DecompressFile(path);
             SARC.SARC sarc = new SARC.SARC(new MemoryStream(fileBytes));
 
@@ -72,11 +84,9 @@ namespace Fushigi
                 {
                     case "DrawArrayModelInfoRef":
                         this.DrawArrayModelInfoRef = BymlSerialize.Deserialize<ModelInfo>(data);
-                        Console.WriteLine($"DrawArrayModelInfoRef {DrawArrayModelInfoRef.mModelName}");
                         break;
                     case "ModelInfoRef":
                         this.ModelInfoRef = BymlSerialize.Deserialize<ModelInfo>(data);
-                        Console.WriteLine($"ModelInfoRef {ModelInfoRef.mModelName}");
                         break;
                 }
             }

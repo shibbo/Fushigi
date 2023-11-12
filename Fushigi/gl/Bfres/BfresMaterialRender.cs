@@ -46,9 +46,11 @@ namespace Fushigi.gl.Bfres
                     case "_a0":
                         Shader.SetUniform("hasTexture", 1);
                         var tex = TryBindTexture(renderer, texName);
-                        Shader.SetTexture("image", tex, unit_slot);
-
-                        unit_slot++;
+                        if (tex != null)
+                        {
+                            Shader.SetTexture("image", tex, unit_slot);
+                            unit_slot++;
+                        }
                         break;
                 }
             }
