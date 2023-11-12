@@ -44,6 +44,7 @@ namespace Fushigi.ui.widgets
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
         public string mActorToAdd = "";
+        public string mLayerToAdd = "PlayArea1";
         public bool mIsLinkNew = false;
         public string mNewLinkType = "";
 
@@ -60,6 +61,7 @@ namespace Fushigi.ui.widgets
         public enum EditorState
         {
             Selecting,
+            SelectingActorLayer,
             AddingActor,
             DeleteActorLinkCheck,
             DeletingActor,
@@ -381,7 +383,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    CourseActor actor = new CourseActor(mActorToAdd, mArea.mRootHash);
+                    CourseActor actor = new CourseActor(mActorToAdd, mArea.mRootHash, mLayerToAdd);
 
                     Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
                     posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;

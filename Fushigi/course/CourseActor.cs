@@ -111,11 +111,11 @@ namespace Fushigi.course
             }
         }
 
-        public CourseActor(string actorName, uint areaHash)
+        public CourseActor(string actorName, uint areaHash, string actorLayer)
         {
             mActorName = actorName;
             mAreaHash = areaHash;
-            mLayer = "PlayArea1";
+            mLayer = actorLayer;
             mName = "";
             mTranslation = new System.Numerics.Vector3(0.0f);
             mRotation = new System.Numerics.Vector3(0.0f);
