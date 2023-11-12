@@ -1,5 +1,6 @@
 ﻿using Fushigi.Bfres;
 using Silk.NET.OpenGL;
+using System.IO;
 using System.Numerics;
 
 
@@ -12,22 +13,28 @@ namespace Fushigi.gl.Bfres
 
         public BfresRender(GL gl, string filePath)
         {
-            BfresFile file = new BfresFile(filePath);
-            foreach (var model in file.Models.Values)
-                Models.Add(model.Name, new BfresModel(gl, model));
-
-            foreach (var texture in file.TryGetTextureBinary().Textures)
-                Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
+            Init(gl, File.OpenRead(filePath));
         }
 
         public BfresRender(GL gl, Stream stream)
         {
-            BfresFile file = new BfresFile(stream);
-            foreach (var model in file.Models.Values)
-                Models.Add(model.Name, new BfresModel(gl, model));
+            Init(gl, stream);
+        }
 
-            foreach (var texture in file.TryGetTextureBinary().Textures)
-                Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
+        private void Init(GL gl, Stream stream)
+        {
+            try
+            {
+                BfresFile file = new BfresFile(stream);
+                foreach (var model in file.Models.Values)
+                    Models.Add(model.Name, new BfresModel(gl, model));
+                foreach (var texture in file.TryGetTextureBinary().Textures)
+                    Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
+            }
+            catch
+            {
+
+            }
         }
 
         internal void Render(GL gl, Matrix4x4 transform, Camera camera)
