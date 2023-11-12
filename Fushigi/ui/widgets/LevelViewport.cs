@@ -756,7 +756,7 @@ namespace Fushigi.ui.widgets
                              selectedPoint.mTranslate.Z);
 
                         if (rail.mPoints.Count - 1 == index)
-                            rail.mPoints.Insert(index, newPoint);
+                            rail.mPoints.Add(newPoint);
                         else
                             rail.mPoints.Insert(index, newPoint);
 
