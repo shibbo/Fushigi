@@ -70,7 +70,8 @@ namespace Fushigi.gl
             int location = _gl.GetUniformLocation(ID, name);
             if (location == -1)
             {
-                throw new Exception($"{name} uniform not found on shader.");
+                return;
+         //       throw new Exception($"{name} uniform not found on shader.");
             }
             _gl.Uniform1(location, value);
         }

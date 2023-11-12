@@ -140,6 +140,10 @@ namespace Fushigi.Bfres
         /// </summary>
         public ChannelType ChannelAlpha { get; set; }
 
+        public bool IsAstc => this.Format.ToString().ToLower().Contains("astc");
+
+        public bool IsBCNCompressed() => this.Format.ToString().StartsWith("BC");
+
         TextureHeader Header;
 
         public void Read(BinaryReader reader)
@@ -180,10 +184,13 @@ namespace Fushigi.Bfres
 
         public Span<byte> DecodeAstc(int array_level = 0, int mip_level = 0)
         {
-            var surface = this.DeswizzleSurface(array_level, mip_level);
+            return DecodeAstc(this.DeswizzleSurface(array_level, mip_level));
+        }
 
+        public Span<byte> DecodeAstc(byte[] deswizzled)
+        {
             AstcDecoder.TryDecodeToRgba8(
-                surface,
+                deswizzled,
             (int)this.GetBlockWidth(),
             (int)this.GetBlockHeight(),
             (int)this.Width,

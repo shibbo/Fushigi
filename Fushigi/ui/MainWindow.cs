@@ -1,4 +1,4 @@
-﻿using Fushigi.util;
+using Fushigi.util;
 using Fushigi.windowing;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
@@ -75,8 +75,35 @@ namespace Fushigi.ui
             mWindow.Dispose();
         }
 
+        public bool TryCloseCourse(Action onSuccessRetryAction)
+        {
+            if (mCloseCourseRequest.TryGetValue(out var request))
+            {
+                if (request.success)
+                {
+                    mCloseCourseRequest = null;
+                    return true;
+                }
+            }
+
+            if(mSelectedCourseScene is not null &&
+                mSelectedCourseScene.HasUnsavedChanges())
+            {
+                mCloseCourseRequest = (onSuccessRetryAction, success: false);
+                return false;
+            }
+
+            return true;
+        }
+
         public void Close()
         {
+            if (!TryCloseCourse(onSuccessRetryAction: mWindow.Close))
+            {
+                mWindow.IsClosing = false;
+                return;
+            }
+
             UserSettings.Save();
         }
 
@@ -103,7 +130,7 @@ namespace Fushigi.ui
             }
 
             string? latestCourse = UserSettings.GetLatestCourse();
-            if (latestCourse != null)
+            if (latestCourse != null && ParamDB.sIsInit)
             {
                 mCurrentCourseName = latestCourse;
                 mSelectedCourseScene = new(new(mCurrentCourseName), gl);
@@ -221,17 +248,26 @@ namespace Fushigi.ui
                             )
                         )
                         {
-                            // Close course selection whether or not this is a different course
-                            mIsChoosingCourse = false;
-
                             // Only change the course if it is different from current
-                            if (mCurrentCourseName == null || mCurrentCourseName != courseLocation)
+                            if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
+                                mIsChoosingCourse = false;
+                            else
                             {
-                                Console.WriteLine($"Selected course {courseLocation}!");
-                                mSelectedCourseScene = new(new(courseLocation), gl);
-                                UserSettings.AppendRecentCourse(courseLocation);
-                            }
+                                void SwitchCourse()
+                                {
+                                    if (!TryCloseCourse(onSuccessRetryAction: SwitchCourse))
+                                        return;
 
+                                    Console.WriteLine($"Selected course {courseLocation}!");
+
+                                    mSelectedCourseScene = new(new(courseLocation), gl);
+                                    UserSettings.AppendRecentCourse(courseLocation);
+
+                                    mIsChoosingCourse = false;
+                                }
+
+                                SwitchCourse();
+                            }
                         }
                     }
                     ImGui.TreePop();
@@ -311,6 +347,22 @@ namespace Fushigi.ui
                     ParamDBDialog.Draw(ref mIsGeneratingParamDB);
                 }
 
+                bool hasRequest = mCloseCourseRequest.TryGetValue(out var request);
+                bool hasResult = CloseConfirmationDialog.Draw(hasRequest, out var result);
+
+                if (hasRequest && hasResult) //just to make sure
+                {
+                    if (result == CloseConfirmationDialog.Result.Yes)
+                    {
+                        mSelectedCourseScene = null;
+                        mCloseCourseRequest = request with { success = true };
+                        request.onSuccessRetryAction.Invoke();
+                    }
+                    else if(result == CloseConfirmationDialog.Result.No)
+                    {
+                        mCloseCourseRequest = null;
+                    }
+                }
             }
 
             //Update viewport from any framebuffers being used
@@ -327,5 +379,6 @@ namespace Fushigi.ui
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
         bool mIsGeneratingParamDB = false;
+        (Action onSuccessRetryAction, bool success)? mCloseCourseRequest = null;
     }
 }

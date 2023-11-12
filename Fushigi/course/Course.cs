@@ -10,6 +10,7 @@ using Fushigi.Byml.Writer.Primitives;
 using Fushigi;
 using Fushigi.course;
 using Fushigi.rstb;
+using Fushigi.ui.widgets;
 
 namespace Fushigi.course
 {

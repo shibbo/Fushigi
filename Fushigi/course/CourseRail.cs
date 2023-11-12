@@ -178,7 +178,7 @@ namespace Fushigi.course
         public ulong mHash;
         public bool mIsClosed;
         public List<CourseRailPoint> mPoints = new();
-        Dictionary<string, object> mParameters = new();
+        public Dictionary<string, object> mParameters = new();
 
         public class CourseRailPoint
         {
@@ -322,7 +322,7 @@ namespace Fushigi.course
             }
 
             public ulong mHash;
-            Dictionary<string, object> mParameters = new();
+            public Dictionary<string, object> mParameters = new();
             public System.Numerics.Vector3 mTranslate;
             public System.Numerics.Vector3? mControl = null;
         }

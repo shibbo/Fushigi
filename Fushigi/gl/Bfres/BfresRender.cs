@@ -1,52 +1,46 @@
 ﻿using Fushigi.Bfres;
-using Fushigi.gl.Shaders;
-using Fushigi.ui.widgets;
 using Silk.NET.OpenGL;
-using Silk.NET.SDL;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using System.IO;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Fushigi.gl.Primitives
+
+namespace Fushigi.gl.Bfres
 {
     public class BfresRender
     {
-        public List<BfresModel> Models = new List<BfresModel>();
+        public Dictionary<string, BfresTextureRender> Textures = new Dictionary<string, BfresTextureRender>();
+        public Dictionary<string, BfresModel> Models = new Dictionary<string, BfresModel>();
 
         public BfresRender(GL gl, string filePath)
         {
-            BfresFile file = new BfresFile(filePath);
-            foreach (var model in file.Models.Values)
-                Models.Add(new BfresModel(gl, model));
+            Init(gl, File.OpenRead(filePath));
         }
 
         public BfresRender(GL gl, Stream stream)
         {
-            BfresFile file = new BfresFile(stream);
-            foreach (var model in file.Models.Values)
-                Models.Add(new BfresModel(gl, model));
+            Init(gl, stream);
+        }
+
+        private void Init(GL gl, Stream stream)
+        {
+            try
+            {
+                BfresFile file = new BfresFile(stream);
+                foreach (var model in file.Models.Values)
+                    Models.Add(model.Name, new BfresModel(gl, model));
+                foreach (var texture in file.TryGetTextureBinary().Textures)
+                    Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
+            }
+            catch
+            {
+
+            }
         }
 
         internal void Render(GL gl, Matrix4x4 transform, Camera camera)
         {
-            var cameraMatrix = camera.ViewProjectionMatrix;
-            foreach (var model in Models)
-            {
-                if (!model.IsVisible)
-                    continue;
-
-                foreach (var mesh in model.Meshes)
-                {
-                    if (!mesh.IsVisible)
-                        continue;
-
-                    mesh.Render(gl, transform, cameraMatrix);
-                }
-            }
+            foreach (var model in Models.Values)
+                model.Render(gl, this, transform, camera);
         }
 
         public class BfresModel
@@ -60,6 +54,20 @@ namespace Fushigi.gl.Primitives
                 foreach (var shape in model.Shapes.Values)
                     Meshes.Add(new BfresMesh(gl, model, shape));
             }
+
+            internal void Render(GL gl, BfresRender render, Matrix4x4 transform, Camera camera)
+            {
+                if (!IsVisible)
+                    return;
+
+                foreach (var mesh in Meshes)
+                {
+                    if (!mesh.IsVisible)
+                        continue;
+
+                    mesh.Render(gl, render, transform, camera.ViewProjectionMatrix);
+                }
+            }
         }
 
         public class BfresMesh
@@ -67,6 +75,8 @@ namespace Fushigi.gl.Primitives
             public bool IsVisible = true;
 
             private List<DetailLevel> LodMeshes = new List<DetailLevel>();
+
+            public BfresMaterialRender MaterialRender = new BfresMaterialRender();
 
             //Resources
             private List<BufferObject> Buffers = new List<BufferObject>();
@@ -76,6 +86,7 @@ namespace Fushigi.gl.Primitives
             public BfresMesh(GL gl, Model model, Shape shape)
             {
                 var material = model.Materials[shape.MaterialIndex];
+                MaterialRender.Init(gl, material);
 
                 IndexBuffer = new BufferObject(gl, BufferTargetARB.ElementArrayBuffer);
                 IndexBuffer.SetData(shape.Meshes[0].IndexBuffer);
@@ -91,7 +102,7 @@ namespace Fushigi.gl.Primitives
 
                 foreach (var attr in shape.VertexBuffer.Attributes.Values)
                 {
-                    if (!AttributeNames.ContainsKey(attr.Name))
+                    if (!AttributeNames.ContainsKey(attr.Name) || !FormatList.ContainsKey(attr.Format))
                         continue;
 
                     string name = AttributeNames[attr.Name];
@@ -115,19 +126,13 @@ namespace Fushigi.gl.Primitives
                 });
             }
 
-            public void Render(GL gl, Matrix4x4 transform, Matrix4x4 cameraMatrix)
+            public void Render(GL gl, BfresRender renderer, Matrix4x4 transform, Matrix4x4 cameraMatrix)
             {
                 var mesh = this.LodMeshes[0]; //only use first level of detail
 
-                var Shader = GLShaderCache.GetShader(gl, "Bfres",
-                       Path.Combine("res", "shaders", "Bfres.vert"),
-                       Path.Combine("res", "shaders", "Bfres.frag"));
+                MaterialRender.Render(gl, renderer, transform, cameraMatrix);
 
-                Shader.Use();
-                Shader.SetUniform("mtxCam", cameraMatrix);
-                Shader.SetUniform("mtxMdl", transform);
-
-                vbo.Enable(Shader);
+                vbo.Enable(MaterialRender.Shader);
                 vbo.Use();
 
                 unsafe
@@ -190,11 +195,14 @@ namespace Fushigi.gl.Primitives
                 { BfresAttribFormat.Format_16_16_Single, new FormatInfo(2, false, VertexAttribPointerType.HalfFloat) },
                 { BfresAttribFormat.Format_16_Single, new FormatInfo(2, false, VertexAttribPointerType.HalfFloat) },
 
-                { BfresAttribFormat.Format_16_16_SNorm, new FormatInfo(2, false, VertexAttribPointerType.Short) },
-                { BfresAttribFormat.Format_16_16_UNorm, new FormatInfo(2, false, VertexAttribPointerType.UnsignedShort) },
+                { BfresAttribFormat.Format_16_16_SNorm, new FormatInfo(2, true, VertexAttribPointerType.Short) },
+                { BfresAttribFormat.Format_16_16_UNorm, new FormatInfo(2, true, VertexAttribPointerType.UnsignedShort) },
 
                 { BfresAttribFormat.Format_10_10_10_2_SNorm, new FormatInfo(4, true, VertexAttribPointerType.Int2101010Rev) },
                 { BfresAttribFormat.Format_10_10_10_2_UNorm, new FormatInfo(4, true, VertexAttribPointerType.UnsignedInt2101010Rev) },
+
+                { BfresAttribFormat.Format_8_8_8_8_SNorm, new FormatInfo(4, true, VertexAttribIType.Byte) },
+                { BfresAttribFormat.Format_8_8_8_8_UNorm, new FormatInfo(4, true, VertexAttribIType.UnsignedByte) },
 
                 //Ints
                 { BfresAttribFormat.Format_10_10_10_2_UInt, new FormatInfo(4, true, VertexAttribIType.UnsignedInt) },

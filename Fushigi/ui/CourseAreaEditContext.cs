@@ -21,6 +21,8 @@ namespace Fushigi.ui
 
         private bool mHasDialog = false;
 
+        public object? GetLastAction() => mUndoHandler.GetLastAction();
+
         public void Undo() => mUndoHandler.Undo();
         public void Redo() => mUndoHandler.Redo();
 

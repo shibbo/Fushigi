@@ -1,4 +1,4 @@
-﻿using Fushigi.util;
+using Fushigi.util;
 using Fushigi.param;
 using Fushigi.ui;
 using System.Runtime.InteropServices;
@@ -6,8 +6,12 @@ using System.Runtime.InteropServices;
 FileStream outputStream = new FileStream("output.log", FileMode.Create);
 var consoleWriter = new StreamWriter(outputStream);
 consoleWriter.AutoFlush = true;
+#if !DEBUG
 Console.SetOut(consoleWriter);
+#endif
 Console.SetError(consoleWriter);
+
+AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 
 Console.WriteLine("Starting Fushigi v0.5...");
 
@@ -36,3 +40,15 @@ if (!Path.Exists("imgui.ini"))
 MainWindow window = new MainWindow();
 
 outputStream.Close();
+
+void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+{
+    Exception? ex = e.ExceptionObject as Exception;
+    if (ex != null)
+    {
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+    }
+
+    Environment.Exit(1);
+}

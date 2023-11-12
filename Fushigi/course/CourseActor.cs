@@ -1,9 +1,11 @@
 ﻿using Fushigi.Byml;
+using Fushigi.Byml.Serializer;
 using Fushigi.param;
 using Fushigi.util;
 using Silk.NET.Core;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,6 +27,7 @@ namespace Fushigi.course
             mAreaHash = BymlUtil.GetNodeData<uint>(actorNode["AreaHash"]);
             mActorHash = BymlUtil.GetNodeData<ulong>(actorNode["Hash"]);
             mName = BymlUtil.GetNodeData<string>(actorNode["Name"]);
+            mActorPack = ActorPackCache.Load(mActorName);
 
             if (actorNode.ContainsKey("Dynamic"))
             {
@@ -297,6 +300,8 @@ namespace Fushigi.course
         public ulong mActorHash;
         public Dictionary<string, object> mActorParameters;
         public Dictionary<string, object> mSystemParameters = new();
+
+        public ActorPack mActorPack;
     }
 
     public class CourseActorHolder
@@ -354,5 +359,13 @@ namespace Fushigi.course
         }
 
         List<CourseActor> mCourseActors = new List<CourseActor>();
+    }
+
+    public class CourseActorRender //This can be overridden per actor for individual behavior
+    {
+
+        public virtual void Render() 
+        {
+        }
     }
 }
