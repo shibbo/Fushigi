@@ -770,8 +770,11 @@ namespace Fushigi.ui.widgets
                         if (matching.Count > 1)
                             rail.mPoints.Remove(selectedPoint);
                     }
+
+                    bool add_point = ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt;
+
                     //Insert point to selected
-                    if (selectedPoint != null && ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt)
+                    if (selectedPoint != null && add_point)
                     {
                         Vector3 posVec = this.ScreenToWorld(ImGui.GetMousePos());
 
@@ -791,6 +794,22 @@ namespace Fushigi.ui.widgets
                         this.mEditContext.Select(newPoint);
                         newHoveredObject = newPoint;
                     }
+                    else if (rail_selected && add_point)
+                    {
+                        Vector3 posVec = this.ScreenToWorld(ImGui.GetMousePos());
+
+                        var newPoint = new CourseRail.CourseRailPoint();
+                        newPoint.mTranslate = new(
+                             MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                             MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                             0);
+
+                        rail.mPoints.Add(newPoint);
+
+                        this.mEditContext.DeselectAll();
+                        this.mEditContext.Select(newPoint);
+                        newHoveredObject = newPoint;
+                    }
 
                     //Rail selection disabled for now as it conflicts with point selection
                     // if (hovered)
@@ -799,6 +818,9 @@ namespace Fushigi.ui.widgets
 
                 foreach (CourseRail rail in mArea.mRailHolder.mRails)
                 {
+                    if (rail.mPoints.Count == 0)
+                        continue;
+
                     bool selected = mEditContext.IsSelected(rail);
                     var rail_color = selected ? ImGui.ColorConvertFloat4ToU32(new(1, 1, 0, 1)) : color;
 

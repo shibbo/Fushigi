@@ -1112,12 +1112,26 @@ namespace Fushigi.ui.widgets
 
         private void CourseRailsView(CourseRailHolder railHolder)
         {
-            foreach(CourseRail rail in railHolder.mRails)
+            if (ImGui.Button("Add Rail"))
+            {
+                railHolder.mRails.Add(new CourseRail(this.selectedArea.mRootHash));
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Remove Rail"))
+            {
+                var selected = activeViewport.mEditContext.GetSelectedObjects<CourseRail>();
+                foreach (var rail in selected)
+                    railHolder.mRails.Remove(rail);
+            }
+
+            foreach (CourseRail rail in railHolder.mRails)
             {
                 var rail_node_flags = ImGuiTreeNodeFlags.None;
-                if (activeViewport.mEditContext.IsSelected(rail) ||
+                if (activeViewport.mEditContext.IsSelected(rail) &&
                     !activeViewport.mEditContext.IsAnySelected<CourseRail.CourseRailPoint>())
+                {
                     rail_node_flags |= ImGuiTreeNodeFlags.Selected;
+                }
 
                 bool expanded = ImGui.TreeNodeEx($"Rail {railHolder.mRails.IndexOf(rail)}", rail_node_flags);
                 if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
