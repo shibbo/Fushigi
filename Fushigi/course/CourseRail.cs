@@ -182,6 +182,15 @@ namespace Fushigi.course
 
         public class CourseRailPoint
         {
+            public CourseRailPoint(CourseRailPoint point)
+            {
+                this.mHash = RandomUtil.GetRandom();
+                this.mTranslate = point.mTranslate;
+                this.mControl = point.mControl;
+                foreach (var param in point.mParameters)
+                    this.mParameters.Add(param.Key, param.Value);
+            }
+
             public CourseRailPoint(BymlHashTable node, string pointParam)
             {
                 mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);
