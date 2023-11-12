@@ -171,7 +171,7 @@ namespace Fushigi.ui.widgets
                 DeselectAll(viewport.mEditContext);
 
                 if (this.Points.Count - 1 == index) //is last point
-                    InsertPoint(viewport, new RailPoint(pos), 0);
+                    AddPoint(viewport, new RailPoint(pos));
                 else
                     InsertPoint(viewport, new RailPoint(pos), index + 1);
             }
@@ -185,7 +185,6 @@ namespace Fushigi.ui.widgets
                      2);
 
                 DeselectAll(viewport.mEditContext);
-
                 AddPoint(viewport, new RailPoint(pos));
             }
             else
