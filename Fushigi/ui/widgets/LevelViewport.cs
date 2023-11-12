@@ -21,6 +21,7 @@ using Fushigi.util;
 using System.Reflection.PortableExecutable;
 using static Fushigi.util.MessageBox;
 using Fushigi.gl.Bfres;
+using Fushigi.actor_pack.components;
 
 namespace Fushigi.ui.widgets
 {
@@ -192,26 +193,32 @@ namespace Fushigi.ui.widgets
 
             foreach (var actor in this.mArea.GetActors())
             {
-                if (actor.mActorPack.ModelInfoRef != null)
-                {
-                    var resourceName = actor.mActorPack.ModelInfoRef.mFilePath;
-                    var modelName = actor.mActorPack.ModelInfoRef.mModelName;
-
-                    var render = BfresCache.Load(gl, resourceName);
-                    if (render == null || !render.Models.ContainsKey(modelName))
-                        continue;
-
-                    var mat = Matrix4x4.CreateTranslation(actor.mTranslation);
-
-                    var model = render.Models[modelName];
-                    model.Render(gl, render, mat, this.Camera);
-                }
+                RenderActor(actor, actor.mActorPack.ModelInfoRef);
+                RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
             }
             Framebuffer.Unbind();
 
             //Draw framebuffer
             ImGui.Image((IntPtr)((GLTexture)Framebuffer.Attachments[0]).ID, new Vector2(size.X, size.Y),
                 new Vector2(0, 1), new Vector2(1, 0));
+        }
+
+        private void RenderActor(CourseActor actor, ModelInfo modelInfo)
+        {
+            if (modelInfo == null)
+                return;
+
+            var resourceName = modelInfo.mFilePath;
+            var modelName = modelInfo.mModelName;
+
+            var render = BfresCache.Load(gl, resourceName);
+            if (render == null || !render.Models.ContainsKey(modelName))
+                return;
+
+            var mat = Matrix4x4.CreateTranslation(actor.mTranslation);
+
+            var model = render.Models[modelName];
+            model.Render(gl, render, mat, this.Camera);
         }
 
         public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility)
