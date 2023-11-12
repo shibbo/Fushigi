@@ -744,7 +744,7 @@ namespace Fushigi.ui.widgets
                         rail.mPoints.Remove(selectedPoint);
                     }
                     //Insert point to selected
-                    if (selectedPoint != null && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt)
+                    if (selectedPoint != null && ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt)
                     {
                         Vector3 posVec = this.ScreenToWorld(ImGui.GetMousePos());
 
