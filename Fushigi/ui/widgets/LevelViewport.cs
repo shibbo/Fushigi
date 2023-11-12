@@ -743,6 +743,13 @@ namespace Fushigi.ui.widgets
                     {
                         rail.mPoints.Remove(selectedPoint);
                     }
+                    if (selectedPoint != null && ImGui.IsMouseReleased(0))
+                    {
+                        //Check if point matches an existing point, remove if intersected
+                        var matching = rail.mPoints.Where(x => x.mTranslate == selectedPoint.mTranslate).ToList();
+                        if (matching.Count > 1)
+                            rail.mPoints.Remove(selectedPoint);
+                    }
                     //Insert point to selected
                     if (selectedPoint != null && ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt)
                     {

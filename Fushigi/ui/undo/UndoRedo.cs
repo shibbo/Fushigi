@@ -18,6 +18,15 @@ namespace Fushigi.ui
         //For collection reverting
         List<IRevertable> undoCollection = null;
 
+        //for GUI
+        public IEnumerable<IRevertable> GetUndoStack()  {
+            return undoStack;
+        }
+        //for GUI
+        public IEnumerable<IRevertable> GetRedoUndoStack()  {
+            return redoStack.Select(x => x.undoable);
+        }
+
         public object? GetLastAction()
         {
             if (!undoStack.TryPeek(out IRevertable? top))

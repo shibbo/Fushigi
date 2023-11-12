@@ -37,6 +37,7 @@ namespace Fushigi.ui.widgets
         Dictionary<CourseArea, object?> lastSavedAction = [];
         Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
         LevelViewport activeViewport;
+        UndoWindow undoWindow;
 
         readonly Course course;
         CourseArea selectedArea;
@@ -82,6 +83,7 @@ namespace Fushigi.ui.widgets
         {
             this.course = course;
             selectedArea = course.GetArea(0);
+            undoWindow = new UndoWindow();
 
             foreach (var area in course.GetAreas())
             {
@@ -114,6 +116,8 @@ namespace Fushigi.ui.widgets
 
         public void DrawUI(GL gl)
         {
+            undoWindow.Render(this.activeViewport.mEditContext);
+
             ActorsPanel();
 
             SelectionParameterPanel();
@@ -159,7 +163,7 @@ namespace Fushigi.ui.widgets
                     var topLeft = ImGui.GetCursorScreenPos();
                     var size = ImGui.GetContentRegionAvail();
 
-                    //viewport.DrawScene3D(size);
+                //    viewport.DrawScene3D(size);
 
                     ImGui.SetNextItemAllowOverlap();
                     ImGui.SetCursorScreenPos(topLeft);

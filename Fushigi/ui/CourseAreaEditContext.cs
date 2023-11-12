@@ -21,6 +21,11 @@ namespace Fushigi.ui
 
         private bool mHasDialog = false;
 
+        //For Undo Window
+        public IEnumerable<IRevertable> GetUndoStack() => mUndoHandler.GetUndoStack();
+        public IEnumerable<IRevertable> GetRedoUndoStack() => mUndoHandler.GetRedoUndoStack();
+
+
         public object? GetLastAction() => mUndoHandler.GetLastAction();
 
         public void Undo() => mUndoHandler.Undo();
@@ -119,7 +124,7 @@ namespace Fushigi.ui
         public void AddActor(CourseActor actor)
         {
             mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
-                .RevertableAdd(actor, $"Add {actor.mActorName}"));
+                .RevertableAdd(actor, $"{IconUtil.ICON_PLUS_CIRCLE} Add {actor.mActorName}"));
         }
 
         public void SetActorName(CourseActor actor, string newName)
@@ -143,7 +148,7 @@ namespace Fushigi.ui
             mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
                 .RevertableRemove(actor));
 
-            mUndoHandler.EndUndoCollection($"Delete {actor.mActorName}");
+            mUndoHandler.EndUndoCollection($"{IconUtil.ICON_TRASH} Delete {actor.mActorName}");
         }
 
         public void DeleteSelectedActors()
@@ -200,7 +205,7 @@ namespace Fushigi.ui
         {
             var name = area.mLinkHolder.GetLinks()[index].GetLinkName();
             AddToUndo(
-                area.mLinkHolder.GetLinks().RevertableRemoveAt(index, $"Delete {name} Link")
+                area.mLinkHolder.GetLinks().RevertableRemoveAt(index, $"{IconUtil.ICON_TRASH} Delete {name} Link")
             );
         }
 
@@ -214,7 +219,7 @@ namespace Fushigi.ui
             Console.WriteLine($"Adding Link: Source: {link.GetSrcHash()} -- Dest: {link.GetDestHash()}");
             AddToUndo(
                 area.mLinkHolder.GetLinks().RevertableAdd(link, 
-                    $"Add {link.GetLinkName()} Link")
+                    $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.GetLinkName()} Link")
             );
         }
 
