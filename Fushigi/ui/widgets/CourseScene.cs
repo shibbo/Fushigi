@@ -648,8 +648,17 @@ namespace Fushigi.ui.widgets
                     ImGui.Text("IsClosed"); ImGui.NextColumn();
                     ImGui.Checkbox("##IsClosed", ref mSelectedUnitRail.IsClosed); ImGui.NextColumn();
 
-                    ImGui.Text("IsInternal"); ImGui.NextColumn();
-                    ImGui.Checkbox("##IsInternal", ref mSelectedUnitRail.IsInternal); ImGui.NextColumn();
+                    //Depth editing for bg unit. All points share the same depth, so batch edit the Z point
+                    float depth = mSelectedUnitRail.Points.Count == 0 ? 0 : mSelectedUnitRail.Points[0].Position.Z;
+
+                    ImGui.Text("Z Depth"); ImGui.NextColumn();
+                    if (ImGui.DragFloat("##Depth", ref depth))
+                    {
+                        //Update depth to all points
+                        foreach (var p in mSelectedUnitRail.Points)
+                            p.Position = new System.Numerics.Vector3(p.Position.X, p.Position.Y, depth);
+                    }
+                    ImGui.NextColumn();
 
                     ImGui.Columns(1);
                 }
