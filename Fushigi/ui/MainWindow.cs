@@ -215,10 +215,12 @@ namespace Fushigi.ui
 
                     if (ImGui.MenuItem("Undo"))
                     {
+                        mSelectedCourseScene?.activeViewport.mEditContext.Undo();
                     }
 
                     if (ImGui.MenuItem("Redo"))
                     {
+                        mSelectedCourseScene?.activeViewport.mEditContext.Redo();
                     }
 
                     /* end Edit menu */

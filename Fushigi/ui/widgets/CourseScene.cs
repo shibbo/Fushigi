@@ -36,7 +36,7 @@ namespace Fushigi.ui.widgets
         Dictionary<CourseArea, LevelViewport> viewports = [];
         Dictionary<CourseArea, object?> lastSavedAction = [];
         Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
-        LevelViewport activeViewport;
+        public LevelViewport activeViewport;
 
         readonly Course course;
         CourseArea selectedArea;
