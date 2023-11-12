@@ -294,6 +294,22 @@ namespace Fushigi.ui.widgets
                             actor.mTranslation = posVec;
                         }
                     }
+                    if (mEditContext.IsSingleObjectSelected(out CourseRail.CourseRailPoint? rail))
+                    {
+                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+
+                        if (ImGui.GetIO().KeyShift)
+                        {
+                            rail.mTranslate = posVec;
+                        }
+                        else
+                        {
+                            posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                            posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                            posVec.Z = rail.mTranslate.Z;
+                            rail.mTranslate = posVec;
+                        }
+                    }
                 }
 
                 if (ImGui.IsItemClicked())
@@ -690,14 +706,52 @@ namespace Fushigi.ui.widgets
 
                 foreach (CourseRail rail in mArea.mRailHolder.mRails)
                 {
+                    bool rail_selected = mEditContext.IsSelected(rail);
+
+                    Vector2[] GetPoints()
+                    {
+                        Vector2[] points = new Vector2[rail.mPoints.Count];
+                        for (int i = 0; i < rail.mPoints.Count; i++)
+                        {
+                            Vector3 p = rail.mPoints[i].mTranslate;
+                            points[i] = WorldToScreen(new(p.X, p.Y, p.Z));
+                        }
+                        return points;
+                    }
+
+                    bool isSelected = mEditContext.IsSelected(rail);
+                    bool hovered = LevelViewport.HitTestLineLoopPoint(GetPoints(), 10f, ImGui.GetMousePos());
+
+                    foreach (var point in rail.mPoints)
+                    {
+                        var pos2D = this.WorldToScreen(new(point.mTranslate.X, point.mTranslate.Y, point.mTranslate.Z));
+                        Vector2 pnt = new(pos2D.X, pos2D.Y);
+                        bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
+                        if (isHovered)
+                            newHoveredObject = point;
+                    }
+
+                    //Rail selection disabled for now as it conflicts with point selection
+                   // if (hovered)
+                     //   newHoveredObject = rail;
+                }
+
+                foreach (CourseRail rail in mArea.mRailHolder.mRails)
+                {
+                    bool selected = mEditContext.IsSelected(rail);
+                    var rail_color = selected ? ImGui.ColorConvertFloat4ToU32(new(1, 1, 0, 1)) : color;
+
                     List<Vector2> pointsList = [];
                     foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
                     {
+                        bool point_selected = mEditContext.IsSelected(pnt);
+                        var rail_point_color = point_selected ? ImGui.ColorConvertFloat4ToU32(new(1, 1, 0, 1)) : color;
+                        var size = newHoveredObject == pnt ? pointSize * 1.5f : pointSize;
+
                         var pos2D = WorldToScreen(pnt.mTranslate);
-                        mDrawList.AddCircleFilled(pos2D, pointSize, color);
+                        mDrawList.AddCircleFilled(pos2D, size, rail_point_color);
                         pointsList.Add(pos2D);
                     }
-
 
                     var segmentCount = rail.mPoints.Count;
                     if (!rail.mIsClosed)
@@ -729,10 +783,11 @@ namespace Fushigi.ui.widgets
                         }
 
                         mDrawList.PathBezierCubicCurveTo(cpOutA2D, cpInB2D, posB2D);
-
                     }
 
-                    mDrawList.PathStroke(color, ImDrawFlags.None, 2.5f);
+                    float thickness = newHoveredObject == rail ? 3f :  2.5f;
+
+                    mDrawList.PathStroke(rail_color, ImDrawFlags.None, thickness);
                 }
             }
 
