@@ -92,7 +92,7 @@ namespace Fushigi.gl.Bfres
 
                 foreach (var attr in shape.VertexBuffer.Attributes.Values)
                 {
-                    if (!AttributeNames.ContainsKey(attr.Name))
+                    if (!AttributeNames.ContainsKey(attr.Name) || !FormatList.ContainsKey(attr.Format))
                         continue;
 
                     string name = AttributeNames[attr.Name];
