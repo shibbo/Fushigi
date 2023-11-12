@@ -1,15 +1,7 @@
 ﻿using Fushigi.Bfres;
-using Fushigi.gl.Shaders;
-using Fushigi.ui.widgets;
 using Silk.NET.OpenGL;
-using Silk.NET.SDL;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Fushigi.gl.Bfres
 {
@@ -37,20 +29,8 @@ namespace Fushigi.gl.Bfres
 
         internal void Render(GL gl, Matrix4x4 transform, Camera camera)
         {
-            var cameraMatrix = camera.ViewProjectionMatrix;
             foreach (var model in Models.Values)
-            {
-                if (!model.IsVisible)
-                    continue;
-
-                foreach (var mesh in model.Meshes)
-                {
-                    if (!mesh.IsVisible)
-                        continue;
-
-                    mesh.Render(gl, this, transform, cameraMatrix);
-                }
-            }
+                model.Render(gl, this, transform, camera);
         }
 
         public class BfresModel
@@ -63,6 +43,20 @@ namespace Fushigi.gl.Bfres
             {
                 foreach (var shape in model.Shapes.Values)
                     Meshes.Add(new BfresMesh(gl, model, shape));
+            }
+
+            internal void Render(GL gl, BfresRender render, Matrix4x4 transform, Camera camera)
+            {
+                if (!IsVisible)
+                    return;
+
+                foreach (var mesh in Meshes)
+                {
+                    if (!mesh.IsVisible)
+                        continue;
+
+                    mesh.Render(gl, render, transform, camera.ViewProjectionMatrix);
+                }
             }
         }
 
@@ -196,6 +190,9 @@ namespace Fushigi.gl.Bfres
 
                 { BfresAttribFormat.Format_10_10_10_2_SNorm, new FormatInfo(4, true, VertexAttribPointerType.Int2101010Rev) },
                 { BfresAttribFormat.Format_10_10_10_2_UNorm, new FormatInfo(4, true, VertexAttribPointerType.UnsignedInt2101010Rev) },
+
+                { BfresAttribFormat.Format_8_8_8_8_SNorm, new FormatInfo(4, true, VertexAttribIType.Byte) },
+                { BfresAttribFormat.Format_8_8_8_8_UNorm, new FormatInfo(4, true, VertexAttribIType.UnsignedByte) },
 
                 //Ints
                 { BfresAttribFormat.Format_10_10_10_2_UInt, new FormatInfo(4, true, VertexAttribIType.UnsignedInt) },
