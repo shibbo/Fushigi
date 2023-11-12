@@ -18,6 +18,14 @@ namespace Fushigi.ui
         //For collection reverting
         List<IRevertable> undoCollection = null;
 
+        public object? GetLastAction()
+        {
+            if (!undoStack.TryPeek(out IRevertable? top))
+                top = null;
+
+            return top;
+        }
+
         /// <summary>
         /// Starts adding called AddToUndo() into a collection.
         /// Must be ended using EndUndoCollection().

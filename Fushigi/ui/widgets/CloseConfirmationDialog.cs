@@ -2,6 +2,7 @@
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -11,17 +12,23 @@ namespace Fushigi.ui.widgets
 {
     class CloseConfirmationDialog
     {
-
-        public static bool needConfirmation = false;
-
-        public static void Draw(ref bool shouldDraw, ref bool shouldClose)
+        public enum Result
         {
+            Yes,
+            No
+        }
+
+        public static bool Draw(bool doShow, [MaybeNullWhen(false)] out Result? result)
+        {
+            result = null;
+
             Vector2 center = ImGui.GetMainViewport().GetCenter();
             ImGui.SetNextWindowPos(center, ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
 
-            ImGui.OpenPopup("CloseConfirmation");
+            if (doShow && !ImGui.IsPopupOpen("CloseConfirmation"))
+                ImGui.OpenPopup("CloseConfirmation");
 
-            if (ImGui.BeginPopupModal("CloseConfirmation", ref shouldDraw, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration))
+            if (ImGui.BeginPopupModal("CloseConfirmation", ref doShow, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration))
             {
                 float centerXText = (ImGui.GetWindowWidth() - ImGui.CalcTextSize("Unsaved changes.").X) * 0.5f;
                 ImGui.SetCursorPosX(centerXText);
@@ -34,21 +41,16 @@ namespace Fushigi.ui.widgets
                 float centerXButtons = (ImGui.GetWindowWidth() - ImGui.CalcTextSize("Yes No").X) * 0.4f;
                 ImGui.SetCursorPosX(centerXButtons);
                 if (ImGui.Button("Yes"))
-                {
-                    shouldClose = true;
-                    shouldDraw = false;
-                    needConfirmation = false;
-                }
+                    result = Result.Yes;
              
                 ImGui.SameLine();
                 if (ImGui.Button("No"))
-                {
-                    shouldClose = false;
-                    shouldDraw = false;
-                }
+                    result = Result.No;
 
                 ImGui.EndPopup();
             }
+
+            return result != null;
         }
 
     }

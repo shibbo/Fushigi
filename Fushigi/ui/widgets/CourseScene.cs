@@ -34,6 +34,7 @@ namespace Fushigi.ui.widgets
     class CourseScene
     {
         Dictionary<CourseArea, LevelViewport> viewports = [];
+        Dictionary<CourseArea, object?> lastSavedAction = [];
         Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
         LevelViewport activeViewport;
 
@@ -85,9 +86,30 @@ namespace Fushigi.ui.widgets
             foreach (var area in course.GetAreas())
             {
                 viewports[area] = new LevelViewport(area, gl, new CourseAreaEditContext(area));
+                lastSavedAction[area] = null;
             }
 
             activeViewport = viewports[selectedArea];
+        }
+
+        public bool HasUnsavedChanges()
+        {
+            foreach (var area in course.GetAreas())
+            {
+                if(lastSavedAction[area] != viewports[area].mEditContext.GetLastAction())
+                    return true;
+            }
+
+            return false;
+        }
+
+        public void Save()
+        {
+            course.Save();
+            foreach (var area in course.GetAreas())
+            {
+                lastSavedAction[area] = viewports[area].mEditContext.GetLastAction();
+            }
         }
 
         public void DrawUI(GL gl)
@@ -191,11 +213,6 @@ namespace Fushigi.ui.widgets
 
             if (status)
                 ImGui.End();
-        }
-
-        public void Save()
-        {
-            course.Save();
         }
 
         private void SelectActorToAdd()
