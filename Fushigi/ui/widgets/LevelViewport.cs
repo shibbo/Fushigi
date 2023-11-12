@@ -22,6 +22,7 @@ using System.Reflection.PortableExecutable;
 using static Fushigi.util.MessageBox;
 using Fushigi.gl.Bfres;
 using Fushigi.actor_pack.components;
+using static Fushigi.ui.widgets.BGUnitRail;
 
 namespace Fushigi.ui.widgets
 {
@@ -722,6 +723,8 @@ namespace Fushigi.ui.widgets
                     bool isSelected = mEditContext.IsSelected(rail);
                     bool hovered = LevelViewport.HitTestLineLoopPoint(GetPoints(), 10f, ImGui.GetMousePos());
 
+                    CourseRail.CourseRailPoint selectedPoint = null;
+
                     foreach (var point in rail.mPoints)
                     {
                         var pos2D = this.WorldToScreen(new(point.mTranslate.X, point.mTranslate.Y, point.mTranslate.Z));
@@ -729,11 +732,42 @@ namespace Fushigi.ui.widgets
                         bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
                         if (isHovered)
                             newHoveredObject = point;
+
+                        bool selected = mEditContext.IsSelected(point);
+                        if (selected)
+                            selectedPoint = point;
+                    }
+
+                    //Delete selected
+                    if (selectedPoint != null && ImGui.IsKeyDown(ImGuiKey.Delete))
+                    {
+                        rail.mPoints.Remove(selectedPoint);
+                    }
+                    //Insert point to selected
+                    if (selectedPoint != null && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt)
+                    {
+                        Vector3 posVec = this.ScreenToWorld(ImGui.GetMousePos());
+
+                        var index = rail.mPoints.IndexOf(selectedPoint);
+                        var newPoint = new CourseRail.CourseRailPoint(selectedPoint);
+                        newPoint.mTranslate = new(
+                             MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                             MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                             selectedPoint.mTranslate.Z);
+
+                        if (rail.mPoints.Count - 1 == index)
+                            rail.mPoints.Insert(index, newPoint);
+                        else
+                            rail.mPoints.Insert(index, newPoint);
+
+                        this.mEditContext.DeselectAll();
+                        this.mEditContext.Select(newPoint);
+                        newHoveredObject = newPoint;
                     }
 
                     //Rail selection disabled for now as it conflicts with point selection
-                   // if (hovered)
-                     //   newHoveredObject = rail;
+                    // if (hovered)
+                    //   newHoveredObject = rail;
                 }
 
                 foreach (CourseRail rail in mArea.mRailHolder.mRails)
