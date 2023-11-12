@@ -116,7 +116,7 @@ namespace Fushigi.ui.widgets
 
         public void DrawUI(GL gl)
         {
-            undoWindow.Render(this.activeViewport.mEditContext);
+            UndoHistoryPanel();
 
             ActorsPanel();
 
@@ -217,6 +217,11 @@ namespace Fushigi.ui.widgets
 
             if (status)
                 ImGui.End();
+        }
+
+        void UndoHistoryPanel()
+        {
+            undoWindow.Render(this.activeViewport.mEditContext);
         }
 
         private void SelectActorToAdd()
