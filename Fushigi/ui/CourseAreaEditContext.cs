@@ -21,6 +21,8 @@ namespace Fushigi.ui
 
         private bool mHasDialog = false;
 
+        public object? GetLastAction() => mUndoHandler.GetLastAction();
+
         public void Undo() => mUndoHandler.Undo();
         public void Redo() => mUndoHandler.Redo();
 
@@ -64,7 +66,6 @@ namespace Fushigi.ui
 
         public void Select(object obj)
         {
-            CloseConfirmationDialog.needConfirmation = true;//TODO Imrpove CloseConfirmation Detection
             int countBefore = mSelectedObjects.Count;
             mSelectedObjects.Add(obj);
 

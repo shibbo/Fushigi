@@ -75,13 +75,35 @@ namespace Fushigi.ui
             mWindow.Dispose();
         }
 
+        public bool TryCloseCourse(Action retryAction)
+        {
+            if (mCloseCourseRequest.TryGetValue(out var request))
+            {
+                if (request.success)
+                {
+                    mCloseCourseRequest = null;
+                    return true;
+                }
+            }
+
+            if(mSelectedCourseScene is not null &&
+                mSelectedCourseScene.HasUnsavedChanges())
+            {
+                mCloseCourseRequest = (retryAction, success: false);
+                return false;
+            }
+
+            return true;
+        }
+
         public void Close()
         {
-            if (CloseConfirmationDialog.needConfirmation)
+            if (!TryCloseCourse(retryAction: mWindow.Close))
             {
-                mIsCloseConfirmation = true;
                 mWindow.IsClosing = false;
+                return;
             }
+
             UserSettings.Save();
         }
 
@@ -308,16 +330,20 @@ namespace Fushigi.ui
                     ParamDBDialog.Draw(ref mIsGeneratingParamDB);
                 }
 
-                if (mIsCloseConfirmation)
+                bool hasRequest = mCloseCourseRequest.TryGetValue(out var request);
+                bool hasResult = CloseConfirmationDialog.Draw(hasRequest, out var result);
+
+                if (hasRequest && hasResult) //just to make sure
                 {
-                    bool shouldClose = false;
-                    CloseConfirmationDialog.Draw(ref mIsCloseConfirmation, ref shouldClose);
-                    if (!mIsCloseConfirmation)
+                    if (result == CloseConfirmationDialog.Result.Yes)
                     {
-                        if (shouldClose)
-                        {
-                            mWindow.Close();
-                        }
+                        mSelectedCourseScene = null;
+                        mCloseCourseRequest = request with { success = true };
+                        request.retryAction.Invoke();
+                    }
+                    else if(result == CloseConfirmationDialog.Result.No)
+                    {
+                        mCloseCourseRequest = null;
                     }
                 }
             }
@@ -336,6 +362,6 @@ namespace Fushigi.ui
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
         bool mIsGeneratingParamDB = false;
-        bool mIsCloseConfirmation = false;
+        (Action retryAction, bool success)? mCloseCourseRequest = null;
     }
 }

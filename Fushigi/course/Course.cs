@@ -139,8 +139,6 @@ namespace Fushigi.course
             SaveAreas(resource_table);
 
             resource_table.Save();
-
-            CloseConfirmationDialog.needConfirmation = false;
         }
 
         public void SaveAreas(RSTB resTable)
