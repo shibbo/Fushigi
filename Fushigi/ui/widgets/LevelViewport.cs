@@ -268,7 +268,7 @@ namespace Fushigi.ui.widgets
             {
                 mEditContext.Undo();
             }
-            if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeyCtrl)
+            if (ImGui.IsKeyPressed(ImGuiKey.Y) && ImGui.GetIO().KeyCtrl)
             {
                 mEditContext.Redo();
             }
