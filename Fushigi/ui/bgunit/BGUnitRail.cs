@@ -93,7 +93,7 @@ namespace Fushigi.ui.widgets
         public void InsertPoint(LevelViewport viewport, RailPoint point, int index)
         {
             this.Points.Insert(index, point);
-            viewport.mEditContext.AddToUndo(new UnitRailPointAddUndo(this, point, index));
+            viewport.mEditContext.CommitAction(new UnitRailPointAddUndo(this, point, index));
             viewport.mEditContext.Select(point);
             CourseUnit.GenerateTileSubUnits();
         }
@@ -101,7 +101,7 @@ namespace Fushigi.ui.widgets
         public void AddPoint(LevelViewport viewport, RailPoint point)
         {
             this.Points.Add(point);
-            viewport.mEditContext.AddToUndo(new UnitRailPointAddUndo(this, point));
+            viewport.mEditContext.CommitAction(new UnitRailPointAddUndo(this, point));
             viewport.mEditContext.Select(point);
             CourseUnit.GenerateTileSubUnits();
         }
@@ -112,12 +112,12 @@ namespace Fushigi.ui.widgets
             if (selected.Count == 0)
                 return;
 
-            viewport.mEditContext.BeginUndoCollection();
+            var batchAction = viewport.mEditContext.BeginBatchAction();
 
             foreach (var point in selected)
-                viewport.mEditContext.AddToUndo(new UnitRailPointDeleteUndo(this, point));
+                viewport.mEditContext.CommitAction(new UnitRailPointDeleteUndo(this, point));
 
-            viewport.mEditContext.EndUndoCollection("Delete Rail Points");
+            batchAction.Commit("Delete Rail Points");
 
             foreach (var point in selected)
                 this.Points.Remove(point);
@@ -223,12 +223,26 @@ namespace Fushigi.ui.widgets
         public void OnMouseUp(LevelViewport viewport)
         {
             mouseDown = false;
-            transformStart = false;
+
+            if (transformStart)
+            {
+                var batchAction = viewport.mEditContext.BeginBatchAction();
+
+                foreach (var item in mTransformUndos)
+                    viewport.mEditContext.CommitAction(item);
+
+                batchAction.Commit($"{IconUtil.ICON_ARROWS_ALT} Move Rail Points");
+
+                transformStart = false;
+            }
         }
+
+        private List<TransformUndo> mTransformUndos = [];
 
         public void OnSelecting(LevelViewport viewport)
         {
-            if (!mouseDown) return;
+            if (!mouseDown)
+                return;
 
             var ctx = viewport.mEditContext;
 
@@ -238,10 +252,9 @@ namespace Fushigi.ui.widgets
             {
                 transformStart = true;
                 //Store each selected point for undoing
-                viewport.mEditContext.BeginUndoCollection();
+                mTransformUndos.Clear();
                 foreach (var point in this.GetSelected(viewport.mEditContext))
-                    viewport.mEditContext.AddToUndo(new TransformUndo(point.Transform));
-                viewport.mEditContext.EndUndoCollection($"{IconUtil.ICON_ARROWS_ALT} Move Rail Points");
+                    mTransformUndos.Add(new TransformUndo(point.Transform));
             }
 
             bool anyTransformed = false;
