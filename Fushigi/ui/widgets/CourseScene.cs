@@ -578,6 +578,8 @@ namespace Fushigi.ui.widgets
                         if (ImGui.Selectable(layer))
                         {
                             //item is selected
+                            Console.WriteLine("Changing "+mSelectedActor.mName+"'s layer from "+mSelectedActor.mLayer+" to "+layer+".");
+                            mSelectedActor.mLayer = layer;
                         }
                     }
 
