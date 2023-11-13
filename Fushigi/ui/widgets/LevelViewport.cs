@@ -26,10 +26,28 @@ using static Fushigi.ui.widgets.BGUnitRail;
 
 namespace Fushigi.ui.widgets
 {
-    internal class LevelViewport(CourseArea area, GL gl, CourseAreaEditContext editContext)
+    interface IViewportDrawableObject
+    {
+        void Draw2D(CourseAreaEditContext editContext, LevelViewport viewport, ViewportImGuiInteractionState iState);
+    }
+
+    interface ITransformableObject
+    {
+        Transform Transform { get; }
+    }
+
+    struct ViewportImGuiInteractionState
+    {
+        public bool IsHovered;
+        public bool IsActive;
+    }
+
+    internal class LevelViewport(CourseArea area, GL gl, CourseAreaScene areaScene)
     {
         readonly CourseArea mArea = area;
-        public readonly CourseAreaEditContext mEditContext = editContext;
+
+        //this is only so BgUnitRail works, TODO make private
+        public readonly CourseAreaEditContext mEditContext = areaScene.EditContext;
 
         ImDrawListPtr mDrawList;
         public EditorMode mEditorMode = EditorMode.Actors;
