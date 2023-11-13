@@ -1,4 +1,5 @@
 ﻿using Fushigi.ui.widgets;
+using Fushigi.util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Fushigi.ui
         public UnitRailPointAddUndo(BGUnitRail rail, BGUnitRail.RailPoint point, int index = -1)
         {
             //Undo display name
-            Name = $"Rail Point Add";
+            Name = $"{IconUtil.ICON_PLUS_CIRCLE} Rail Point Add";
             //The rail to remove the point to
             Rail = rail;
             //The point to remove
@@ -56,7 +57,7 @@ namespace Fushigi.ui
         public UnitRailPointDeleteUndo(BGUnitRail rail, BGUnitRail.RailPoint point, int index = -1)
         {
             //Undo display name
-            Name = $"Rail Point Remove";
+            Name = $"{IconUtil.ICON_TRASH} Rail Point Remove";
             //The rail to add the point to
             Rail = rail;
             //The point to add

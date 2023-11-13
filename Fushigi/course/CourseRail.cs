@@ -16,6 +16,14 @@ namespace Fushigi.course
 {
     public class CourseRail
     {
+        public CourseRail(uint areaHash)
+        {
+            mHash = RandomUtil.GetRandom();
+            mAreaHash = areaHash;
+            mGyml = "Work/Gyml/Rail/RailParam/Default.game__rail__RailParam.gyml";
+            mIsClosed = false;
+        }
+
         public CourseRail(BymlHashTable node)
         {
             mAreaHash = BymlUtil.GetNodeData<uint>(node["AreaHash"]);
@@ -182,6 +190,22 @@ namespace Fushigi.course
 
         public class CourseRailPoint
         {
+            public CourseRailPoint()
+            {
+                this.mHash = RandomUtil.GetRandom();
+                this.mTranslate = new System.Numerics.Vector3();
+            }
+
+
+            public CourseRailPoint(CourseRailPoint point)
+            {
+                this.mHash = RandomUtil.GetRandom();
+                this.mTranslate = point.mTranslate;
+                this.mControl = point.mControl;
+                foreach (var param in point.mParameters)
+                    this.mParameters.Add(param.Key, param.Value);
+            }
+
             public CourseRailPoint(BymlHashTable node, string pointParam)
             {
                 mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);

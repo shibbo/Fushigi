@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Fushigi.gl
 {
-    internal class GLTexture2D : GLTexture
+    public class GLTexture2D : GLTexture
     {
         public GLTexture2D(GL gl) : base(gl)
         {

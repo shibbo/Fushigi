@@ -23,6 +23,7 @@ using static Fushigi.util.MessageBox;
 using Fushigi.gl.Bfres;
 using Fushigi.actor_pack.components;
 using System.Runtime.InteropServices;
+using static Fushigi.ui.widgets.BGUnitRail;
 
 namespace Fushigi.ui.widgets
 {
@@ -262,7 +263,7 @@ namespace Fushigi.ui.widgets
                 HoveredObject = null;
 
             CourseActor? hoveredActor = HoveredObject as CourseActor;
-
+          
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 if(hoveredActor != null)
@@ -272,7 +273,7 @@ namespace Fushigi.ui.widgets
                 {
                     mEditContext.Undo();
                 }
-                if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeySuper || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeySuper)
+                if (ImGui.IsKeyPressed(ImGuiKey.Y) && ImGui.GetIO().KeySuper || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeySuper)
                 {
                     mEditContext.Redo();
                 }
@@ -284,7 +285,7 @@ namespace Fushigi.ui.widgets
                 {
                     mEditContext.Undo();
                 }
-                if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeyCtrl || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl)
+                if (ImGui.IsKeyPressed(ImGuiKey.Y) && ImGui.GetIO().KeyCtrl || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl)
                 {
                     mEditContext.Redo();
                 }
@@ -312,6 +313,22 @@ namespace Fushigi.ui.widgets
                             posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
                             posVec.Z = actor.mTranslation.Z;
                             actor.mTranslation = posVec;
+                        }
+                    }
+                    if (mEditContext.IsSingleObjectSelected(out CourseRail.CourseRailPoint? rail))
+                    {
+                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+
+                        if (ImGui.GetIO().KeyShift)
+                        {
+                            rail.mTranslate = posVec;
+                        }
+                        else
+                        {
+                            posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                            posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                            posVec.Z = rail.mTranslate.Z;
+                            rail.mTranslate = posVec;
                         }
                     }
                 }
@@ -601,84 +618,87 @@ namespace Fushigi.ui.widgets
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
-                if(!unit.Visible || unit.mTileSubUnits.Count == 0)
+                if(!unit.Visible)
                     continue;
 
-                var clipMin = new Vector2(float.NegativeInfinity);
-                var clipMax = new Vector2(float.PositiveInfinity);
-
-                var nearZ = unit.mTileSubUnits.Min(x=>x.mOrigin.Z);
-                var farZ = unit.mTileSubUnits.Max(x=>x.mOrigin.Z);
-
-                foreach (TileSubUnits subUnit in unit.mTileSubUnits.OrderBy(x=>x.mOrigin.Z))
+                if (unit.mTileSubUnits.Count > 0)
                 {
-                    float blend = ((subUnit.mOrigin.Z - farZ) / (nearZ - farZ));
-                    if(float.IsNaN(blend)) blend = 0;
+                    var clipMin = new Vector2(float.NegativeInfinity);
+                    var clipMax = new Vector2(float.PositiveInfinity);
 
-                    uint color = ImGui.ColorConvertFloat4ToU32(
-                        (1 - blend) * new Vector4(0f, 0f, 1f, 1f) +
-                        blend       * new Vector4(0f, 1f, 1f, 1f)
-                        );
+                    var nearZ = unit.mTileSubUnits.Min(x => x.mOrigin.Z);
+                    var farZ = unit.mTileSubUnits.Max(x => x.mOrigin.Z);
 
-                    var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
-
-                    foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
+                    foreach (TileSubUnits subUnit in unit.mTileSubUnits.OrderBy(x => x.mOrigin.Z))
                     {
-                        mDrawList.AddRectFilled(
-                            WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
-                            new Vector3(0, unit.mModelType == ModelType.Bridge ? .5f : 0, 0)),
-                            WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) + 
-                            new Vector3(1, 1, 0)),
-                            color
+                        float blend = ((subUnit.mOrigin.Z - farZ) / (nearZ - farZ));
+                        if (float.IsNaN(blend)) blend = 0;
+
+                        uint color = ImGui.ColorConvertFloat4ToU32(
+                            (1 - blend) * new Vector4(0f, 0f, 1f, 1f) +
+                            blend * new Vector4(0f, 1f, 1f, 1f)
                             );
-                    }
 
-                    foreach (var (x, y, width, height, type) in subUnit.mSlopes)
-                    {
-                        var bbMin = subUnit.mOrigin + new Vector3(x, y, 0);
-                        var bbMax = bbMin + new Vector3(width, height, 0);
+                        var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
 
-                        var bbTL = new Vector3(bbMin.X, bbMax.Y, 0);
-                        var bbTR = new Vector3(bbMax.X, bbMax.Y, 0);
-                        var bbBL = new Vector3(bbMin.X, bbMin.Y, 0);
-                        var bbBR = new Vector3(bbMax.X, bbMin.Y, 0);
-
-                        switch (type)
+                        foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
                         {
-                            case TileSubUnits.SlopeType.UpperLeft:
-                                mDrawList.AddTriangleFilled(
-                                    WorldToScreen(bbTL),
-                                    WorldToScreen(bbBL),
-                                    WorldToScreen(bbTR),
-                                    color
+                            mDrawList.AddRectFilled(
+                                WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
+                                new Vector3(0, unit.mModelType == ModelType.Bridge ? .5f : 0, 0)),
+                                WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
+                                new Vector3(1, 1, 0)),
+                                color
                                 );
-                                break;
-                            case TileSubUnits.SlopeType.UpperRight:
-                                mDrawList.AddTriangleFilled(
-                                    WorldToScreen(bbTL),
-                                    WorldToScreen(bbBR),
-                                    WorldToScreen(bbTR),
-                                    color
-                                );
-                                break;
-                            case TileSubUnits.SlopeType.LowerLeft:
-                                mDrawList.AddTriangleFilled(
-                                    WorldToScreen(bbTL),
-                                    WorldToScreen(bbBL),
-                                    WorldToScreen(bbBR),
-                                    color
-                                );
-                                break;
-                            case TileSubUnits.SlopeType.LowerRight:
-                                mDrawList.AddTriangleFilled(
-                                    WorldToScreen(bbTR),
-                                    WorldToScreen(bbBL),
-                                    WorldToScreen(bbBR),
-                                    color
-                                );
-                                break;
-                            default:
-                                break;
+                        }
+
+                        foreach (var (x, y, width, height, type) in subUnit.mSlopes)
+                        {
+                            var bbMin = subUnit.mOrigin + new Vector3(x, y, 0);
+                            var bbMax = bbMin + new Vector3(width, height, 0);
+
+                            var bbTL = new Vector3(bbMin.X, bbMax.Y, 0);
+                            var bbTR = new Vector3(bbMax.X, bbMax.Y, 0);
+                            var bbBL = new Vector3(bbMin.X, bbMin.Y, 0);
+                            var bbBR = new Vector3(bbMax.X, bbMin.Y, 0);
+
+                            switch (type)
+                            {
+                                case TileSubUnits.SlopeType.UpperLeft:
+                                    mDrawList.AddTriangleFilled(
+                                        WorldToScreen(bbTL),
+                                        WorldToScreen(bbBL),
+                                        WorldToScreen(bbTR),
+                                        color
+                                    );
+                                    break;
+                                case TileSubUnits.SlopeType.UpperRight:
+                                    mDrawList.AddTriangleFilled(
+                                        WorldToScreen(bbTL),
+                                        WorldToScreen(bbBR),
+                                        WorldToScreen(bbTR),
+                                        color
+                                    );
+                                    break;
+                                case TileSubUnits.SlopeType.LowerLeft:
+                                    mDrawList.AddTriangleFilled(
+                                        WorldToScreen(bbTL),
+                                        WorldToScreen(bbBL),
+                                        WorldToScreen(bbBR),
+                                        color
+                                    );
+                                    break;
+                                case TileSubUnits.SlopeType.LowerRight:
+                                    mDrawList.AddTriangleFilled(
+                                        WorldToScreen(bbTR),
+                                        WorldToScreen(bbBL),
+                                        WorldToScreen(bbBR),
+                                        color
+                                    );
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                     }
                 }
@@ -690,12 +710,24 @@ namespace Fushigi.ui.widgets
                         wall.ExternalRail.Render(this, mDrawList);
                         if (wall.ExternalRail.HitTest(this))
                             newHoveredObject = wall.ExternalRail;
+
+                        foreach (var pt in wall.ExternalRail.Points)
+                        {
+                            if (pt.HitTest(this))
+                                newHoveredObject = pt;
+                        }
                     }
                     foreach (BGUnitRail rail in wall.InternalRails)
                     {
                         rail.Render(this, mDrawList);
                         if(rail.HitTest(this))
                             newHoveredObject = rail;
+
+                        foreach (var pt in rail.Points)
+                        {
+                            if (pt.HitTest(this))
+                                newHoveredObject = pt;
+                        }
                     }
                 }
 
@@ -710,14 +742,114 @@ namespace Fushigi.ui.widgets
 
                 foreach (CourseRail rail in mArea.mRailHolder.mRails)
                 {
+                    bool rail_selected = mEditContext.IsSelected(rail);
+
+                    Vector2[] GetPoints()
+                    {
+                        Vector2[] points = new Vector2[rail.mPoints.Count];
+                        for (int i = 0; i < rail.mPoints.Count; i++)
+                        {
+                            Vector3 p = rail.mPoints[i].mTranslate;
+                            points[i] = WorldToScreen(new(p.X, p.Y, p.Z));
+                        }
+                        return points;
+                    }
+
+                    bool isSelected = mEditContext.IsSelected(rail);
+                    bool hovered = LevelViewport.HitTestLineLoopPoint(GetPoints(), 10f, ImGui.GetMousePos());
+
+                    CourseRail.CourseRailPoint selectedPoint = null;
+
+                    foreach (var point in rail.mPoints)
+                    {
+                        var pos2D = this.WorldToScreen(new(point.mTranslate.X, point.mTranslate.Y, point.mTranslate.Z));
+                        Vector2 pnt = new(pos2D.X, pos2D.Y);
+                        bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
+                        if (isHovered)
+                            newHoveredObject = point;
+
+                        bool selected = mEditContext.IsSelected(point);
+                        if (selected)
+                            selectedPoint = point;
+                    }
+
+                    //Delete selected
+                    if (selectedPoint != null && ImGui.IsKeyDown(ImGuiKey.Delete))
+                    {
+                        rail.mPoints.Remove(selectedPoint);
+                    }
+                    if (selectedPoint != null && ImGui.IsMouseReleased(0))
+                    {
+                        //Check if point matches an existing point, remove if intersected
+                        var matching = rail.mPoints.Where(x => x.mTranslate == selectedPoint.mTranslate).ToList();
+                        if (matching.Count > 1)
+                            rail.mPoints.Remove(selectedPoint);
+                    }
+
+                    bool add_point = ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt;
+
+                    //Insert point to selected
+                    if (selectedPoint != null && add_point)
+                    {
+                        Vector3 posVec = this.ScreenToWorld(ImGui.GetMousePos());
+
+                        var index = rail.mPoints.IndexOf(selectedPoint);
+                        var newPoint = new CourseRail.CourseRailPoint(selectedPoint);
+                        newPoint.mTranslate = new(
+                             MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                             MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                             selectedPoint.mTranslate.Z);
+
+                        if (rail.mPoints.Count - 1 == index)
+                            rail.mPoints.Add(newPoint);
+                        else
+                            rail.mPoints.Insert(index, newPoint);
+
+                        this.mEditContext.DeselectAll();
+                        this.mEditContext.Select(newPoint);
+                        newHoveredObject = newPoint;
+                    }
+                    else if (rail_selected && add_point)
+                    {
+                        Vector3 posVec = this.ScreenToWorld(ImGui.GetMousePos());
+
+                        var newPoint = new CourseRail.CourseRailPoint();
+                        newPoint.mTranslate = new(
+                             MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                             MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                             0);
+
+                        rail.mPoints.Add(newPoint);
+
+                        this.mEditContext.DeselectAll();
+                        this.mEditContext.Select(newPoint);
+                        newHoveredObject = newPoint;
+                    }
+
+                    //Rail selection disabled for now as it conflicts with point selection
+                    // if (hovered)
+                    //   newHoveredObject = rail;
+                }
+
+                foreach (CourseRail rail in mArea.mRailHolder.mRails)
+                {
+                    if (rail.mPoints.Count == 0)
+                        continue;
+
+                    bool selected = mEditContext.IsSelected(rail);
+                    var rail_color = selected ? ImGui.ColorConvertFloat4ToU32(new(1, 1, 0, 1)) : color;
+
                     List<Vector2> pointsList = [];
                     foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
                     {
+                        bool point_selected = mEditContext.IsSelected(pnt);
+                        var rail_point_color = point_selected ? ImGui.ColorConvertFloat4ToU32(new(1, 1, 0, 1)) : color;
+                        var size = newHoveredObject == pnt ? pointSize * 1.5f : pointSize;
+
                         var pos2D = WorldToScreen(pnt.mTranslate);
-                        mDrawList.AddCircleFilled(pos2D, pointSize, color);
+                        mDrawList.AddCircleFilled(pos2D, size, rail_point_color);
                         pointsList.Add(pos2D);
                     }
-
 
                     var segmentCount = rail.mPoints.Count;
                     if (!rail.mIsClosed)
@@ -749,10 +881,11 @@ namespace Fushigi.ui.widgets
                         }
 
                         mDrawList.PathBezierCubicCurveTo(cpOutA2D, cpInB2D, posB2D);
-
                     }
 
-                    mDrawList.PathStroke(color, ImDrawFlags.None, 2.5f);
+                    float thickness = newHoveredObject == rail ? 3f :  2.5f;
+
+                    mDrawList.PathStroke(rail_color, ImDrawFlags.None, thickness);
                 }
             }
 

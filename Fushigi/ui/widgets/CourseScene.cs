@@ -36,7 +36,8 @@ namespace Fushigi.ui.widgets
         Dictionary<CourseArea, LevelViewport> viewports = [];
         Dictionary<CourseArea, object?> lastSavedAction = [];
         Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
-        public LevelViewport activeViewport;
+        LevelViewport activeViewport;
+        UndoWindow undoWindow;
 
         readonly Course course;
         CourseArea selectedArea;
@@ -46,6 +47,8 @@ namespace Fushigi.ui.widgets
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
         bool mShowSelectActorLayer = false;
+
+        string mActorSearchText = "";
 
         CourseLink? mSelectedGlobalLink = null;
         string mAddActorSearchQuery = "";
@@ -84,6 +87,7 @@ namespace Fushigi.ui.widgets
         {
             this.course = course;
             selectedArea = course.GetArea(0);
+            undoWindow = new UndoWindow();
 
             foreach (var area in course.GetAreas())
             {
@@ -107,15 +111,25 @@ namespace Fushigi.ui.widgets
 
         public void Save()
         {
-            course.Save();
-            foreach (var area in course.GetAreas())
+            try
             {
-                lastSavedAction[area] = viewports[area].mEditContext.GetLastAction();
+                course.Save();
+                foreach (var area in course.GetAreas())
+                {
+                    lastSavedAction[area] = viewports[area].mEditContext.GetLastAction();
+                }
+            }
+            catch (Exception ex) 
+            {
+                MessageBox box = new MessageBox(MessageBox.MessageBoxType.Ok);
+                box.Show("Error", ex.Message);
             }
         }
 
         public void DrawUI(GL gl)
         {
+            UndoHistoryPanel();
+
             ActorsPanel();
 
             SelectionParameterPanel();
@@ -166,7 +180,7 @@ namespace Fushigi.ui.widgets
                     var topLeft = ImGui.GetCursorScreenPos();
                     var size = ImGui.GetContentRegionAvail();
 
-                    //viewport.DrawScene3D(size);
+                //    viewport.DrawScene3D(size);
 
                     ImGui.SetNextItemAllowOverlap();
                     ImGui.SetCursorScreenPos(topLeft);
@@ -220,6 +234,11 @@ namespace Fushigi.ui.widgets
 
             if (status)
                 ImGui.End();
+        }
+
+        void UndoHistoryPanel()
+        {
+            undoWindow.Render(this.activeViewport.mEditContext);
         }
 
         private void SelectActorToAdd()
@@ -444,6 +463,12 @@ namespace Fushigi.ui.widgets
             {
                 activeViewport.mEditorState = LevelViewport.EditorState.DeleteActorLinkCheck;
             }
+
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(IconUtil.ICON_SEARCH.ToString());
+            ImGui.SameLine();
+
+            ImGui.InputText($"##Search", ref mActorSearchText, 0x100);
 
             // actors are in an array
             CourseActorHolder actorArray = selectedArea.mActorHolder;
@@ -724,10 +749,23 @@ namespace Fushigi.ui.widgets
                 {
                     ImGui.Columns(2);
                     ImGui.Text("IsClosed"); ImGui.NextColumn();
-                    ImGui.Checkbox("##IsClosed", ref mSelectedUnitRail.IsClosed); ImGui.NextColumn();
+                    if (ImGui.Checkbox("##IsClosed", ref mSelectedUnitRail.IsClosed))
+                        mSelectedUnitRail.CourseUnit.GenerateTileSubUnits();
 
-                    ImGui.Text("IsInternal"); ImGui.NextColumn();
-                    ImGui.Checkbox("##IsInternal", ref mSelectedUnitRail.IsInternal); ImGui.NextColumn();
+                    ImGui.NextColumn();
+
+                    //Depth editing for bg unit. All points share the same depth, so batch edit the Z point
+                    float depth = mSelectedUnitRail.Points.Count == 0 ? 0 : mSelectedUnitRail.Points[0].Position.Z;
+
+                    ImGui.Text("Z Depth"); ImGui.NextColumn();
+                    if (ImGui.DragFloat("##Depth", ref depth, 0.1f))
+                    {
+                        //Update depth to all points
+                        foreach (var p in mSelectedUnitRail.Points)
+                            p.Position = new System.Numerics.Vector3(p.Position.X, p.Position.Y, depth);
+                        mSelectedUnitRail.CourseUnit.GenerateTileSubUnits();
+                    }
+                    ImGui.NextColumn();
 
                     ImGui.Columns(1);
                 }
@@ -1177,12 +1215,26 @@ namespace Fushigi.ui.widgets
 
         private void CourseRailsView(CourseRailHolder railHolder)
         {
-            foreach(CourseRail rail in railHolder.mRails)
+            if (ImGui.Button("Add Rail"))
+            {
+                railHolder.mRails.Add(new CourseRail(this.selectedArea.mRootHash));
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Remove Rail"))
+            {
+                var selected = activeViewport.mEditContext.GetSelectedObjects<CourseRail>();
+                foreach (var rail in selected)
+                    railHolder.mRails.Remove(rail);
+            }
+
+            foreach (CourseRail rail in railHolder.mRails)
             {
                 var rail_node_flags = ImGuiTreeNodeFlags.None;
-                if (activeViewport.mEditContext.IsSelected(rail) ||
+                if (activeViewport.mEditContext.IsSelected(rail) &&
                     !activeViewport.mEditContext.IsAnySelected<CourseRail.CourseRailPoint>())
+                {
                     rail_node_flags |= ImGuiTreeNodeFlags.Selected;
+                }
 
                 bool expanded = ImGui.TreeNodeEx($"Rail {railHolder.mRails.IndexOf(rail)}", rail_node_flags);
                 if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
@@ -1301,27 +1353,38 @@ namespace Fushigi.ui.widgets
 
             ImGui.PushClipRect(wcMin, wcMax - new Vector2(margin, 0), true);
 
+            bool isSearch = !string.IsNullOrWhiteSpace(mActorSearchText);
+
             ImGui.Spacing();
             foreach (string layer in mLayersVisibility.Keys)
             {
                 ImGui.PushID(layer);
                 cp = ImGui.GetCursorScreenPos();
-                bool expanded = ImGui.TreeNodeEx("TreeNode", ImGuiTreeNodeFlags.FramePadding, 
-                    layer);
+                bool expanded = false;
+                bool isVisible = true;
 
-                ImGui.PushClipRect(wcMin, wcMax, false);
-                ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em) /2, cp.Y));
-                bool isVisible = mLayersVisibility[layer];
-                if (ToggleButton($"VisibleCheckbox", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH,
-                    ref isVisible, new Vector2(em)))
-                    mLayersVisibility[layer] = isVisible;
-                ImGui.PopClipRect();
+                if (!isSearch)
+                {
+                    expanded = ImGui.TreeNodeEx("TreeNode", ImGuiTreeNodeFlags.FramePadding, layer);
 
+                    ImGui.PushClipRect(wcMin, wcMax, false);
+                    ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em) / 2, cp.Y));
+                    isVisible = mLayersVisibility[layer];
+                    if (ToggleButton($"VisibleCheckbox", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH,
+                        ref isVisible, new Vector2(em)))
+                        mLayersVisibility[layer] = isVisible;
+                    ImGui.PopClipRect();
+                }
+                else
+                {
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text(layer);
+                }
 
                 if (!isVisible)
                     ImGui.BeginDisabled();
 
-                if (expanded)
+                if (expanded || isSearch)
                 {
                     foreach (CourseActor actor in actorArray.GetActors())
                     {
@@ -1329,6 +1392,14 @@ namespace Fushigi.ui.widgets
                         string name = actor.mName;
                         ulong actorHash = actor.mActorHash;
                         string actorLayer = actor.mLayer;
+
+                        //Check if the node is within the necessary search filter requirements if search is used
+                        bool HasText = actor.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                       actor.mActorName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                       actorHash.ToString().Equals(mActorSearchText);
+
+                        if (isSearch && !HasText)
+                            continue;
 
                         if (actorLayer != layer)
                         {
@@ -1343,10 +1414,16 @@ namespace Fushigi.ui.widgets
                         {
                             activeViewport.SelectedActor(actor);
                         }
+                        else if (ImGui.IsItemFocused())
+                        {
+                            activeViewport.SelectedActor(actor);
+                        }
+
                         if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                         {
                             activeViewport.FrameSelectedActor(actor);
                         }
+               
 
                         ImGui.NextColumn();
                         ImGui.BeginDisabled();
@@ -1357,7 +1434,8 @@ namespace Fushigi.ui.widgets
                         ImGui.PopID();
                     }
 
-                    ImGui.TreePop();
+                    if (!isSearch)
+                        ImGui.TreePop();
                 }
 
                 if (!isVisible)
