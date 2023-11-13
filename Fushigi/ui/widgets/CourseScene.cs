@@ -1327,10 +1327,16 @@ namespace Fushigi.ui.widgets
                         {
                             activeViewport.SelectedActor(actor);
                         }
+                        else if (ImGui.IsItemFocused())
+                        {
+                            activeViewport.SelectedActor(actor);
+                        }
+
                         if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                         {
                             activeViewport.FrameSelectedActor(actor);
                         }
+               
 
                         ImGui.NextColumn();
                         ImGui.BeginDisabled();

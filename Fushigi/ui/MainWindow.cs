@@ -28,6 +28,7 @@ namespace Fushigi.ui
                     unsafe
                     {
                         var io = ImGui.GetIO();
+                        io.ConfigFlags = ImGuiConfigFlags.NavEnableKeyboard;
 
                         var nativeConfig = ImGuiNative.ImFontConfig_ImFontConfig();
                         var iconConfig = ImGuiNative.ImFontConfig_ImFontConfig();
@@ -38,34 +39,35 @@ namespace Fushigi.ui
                         nativeConfig->RasterizerMultiply = 1f;
                         nativeConfig->GlyphOffset = new Vector2(0);
 
+                        iconConfig->MergeMode = 1;
                         iconConfig->OversampleH = 2;
                         iconConfig->OversampleV = 2;
                         iconConfig->RasterizerMultiply = 1f;
                         iconConfig->GlyphOffset = new Vector2(0);
 
+                        float size = 16;
+
                         {
                             mDefaultFont = io.Fonts.AddFontFromFileTTF(
                                 Path.Combine("res", "Font.ttf"),
-                                16, nativeConfig, io.Fonts.GetGlyphRangesJapanese());
+                                size, nativeConfig, io.Fonts.GetGlyphRangesJapanese());
 
                             //other fonts go here and follow the same schema
-
-                            iconConfig->MergeMode = 1;
 
                             GCHandle rangeHandle = GCHandle.Alloc(new ushort[] { IconUtil.MIN_GLYPH_RANGE, IconUtil.MAX_GLYPH_RANGE, 0 }, GCHandleType.Pinned);
                             try
                             {
                                 io.Fonts.AddFontFromFileTTF(
                                     Path.Combine("res", "la-regular-400.ttf"),
-                                    16, iconConfig, rangeHandle.AddrOfPinnedObject());
+                                    size, iconConfig, rangeHandle.AddrOfPinnedObject());
 
                                 io.Fonts.AddFontFromFileTTF(
                                     Path.Combine("res", "la-solid-900.ttf"),
-                                    16, iconConfig, rangeHandle.AddrOfPinnedObject());
+                                    size, iconConfig, rangeHandle.AddrOfPinnedObject());
 
                                 io.Fonts.AddFontFromFileTTF(
                                     Path.Combine("res", "la-brands-400.ttf"),
-                                    16, iconConfig, rangeHandle.AddrOfPinnedObject());
+                                    size, iconConfig, rangeHandle.AddrOfPinnedObject());
 
                                 io.Fonts.Build();
                             }
