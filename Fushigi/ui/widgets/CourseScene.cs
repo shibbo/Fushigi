@@ -571,7 +571,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.NextColumn();
 
-                if (ImGui.BeginCombo("", mSelectedActor.mLayer))
+                if (ImGui.BeginCombo("##Dropdown", mSelectedActor.mLayer))
                 {
                     foreach (var layer in mLayersVisibility.Keys.ToArray().ToImmutableList())
                     {
