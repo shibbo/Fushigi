@@ -126,6 +126,8 @@ namespace Fushigi.ui
                 ChildActorParam.Load();
             }
 
+            ActorIconLoader.Init();
+
             if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
                 !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
             {
