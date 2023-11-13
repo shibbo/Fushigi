@@ -47,6 +47,8 @@ namespace Fushigi.ui.widgets
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
 
+        string mActorSearchText = "";
+
         CourseLink? mSelectedGlobalLink = null;
         string mAddActorSearchQuery = "";
 
@@ -385,6 +387,8 @@ namespace Fushigi.ui.widgets
         private void ActorsPanel()
         {
             ImGui.Begin("Actors");
+
+            ImGui.InputText($"##Search", ref mActorSearchText, 0x100);
 
             if (ImGui.Button("Add Actor"))
             {
@@ -1278,7 +1282,9 @@ namespace Fushigi.ui.widgets
                 if (!isVisible)
                     ImGui.BeginDisabled();
 
-                if (expanded)
+                bool isSearch = !string.IsNullOrWhiteSpace(mActorSearchText);
+
+                if (expanded || isSearch)
                 {
                     foreach (CourseActor actor in actorArray.GetActors())
                     {
@@ -1286,6 +1292,13 @@ namespace Fushigi.ui.widgets
                         string name = actor.mName;
                         ulong actorHash = actor.mActorHash;
                         string actorLayer = actor.mLayer;
+
+                        //Check if the node is within the necessary search filter requirements if search is used
+                        bool HasText = actor.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                       actor.mActorName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        if (isSearch && !HasText)
+                            continue;
 
                         if (actorLayer != layer)
                         {
