@@ -1288,6 +1288,11 @@ namespace Fushigi.ui.widgets
                         mLayersVisibility[layer] = isVisible;
                     ImGui.PopClipRect();
                 }
+                else
+                {
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text(layer);
+                }
 
                 if (!isVisible)
                     ImGui.BeginDisabled();
