@@ -540,6 +540,29 @@ namespace Fushigi.ui.widgets
                 }
 
                 ImGui.PopItemWidth();
+                ImGui.NextColumn();
+
+                ImGui.Text("Layer");
+
+                ImGui.NextColumn();
+
+                if (ImGui.BeginCombo("Dropdown", mSelectedActor.mLayer))
+                {
+                    foreach (var layer in mLayersVisibility.Keys.ToArray().ToImmutableList())
+                    {
+                        if (ImGui.Selectable(layer))
+                        {
+                            //item is selected
+                        }
+                    }
+
+                    ImGui.EndCombo();
+                }
+                
+
+
+
+                ImGui.PopItemWidth();
 
                 ImGui.Columns(1);
 
