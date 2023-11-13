@@ -1,11 +1,6 @@
 # Fushigi
 An editor for Super Mario Bros. Wonder. Currently WIP.
 
-# Credit
-Line Awesome icon font provided by [icons8](https://icons8.com/line-awesome)
-
-Ryujinx ASTC decoder by Ac_K. [Ryujinx repo](https://github.com/Ryujinx/Ryujinx)
-
 # How to build
 ## Dependencies
 Make sure you have all of the following installed:
@@ -15,6 +10,7 @@ Make sure you have all of the following installed:
 ## Instructions
 > [!WARNING]  
 > DO NOT HAVE ANY SELF-CREATED FILES NAMED "Fushigi" ON YOUR DESKTOP. THEY WILL BE DELETED.
+
 Open a CMD or terminal and run the following:
 ```
 cd Desktop
@@ -35,3 +31,8 @@ dotnet build Fushigi/Fushigi.sln --no-restore
 ```
 
 You will now have either "Fushigi.exe" (if you are on Windows) or "Fushigi" (if you are not on windows) located on your desktop at Fushigi/Fushigi/bin/Debug/net8.0/
+
+# Credit
+Line Awesome icon font provided by [icons8](https://icons8.com/line-awesome)
+
+Ryujinx ASTC decoder by Ac_K. [Ryujinx repo](https://github.com/Ryujinx/Ryujinx)
