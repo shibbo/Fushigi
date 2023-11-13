@@ -1308,7 +1308,8 @@ namespace Fushigi.ui.widgets
 
                         //Check if the node is within the necessary search filter requirements if search is used
                         bool HasText = actor.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                       actor.mActorName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                                       actor.mActorName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                       actorHash.ToString().Equals(mActorSearchText);
 
                         if (isSearch && !HasText)
                             continue;
