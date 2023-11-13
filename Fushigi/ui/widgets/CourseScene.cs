@@ -388,8 +388,6 @@ namespace Fushigi.ui.widgets
         {
             ImGui.Begin("Actors");
 
-            ImGui.InputText($"##Search", ref mActorSearchText, 0x100);
-
             if (ImGui.Button("Add Actor"))
             {
                 mShowAddActor = true;
@@ -401,6 +399,12 @@ namespace Fushigi.ui.widgets
             {
                 activeViewport.mEditorState = LevelViewport.EditorState.DeleteActorLinkCheck;
             }
+
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(IconUtil.ICON_SEARCH.ToString());
+            ImGui.SameLine();
+
+            ImGui.InputText($"##Search", ref mActorSearchText, 0x100);
 
             // actors are in an array
             CourseActorHolder actorArray = selectedArea.mActorHolder;
@@ -1262,27 +1266,31 @@ namespace Fushigi.ui.widgets
 
             ImGui.PushClipRect(wcMin, wcMax - new Vector2(margin, 0), true);
 
+            bool isSearch = !string.IsNullOrWhiteSpace(mActorSearchText);
+
             ImGui.Spacing();
             foreach (string layer in mLayersVisibility.Keys)
             {
                 ImGui.PushID(layer);
                 cp = ImGui.GetCursorScreenPos();
-                bool expanded = ImGui.TreeNodeEx("TreeNode", ImGuiTreeNodeFlags.FramePadding, 
-                    layer);
+                bool expanded = false;
+                bool isVisible = true;
 
-                ImGui.PushClipRect(wcMin, wcMax, false);
-                ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em) /2, cp.Y));
-                bool isVisible = mLayersVisibility[layer];
-                if (ToggleButton($"VisibleCheckbox", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH,
-                    ref isVisible, new Vector2(em)))
-                    mLayersVisibility[layer] = isVisible;
-                ImGui.PopClipRect();
+                if (!isSearch)
+                {
+                    expanded = ImGui.TreeNodeEx("TreeNode", ImGuiTreeNodeFlags.FramePadding, layer);
 
+                    ImGui.PushClipRect(wcMin, wcMax, false);
+                    ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em) / 2, cp.Y));
+                    isVisible = mLayersVisibility[layer];
+                    if (ToggleButton($"VisibleCheckbox", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH,
+                        ref isVisible, new Vector2(em)))
+                        mLayersVisibility[layer] = isVisible;
+                    ImGui.PopClipRect();
+                }
 
                 if (!isVisible)
                     ImGui.BeginDisabled();
-
-                bool isSearch = !string.IsNullOrWhiteSpace(mActorSearchText);
 
                 if (expanded || isSearch)
                 {
@@ -1327,7 +1335,8 @@ namespace Fushigi.ui.widgets
                         ImGui.PopID();
                     }
 
-                    ImGui.TreePop();
+                    if (!isSearch)
+                        ImGui.TreePop();
                 }
 
                 if (!isVisible)
