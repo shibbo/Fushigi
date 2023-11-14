@@ -931,8 +931,11 @@ namespace Fushigi.ui.widgets
 
                         for (int i = 0; i < 4; i++)
                         {
-                            mDrawList.AddCircleFilled(s_actorRectPolygon[i],
-                                pointSize, color);
+                            if (mEditContext.IsSelected(actor))
+                            {
+                                mDrawList.AddCircleFilled(s_actorRectPolygon[i],
+                                    pointSize, color);
+                            }
                             mDrawList.AddLine(
                                 s_actorRectPolygon[i],
                                 s_actorRectPolygon[(i + 1) % 4],
