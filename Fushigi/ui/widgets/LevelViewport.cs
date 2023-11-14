@@ -22,7 +22,8 @@ using System.Reflection.PortableExecutable;
 using static Fushigi.util.MessageBox;
 using Fushigi.gl.Bfres;
 using Fushigi.actor_pack.components;
-using static Fushigi.ui.widgets.BGUnitRail;
+using static Fushigi.ui.SceneObjects.bgunit.BGUnitRailSceneObj;
+using Fushigi.ui.SceneObjects.bgunit;
 
 namespace Fushigi.ui.widgets
 {
@@ -128,9 +129,9 @@ namespace Fushigi.ui.widgets
             this.Camera.Target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
         }
 
-        public void SelectBGUnit(BGUnitRail rail)
+        public void SelectBGUnit(BGUnitRailSceneObj rail)
         {
-            mEditContext.DeselectAllOfType<BGUnitRail>();
+            mEditContext.DeselectAllOfType<BGUnitRailSceneObj>();
             mEditContext.Select(rail);
         }
 
@@ -357,8 +358,8 @@ namespace Fushigi.ui.widgets
                     {
                         mEditContext.DeselectAll();
                     }
-                    else if(HoveredObject is not BGUnitRail &&
-                        HoveredObject is not BGUnitRail.RailPoint) 
+                    else if(HoveredObject is not BGUnitRailSceneObj &&
+                        HoveredObject is not BGUnitRailSceneObj.RailPoint) 
                     {
                         if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {
@@ -720,7 +721,7 @@ namespace Fushigi.ui.widgets
                                 newHoveredObject = pt;
                         }
                     }
-                    foreach (BGUnitRail rail in wall.InternalRails)
+                    foreach (BGUnitRailSceneObj rail in wall.InternalRails)
                     {
                         rail.Render(this, mDrawList);
                         if(rail.HitTest(this))

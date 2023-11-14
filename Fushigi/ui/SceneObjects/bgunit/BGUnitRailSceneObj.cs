@@ -1,4 +1,5 @@
 ﻿using Fushigi.course;
+using Fushigi.ui.widgets;
 using Fushigi.util;
 using ImGuiNET;
 using Microsoft.VisualBasic;
@@ -13,9 +14,12 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Fushigi.ui.widgets
+namespace Fushigi.ui.SceneObjects.bgunit
 {
-    internal class BGUnitRail
+    //TODO make this into a proper scene object that creates/updates it's points on update
+    //via AddOrUpdateChildObject
+    //and isn't referenced in CourseUnit.cs
+    internal class BGUnitRailSceneObj
     {
         public List<RailPoint> Points = new List<RailPoint>();
 
@@ -38,18 +42,18 @@ namespace Fushigi.ui.widgets
 
         public CourseUnit CourseUnit;
 
-        public BGUnitRail(CourseUnit unit, CourseUnit.Rail rail)
+        public BGUnitRailSceneObj(CourseUnit unit, CourseUnit.Rail rail)
         {
             CourseUnit = unit;
 
-            this.Points.Clear();
+            Points.Clear();
 
             foreach (var pt in rail.mPoints)
             {
                 var railPoint = new RailPoint(pt.Value);
                 railPoint.Transform.Update += unit.GenerateTileSubUnits;
                 Points.Add(railPoint);
-                
+
             }
 
             IsClosed = rail.IsClosed;
@@ -58,20 +62,20 @@ namespace Fushigi.ui.widgets
 
         public void Reverse()
         {
-            this.Points.Reverse();
+            Points.Reverse();
         }
 
         public CourseUnit.Rail Save()
         {
             CourseUnit.Rail rail = new CourseUnit.Rail()
             {
-                IsClosed = this.IsClosed,
-                IsInternal = this.IsInternal,
+                IsClosed = IsClosed,
+                IsInternal = IsInternal,
                 mPoints = new List<Vector3?>(),
             };
 
             rail.mPoints = new List<Vector3?>();
-            foreach (var pt in this.Points)
+            foreach (var pt in Points)
                 rail.mPoints.Add(pt.Position);
 
             return rail;
@@ -92,7 +96,7 @@ namespace Fushigi.ui.widgets
 
         public void InsertPoint(LevelViewport viewport, RailPoint point, int index)
         {
-            this.Points.Insert(index, point);
+            Points.Insert(index, point);
             viewport.mEditContext.CommitAction(new UnitRailPointAddUndo(this, point, index));
             viewport.mEditContext.Select(point);
             CourseUnit.GenerateTileSubUnits();
@@ -100,7 +104,7 @@ namespace Fushigi.ui.widgets
 
         public void AddPoint(LevelViewport viewport, RailPoint point)
         {
-            this.Points.Add(point);
+            Points.Add(point);
             viewport.mEditContext.CommitAction(new UnitRailPointAddUndo(this, point));
             viewport.mEditContext.Select(point);
             CourseUnit.GenerateTileSubUnits();
@@ -108,7 +112,7 @@ namespace Fushigi.ui.widgets
 
         public void RemoveSelected(LevelViewport viewport)
         {
-            var selected = this.GetSelected(viewport.mEditContext);
+            var selected = GetSelected(viewport.mEditContext);
             if (selected.Count == 0)
                 return;
 
@@ -120,7 +124,7 @@ namespace Fushigi.ui.widgets
             batchAction.Commit("Delete Rail Points");
 
             foreach (var point in selected)
-                this.Points.Remove(point);
+                Points.Remove(point);
 
             CourseUnit.GenerateTileSubUnits();
         }
@@ -145,7 +149,7 @@ namespace Fushigi.ui.widgets
             bool isSelected = ctx.IsSelected(this);
 
             //Line hit test
-            if (!isSelected && viewport.HoveredObject==this)
+            if (!isSelected && viewport.HoveredObject == this)
             {
                 viewport.SelectBGUnit(this);
                 isSelected = true;
@@ -160,7 +164,7 @@ namespace Fushigi.ui.widgets
 
             if (ImGui.GetIO().KeyAlt && selected.Count == 1)
             {
-                var index = this.Points.IndexOf(selected[0]);
+                var index = Points.IndexOf(selected[0]);
                 //Insert and add
                 Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
                 Vector3 pos = new(
@@ -170,7 +174,7 @@ namespace Fushigi.ui.widgets
 
                 DeselectAll(viewport.mEditContext);
 
-                if (this.Points.Count - 1 == index) //is last point
+                if (Points.Count - 1 == index) //is last point
                     AddPoint(viewport, new RailPoint(pos));
                 else
                     InsertPoint(viewport, new RailPoint(pos), index + 1);
@@ -253,7 +257,7 @@ namespace Fushigi.ui.widgets
                 transformStart = true;
                 //Store each selected point for undoing
                 mTransformUndos.Clear();
-                foreach (var point in this.GetSelected(viewport.mEditContext))
+                foreach (var point in GetSelected(viewport.mEditContext))
                     mTransformUndos.Add(new TransformUndo(point.Transform));
             }
 
@@ -271,13 +275,13 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            if(anyTransformed)
+            if (anyTransformed)
                 CourseUnit.GenerateTileSubUnits();
         }
 
         public void Render(LevelViewport viewport, ImDrawListPtr mDrawList)
         {
-            if (!this.Visible)
+            if (!Visible)
                 return;
 
             var ctx = viewport.mEditContext;
@@ -328,8 +332,8 @@ namespace Fushigi.ui.widgets
                 if (isSelected)
                 {
                     //Arrow display
-                    Vector3 next = (i < Points.Count - 1) ? Points[i + 1].Position : Points[0].Position;
-                    Vector3 dist = (next - Points[i].Position);
+                    Vector3 next = i < Points.Count - 1 ? Points[i + 1].Position : Points[0].Position;
+                    Vector3 dist = next - Points[i].Position;
                     var angleInRadian = MathF.Atan2(dist.Y, dist.X); //angle in radian
                     var rotation = Matrix4x4.CreateRotationZ(angleInRadian);
 
@@ -338,8 +342,8 @@ namespace Fushigi.ui.widgets
                     var line = Vector3.TransformNormal(new Vector3(0, width, 0), rotation);
 
                     Vector2[] arrow = new Vector2[2];
-                    arrow[0] = viewport.WorldToScreen(Points[i].Position + (dist / 2f));
-                    arrow[1] = viewport.WorldToScreen(Points[i].Position + (dist / 2f) + line);
+                    arrow[0] = viewport.WorldToScreen(Points[i].Position + dist / 2f);
+                    arrow[1] = viewport.WorldToScreen(Points[i].Position + dist / 2f + line);
 
                     float alpha = 0.5f;
 
@@ -374,7 +378,7 @@ namespace Fushigi.ui.widgets
         {
             var dist = point2 - point1;
             var angleInRadian = MathF.Atan2(dist.Y, dist.X); //angle in radian
-            var angle = angleInRadian * (180.0f / (float)System.Math.PI); //to degrees
+            var angle = angleInRadian * (180.0f / (float)Math.PI); //to degrees
 
             //TODO improve check and simplify
 
@@ -416,7 +420,7 @@ namespace Fushigi.ui.widgets
 
             public bool HitTest(LevelViewport viewport)
             {
-                Vector3 point = this.Position;
+                Vector3 point = Position;
 
                 var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
                 Vector2 pnt = new(pos2D.X, pos2D.Y);

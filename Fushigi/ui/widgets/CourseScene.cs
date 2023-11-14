@@ -3,6 +3,8 @@ using Fushigi.course;
 using Fushigi.gl;
 using Fushigi.param;
 using Fushigi.rstb;
+using Fushigi.ui.SceneObjects;
+using Fushigi.ui.SceneObjects.bgunit;
 using Fushigi.util;
 using FuzzySharp.SimilarityRatio;
 using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
@@ -82,11 +84,6 @@ namespace Fushigi.ui.widgets
             "EventGuest_11",
         ];
 
-        class AreaSceneRoot(CourseArea area) : ISceneRoot
-        {
-            public void Update(ISceneUpdateContext ctx) { }
-        }
-
         public CourseScene(Course course, GL gl)
         {
             this.course = course;
@@ -95,7 +92,7 @@ namespace Fushigi.ui.widgets
 
             foreach (var area in course.GetAreas())
             {
-                var areaScene = new CourseAreaScene(area, new AreaSceneRoot(area));
+                var areaScene = new CourseAreaScene(area, new CourseAreaSceneRoot(area));
                 areaScenes[area] = areaScene;
                 viewports[area] = new LevelViewport(area, gl, areaScene);
                 lastSavedAction[area] = null;
@@ -662,7 +659,7 @@ namespace Fushigi.ui.widgets
                     ImGui.Columns(1);
                 }
             }
-            else if (editContext.IsSingleObjectSelected(out BGUnitRail? mSelectedUnitRail))
+            else if (editContext.IsSingleObjectSelected(out BGUnitRailSceneObj? mSelectedUnitRail))
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Selected BG Unit Rail");
@@ -1033,7 +1030,7 @@ namespace Fushigi.ui.widgets
                 }
                 if (expanded)
                 {
-                    void RailListItem(string type, BGUnitRail rail, int id)
+                    void RailListItem(string type, BGUnitRailSceneObj rail, int id)
                     {
                         bool isSelected = editContext.IsSelected(rail);
                         string wallname = $"{type} {id}";
@@ -1050,7 +1047,7 @@ namespace Fushigi.ui.widgets
 
                         void SelectRail()
                         {
-                            editContext.DeselectAllOfType<BGUnitRail>();
+                            editContext.DeselectAllOfType<BGUnitRailSceneObj>();
                             editContext.Select(rail);
                         }
 

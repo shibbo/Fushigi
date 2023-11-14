@@ -22,11 +22,19 @@ namespace Fushigi.ui
     interface ISceneUpdateContext
     {
         void UpdateOrCreateObjFor(object courseObject, Func<ISceneObject> createFunc);
+        void AddOrUpdateChildObject(ISceneObject sceneObject);
     }
 
-    internal class CourseAreaScene(CourseArea area, ISceneRoot sceneRoot) : ISceneUpdateContext
+    internal class CourseAreaScene : ISceneUpdateContext
     {
-        public CourseAreaEditContext EditContext = new(area);
+        public CourseAreaEditContext EditContext;
+
+        public CourseAreaScene(CourseArea area, ISceneRoot sceneRoot)
+        {
+            EditContext = new(area);
+            EditContext.Update += Update;
+            this.mSceneRoot = sceneRoot;
+        }
 
         bool mIsUpdating = false;
         int mUpdateBlockers = 0;
@@ -46,10 +54,30 @@ namespace Fushigi.ui
             mIsUpdating = true;
             mOrderedSceneObjects.Clear();
             MarkAllDirty();
-            sceneRoot.Update(this);
+            mSceneRoot.Update(this);
             CollectDirty();
 
             mIsUpdating = false;
+        }
+
+        void ISceneUpdateContext.AddOrUpdateChildObject(ISceneObject sceneObject)
+        {
+            if (!mIsUpdating)
+                throw new InvalidOperationException("Cannot call this function outside of Update");
+
+            if (!mCourseSceneObjects.TryGetValue(sceneObject, out var entry))
+            {
+                entry = (sceneObject, isDirty: true);
+            }
+
+            if (!entry.isDirty)
+                return;
+
+            mOrderedSceneObjects.Add(entry.obj);
+
+            entry.obj.Update(this);
+
+            mCourseSceneObjects[sceneObject] = entry with { isDirty = false };
         }
 
         void ISceneUpdateContext.UpdateOrCreateObjFor(object courseObject, Func<ISceneObject> createFunc)
@@ -57,13 +85,10 @@ namespace Fushigi.ui
             if (!mIsUpdating)
                 throw new InvalidOperationException("Cannot call this function outside of Update");
 
-            bool isNew = false;
-
             if (!mCourseSceneObjects.TryGetValue(courseObject, out var entry))
             {
                 var sceneObject = createFunc.Invoke();
                 entry = (sceneObject, isDirty: true);
-                isNew = true;
             }
 
             if (!entry.isDirty)
@@ -133,8 +158,9 @@ namespace Fushigi.ui
         /// <summary>
         /// Objects that have a direct mapping to an actual CourseObject
         /// </summary>
-        private Dictionary<object, (ISceneObject obj, bool isDirty)> mCourseSceneObjects;
+        private Dictionary<object, (ISceneObject obj, bool isDirty)> mCourseSceneObjects = [];
 
-        private List<ISceneObject> mOrderedSceneObjects;
+        private List<ISceneObject> mOrderedSceneObjects = [];
+        private readonly ISceneRoot mSceneRoot;
     }
 }
