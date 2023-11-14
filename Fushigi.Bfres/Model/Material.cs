@@ -70,7 +70,7 @@ namespace Fushigi.Bfres
             ShaderAssign.AttributeAssign = ReadAssign(reader,
                 shaderInfoHeader.AttributeAssignOffset,
                 shaderAssignHeader.AttributeAssignDictOffset,
-                shaderInfoHeader.AttributeAssignOffset,
+                shaderInfoHeader.AttributeAssignIndicesOffset,
                 shaderInfoHeader.NumAttributeAssign);
 
             reader.SeekBegin(pos);
