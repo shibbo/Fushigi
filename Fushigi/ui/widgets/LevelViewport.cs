@@ -166,22 +166,22 @@ namespace Fushigi.ui.widgets
             {
                 Camera.Distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
 
-                if (ImGui.IsKeyDown(ImGuiKey.LeftArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.LeftArrow) || ImGui.IsKeyDown(ImGuiKey.A))
                 {
                     Camera.Target.X -= 0.25f;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.RightArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.RightArrow) || ImGui.IsKeyDown(ImGuiKey.D))
                 {
                     Camera.Target.X += 0.25f;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.UpArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.UpArrow) || ImGui.IsKeyDown(ImGuiKey.W))
                 {
                     Camera.Target.Y += 0.25f;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.DownArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.DownArrow) || ImGui.IsKeyDown(ImGuiKey.S))
                 {
                     Camera.Target.Y -= 0.25f;
                 }
