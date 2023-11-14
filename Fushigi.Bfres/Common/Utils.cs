@@ -59,7 +59,15 @@ namespace Fushigi.Bfres
                 values[i] = reader.ReadSingle();
             return values;
         }
-        
+
+        public static ushort[] ReadUInt16s(this BinaryReader reader, int count)
+        {
+            ushort[] values = new ushort[count];
+            for (int i = 0; i < count; i++)
+                values[i] = reader.ReadUInt16();
+            return values;
+        }
+
         public static int[] ReadInt32s(this BinaryReader reader, int count)
         {
             int[] values = new int[count];
@@ -159,6 +167,18 @@ namespace Fushigi.Bfres
             for (int i = 0; i < count; i++)
                 list.Add(reader.Read<T>());
             return list;
+        }
+
+        public static T Read<T>(this BinaryReader reader, ulong offset) where T : IResData
+        {
+            T instance = (T)Activator.CreateInstance(typeof(T));
+
+            if (offset == 0)
+                return instance;
+
+            reader.SeekBegin((long)offset);
+            instance.Read(reader);
+            return instance;
         }
 
         public static T Read<T>(this BinaryReader reader) where T : IResData

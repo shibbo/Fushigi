@@ -211,6 +211,59 @@ namespace Fushigi.Bfres
         public ushort Reserved;
     }
 
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct SkeletonHeader
+    {
+        public uint Magic;
+        public uint Flags;
+        public ulong BoneDictionaryOffset;
+        public ulong BoneArrayOffset;
+        public ulong MatrixToBoneListOffset;
+        public ulong InverseModelMatricesOffset;
+        public ulong Reserved;
+        public ulong UserPointer;
+
+        public ushort NumBones;
+        public ushort NumSmoothMatrices;
+        public ushort NumRigidMatrices;
+
+        public ushort Padding1;
+        public uint Padding2;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct BoneHeader
+    {
+        public ulong NameOffset;
+        public ulong UserDataDictionaryOffset;
+        public ulong UserDataArrayOffset;
+        public ulong Reserved;
+
+        public ushort Index;
+
+        public short ParentIndex;
+        public short SmoothMatrixIndex;
+        public short RigidMatrixIndex;
+        public short BillboardIndex;
+
+        public ushort NumUserData;
+
+        public uint Flags;
+
+        public float ScaleX;
+        public float ScaleY;
+        public float ScaleZ;
+
+        public float RotationX;
+        public float RotationY;
+        public float RotationZ;
+        public float RotationW;
+
+        public float PositionX;
+        public float PositionY;
+        public float PositionZ;
+    }
+
 
     [StructLayout(LayoutKind.Sequential, Size = 0x10)]
     public struct MaterialHeader
