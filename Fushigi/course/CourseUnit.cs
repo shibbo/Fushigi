@@ -1,5 +1,5 @@
 ﻿using Fushigi.Byml;
-using Fushigi.ui.widgets;
+using Fushigi.ui.SceneObjects.bgunit;
 using Fushigi.util;
 using System;
 using System.Collections.Generic;
@@ -36,7 +36,7 @@ namespace Fushigi.course
         public CourseUnit()
         {
             this.Walls = new List<Wall>();
-            this.mBeltRails = new List<BGUnitRail>();
+            this.mBeltRails = new List<BGUnitRailSceneObj>();
             this.mModelType = 0;
             this.mSkinDivision = 0;
         }
@@ -62,7 +62,7 @@ namespace Fushigi.course
                     {
                         belt.mPoints.Add(BymlUtil.GetVector3FromArray((BymlArrayNode)pointsTbl["Translate"]));
                     }
-                    this.mBeltRails.Add(new BGUnitRail(this, belt));
+                    this.mBeltRails.Add(new BGUnitRailSceneObj(this, belt));
                 }
             }
 
@@ -71,7 +71,7 @@ namespace Fushigi.course
                 BymlArrayNode wallsNode = tbl["Walls"] as BymlArrayNode;
                 this.Walls = new List<Wall>();
 
-                BGUnitRail LoadRail(BymlHashTable railDict, bool isInternal = false)
+                BGUnitRailSceneObj LoadRail(BymlHashTable railDict, bool isInternal = false)
                 {
                     BymlArrayNode pointsArr = railDict["Points"] as BymlArrayNode;
 
@@ -85,7 +85,7 @@ namespace Fushigi.course
                         rail.mPoints.Add(BymlUtil.GetVector3FromArray((BymlArrayNode)pointsTbl["Translate"]));
                     }
 
-                    return new BGUnitRail(this, rail);
+                    return new BGUnitRailSceneObj(this, rail);
                 }
 
                 foreach (BymlHashTable wallsTbl in wallsNode.Array)
@@ -197,7 +197,7 @@ namespace Fushigi.course
             {
                 foreach (var rail in mBeltRails)
                 {
-                    mTileSubUnits.Add(TileSubUnits.CreateFromRails(rail, Array.Empty<BGUnitRail>(), 
+                    mTileSubUnits.Add(TileSubUnits.CreateFromRails(rail, Array.Empty<BGUnitRailSceneObj>(), 
                         isBridgeModel: true));
                 }
             }
@@ -230,7 +230,7 @@ namespace Fushigi.course
 
         //Editor render objects
         internal List<Wall> Walls = new List<Wall>();
-        internal List<BGUnitRail> mBeltRails = new List<BGUnitRail>();
+        internal List<BGUnitRailSceneObj> mBeltRails = new List<BGUnitRailSceneObj>();
 
         internal List<TileSubUnits> mTileSubUnits = new List<TileSubUnits>();
 
@@ -240,12 +240,12 @@ namespace Fushigi.course
 
     public class Wall
     {
-        internal BGUnitRail ExternalRail;
-        internal List<BGUnitRail> InternalRails = new List<BGUnitRail>();
+        internal BGUnitRailSceneObj ExternalRail;
+        internal List<BGUnitRailSceneObj> InternalRails = new List<BGUnitRailSceneObj>();
 
         internal Wall(CourseUnit unit)
         {
-            ExternalRail = new BGUnitRail(unit, new CourseUnit.Rail());
+            ExternalRail = new BGUnitRailSceneObj(unit, new CourseUnit.Rail());
         }
     }
 
@@ -263,7 +263,7 @@ namespace Fushigi.course
         public readonly InfiniteTileMap mTileMap = new();
         public readonly List<(int x, int y, int width, int height, SlopeType type)> mSlopes = [];
 
-        internal static TileSubUnits CreateFromRails(BGUnitRail mainRail, IReadOnlyList<BGUnitRail> internalRails, bool isBridgeModel)
+        internal static TileSubUnits CreateFromRails(BGUnitRailSceneObj mainRail, IReadOnlyList<BGUnitRailSceneObj> internalRails, bool isBridgeModel)
         {
             TileSubUnits component = new();
 

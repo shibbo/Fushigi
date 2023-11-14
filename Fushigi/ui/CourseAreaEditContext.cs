@@ -6,16 +6,24 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Fushigi.ui
 {
+    interface ICommittable
+    {
+        void Commit(string name);
+    }
+
     class CourseAreaEditContext(CourseArea area)
     {
         private readonly HashSet<object> mSelectedObjects = [];
 
         private readonly UndoHandler mUndoHandler = new();
+
+        public event Action? Update;
 
         public ulong SelectionVersion { get; private set; } = 0;
 
@@ -28,19 +36,66 @@ namespace Fushigi.ui
 
         public object? GetLastAction() => mUndoHandler.GetLastAction();
 
-        public void Undo() => mUndoHandler.Undo();
-        public void Redo() => mUndoHandler.Redo();
+        public void Undo()
+        {
+            mUndoHandler.Undo();
+            Update?.Invoke();
+        }
 
-        public void AddToUndo(IRevertable revertable)
-            => mUndoHandler.AddToUndo(revertable);
+        public void Redo()
+        {
+            mUndoHandler.Redo();
+            Update?.Invoke();
+        }
 
-        public void AddToUndo(List<IRevertable> revertable)
-            => mUndoHandler.AddToUndo(revertable);
+        private class BatchAction(CourseAreaEditContext context) : ICommittable
+        {
+            public string Name { get; private set; }
+            public void Commit(string name)
+            {
+                Name = name;
+                context.EndBatchAction(this);
+            }
+        }
 
-        public void BeginUndoCollection() 
-            => mUndoHandler.BeginUndoCollection();
-        public void EndUndoCollection(string actionName) 
-            => mUndoHandler.EndUndoCollection(actionName);
+        private List<IRevertable>? mCurrentActionBatch;
+        private readonly Stack<BatchAction> mNestedBatchActions = [];
+
+        public ICommittable BeginBatchAction()
+        {
+            mCurrentActionBatch = [];
+            var batchAction = new BatchAction(this);
+            mNestedBatchActions.Push(batchAction);
+            return batchAction;
+        }
+        private void EndBatchAction(BatchAction action)
+        {
+            if (action != mNestedBatchActions.Pop())
+                throw new InvalidOperationException($"Nested batch action {action.Name} committed in incorrect order");
+
+            if (mNestedBatchActions.Count > 0)
+                //we're still nested
+                return;
+
+            if (mCurrentActionBatch is null || mCurrentActionBatch.Count == 0)
+                return;
+
+            mUndoHandler.AddToUndo(mCurrentActionBatch, action.Name);
+            mCurrentActionBatch = null;
+            Update?.Invoke();
+        }
+
+        public void CommitAction(IRevertable action)
+        {
+            if(mCurrentActionBatch is not null)
+            {
+                mCurrentActionBatch.Add(action);
+                return;
+            }
+
+            mUndoHandler.AddToUndo(action);
+            Update?.Invoke();
+        }
 
         public void DeselectAll()
         {
@@ -123,7 +178,7 @@ namespace Fushigi.ui
 
         public void AddActor(CourseActor actor)
         {
-            mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
+            CommitAction(area.mActorHolder.GetActors()
                 .RevertableAdd(actor, $"{IconUtil.ICON_PLUS_CIRCLE} Add {actor.mActorName}"));
         }
 
@@ -138,31 +193,32 @@ namespace Fushigi.ui
         }
         public void DeleteActor(CourseActor actor)
         {
-            mUndoHandler.BeginUndoCollection();
+            var batchAction = BeginBatchAction();
+
             Console.WriteLine($"Deleting actor {actor.mActorName} [{actor.GetHash()}]");
             Deselect(actor);
             DeleteActorFromAllGroups(actor.GetHash());
             DeleteLinksWithSrcHash(actor.GetHash());
             DeleteLinksWithDestHash(actor.GetHash());
             DeleteRail(actor.GetHash());
-            mUndoHandler.AddToUndo(area.mActorHolder.GetActors()
+            CommitAction(area.mActorHolder.GetActors()
                 .RevertableRemove(actor));
 
-            mUndoHandler.EndUndoCollection($"{IconUtil.ICON_TRASH} Delete {actor.mActorName}");
+            batchAction.Commit($"{IconUtil.ICON_TRASH} Delete {actor.mActorName}");
         }
 
         public void DeleteSelectedActors()
         {
             var selectedActors = GetSelectedObjects<CourseActor>().ToList();
 
-            mUndoHandler.BeginUndoCollection();
+            var batchAction = BeginBatchAction();
 
             foreach (var actor in selectedActors)
             {
                 DeleteActor(actor);
             }
 
-            mUndoHandler.EndUndoCollection();
+            batchAction.Commit($"{IconUtil.ICON_TRASH} Delete selected");
         }
 
         private void DeleteActorFromAllGroups(ulong hash)
@@ -176,7 +232,7 @@ namespace Fushigi.ui
         {
             if (group.TryGetIndexOfActor(hash, out int index))
             {
-                AddToUndo(
+                CommitAction(
                         group.GetActors().RevertableRemoveAt(index,
                         $"Remove actor {hash} from group")
                     );
@@ -204,7 +260,7 @@ namespace Fushigi.ui
         private void DeleteLinkByIndex(int index)
         {
             var name = area.mLinkHolder.GetLinks()[index].GetLinkName();
-            AddToUndo(
+            CommitAction(
                 area.mLinkHolder.GetLinks().RevertableRemoveAt(index, $"{IconUtil.ICON_TRASH} Delete {name} Link")
             );
         }
@@ -217,7 +273,7 @@ namespace Fushigi.ui
         public void AddLink(CourseLink link)
         {
             Console.WriteLine($"Adding Link: Source: {link.GetSrcHash()} -- Dest: {link.GetDestHash()}");
-            AddToUndo(
+            CommitAction(
                 area.mLinkHolder.GetLinks().RevertableAdd(link, 
                     $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.GetLinkName()} Link")
             );

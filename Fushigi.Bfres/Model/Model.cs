@@ -32,6 +32,11 @@ namespace Fushigi.Bfres
         /// </summary>
         internal List<VertexBuffer> VertexBuffers { get; set; } = new List<VertexBuffer>();
 
+        /// <summary>
+        /// The Skeleton of the model.
+        /// </summary>
+        public Skeleton Skeleton { get; set; } = new Skeleton();
+
         public void Read(BinaryReader reader)
         {
             var header = new ModelHeader();
@@ -40,12 +45,12 @@ namespace Fushigi.Bfres
             long pos = reader.BaseStream.Position;
 
             Name = reader.ReadStringOffset(header.NameOffset);
-            Console.WriteLine($"Model - {Name} -");
 
             VertexBuffers = reader.ReadArray<VertexBuffer>(header.VertexArrayOffset, header.VertexBufferCount);
 
             Shapes = reader.ReadDictionary<Shape>(header.ShapeDictionaryOffset, header.ShapeArrayOffset);
             Materials = reader.ReadDictionary<Material>(header.MaterialDictionaryOffset, header.MaterialArrayOffset);
+            Skeleton = reader.Read<Skeleton>(header.SkeletonOffset);
 
             //return
             reader.SeekBegin(pos);

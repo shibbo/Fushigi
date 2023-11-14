@@ -1,5 +1,4 @@
-﻿using Fushigi.ui.widgets;
-using Fushigi.util;
+﻿using Fushigi.util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,19 +7,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Fushigi.ui
+namespace Fushigi.ui.SceneObjects.bgunit
 {
     internal class UnitRailPointAddUndo : IRevertable
     {
         public string Name { get; set; }
 
-        public BGUnitRail Rail;
+        public BGUnitRailSceneObj Rail;
 
-        public BGUnitRail.RailPoint Point;
+        public BGUnitRailSceneObj.RailPoint Point;
 
         public int Index;
 
-        public UnitRailPointAddUndo(BGUnitRail rail, BGUnitRail.RailPoint point, int index = -1)
+        public UnitRailPointAddUndo(BGUnitRailSceneObj rail, BGUnitRailSceneObj.RailPoint point, int index = -1)
         {
             //Undo display name
             Name = $"{IconUtil.ICON_PLUS_CIRCLE} Rail Point Add";
@@ -48,13 +47,13 @@ namespace Fushigi.ui
     {
         public string Name { get; set; }
 
-        public BGUnitRail Rail;
+        public BGUnitRailSceneObj Rail;
 
-        public BGUnitRail.RailPoint Point;
+        public BGUnitRailSceneObj.RailPoint Point;
 
         public int Index;
 
-        public UnitRailPointDeleteUndo(BGUnitRail rail, BGUnitRail.RailPoint point, int index = -1)
+        public UnitRailPointDeleteUndo(BGUnitRailSceneObj rail, BGUnitRailSceneObj.RailPoint point, int index = -1)
         {
             //Undo display name
             Name = $"{IconUtil.ICON_TRASH} Rail Point Remove";

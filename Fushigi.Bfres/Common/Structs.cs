@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -210,6 +211,59 @@ namespace Fushigi.Bfres
         public ushort Reserved;
     }
 
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct SkeletonHeader
+    {
+        public uint Magic;
+        public uint Flags;
+        public ulong BoneDictionaryOffset;
+        public ulong BoneArrayOffset;
+        public ulong MatrixToBoneListOffset;
+        public ulong InverseModelMatricesOffset;
+        public ulong Reserved;
+        public ulong UserPointer;
+
+        public ushort NumBones;
+        public ushort NumSmoothMatrices;
+        public ushort NumRigidMatrices;
+
+        public ushort Padding1;
+        public uint Padding2;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct BoneHeader
+    {
+        public ulong NameOffset;
+        public ulong UserDataDictionaryOffset;
+        public ulong UserDataArrayOffset;
+        public ulong Reserved;
+
+        public ushort Index;
+
+        public short ParentIndex;
+        public short SmoothMatrixIndex;
+        public short RigidMatrixIndex;
+        public short BillboardIndex;
+
+        public ushort NumUserData;
+
+        public uint Flags;
+
+        public float ScaleX;
+        public float ScaleY;
+        public float ScaleZ;
+
+        public float RotationX;
+        public float RotationY;
+        public float RotationZ;
+        public float RotationW;
+
+        public float PositionX;
+        public float PositionY;
+        public float PositionZ;
+    }
+
 
     [StructLayout(LayoutKind.Sequential, Size = 0x10)]
     public struct MaterialHeader
@@ -247,6 +301,49 @@ namespace Fushigi.Bfres
         public ushort RenderInfoDataSize;
         public ushort Reserved2;
         public uint Reserved3;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct ShaderInfoHeader
+    {
+        public ulong ShaderAssignOffset;
+        public ulong AttributeAssignOffset;
+        public ulong AttributeAssignIndicesOffset;
+        public ulong SamplerAssignOffset;
+        public ulong SamplerAssignIndicesOffset;
+        public ulong OptionBoolChoiceOffset;
+        public ulong OptionStringChoiceOffset;
+        public ulong OptionIndicesOffset;
+
+        public uint Padding;
+
+        public byte NumAttributeAssign;
+        public byte NumSamplerAssign;
+        public ushort NumOptionBooleans;
+        public ushort NumOptions;
+
+        public ushort Padding2;
+        public uint Padding3;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct ShaderAssignHeader
+    {
+        public ulong ShaderArchiveNameOffset;
+        public ulong ShaderModelNameOffset;
+        public ulong RenderInfoOffset;
+        public ulong RenderInfoDictOffset;
+        public ulong ShaderParamOffset;
+        public ulong ShaderParamDictOffset;
+        public ulong AttributeAssignDictOffset;
+        public ulong SamplerAssignDictOffset;
+        public ulong OptionsDictOffset;
+
+        public ushort RenderInfoCount;
+        public ushort ParamCount;
+        public ushort ShaderParamSize;
+        public ushort Padding1;
+        public uint Padding2;
     }
 
     [StructLayout(LayoutKind.Sequential, Size = 0x10)]

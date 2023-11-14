@@ -8,10 +8,10 @@ var consoleWriter = new StreamWriter(outputStream);
 consoleWriter.AutoFlush = true;
 #if !DEBUG
 Console.SetOut(consoleWriter);
-#endif
 Console.SetError(consoleWriter);
 
 AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+#endif
 
 Console.WriteLine("Starting Fushigi v0.5...");
 
