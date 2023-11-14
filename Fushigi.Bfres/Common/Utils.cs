@@ -1,4 +1,5 @@
 ﻿using Fushigi.Bfres.Common;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -23,6 +24,64 @@ namespace Fushigi.Bfres
         {
             Span<T> valSpan = MemoryMarshal.CreateSpan(ref val, 1);
             return MemoryMarshal.Cast<T, byte>(valSpan);
+        }
+
+        public static Vector2 ReadVector2(this BinaryReader reader)
+        {
+            return new Vector2(reader.ReadSingle(), reader.ReadSingle());
+        }
+
+        public static Vector3 ReadVector3(this BinaryReader reader)
+        {
+            return new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+        }
+
+        public static sbyte[] ReadSbytes(this BinaryReader reader, int count)
+        {
+            sbyte[] values = new sbyte[count];
+            for (int i = 0; i < count; i++)
+                values[i] = reader.ReadSByte();
+            return values;
+        }
+
+        public static bool[] ReadBooleans(this BinaryReader reader, int count)
+        {
+            bool[] values = new bool[count];
+            for (int i = 0; i < count; i++)
+                values[i] = reader.ReadBoolean();
+            return values;
+        }
+
+        public static float[] ReadSingles(this BinaryReader reader, int count)
+        {
+            float[] values = new float[count];
+            for (int i = 0; i < count; i++)
+                values[i] = reader.ReadSingle();
+            return values;
+        }
+        
+        public static int[] ReadInt32s(this BinaryReader reader, int count)
+        {
+            int[] values = new int[count];
+            for (int i = 0; i < count; i++)
+                values[i] = reader.ReadInt32();
+            return values;
+        }
+
+        public static uint[] ReadUInt32s(this BinaryReader reader, int count)
+        {
+            uint[] values = new uint[count];
+            for (int i = 0; i < count; i++)
+                values[i] = reader.ReadUInt32();
+            return values;
+        }
+
+        public static long[] ReadInt64s(this BinaryReader reader, int count)
+        {
+            long[] values = new long[count];
+            for (int i = 0; i < count; i++)
+                values[i] = reader.ReadInt64();
+            return values;
         }
 
         public static ulong[] ReadUInt64s(this BinaryReader reader, int count)
@@ -50,6 +109,8 @@ namespace Fushigi.Bfres
 
         public static ResDict<T> ReadDictionary<T>(this BinaryReader reader, ulong offset) where T : IResData, new()
         {
+            if (offset == 0) return new ResDict<T>();
+
             reader.SeekBegin((long)offset);
             return ReadDictionary<T>(reader);
         }
@@ -122,6 +183,22 @@ namespace Fushigi.Bfres
             byte[] bytes = reader.ReadBytes(2);
             Array.Reverse(bytes); //Reverse bytes
             return BitConverter.ToUInt16(bytes, 0);
+        }
+
+        public static bool[] ReadBooleanBits(this BinaryReader reader, int count)
+        {
+            bool[] booleans = new bool[count];
+
+            int idx = 0;
+            var bitFlags = reader.ReadInt64s(1 + count / 64);
+            for (int i = 0; i < count; i++)
+            {
+                if (i != 0 && i % 64 == 0)
+                    idx++;
+
+                booleans[i] = (bitFlags[idx] & ((long)1 << i)) != 0;
+            }
+            return booleans;
         }
 
         public static List<string> ReadStringOffsets(this BinaryReader reader, int count)

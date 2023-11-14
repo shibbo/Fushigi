@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -247,6 +248,49 @@ namespace Fushigi.Bfres
         public ushort RenderInfoDataSize;
         public ushort Reserved2;
         public uint Reserved3;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct ShaderInfoHeader
+    {
+        public ulong ShaderAssignOffset;
+        public ulong AttributeAssignOffset;
+        public ulong AttributeAssignIndicesOffset;
+        public ulong SamplerAssignOffset;
+        public ulong SamplerAssignIndicesOffset;
+        public ulong OptionBoolChoiceOffset;
+        public ulong OptionStringChoiceOffset;
+        public ulong OptionIndicesOffset;
+
+        public uint Padding;
+
+        public byte NumAttributeAssign;
+        public byte NumSamplerAssign;
+        public ushort NumOptionBooleans;
+        public ushort NumOptions;
+
+        public ushort Padding2;
+        public uint Padding3;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
+    public struct ShaderAssignHeader
+    {
+        public ulong ShaderArchiveNameOffset;
+        public ulong ShaderModelNameOffset;
+        public ulong RenderInfoOffset;
+        public ulong RenderInfoDictOffset;
+        public ulong ShaderParamOffset;
+        public ulong ShaderParamDictOffset;
+        public ulong AttributeAssignDictOffset;
+        public ulong SamplerAssignDictOffset;
+        public ulong OptionsDictOffset;
+
+        public ushort RenderInfoCount;
+        public ushort ParamCount;
+        public ushort ShaderParamSize;
+        public ushort Padding1;
+        public uint Padding2;
     }
 
     [StructLayout(LayoutKind.Sequential, Size = 0x10)]
