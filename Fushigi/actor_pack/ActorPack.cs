@@ -47,6 +47,23 @@ namespace Fushigi
             }
         }
 
+        public string GetModelName()
+        {
+            if (ModelInfoRef != null) return ModelInfoRef.mModelName;
+            if (DrawArrayModelInfoRef != null) return DrawArrayModelInfoRef.mModelName;
+
+            return "";
+        }
+
+
+        public string GetModelFileName()
+        {
+            if (ModelInfoRef != null) return ModelInfoRef.mFilePath;
+            if (DrawArrayModelInfoRef != null) return DrawArrayModelInfoRef.mFilePath;
+
+            return "";
+        }
+
         private void Load(string path)
         {
             byte[] fileBytes = FileUtil.DecompressFile(path);
