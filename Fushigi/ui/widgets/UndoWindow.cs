@@ -14,8 +14,6 @@ namespace Fushigi.ui.widgets
     {
         public void Render(CourseAreaEditContext context)
         {
-            var undos = new Dictionary<int, string>();
-            var redos = new Dictionary<int, string>();
             if (ImGui.Begin("History"))
             {
                 if (ImGui.Button($"{IconUtil.ICON_UNDO}"))
