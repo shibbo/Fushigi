@@ -47,7 +47,8 @@ namespace Fushigi.ui.widgets
                 for (var i = 0; i < context.GetRedoUndoStack().Count(); i++)
                 {
                     var op = context.GetRedoUndoStack().ElementAt(i);
-                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 1, 1, 0.5f));
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled]);
+                    ImGui.PushID(i);
                     if (ImGui.Selectable(op.Name+"##"+i))
                     {
                         for(var a = 0; a <=  i; a++)
@@ -55,6 +56,7 @@ namespace Fushigi.ui.widgets
                             context.Redo();
                         }
                     }
+                    ImGui.PopID();
                     ImGui.PopStyleColor();
                 }
                 ImGui.End();
