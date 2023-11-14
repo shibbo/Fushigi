@@ -22,14 +22,33 @@ using System.Reflection.PortableExecutable;
 using static Fushigi.util.MessageBox;
 using Fushigi.gl.Bfres;
 using Fushigi.actor_pack.components;
-using static Fushigi.ui.widgets.BGUnitRail;
+using static Fushigi.ui.SceneObjects.bgunit.BGUnitRailSceneObj;
+using Fushigi.ui.SceneObjects.bgunit;
 
 namespace Fushigi.ui.widgets
 {
-    internal class LevelViewport(CourseArea area, GL gl, CourseAreaEditContext editContext)
+    interface IViewportDrawableObject
+    {
+        void Draw2D(CourseAreaEditContext editContext, LevelViewport viewport, ViewportImGuiInteractionState iState);
+    }
+
+    interface ITransformableObject
+    {
+        Transform Transform { get; }
+    }
+
+    struct ViewportImGuiInteractionState
+    {
+        public bool IsHovered;
+        public bool IsActive;
+    }
+
+    internal class LevelViewport(CourseArea area, GL gl, CourseAreaScene areaScene)
     {
         readonly CourseArea mArea = area;
-        public readonly CourseAreaEditContext mEditContext = editContext;
+
+        //this is only so BgUnitRail works, TODO make private
+        public readonly CourseAreaEditContext mEditContext = areaScene.EditContext;
 
         ImDrawListPtr mDrawList;
         public EditorMode mEditorMode = EditorMode.Actors;
@@ -110,9 +129,9 @@ namespace Fushigi.ui.widgets
             this.Camera.Target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
         }
 
-        public void SelectBGUnit(BGUnitRail rail)
+        public void SelectBGUnit(BGUnitRailSceneObj rail)
         {
-            mEditContext.DeselectAllOfType<BGUnitRail>();
+            mEditContext.DeselectAllOfType<BGUnitRailSceneObj>();
             mEditContext.Select(rail);
         }
 
@@ -339,8 +358,8 @@ namespace Fushigi.ui.widgets
                     {
                         mEditContext.DeselectAll();
                     }
-                    else if(HoveredObject is not BGUnitRail &&
-                        HoveredObject is not BGUnitRail.RailPoint) 
+                    else if(HoveredObject is not BGUnitRailSceneObj &&
+                        HoveredObject is not BGUnitRailSceneObj.RailPoint) 
                     {
                         if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {
@@ -702,7 +721,7 @@ namespace Fushigi.ui.widgets
                                 newHoveredObject = pt;
                         }
                     }
-                    foreach (BGUnitRail rail in wall.InternalRails)
+                    foreach (BGUnitRailSceneObj rail in wall.InternalRails)
                     {
                         rail.Render(this, mDrawList);
                         if(rail.HitTest(this))
