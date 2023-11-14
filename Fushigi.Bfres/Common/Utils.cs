@@ -125,6 +125,9 @@ namespace Fushigi.Bfres
 
         public static ResDict<T> ReadDictionary<T>(this BinaryReader reader, ulong offset, ulong valueOffset) where T : IResData, new()
         {
+            if (offset == 0)
+                return new ResDict<T>();
+
             reader.SeekBegin((long)offset);
             var dict = ReadDictionary<T>(reader);
 
