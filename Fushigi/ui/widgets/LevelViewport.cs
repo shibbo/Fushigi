@@ -188,19 +188,12 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        Plane2DRenderer Plane2DRenderer;
-        BfresRender BfresRender;
-
-        public void DrawScene3D(Vector2 size)
+        public void DrawScene3D(Vector2 size, IDictionary<string, bool> layersVisibility)
         {
+            mLayersVisibility = layersVisibility;
+
             if (Framebuffer == null)
                 Framebuffer = new GLFramebuffer(gl, FramebufferTarget.Framebuffer, (uint)size.X, (uint)size.Y);
-
-            if (Plane2DRenderer == null)
-                Plane2DRenderer = new Plane2DRenderer(gl, 10);
-
-            //if (BfresRender == null)
-             //   BfresRender = new BfresRender(gl, "PlayerMarioSuper.bfres"); 
 
             //Resize if needed
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
@@ -218,14 +211,21 @@ namespace Fushigi.ui.widgets
 
             foreach (var actor in this.mArea.GetActors())
             {
+                if (mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
+                    continue;
+
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
                 RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
             }
             Framebuffer.Unbind();
 
+             ImGui.SetCursorScreenPos(mTopLeft);
+
             //Draw framebuffer
             ImGui.Image((IntPtr)((GLTexture)Framebuffer.Attachments[0]).ID, new Vector2(size.X, size.Y),
                 new Vector2(0, 1), new Vector2(1, 0));
+
+            ImGui.SetNextItemAllowOverlap();
         }
 
         private void RenderActor(CourseActor actor, ModelInfo modelInfo)
@@ -275,6 +275,8 @@ namespace Fushigi.ui.widgets
 
             if (!Camera.UpdateMatrices())
                 return;
+
+            this.DrawScene3D(size, mLayersVisibility);
 
             DrawGrid();
 

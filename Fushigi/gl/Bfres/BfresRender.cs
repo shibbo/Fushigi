@@ -1,9 +1,11 @@
 ﻿using Fushigi.Bfres;
+using Fushigi.ui;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace Fushigi.gl.Bfres
@@ -45,6 +47,15 @@ namespace Fushigi.gl.Bfres
         {
             foreach (var model in Models.Values)
                 model.Render(gl, this, transform, camera);
+        }
+
+        public void Dispose()
+        {
+            foreach (var model in Models.Values)
+                model.Dispose();
+
+            foreach (var tex in Textures.Values)
+                tex.Dispose();
         }
 
         public class BfresModel
@@ -89,6 +100,12 @@ namespace Fushigi.gl.Bfres
 
                     mesh.Render(gl, render, transform, camera.ViewProjectionMatrix);
                 }
+            }
+
+            public void Dispose()
+            {
+                foreach (var mesh in Meshes)
+                    mesh.Dispose();
             }
         }
 
@@ -204,6 +221,7 @@ namespace Fushigi.gl.Bfres
                 IndexBuffer?.Dispose();
                 //Dispose vertex array
                 vbo?.Dispose();
+                vbo_game_shaders?.Dispose();
             }
 
             public class DetailLevel
