@@ -930,7 +930,7 @@ namespace Fushigi.ui.widgets
 
                     uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
 
-                    if (actor.mActorName.Contains("CameraArea") || actor.mActorName.StartsWith("Area"))
+                    if (actor.mActorName.Contains("CameraArea") || actor.mActorPack?.Category == "AreaObj")
                     {
                         if (actor.mActorName.Contains("CameraArea"))
                             color = ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1));
