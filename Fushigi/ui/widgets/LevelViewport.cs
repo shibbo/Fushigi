@@ -228,7 +228,7 @@ namespace Fushigi.ui.widgets
 
         private void RenderActor(CourseActor actor, ModelInfo modelInfo)
         {
-            if (modelInfo == null)
+            if (modelInfo == null || modelInfo.mFilePath == null)
                 return;
 
             var resourceName = modelInfo.mFilePath;
