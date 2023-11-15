@@ -39,7 +39,7 @@ namespace Fushigi.ui.widgets
         Dictionary<CourseArea, object?> lastSavedAction = [];
         Dictionary<CourseArea, CourseAreaScene> areaScenes = [];
         Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
-        LevelViewport activeViewport;
+        public LevelViewport activeViewport;
         UndoWindow undoWindow;
 
         readonly Course course;
@@ -49,11 +49,13 @@ namespace Fushigi.ui.widgets
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
         bool mShowAddActor = false;
+        bool mShowSelectActorLayer = false;
 
         string mActorSearchText = "";
 
         CourseLink? mSelectedGlobalLink = null;
         string mAddActorSearchQuery = "";
+        string mAddLayerSearchQuery = "";
 
         string[] linkTypes = [
             "BasicSignal",
@@ -146,6 +148,11 @@ namespace Fushigi.ui.widgets
             if (mShowAddActor)
             {
                 SelectActorToAdd();
+            }
+
+            if (mShowSelectActorLayer)
+            {
+                SelectActorToAddLayer();
             }
 
             if (activeViewport.mEditorState == LevelViewport.EditorState.DeleteActorLinkCheck)
@@ -264,10 +271,64 @@ namespace Fushigi.ui.widgets
 
                     if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                     {
-                        Console.WriteLine("Switching state to EditorState.AddingActor");
-                        activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
+                        Console.WriteLine("Switching state to EditorState.SelectingActorLayer");
+                        activeViewport.mEditorState = LevelViewport.EditorState.SelectingActorLayer;
                         activeViewport.mActorToAdd = actor;
                         mShowAddActor = false;
+                        mShowSelectActorLayer = true;
+                    }
+                }
+
+                ImGui.EndListBox();
+            }
+
+            if (ImGui.IsKeyDown(ImGuiKey.Escape))
+            {
+                button = false;
+            }
+
+            if (!button)
+            {
+                Console.WriteLine("Switching state to EditorState.Selecting");
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
+                mShowAddActor = false;
+            }
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+
+        private void SelectActorToAddLayer()
+        {
+            bool button = true;
+            bool status = ImGui.Begin("Select Layer", ref button);
+
+            ImGui.InputText("Search", ref mAddLayerSearchQuery, 256);
+
+            var fileteredLayers = mLayersVisibility.Keys.ToArray().ToImmutableList();
+
+            if (mAddLayerSearchQuery != "")
+            {
+                fileteredLayers = FuzzySharp.Process.ExtractAll(mAddLayerSearchQuery, mLayersVisibility.Keys.ToArray(), cutoff: 65)
+                    .OrderByDescending(result => result.Score)
+                    .Select(result => result.Value)
+                    .ToImmutableList();
+            }
+
+            if (ImGui.BeginListBox("Select the layer you want to add the actor to.", ImGui.GetContentRegionAvail()))
+            { 
+                foreach (string layer in fileteredLayers)
+                {
+                    ImGui.Selectable(layer);
+
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                    {
+                        Console.WriteLine("Switching state to EditorState.AddingActor");
+                        activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
+                        activeViewport.mLayerToAdd = layer;
+                        mShowSelectActorLayer = false;
                     }
                 }
 
@@ -340,9 +401,12 @@ namespace Fushigi.ui.widgets
             /* nothing to worry about here */
             if (dstMsgStrs.Count == 0 && srcMsgStr.Count == 0)
             {
-                Console.WriteLine("Switching state to EditorState.DeletingActor");
-                editContext.DeleteSelectedActors();
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
+                if (activeViewport.mEditContext.IsAnySelected<CourseActor>())
+                {
+                    Console.WriteLine("Switching state to EditorState.DeletingActor");
+                    activeViewport.mEditContext.DeleteSelectedActors();
+                    activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
+                }
                 return;
             }
 
@@ -507,6 +571,31 @@ namespace Fushigi.ui.widgets
                 if (ImGui.InputText($"##{name}", ref name, 512, ImGuiInputTextFlags.EnterReturnsTrue)) {
                     editContext.SetObjectName(mSelectedActor, name);
                 }
+
+                ImGui.PopItemWidth();
+                ImGui.NextColumn();
+
+                ImGui.Text("Layer");
+
+                ImGui.NextColumn();
+
+                if (ImGui.BeginCombo("##Dropdown", mSelectedActor.mLayer))
+                {
+                    foreach (var layer in mLayersVisibility.Keys.ToArray().ToImmutableList())
+                    {
+                        if (ImGui.Selectable(layer))
+                        {
+                            //item is selected
+                            Console.WriteLine("Changing "+mSelectedActor.mName+"'s layer from "+mSelectedActor.mLayer+" to "+layer+".");
+                            mSelectedActor.mLayer = layer;
+                        }
+                    }
+
+                    ImGui.EndCombo();
+                }
+                
+
+
 
                 ImGui.PopItemWidth();
 

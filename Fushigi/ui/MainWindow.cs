@@ -225,6 +225,16 @@ namespace Fushigi.ui
                         mIsGeneratingParamDB = true;
                     }
 
+                    if (ImGui.MenuItem("Undo"))
+                    {
+                        mSelectedCourseScene?.activeViewport.mEditContext.Undo();
+                    }
+
+                    if (ImGui.MenuItem("Redo"))
+                    {
+                        mSelectedCourseScene?.activeViewport.mEditContext.Redo();
+                    }
+
                     /* end Edit menu */
                     ImGui.EndMenu();
                 }

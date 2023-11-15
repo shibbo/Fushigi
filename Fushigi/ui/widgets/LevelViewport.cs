@@ -22,6 +22,7 @@ using System.Reflection.PortableExecutable;
 using static Fushigi.util.MessageBox;
 using Fushigi.gl.Bfres;
 using Fushigi.actor_pack.components;
+using System.Runtime.InteropServices;
 using static Fushigi.ui.SceneObjects.bgunit.BGUnitRailSceneObj;
 using Fushigi.ui.SceneObjects.bgunit;
 
@@ -63,6 +64,7 @@ namespace Fushigi.ui.widgets
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
         public string mActorToAdd = "";
+        public string mLayerToAdd = "PlayArea1";
         public bool mIsLinkNew = false;
         public string mNewLinkType = "";
 
@@ -79,6 +81,7 @@ namespace Fushigi.ui.widgets
         public enum EditorState
         {
             Selecting,
+            SelectingActorLayer,
             AddingActor,
             DeleteActorLinkCheck,
             DeletingActor,
@@ -163,22 +166,22 @@ namespace Fushigi.ui.widgets
             {
                 Camera.Distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
 
-                if (ImGui.IsKeyDown(ImGuiKey.LeftArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.LeftArrow) || ImGui.IsKeyDown(ImGuiKey.A))
                 {
                     Camera.Target.X -= 0.25f;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.RightArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.RightArrow) || ImGui.IsKeyDown(ImGuiKey.D))
                 {
                     Camera.Target.X += 0.25f;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.UpArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.UpArrow) || ImGui.IsKeyDown(ImGuiKey.W))
                 {
                     Camera.Target.Y += 0.25f;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.DownArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.DownArrow) || ImGui.IsKeyDown(ImGuiKey.S))
                 {
                     Camera.Target.Y -= 0.25f;
                 }
@@ -279,23 +282,35 @@ namespace Fushigi.ui.widgets
                 HoveredObject = null;
 
             CourseActor? hoveredActor = HoveredObject as CourseActor;
+          
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                if(hoveredActor != null)
+                    ImGui.SetTooltip($"{hoveredActor.mActorName}");
+                
+                if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeySuper)
+                {
+                    mEditContext.Undo();
+                }
+                if (ImGui.IsKeyPressed(ImGuiKey.Y) && ImGui.GetIO().KeySuper || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeySuper)
+                {
+                    mEditContext.Redo();
+                }
+            } else {
+                if(hoveredActor != null)
+                    ImGui.SetTooltip($"{hoveredActor.mActorName}");
+                
+                if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
+                {
+                    mEditContext.Undo();
+                }
+                if (ImGui.IsKeyPressed(ImGuiKey.Y) && ImGui.GetIO().KeyCtrl || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl)
+                {
+                    mEditContext.Redo();
+                }
+            };
 
-            if(hoveredActor != null)
-                ImGui.SetTooltip($"{hoveredActor.mActorName}");
 
-        
-            if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift)
-            {
-                mEditContext.Redo();
-            }
-            else if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
-            {
-                mEditContext.Undo();
-            }
-            else if (ImGui.IsKeyPressed(ImGuiKey.Y) && ImGui.GetIO().KeyCtrl)
-            {
-                mEditContext.Redo();
-            }
 
             bool isFocused = ImGui.IsWindowFocused();
 
@@ -404,7 +419,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    CourseActor actor = new CourseActor(mActorToAdd, mArea.mRootHash);
+                    CourseActor actor = new CourseActor(mActorToAdd, mArea.mRootHash, mLayerToAdd);
 
                     Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
                     posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
