@@ -42,6 +42,8 @@ namespace Fushigi.gl
 
         public bool CullFront = false;
         public bool CullBack = true;
+        public float PolygonOffsetFactor = 0f;
+        public float PolygonOffsetUnits = 0f;
 
         public bool DepthTest = true;
         public DepthFunction DepthFunction = DepthFunction.Lequal;
@@ -105,6 +107,8 @@ namespace Fushigi.gl
 
         public void RenderPolygonState(GL gl)
         {
+            gl.PolygonOffset(PolygonOffsetFactor, PolygonOffsetUnits);
+
             if (this.CullBack && this.CullFront)
                 gl.CullFace(TriangleFace.FrontAndBack);
             else if (this.CullBack)
@@ -116,6 +120,14 @@ namespace Fushigi.gl
                 gl.Disable(EnableCap.CullFace);
                 gl.CullFace(TriangleFace.Back);
             }
+        }
+
+        public static void Reset(GL gl)
+        {
+            Opaque.RenderAlphaTest(gl);
+            Opaque.RenderBlendState(gl);
+            Opaque.RenderDepthTest(gl);
+            Opaque.RenderPolygonState(gl);
         }
     }
 }
