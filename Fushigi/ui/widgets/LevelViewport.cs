@@ -930,9 +930,10 @@ namespace Fushigi.ui.widgets
 
                     uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
 
-                    if (actor.mActorName.Contains("CameraArea"))
+                    if (actor.mActorName.Contains("CameraArea") || actor.mActorName.StartsWith("Area"))
                     {
-                        color = ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1));
+                        if (actor.mActorName.Contains("CameraArea"))
+                            color = ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1));
 
                         //topLeft
                         s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 1f, 0), transform));
