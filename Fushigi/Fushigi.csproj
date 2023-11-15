@@ -20,7 +20,6 @@
     <PackageReference Include="Silk.NET.Input.Extensions" Version="2.18.0" />
     <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.18.0" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
-    <PackageReference Include="ZstdNet" Version="1.4.5" />
     <PackageReference Include="ZstdSharp.Port" Version="0.7.3" />
   </ItemGroup>
 
