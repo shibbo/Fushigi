@@ -926,8 +926,21 @@ namespace Fushigi.ui.widgets
                             actor.mTranslation.X,
                             actor.mTranslation.Y,
                             actor.mTranslation.Z
-                        );;
+                        ); ;
 
+                    if (actor.mActorName.Contains("CameraArea"))
+                    {
+                        //topLeft
+                        s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 1f, 0), transform));
+                        //topRight
+                        s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(0.5f, 1f, 0), transform));
+                        //bottomRight
+                        s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(0.5f, 0, 0), transform));
+                        //bottomLeft
+                        s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(-0.5f, 0, 0), transform));
+                    }
+                    else
+                    {
                         //topLeft
                         s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 0.5f, 0), transform));
                         //topRight
@@ -936,43 +949,44 @@ namespace Fushigi.ui.widgets
                         s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(0.5f, -0.5f, 0), transform));
                         //bottomLeft
                         s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(-0.5f, -0.5f, 0), transform));
+                    }
 
-                        bool isHovered = HoveredObject == actor;
+                    bool isHovered = HoveredObject == actor;
 
-                        uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
+                    uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
 
+                    if (mEditContext.IsSelected(actor))
+                    {
+                        color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+                    }
+
+                    for (int i = 0; i < 4; i++)
+                    {
                         if (mEditContext.IsSelected(actor))
                         {
-                            color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+                            mDrawList.AddCircleFilled(s_actorRectPolygon[i],
+                                pointSize, color);
                         }
+                        mDrawList.AddLine(
+                            s_actorRectPolygon[i],
+                            s_actorRectPolygon[(i + 1) % 4],
+                            color, isHovered ? 2.5f : 1.5f);
+                    }
 
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (mEditContext.IsSelected(actor))
-                            {
-                                mDrawList.AddCircleFilled(s_actorRectPolygon[i],
-                                    pointSize, color);
-                            }
-                            mDrawList.AddLine(
-                                s_actorRectPolygon[i],
-                                s_actorRectPolygon[(i + 1) % 4],
-                                color, isHovered ? 2.5f : 1.5f);
-                        }
+                    string name = actor.mActorName;
 
-                        string name = actor.mActorName;
+                    isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
 
-                        isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
+                    if (name.Contains("Area"))
+                    {
+                        isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
+                            ImGui.GetMousePos());
+                    }
 
-                        if (name.Contains("Area"))
-                        {
-                            isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
-                                ImGui.GetMousePos());
-                        }
-
-                        if (isHovered)
-                        {
-                            newHoveredObject = actor;
-                        }
+                    if (isHovered)
+                    {
+                        newHoveredObject = actor;
+                    }
                 }
             }
 
