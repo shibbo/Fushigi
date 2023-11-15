@@ -214,6 +214,8 @@ namespace Fushigi.ui.widgets
 
             gl.Enable(EnableCap.DepthTest);
 
+            RenderStats.Reset();
+
             foreach (var actor in this.mArea.GetActors())
             {
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
