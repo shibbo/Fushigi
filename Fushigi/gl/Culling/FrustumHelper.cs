@@ -11,6 +11,7 @@ namespace Fushigi.gl
         public static Vector4[] ExtractFrustum(Matrix4x4 viewProjection, bool normalize = true)
         {
             //Todo verify as System.Numerics may require different order
+            viewProjection = viewProjection.Transpose();
 
             Vector4[] planes = new Vector4[6];
             //Left
