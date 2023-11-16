@@ -211,7 +211,7 @@ namespace Fushigi.ui.widgets
 
             foreach (var actor in this.mArea.GetActors())
             {
-                if (mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
+                if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
                     continue;
 
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
