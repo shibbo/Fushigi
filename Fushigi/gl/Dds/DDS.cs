@@ -1,7 +1,6 @@
 ﻿using Fushigi.Bfres;
 using Fushigi.gl.Bfres;
 using Silk.NET.SDL;
-using SixLabors.ImageSharp.Formats.Tga;
 using System;
 using System.Collections.Generic;
 using System.IO;
