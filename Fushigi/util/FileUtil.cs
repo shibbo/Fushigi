@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ZstdSharp;
 
 namespace Fushigi.util
 {
@@ -30,6 +31,23 @@ namespace Fushigi.util
             return decompressedData;
         }
 
+        public static MemoryStream DecompressAsStream(string filePath)
+        {
+            return DecompressAsStream(File.OpenRead(filePath));
+        }
+
+        public static MemoryStream DecompressAsStream(Stream input)
+        {
+            var output = new MemoryStream();
+
+            using var decompressionStream = new ZstdSharp.DecompressionStream(input);
+            {
+                decompressionStream.CopyTo(output);
+                output.Position = 0;
+            }
+            return output;
+        }
+
         public static byte[] DecompressData(byte[] fileBytes)
         {
             byte[] decompressedData;
@@ -39,7 +57,6 @@ namespace Fushigi.util
             }
             using (var decompressor = new ZstdSharp.Decompressor())
             {
-                
                 decompressedData = decompressor.Unwrap(new System.Span<byte>(fileBytes)).ToArray();
             }
 

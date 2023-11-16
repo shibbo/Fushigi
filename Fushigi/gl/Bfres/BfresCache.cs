@@ -18,7 +18,7 @@ namespace Fushigi.gl.Bfres
             {
                 var path = FileUtil.FindContentPath(Path.Combine("Model", projectName + ".bfres.zs"));
                 if (File.Exists(path))
-                    Cache.Add(projectName, new BfresRender(gl, new MemoryStream(FileUtil.DecompressFile(path))));
+                    Cache.Add(projectName, new BfresRender(gl, FileUtil.DecompressAsStream(path)));
                 else //use null renderer to not check the file again (todo this function should only load during course load)
                 {
                     Cache.Add(projectName, null);
