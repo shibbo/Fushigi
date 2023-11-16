@@ -186,7 +186,7 @@ namespace Fushigi.gl.Bfres
                         Min = min,
                         Max = max,
                     },
-                    BoundingRadius = shape.BoundingSpheres.FirstOrDefault().W, //center xyz, w = radius size
+                    BoundingRadius = 1F, //center xyz, w = radius size
                 });
             }
 
