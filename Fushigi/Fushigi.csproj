@@ -13,12 +13,12 @@
     <PackageReference Include="ImGui.NET" Version="1.89.9.3" />
     <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Silk.NET.Core" Version="2.18.0" />
-    <PackageReference Include="Silk.NET.GLFW" Version="2.18.0" />
-    <PackageReference Include="Silk.NET.OpenGL" Version="2.18.0" />
-    <PackageReference Include="Silk.NET.Input" Version="2.18.0" />
-    <PackageReference Include="Silk.NET.Input.Extensions" Version="2.18.0" />
-    <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.18.0" />
+    <PackageReference Include="Silk.NET.Core" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.GLFW" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.Input.Extensions" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.19.0" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
     <PackageReference Include="ZstdSharp.Port" Version="0.7.3" />
   </ItemGroup>
@@ -30,8 +30,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Ryujinx.Graphics.Shader">
+      <HintPath>..\Fushigi.Bfres\ExternalLibraries\Ryujinx.Graphics.Shader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="res\AreaParam.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="res\DefaultTexture.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="res\Font.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
