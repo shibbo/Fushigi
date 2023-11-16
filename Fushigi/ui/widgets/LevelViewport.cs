@@ -226,6 +226,11 @@ namespace Fushigi.ui.widgets
                 new Vector2(0, 1), new Vector2(1, 0));
 
             ImGui.SetNextItemAllowOverlap();
+
+            //Temp quick fix, add canvas below for handling 2d pick later
+            ImGui.SetCursorScreenPos(mTopLeft);
+            ImGui.InvisibleButton("canvas", size,
+                  ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
         }
 
         private void RenderActor(CourseActor actor, ModelInfo modelInfo)
