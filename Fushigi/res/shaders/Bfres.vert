@@ -18,7 +18,8 @@ out vec4 Tangents;
 void main()
 {
     gl_Position = mtxCam * (mtxMdl * vec4(aPosition, 1.0)); 
+    Normals = mat3(mtxMdl) * aNormal; 
+
     TexCoords0 = aTexCoord0;
-    Normals = aNormal;
     Tangents = aTangent;
 }

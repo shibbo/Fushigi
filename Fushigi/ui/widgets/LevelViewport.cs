@@ -240,7 +240,13 @@ namespace Fushigi.ui.widgets
             if (render == null || !render.Models.ContainsKey(modelName))
                 return;
 
-            var mat = Matrix4x4.CreateTranslation(actor.mTranslation);
+            var transMat = Matrix4x4.CreateTranslation(actor.mTranslation);
+            var scaleMat = Matrix4x4.CreateScale(actor.mScale);
+            var rotMat = Matrix4x4.CreateRotationX(actor.mRotation.X) *
+                     Matrix4x4.CreateRotationY(actor.mRotation.Y) *
+                    Matrix4x4.CreateRotationZ(actor.mRotation.Z);
+
+            var mat = scaleMat * rotMat * transMat;
 
             var model = render.Models[modelName];
             model.Render(gl, render, mat, this.Camera);
