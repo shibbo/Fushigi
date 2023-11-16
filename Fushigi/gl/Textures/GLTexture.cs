@@ -13,6 +13,7 @@ namespace Fushigi.gl
 
         public uint Width { get; set; }
         public uint Height { get; set; }
+        public uint Depth { get; set; }
 
         public InternalFormat InternalFormat { get; internal set; }
         public PixelFormat PixelFormat { get; internal set; }
@@ -64,6 +65,11 @@ namespace Fushigi.gl
 
         public void Dispose()
         {
+        }
+
+        internal static uint CalculateMipDimension(uint baseLevelDimension, uint mipLevel)
+        {
+            return baseLevelDimension / (uint)Math.Pow(2, mipLevel);
         }
     }
 }
