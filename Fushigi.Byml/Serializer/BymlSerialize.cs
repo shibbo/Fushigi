@@ -114,6 +114,14 @@ namespace Fushigi.Byml.Serializer
                         ((dynamic)values["Z"]).Data);
                     SetValue(property, section, vec3);
                 }
+                else if (type == typeof(System.Numerics.Vector2))
+                {
+                    var values = value as BymlHashTable;
+                    var vec3 = new System.Numerics.Vector2(
+                        ((dynamic)values["X"]).Data,
+                        ((dynamic)values["Y"]).Data);
+                    SetValue(property, section, vec3);
+                }
                 else if (type == typeof(Dictionary<string, dynamic>))
                 {
                     var values = value as BymlHashTable;
