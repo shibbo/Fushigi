@@ -253,8 +253,31 @@ namespace Fushigi.ui.widgets
 
             var mat = scaleMat * rotMat * transMat;
 
-            var model = render.Models[modelName];
-            model.Render(gl, render, mat, this.Camera);
+             var model = render.Models[modelName];
+            //switch for drawing models with different methods easier
+            switch (modelName){
+                case "DokanTop":
+                    var matPTop = 
+                    Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.X, actor.mScale.Z) * 
+                    Matrix4x4.CreateTranslation(0, (actor.mScale.Y-actor.mScale.X)*2, 0) *
+                    rotMat *
+                    transMat;
+
+                    var matPMid = 
+                    Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.Y*2, actor.mScale.Z) * 
+                    rotMat *
+                    transMat;
+
+                    model.Render(gl, render, matPTop, this.Camera);
+                    render.Models["DokanMiddle"].Render(gl, render, matPMid, this.Camera);
+                    break;
+                default:
+                    model.Render(gl, render, mat, this.Camera);
+                    break;
+            }
+                
+            
+            
         }
 
         public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility)
