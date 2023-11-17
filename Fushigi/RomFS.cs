@@ -1,4 +1,9 @@
-﻿using Fushigi.Byml;
+﻿using Fushigi.Bfres;
+using Fushigi.Byml;
+using Fushigi.gl.Bfres;
+using Fushigi.util;
+using Silk.NET.OpenGL;
+using System.Diagnostics;
 
 namespace Fushigi
 {
@@ -33,6 +38,11 @@ namespace Fushigi
             return sCourseEntries;
         }
 
+        public static Dictionary<string, IntPtr> GetCourseThumbnails()
+        {
+            return sCourseThumbnails;
+        }
+
         public static bool DirectoryExists(string path) {
             return Directory.Exists(Path.Combine(sRomFSRoot, path));
         }
@@ -46,7 +56,7 @@ namespace Fushigi
         {
             Console.WriteLine($"RomFS::GetFileBytes() -- {path}");
             return File.ReadAllBytes(Path.Combine(sRomFSRoot, path));
-        }
+        }    
 
         private static void CacheCourseFiles()
         {
@@ -77,7 +87,40 @@ namespace Fushigi
             }
         }
 
+        public static void CacheCourseThumbnails(GL gl)
+        {
+            var thumbnailFolder = Path.Combine(GetRoot(), "UI", "Tex", "Thumbnail");
+
+            sCourseThumbnails.Clear();
+            foreach (var world in sCourseEntries.Keys)
+            {
+                foreach (var course in sCourseEntries[world])
+                {
+                    if (sCourseThumbnails.ContainsKey(course))
+                    {
+                        continue;
+                    }
+
+                    var path = Path.Combine(thumbnailFolder, $"{course}.bntx.zs");
+
+                    if (!File.Exists(path))
+                    {
+                        path = Path.Combine(thumbnailFolder, "Default.bntx.zs");
+                    }
+
+                    Debug.WriteLine($"Getting Thumbnail {path}");
+
+                    byte[] fileBytes = FileUtil.DecompressFile(path);
+                    var bntx = new BntxFile(new MemoryStream(fileBytes));
+                    var render = new BfresTextureRender(gl, bntx.Textures[0]);
+
+                    sCourseThumbnails.Add(course, (IntPtr)render.ID);
+                }
+            }
+        }
+
         private static string sRomFSRoot;
         private static Dictionary<string, string[]> sCourseEntries = [];
+        private static Dictionary<string, IntPtr> sCourseThumbnails = [];
     }
 }

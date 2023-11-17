@@ -12,6 +12,9 @@ using System.Runtime.InteropServices;
 using static System.Net.Mime.MediaTypeNames;
 using System.Reflection;
 using System.Diagnostics;
+using Fushigi.Bfres;
+using Fushigi.SARC;
+using Fushigi.gl.Bfres;
 
 namespace Fushigi.ui
 {
@@ -123,6 +126,7 @@ namespace Fushigi.ui
             if (RomFS.IsValidRoot(romFSPath))
             {
                 RomFS.SetRoot(romFSPath);
+                RomFS.CacheCourseThumbnails(gl);
                 ChildActorParam.Load();
             }
 
@@ -146,7 +150,6 @@ namespace Fushigi.ui
             {
                 mCurrentCourseName = latestCourse;
                 mSelectedCourseScene = new(new(mCurrentCourseName), gl);
-                mIsChoosingCourse = false;
                 mIsChoosingPreferences = false;
                 mIsWelcome = false;
             }
@@ -164,7 +167,7 @@ namespace Fushigi.ui
                     {
                         if (ImGui.MenuItem("Open Course"))
                         {
-                            mIsChoosingCourse = true;
+                            mCourseSelect = new(gl, mCurrentCourseName);
                         }
                     }
 
@@ -263,10 +266,10 @@ namespace Fushigi.ui
                         )
                         {
                             // Only change the course if it is different from current
-                            if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
-                                mIsChoosingCourse = false;
-                            else
-                            {
+                            /*if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
+                               mIsChoosingCourse = false;*/
+                            //else
+                            //{
                                 void SwitchCourse()
                                 {
                                     if (!TryCloseCourse(onSuccessRetryAction: SwitchCourse))
@@ -277,11 +280,11 @@ namespace Fushigi.ui
                                     mSelectedCourseScene = new(new(courseLocation), gl);
                                     UserSettings.AppendRecentCourse(courseLocation);
 
-                                    mIsChoosingCourse = false;
+                                    //mIsChoosingCourse = false;
                                 }
 
                                 SwitchCourse();
-                            }
+                            //}
                         }
                     }
                     ImGui.TreePop();
@@ -292,6 +295,22 @@ namespace Fushigi.ui
             {
                 ImGui.End();
             }
+
+            if (!ImGui.Begin("Test"))
+            {
+                return;
+            }
+
+            var path = Path.Combine(RomFS.GetRoot(), "UI", "Tex", "Thumbnail", "Course001_Course.bntx.zs");
+            byte[] fileBytes = FileUtil.DecompressFile(path);
+
+            var bntx = new BntxFile(new MemoryStream(fileBytes));
+
+            var lol = new BfresTextureRender(gl, bntx.Textures[0]);
+
+            ImGui.Image((IntPtr)lol.ID, new Vector2(lol.Width, lol.Height));
+
+            ImGui.End();
         }
 
         void DrawWelcome()
@@ -338,9 +357,9 @@ namespace Fushigi.ui
                 if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
                     !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                 {
-                    if (mIsChoosingCourse)
+                    if (mCourseSelect != null)
                     {
-                        DrawCourseList(gl);
+                        mCourseSelect.Draw();
                     }
 
                     mSelectedCourseScene?.DrawUI(gl);
@@ -389,7 +408,7 @@ namespace Fushigi.ui
         readonly IWindow mWindow;
         string? mCurrentCourseName;
         CourseScene? mSelectedCourseScene;
-        bool mIsChoosingCourse = true;
+        CourseSelect? mCourseSelect = null;
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
         bool mIsGeneratingParamDB = false;
