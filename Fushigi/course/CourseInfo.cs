@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Fushigi.course
 {
     [Serializable]
-    public class CourseInfo
+    public class CourseInfo : BymlObject
     {
         public string CourseDifficulty { get; set; }
         public string CourseNameLabel { get; set; }
@@ -29,14 +29,14 @@ namespace Fushigi.course
             var courseFilePath = FileUtil.FindContentPath(Path.Combine("Stage", "CourseInfo", $"{name}.game__stage__CourseInfo.bgyml"));
             var byml = new Byml.Byml(new MemoryStream(File.ReadAllBytes(courseFilePath)));
 
-            BymlSerialize.Deserialize(this, byml.Root);
+            this.Load((BymlHashTable)byml.Root);
 
             Console.WriteLine();
         }
 
         public void Save(string name)
         {
-            var root = BymlSerialize.Serialize(this);
+            var root = this.Serialize();
 
             var courseFilePath = FileUtil.FindContentPath(Path.Combine("Stage", "CourseInfo", $"{name}.game__stage__CourseInfo.bgyml"));
             using (var fs = new FileStream(courseFilePath, FileMode.Create, FileAccess.Write))
