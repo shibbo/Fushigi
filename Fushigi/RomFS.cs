@@ -3,7 +3,6 @@ using Fushigi.Byml;
 using Fushigi.gl.Bfres;
 using Fushigi.util;
 using Silk.NET.OpenGL;
-using System.Diagnostics;
 
 namespace Fushigi
 {
@@ -101,7 +100,7 @@ namespace Fushigi
                     path = Path.Combine(thumbnailFolder, "Default.bntx.zs");
                 }
 
-                Debug.WriteLine($"Getting Thumbnail {path}");
+                Console.WriteLine($"Thumbnail - {course}");
 
                 byte[] fileBytes = FileUtil.DecompressFile(path);
                 var bntx = new BntxFile(new MemoryStream(fileBytes));
