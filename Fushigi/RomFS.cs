@@ -1,8 +1,11 @@
 ﻿using Fushigi.Bfres;
 using Fushigi.Byml;
 using Fushigi.gl.Bfres;
+using Fushigi.SARC;
+using Fushigi.Msbt;
 using Fushigi.util;
 using Silk.NET.OpenGL;
+using System.Diagnostics;
 
 namespace Fushigi
 {
@@ -28,7 +31,9 @@ namespace Fushigi
         {
             /* common paths to check */
             return Directory.Exists(Path.Combine(root, "BancMapUnit")) && 
-                Directory.Exists(Path.Combine(root, "Model")) && 
+                Directory.Exists(Path.Combine(root, "Model")) &&
+                Directory.Exists(Path.Combine(root, "UI")) &&
+                Directory.Exists(Path.Combine(root, "Mals")) &&
                 Directory.Exists(Path.Combine(root, "Stage"));
         }
 
@@ -77,6 +82,37 @@ namespace Fushigi
                 if (!sCourseEntries.ContainsKey(worldName))
                 {
                     sCourseEntries.Add(worldName, courseLocationList);
+                }
+            }
+
+            CacheCourseNames();
+        }
+
+        static void CacheCourseNames()
+        {
+            var path = Path.Combine(GetRoot(), "Mals", "USen.Product.100.sarc.zs");
+            var fileBytes = FileUtil.DecompressFile(path);
+            var sarc = new SARC.SARC(new(fileBytes));
+            var msbt = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_CourseRemoveLineFeed.msbt")));
+
+            foreach (var world in sCourseEntries.Keys)
+            {
+                foreach (var course in sCourseEntries[world].Keys)
+                {
+                    // TODO - get course names from CourseInfo
+                    var courseName = course.Substring(0, 9);
+                    foreach (var key in msbt.Messages.Keys)
+                    {
+                        if (key.EndsWith(courseName))
+                        {
+                            sCourseEntries[world][course].name = msbt.Messages[key];
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(sCourseEntries[world][course].name))
+                    {
+                        sCourseEntries[world][course].name = "Name not found";
+                    }                   
                 }
             }
         }

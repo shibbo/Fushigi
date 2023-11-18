@@ -83,6 +83,7 @@ namespace Fushigi.ui.widgets
             {
                 ImGui.TableNextColumn();
                 ImGui.Image(course.Value.thumbnail, thumbnailSize);
+                ImGui.Text(course.Value.name);
                 if (ImGui.RadioButton(course.Key, course.Key == selectedCourseName))
                 {
                     if (selectedCourseName != course.Key)
