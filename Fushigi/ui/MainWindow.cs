@@ -166,7 +166,20 @@ namespace Fushigi.ui
                     {
                         if (ImGui.MenuItem("Open Course"))
                         {
-                            mCourseSelect = new(gl, mCurrentCourseName);
+                            void SwitchCourse(string courseLocation)
+                            {
+                                if (!TryCloseCourse(onSuccessRetryAction: () => SwitchCourse(courseLocation)))
+                                    return;
+
+                                Console.WriteLine($"Selected course {courseLocation}!");
+
+                                mCurrentCourseName = courseLocation;
+                                mSelectedCourseScene = new(new(mCurrentCourseName), gl);
+                                mCourseSelect = null;
+                                UserSettings.AppendRecentCourse(courseLocation);
+                            }
+
+                            mCourseSelect = new(gl, SwitchCourse, mCurrentCourseName);
                         }
                     }
 
@@ -245,72 +258,6 @@ namespace Fushigi.ui
                 ImGui.EndMenuBar();
             }
         }
-
-        /*void DrawCourseList(GL gl)
-        {
-            bool status = ImGui.Begin("Select Course");
-
-            mCurrentCourseName = mSelectedCourseScene?.GetCourse().GetName();
-
-            foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
-            {
-                if (ImGui.TreeNode(worldCourses.Key))
-                {
-                    foreach (var courseLocation in worldCourses.Value)
-                    {
-                        if (ImGui.RadioButton(
-                                courseLocation,
-                                mCurrentCourseName == null ? false : courseLocation == mCurrentCourseName
-                            )
-                        )
-                        {
-                            // Only change the course if it is different from current
-                            *//*if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
-                               mIsChoosingCourse = false;*//*
-                            //else
-                            //{
-                                void SwitchCourse()
-                                {
-                                    if (!TryCloseCourse(onSuccessRetryAction: SwitchCourse))
-                                        return;
-
-                                    Console.WriteLine($"Selected course {courseLocation}!");
-
-                                    mSelectedCourseScene = new(new(courseLocation), gl);
-                                    UserSettings.AppendRecentCourse(courseLocation);
-
-                                    //mIsChoosingCourse = false;
-                                }
-
-                                SwitchCourse();
-                            //}
-                        }
-                    }
-                    ImGui.TreePop();
-                }
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-
-            if (!ImGui.Begin("Test"))
-            {
-                return;
-            }
-
-            var path = Path.Combine(RomFS.GetRoot(), "UI", "Tex", "Thumbnail", "Course001_Course.bntx.zs");
-            byte[] fileBytes = FileUtil.DecompressFile(path);
-
-            var bntx = new BntxFile(new MemoryStream(fileBytes));
-
-            var lol = new BfresTextureRender(gl, bntx.Textures[0]);
-
-            ImGui.Image((IntPtr)lol.ID, new Vector2(lol.Width, lol.Height));
-
-            ImGui.End();
-        }*/
 
         void DrawWelcome()
         {

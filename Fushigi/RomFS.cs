@@ -116,8 +116,7 @@ namespace Fushigi
             public string name;
             public IntPtr thumbnail;
         }
-        //TODO - loading only the current world and keeping them cached afterwards
-        //       rather than caching everything in the beginning
+        
         private static string sRomFSRoot;
         private static Dictionary<string, Dictionary<string, CourseEntry>> sCourseEntries = [];
     }

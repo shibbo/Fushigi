@@ -16,11 +16,13 @@ namespace Fushigi.ui.widgets
         string? selectedCourseName;
         Vector2 thumbnailSize = new(200, 100);
         GL gl;
+        Action<string> switchCourseCallback;
 
-        public CourseSelect(GL gl, string? selectedCourseName = null)
+        public CourseSelect(GL gl, Action<string> switchCourseCallback, string? selectedCourseName = null)
         {
             this.gl = gl;
             this.selectedCourseName = selectedCourseName;
+            this.switchCourseCallback = switchCourseCallback;
         }
 
         public void Draw()
@@ -86,6 +88,7 @@ namespace Fushigi.ui.widgets
                     if (selectedCourseName != course.Key)
                     {
                         Debug.WriteLine($"Switching to {course.Key}");
+                        switchCourseCallback(course.Key);
                     }
                 }
             }
