@@ -166,24 +166,30 @@ namespace Fushigi.ui.widgets
             {
                 Camera.Distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
 
+                // Default camera distance is 10, so speed is constant until 0.5 at 20
+                const float baseCameraSpeed = 0.25f;
+                const float scalingRate = 10.0f;
+                var zoomSpeedFactor = Math.Max(Camera.Distance / scalingRate, 1);
+                var zoomedCameraSpeed = MathF.Floor(zoomSpeedFactor) * baseCameraSpeed;
+
                 if (ImGui.IsKeyDown(ImGuiKey.LeftArrow) || ImGui.IsKeyDown(ImGuiKey.A))
                 {
-                    Camera.Target.X -= 0.25f;
+                    Camera.Target.X -= zoomedCameraSpeed;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.RightArrow) || ImGui.IsKeyDown(ImGuiKey.D))
                 {
-                    Camera.Target.X += 0.25f;
+                    Camera.Target.X += zoomedCameraSpeed;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.UpArrow) || ImGui.IsKeyDown(ImGuiKey.W))
                 {
-                    Camera.Target.Y += 0.25f;
+                    Camera.Target.Y += zoomedCameraSpeed;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.DownArrow) || ImGui.IsKeyDown(ImGuiKey.S))
                 {
-                    Camera.Target.Y -= 0.25f;
+                    Camera.Target.Y -= zoomedCameraSpeed;
                 }
             }
         }
