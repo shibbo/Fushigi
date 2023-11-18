@@ -12,6 +12,9 @@ using System.Runtime.InteropServices;
 using static System.Net.Mime.MediaTypeNames;
 using System.Reflection;
 using System.Diagnostics;
+using Fushigi.Bfres;
+using Fushigi.SARC;
+using Fushigi.gl.Bfres;
 
 namespace Fushigi.ui
 {
@@ -146,7 +149,6 @@ namespace Fushigi.ui
             {
                 mCurrentCourseName = latestCourse;
                 mSelectedCourseScene = new(new(mCurrentCourseName), gl);
-                mIsChoosingCourse = false;
                 mIsChoosingPreferences = false;
                 mIsWelcome = false;
             }
@@ -164,7 +166,20 @@ namespace Fushigi.ui
                     {
                         if (ImGui.MenuItem("Open Course"))
                         {
-                            mIsChoosingCourse = true;
+                            void SwitchCourse(string courseLocation)
+                            {
+                                if (!TryCloseCourse(onSuccessRetryAction: () => SwitchCourse(courseLocation)))
+                                    return;
+
+                                Console.WriteLine($"Selected course {courseLocation}!");
+
+                                mCurrentCourseName = courseLocation;
+                                mSelectedCourseScene = new(new(mCurrentCourseName), gl);
+                                mCourseSelect = null;
+                                UserSettings.AppendRecentCourse(courseLocation);
+                            }
+
+                            mCourseSelect = new(gl, SwitchCourse, mCurrentCourseName);
                         }
                     }
 
@@ -244,56 +259,6 @@ namespace Fushigi.ui
             }
         }
 
-        void DrawCourseList(GL gl)
-        {
-            bool status = ImGui.Begin("Select Course");
-
-            mCurrentCourseName = mSelectedCourseScene?.GetCourse().GetName();
-
-            foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
-            {
-                if (ImGui.TreeNode(worldCourses.Key))
-                {
-                    foreach (var courseLocation in worldCourses.Value)
-                    {
-                        if (ImGui.RadioButton(
-                                courseLocation,
-                                mCurrentCourseName == null ? false : courseLocation == mCurrentCourseName
-                            )
-                        )
-                        {
-                            // Only change the course if it is different from current
-                            if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
-                                mIsChoosingCourse = false;
-                            else
-                            {
-                                void SwitchCourse()
-                                {
-                                    if (!TryCloseCourse(onSuccessRetryAction: SwitchCourse))
-                                        return;
-
-                                    Console.WriteLine($"Selected course {courseLocation}!");
-
-                                    mSelectedCourseScene = new(new(courseLocation), gl);
-                                    UserSettings.AppendRecentCourse(courseLocation);
-
-                                    mIsChoosingCourse = false;
-                                }
-
-                                SwitchCourse();
-                            }
-                        }
-                    }
-                    ImGui.TreePop();
-                }
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
         void DrawWelcome()
         {
             if (!ImGui.Begin("Welcome"))
@@ -338,9 +303,9 @@ namespace Fushigi.ui
                 if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
                     !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                 {
-                    if (mIsChoosingCourse)
+                    if (mCourseSelect != null)
                     {
-                        DrawCourseList(gl);
+                        mCourseSelect.Draw();
                     }
 
                     mSelectedCourseScene?.DrawUI(gl);
@@ -389,7 +354,7 @@ namespace Fushigi.ui
         readonly IWindow mWindow;
         string? mCurrentCourseName;
         CourseScene? mSelectedCourseScene;
-        bool mIsChoosingCourse = true;
+        CourseSelect? mCourseSelect = null;
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
         bool mIsGeneratingParamDB = false;
