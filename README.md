@@ -17,7 +17,7 @@ cd Desktop
 rm -rf Fushigi
 git clone Fushigi
 cd Fushigi
-dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp
+dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp --version 0.6.0-alpha
 dotnet add Fushigi/Fushigi.csproj package Newtonsoft.Json 
 dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
 dotnet add Fushigi/Fushigi.csproj package Silk.NET.Input
