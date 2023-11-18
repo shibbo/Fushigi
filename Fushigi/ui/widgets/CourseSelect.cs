@@ -74,18 +74,18 @@ namespace Fushigi.ui.widgets
             }
             ImGui.TableNextRow();
 
+            RomFS.CacheCourseThumbnails(gl, selectedWorld!);
             var courses = RomFS.GetCourseEntries()[selectedWorld!];
-            var courseThumbnails = RomFS.GetCourseThumbnails();
 
             foreach (var course in courses)
             {
                 ImGui.TableNextColumn();
-                ImGui.Image(courseThumbnails[course], thumbnailSize);
-                if (ImGui.RadioButton(course, course == selectedCourseName))
+                ImGui.Image(course.Value.thumbnail, thumbnailSize);
+                if (ImGui.RadioButton(course.Key, course.Key == selectedCourseName))
                 {
-                    if (selectedCourseName != course)
+                    if (selectedCourseName != course.Key)
                     {
-                        Debug.WriteLine($"Switching to {course}");
+                        Debug.WriteLine($"Switching to {course.Key}");
                     }
                 }
             }

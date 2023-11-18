@@ -126,7 +126,6 @@ namespace Fushigi.ui
             if (RomFS.IsValidRoot(romFSPath))
             {
                 RomFS.SetRoot(romFSPath);
-                RomFS.CacheCourseThumbnails(gl);
                 ChildActorParam.Load();
             }
 
@@ -247,7 +246,7 @@ namespace Fushigi.ui
             }
         }
 
-        void DrawCourseList(GL gl)
+        /*void DrawCourseList(GL gl)
         {
             bool status = ImGui.Begin("Select Course");
 
@@ -266,8 +265,8 @@ namespace Fushigi.ui
                         )
                         {
                             // Only change the course if it is different from current
-                            /*if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
-                               mIsChoosingCourse = false;*/
+                            *//*if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
+                               mIsChoosingCourse = false;*//*
                             //else
                             //{
                                 void SwitchCourse()
@@ -311,7 +310,7 @@ namespace Fushigi.ui
             ImGui.Image((IntPtr)lol.ID, new Vector2(lol.Width, lol.Height));
 
             ImGui.End();
-        }
+        }*/
 
         void DrawWelcome()
         {

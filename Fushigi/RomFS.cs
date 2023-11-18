@@ -33,14 +33,9 @@ namespace Fushigi
                 Directory.Exists(Path.Combine(root, "Stage"));
         }
 
-        public static Dictionary<string, string[]> GetCourseEntries()
+        public static Dictionary<string, Dictionary<string, CourseEntry>> GetCourseEntries()
         {
             return sCourseEntries;
-        }
-
-        public static Dictionary<string, IntPtr> GetCourseThumbnails()
-        {
-            return sCourseThumbnails;
         }
 
         public static bool DirectoryExists(string path) {
@@ -65,7 +60,7 @@ namespace Fushigi
             foreach (string loadFile in loadFiles)
             {
                 string worldName = Path.GetFileName(loadFile).Split(".game")[0];
-                List<string> courseLocationList = new();
+                Dictionary<string, CourseEntry> courseLocationList = new();
                 Byml.Byml byml = new Byml.Byml(new MemoryStream(File.ReadAllBytes(loadFile)));
                 var root = (BymlHashTable)byml.Root;
                 var courseList = (BymlArrayNode)root["CourseTable"];
@@ -78,49 +73,52 @@ namespace Fushigi
                     // we need to "fix" our StagePath so it points to our course
                     string courseLocation = Path.GetFileName(derp).Split(".game")[0];
 
-                    courseLocationList.Add(courseLocation);
+                    courseLocationList.Add(courseLocation, new());
                 }
                 if (!sCourseEntries.ContainsKey(worldName))
                 {
-                    sCourseEntries.Add(worldName, courseLocationList.ToArray());
+                    sCourseEntries.Add(worldName, courseLocationList);
                 }
             }
         }
 
-        public static void CacheCourseThumbnails(GL gl)
+        public static void CacheCourseThumbnails(GL gl, string world)
         {
             var thumbnailFolder = Path.Combine(GetRoot(), "UI", "Tex", "Thumbnail");
 
-            sCourseThumbnails.Clear();
-            foreach (var world in sCourseEntries.Keys)
+            foreach (var course in sCourseEntries[world].Keys)
             {
-                foreach (var course in sCourseEntries[world])
+                // Skip the process if this course's thumbnail is already cached
+                if (sCourseEntries[world][course].thumbnail != 0)
                 {
-                    if (sCourseThumbnails.ContainsKey(course))
-                    {
-                        continue;
-                    }
-
-                    var path = Path.Combine(thumbnailFolder, $"{course}.bntx.zs");
-
-                    if (!File.Exists(path))
-                    {
-                        path = Path.Combine(thumbnailFolder, "Default.bntx.zs");
-                    }
-
-                    Debug.WriteLine($"Getting Thumbnail {path}");
-
-                    byte[] fileBytes = FileUtil.DecompressFile(path);
-                    var bntx = new BntxFile(new MemoryStream(fileBytes));
-                    var render = new BfresTextureRender(gl, bntx.Textures[0]);
-
-                    sCourseThumbnails.Add(course, (IntPtr)render.ID);
+                    continue;
                 }
+
+                var path = Path.Combine(thumbnailFolder, $"{course}.bntx.zs");
+
+                if (!File.Exists(path))
+                {
+                    path = Path.Combine(thumbnailFolder, "Default.bntx.zs");
+                }
+
+                Debug.WriteLine($"Getting Thumbnail {path}");
+
+                byte[] fileBytes = FileUtil.DecompressFile(path);
+                var bntx = new BntxFile(new MemoryStream(fileBytes));
+                var render = new BfresTextureRender(gl, bntx.Textures[0]);
+
+                sCourseEntries[world][course].thumbnail = (IntPtr)render.ID;
             }
         }
 
+        public class CourseEntry
+        {
+            public string name;
+            public IntPtr thumbnail;
+        }
+        //TODO - loading only the current world and keeping them cached afterwards
+        //       rather than caching everything in the beginning
         private static string sRomFSRoot;
-        private static Dictionary<string, string[]> sCourseEntries = [];
-        private static Dictionary<string, IntPtr> sCourseThumbnails = [];
+        private static Dictionary<string, Dictionary<string, CourseEntry>> sCourseEntries = [];
     }
 }
