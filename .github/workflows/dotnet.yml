@@ -20,6 +20,8 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
+    - name: Install wasi-experimental
+      run: dotent add wasi-experimental
     - name: Install NativeFileDialogSharp
       run: dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp --version 0.6.0-alpha
     - name: Install Newtonsoft.Json
