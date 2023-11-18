@@ -27,8 +27,11 @@ dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui
 dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
 dotnet add Fushigi/Fushigi.csproj package ZstdSharp.Port
 dotnet restore Fushigi/Fushigi.sln
-dotnet build Fushigi/Fushigi.sln --no-restore
+dotnet build Fushigi/Fushigi.sln -f net8.0 --no-restore
 ```
+
+> [!NOTE]
+> Use `dotnet build Fushigi/Fushigi.sln -f net8.0-ios-arm64 --no-restore` for iOS
 
 You will now have either "Fushigi.exe" (if you are on Windows) or "Fushigi" (if you are not on windows) located on your desktop at Fushigi/Fushigi/bin/Debug/net8.0/
 
