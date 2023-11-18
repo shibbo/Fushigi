@@ -343,7 +343,7 @@ namespace Fushigi.ui
                         DrawCourseList(gl);
                     }
 
-                    mSelectedCourseScene?.DrawUI(gl);
+                    mSelectedCourseScene?.DrawUI(gl, delta);
                 }
 
                 if (mIsChoosingPreferences)

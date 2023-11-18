@@ -162,7 +162,7 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        public void DrawUI(GL gl)
+        public void DrawUI(GL gl, double deltaSeconds)
         {
             UndoHistoryPanel();
 
@@ -220,7 +220,7 @@ namespace Fushigi.ui.widgets
                     ImGui.SetCursorScreenPos(topLeft);
 
                     ImGui.SetNextItemAllowOverlap();
-                    viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
+                    viewport.Draw(ImGui.GetContentRegionAvail(), deltaSeconds, mLayersVisibility);
                     if(activeViewport != viewport)
                         ImGui.GetWindowDrawList().AddRectFilled(topLeft, topLeft + size, 0x44000000);
 
