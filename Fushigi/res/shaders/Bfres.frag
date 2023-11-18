@@ -5,10 +5,18 @@ in vec3 Normals;
 in vec4 Tangents;
 
 uniform int hasAlbedoMap;
+uniform int hasAlbedoMapArray;
+
 uniform int hasNormalMap;
-uniform int hasEmissiveMap;
+uniform int hasNormalMapArray;
+
 uniform int hasAlphaMaskMap;
+uniform int hasAlphaMaskMapArray;
+
 uniform int hasMixMap;
+uniform int hasMixMapArray;
+
+uniform int hasEmissiveMap;
 
 uniform vec4 const_color0;
 
@@ -18,10 +26,10 @@ uniform sampler2D alpha_mask_texture;
 uniform sampler2D mix_texture;
 
 //Array types for tiles
-uniform sampler2DArray albedo_array_texture;
-uniform sampler2DArray normal_array_texture;
-uniform sampler2DArray alpha_mask_array_texture;
-uniform sampler2DArray mix_array_texture;
+uniform sampler2DArray albedo_texture_array;
+uniform sampler2DArray normal_texture_array;
+uniform sampler2DArray alpha_mask_texture_array;
+uniform sampler2DArray mix_texture_array;
 
 uniform int is_terrain_tile;
 uniform int tile_id;
@@ -78,24 +86,18 @@ void main()
 
     vec4 albedo = vec4(1.0);
     vec3 normals = Normals;
+    vec3 coords_tile = vec3(TexCoords0, tile_id);
 
     //Sampler data
-    if (is_terrain_tile == 1)
-    {
-        vec3 coords = vec3(TexCoords0, tile_id);
-        if (hasAlbedoMap == 1)
-            albedo = CalculateAlbedo(texture(albedo_array_texture, coords).rgba);
-    }
-    else
-    {
-        if (hasAlbedoMap == 1)
-            albedo = CalculateAlbedo(texture(albedo_texture, TexCoords0).rgba);
-        if (hasNormalMap == 1)
-        {
-           vec4 normal_map = texture(normal_texture, TexCoords0).rgba;
-           normals = CalcNormalMap(Normals, normal_map.xy);
-        }
-    }
+    if (hasAlbedoMap == 1)
+        albedo = CalculateAlbedo(texture(albedo_texture, TexCoords0).rgba);
+    else if (hasAlbedoMapArray == 1)
+        albedo = CalculateAlbedo(texture(albedo_texture_array, coords_tile).rgba);
+
+    if (hasNormalMap == 1)
+        normals = CalcNormalMap(Normals, texture(normal_texture, TexCoords0).rg);
+    else if (hasNormalMapArray == 1)
+        normals = CalcNormalMap(Normals, texture(normal_texture_array, coords_tile).rg);
 
     float halfLambert = dot(difLightDirection, normals) * 0.5 + 0.5;
 

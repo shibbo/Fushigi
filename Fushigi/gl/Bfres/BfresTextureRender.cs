@@ -66,7 +66,7 @@ namespace Fushigi.gl.Bfres
 
                         TextureState = State.Decoded;
 
-                        //This clears any resources and frees memory from thread.
+                        //This clears any resources.
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
                         GC.Collect();

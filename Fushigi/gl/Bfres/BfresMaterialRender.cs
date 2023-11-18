@@ -55,22 +55,24 @@ namespace Fushigi.gl.Bfres
 
             int unit_slot = 2;
 
+            bool isTile = false;
+
             for (int i = 0; i < this.Material.Samplers.Count; i++)
             {
                 var sampler = this.Material.Samplers.GetKey(i);
                 var texName = this.Material.Textures[i];
 
-                string varying = "";
+                string sampler_usage = "";
                 string uniform = "";
 
                 switch (sampler)
                 {
                     case "_a0":
-                        varying = "hasAlbedoMap";
+                        sampler_usage = "hasAlbedoMap";
                         uniform = "albedo_texture";
                         break;
                     case "_n0":
-                        varying = "hasNormalMap";
+                        sampler_usage = "hasNormalMap";
                         uniform = "normal_texture";
                         break;
                 }
@@ -80,7 +82,13 @@ namespace Fushigi.gl.Bfres
                     var tex = TryBindTexture(gl, renderer, texName);
                     if (tex != null)
                     {
-                        Shader.SetUniform(varying, 1);
+                        if (tex.Target == TextureTarget.Texture2DArray)
+                        {
+                            sampler_usage += "Array"; //add array suffix used in shader
+                            uniform += "_array";
+                        }
+
+                        Shader.SetUniform(sampler_usage, 1);
                         Shader.SetTexture(uniform, tex, unit_slot);
                         unit_slot++;
                     }
