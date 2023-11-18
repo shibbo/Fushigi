@@ -6,7 +6,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Fushigi.ui.widgets
 {
@@ -79,12 +81,16 @@ namespace Fushigi.ui.widgets
             RomFS.CacheCourseThumbnails(gl, selectedWorld!);
             var courses = RomFS.GetCourseEntries()[selectedWorld!];
 
+            float em = ImGui.GetFrameHeight();
+
             foreach (var course in courses)
             {
+                ImGui.PushID(course.Key);
                 ImGui.TableNextColumn();
-                ImGui.Image(course.Value.thumbnail, thumbnailSize);
-                ImGui.Text(course.Value.name);
-                if (ImGui.RadioButton(course.Key, course.Key == selectedCourseName))
+                bool clicked = ImGui.Selectable(string.Empty, course.Key == selectedCourseName, 
+                    ImGuiSelectableFlags.None, new Vector2(thumbnailSize.X, thumbnailSize.Y + em * 2.5f));
+
+                if (clicked)
                 {
                     if (selectedCourseName != course.Key)
                     {
@@ -92,6 +98,55 @@ namespace Fushigi.ui.widgets
                         switchCourseCallback(course.Key);
                     }
                 }
+
+                var min = ImGui.GetItemRectMin();
+                var max = ImGui.GetItemRectMax();
+
+                var dl = ImGui.GetWindowDrawList();
+
+                dl.PushClipRect(min, max, true);
+
+                dl.AddImage(course.Value.thumbnail,
+                    (min + max - thumbnailSize) / 2 - new Vector2(0, em * 1.25f),
+                    (min + max + thumbnailSize) / 2 - new Vector2(0, em * 1.25f));
+
+                ReadOnlySpan<char> text = course.Value.name;
+                if (text[^1] == '\0')
+                    text = text[..^1];
+                float textWidth = ImGui.CalcTextSize(text).X;
+
+                dl.AddText(new Vector2(
+                    (min.X + max.X - textWidth) / 2, 
+                    min.Y + thumbnailSize.Y + ImGui.GetStyle().FramePadding.Y),
+                    ImGui.GetColorU32(ImGuiCol.Text), text);
+
+                if (textWidth > (max-min).X && ImGui.IsMouseHoveringRect(
+                    new Vector2(min.X, min.Y + thumbnailSize.Y),
+                    new Vector2(max.X, min.Y + thumbnailSize.Y + em)))
+                {
+                    ImGui.SetTooltip(text);
+                }
+
+
+                text = course.Key;
+                textWidth = ImGui.CalcTextSize(text).X;
+
+                dl.AddText(new Vector2(
+                    (min.X + max.X - textWidth) / 2, 
+                    min.Y + thumbnailSize.Y + em + ImGui.GetStyle().FramePadding.Y),
+                    (ImGui.GetColorU32(ImGuiCol.Text) & 0xFF_FF_FF) | 0x99u << 24, text);
+
+                dl.PopClipRect();
+
+                /*
+                ImGui.Image(course.Value.thumbnail, thumbnailSize);
+                ImGui.Text(course.Value.name);
+                if (ImGui.RadioButton(course.Key, course.Key == selectedCourseName))
+                {
+                    
+                }
+                */
+                ImGui.PopID();
             }
 
             ImGui.EndTable();
