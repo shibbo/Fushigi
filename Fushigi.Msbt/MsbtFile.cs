@@ -26,6 +26,8 @@ namespace Fushigi.Msbt
 
         public Dictionary<string, string> Messages = new Dictionary<string, string>();
 
+        private byte[] AttributeData;
+
         private MsbtHeader Header;
 
         public MsbtFile(string filePath) {
@@ -61,7 +63,7 @@ namespace Fushigi.Msbt
                 switch (magic)
                 {
                     case "LBL1": labels = ReadLabel(reader); break;
-                    case "ATR1": ReadAttribute(reader); break;
+                    case "ATR1": AttributeData = reader.ReadBytes((int)size); break;
                     case "TXT2": messages = ReadText2(reader, encoding); break;
                 }
 
@@ -79,7 +81,19 @@ namespace Fushigi.Msbt
                 for (int i = 0; i < messages.Length; i++)
                     this.Messages.Add(i.ToString(), messages[i]);
             }
-            Console.WriteLine();
+        }
+
+        public void Write(Stream stream)
+        {
+            var encoding = Header.Encoding == 0 ? Encoding.UTF8 : Encoding.Unicode;
+
+            var writer = new BinaryWriter(stream, encoding);
+            writer.Write(Utils.AsSpan(ref Header));
+
+            writer.BaseStream.Seek(32, SeekOrigin.Begin);
+            WriteLabel(writer);
+            WriteAttribute(writer);
+            WriteText2(writer);
         }
 
         private void ReadAttribute(BinaryReader reader)
@@ -165,6 +179,30 @@ namespace Fushigi.Msbt
                 }
             }
             return sb.ToString(); 
+        }
+
+        private void WriteLabel(BinaryWriter writer)
+        {
+
+        }
+
+        private void WriteAttribute(BinaryWriter writer)
+        {
+            writer.Write(AttributeData);
+        }
+
+        private void WriteText2(BinaryWriter writer)
+        {
+            long startPosition = writer.BaseStream.Position;
+
+            writer.Write(Messages.Count);
+            for (int i = 0; i<Messages.Count; i++)
+                writer.Write(0);
+
+            foreach (var text in Messages.Values)
+            {
+                writer.Write(text);
+            }
         }
     }
 }
