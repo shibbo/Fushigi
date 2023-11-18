@@ -36,6 +36,42 @@ namespace Fushigi.Bfres
             return new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
         }
 
+        public static Vector4 ReadVector4(this BinaryReader reader)
+        {
+            return new Vector4(reader.ReadSingle(), reader.ReadSingle(), 
+                reader.ReadSingle(), reader.ReadSingle());
+        }
+
+        public static void Write(this BinaryWriter writer, float[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+                writer.Write(values[i]);
+        }
+
+        public static void Write(this BinaryWriter writer, uint[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+                writer.Write(values[i]);
+        }
+
+        public static void Write(this BinaryWriter writer, int[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+                writer.Write(values[i]);
+        }
+
+        public static void Write(this BinaryWriter writer, bool[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+                writer.Write(values[i]);
+        }
+
+        public static void AlignBytes(this BinaryWriter writer, int align)
+        {
+            var num = (writer.BaseStream.Position + (align - 1)) & ~(align - 1);
+            writer.Write(new byte[num]);
+        }
+
         public static sbyte[] ReadSbytes(this BinaryReader reader, int count)
         {
             sbyte[] values = new sbyte[count];
@@ -150,7 +186,7 @@ namespace Fushigi.Bfres
         {
             long pos = reader.BaseStream.Position;
 
-            reader.Seek(offset);
+            reader.SeekBegin(offset);
             var list = ReadArray<T>(reader, count);
 
             //seek back
@@ -196,7 +232,7 @@ namespace Fushigi.Bfres
             reader.BaseStream.Seek(offset, SeekOrigin.Begin);
         }
 
-        public static void Seek(this BinaryReader reader, ulong offset)
+        public static void SeekBegin(this BinaryReader reader, ulong offset)
         {
             reader.BaseStream.Seek((long)offset, SeekOrigin.Begin);
         }
@@ -239,7 +275,7 @@ namespace Fushigi.Bfres
         {
             long pos = reader.BaseStream.Position;
 
-            reader.Seek(offset);
+            reader.SeekBegin(offset);
 
             ushort size = reader.ReadUInt16();
             string value = reader.ReadUtf8Z();
