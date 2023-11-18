@@ -10,6 +10,11 @@ Fushigi.Byml/obj/*
 Fushigi.Bfres/.vs/*
 Fushigi.Bfres/bin/*
 Fushigi.Bfres/obj/*
+Fushigi.Msbt/.vs/*
+Fushigi.Msbt/bin/*
+Fushigi.Msbt/obj/*
 SARC/bin/*
 SARC/obj/*
 .DS_Store
+ConsoleApp1/*
+ConsoleApp2/*
