@@ -43,7 +43,7 @@ namespace Fushigi.ui.undo
 
     file class RemoveFromListUndo<T>(IList<T> list, T item, int index, string name) : IRevertable
     {
-        public string Name => throw new NotImplementedException();
+        public string Name => name;
 
         public IRevertable Revert() => list.RevertableInsert(item, index);
     }

@@ -22,5 +22,21 @@ namespace Fushigi.Msbt
             while (reader.BaseStream.Position % amount != 0 && reader.BaseStream.Position != reader.BaseStream.Length)
                 reader.ReadByte();
         }
+
+        public static void Align(this BinaryWriter writer, uint amount)
+        {
+            while (writer.BaseStream.Position % amount != 0 && writer.BaseStream.Position != writer.BaseStream.Length)
+                writer.Write((byte)0);
+        }
+
+        public static void WriteOffset(this BinaryWriter writer, long pos, long startPosition)
+        {
+            var base_pos = writer.BaseStream.Position;
+
+            writer.BaseStream.Seek(pos, SeekOrigin.Begin);
+            writer.Write((uint)(base_pos - startPosition));
+
+            writer.BaseStream.Seek(base_pos, SeekOrigin.Begin);
+        }
     }
 }
