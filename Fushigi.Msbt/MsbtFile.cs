@@ -94,7 +94,7 @@ namespace Fushigi.Msbt
             writer.BaseStream.Seek(32, SeekOrigin.Begin);
             WriteSection(writer, "LBL1", () => WriteLabel(writer, Messages.Keys.ToArray()));
             WriteSection(writer, "ATR1", () => WriteAttribute(writer));
-            WriteSection(writer, "TXT2", () => WriteText2(writer));
+            WriteSection(writer, "TXT2", () => WriteText2(writer, Messages.Values.ToArray()));
         }
 
         private void WriteSection(BinaryWriter writer, string magic, Action sectionWriter)
