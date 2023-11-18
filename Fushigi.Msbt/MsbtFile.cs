@@ -91,9 +91,20 @@ namespace Fushigi.Msbt
             writer.Write(Utils.AsSpan(ref Header));
 
             writer.BaseStream.Seek(32, SeekOrigin.Begin);
-            WriteLabel(writer);
-            WriteAttribute(writer);
-            WriteText2(writer);
+            WriteSection(writer, "LBL1", () => WriteLabel(writer));
+            WriteSection(writer, "ATR1", () => WriteAttribute(writer));
+            WriteSection(writer, "TXT2", () => WriteText2(writer));
+        }
+
+        private void WriteSection(BinaryWriter writer, string magic, Action sectionWriter)
+        {
+            writer.Write(Encoding.ASCII.GetBytes(magic));
+            writer.Write(0); //size for later
+            writer.Write(new byte[12]); //padding for alignment
+
+            sectionWriter.Invoke();
+
+            writer.Align(16);
         }
 
         private void ReadAttribute(BinaryReader reader)
