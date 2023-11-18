@@ -8,15 +8,28 @@ namespace Fushigi.gl
 {
     public class BoundingBox
     {
+        public Matrix4x4 TranformMatrix { get; set; } = Matrix4x4.Identity;
+
+        private Vector3 min;
+        private Vector3 max;
+
         /// <summary>
         /// The minimum point in the box.
         /// </summary>
-        public Vector3 Min { get; set; }
+        public Vector3 Min
+        {
+            get { return Vector3.Transform(min, TranformMatrix); }
+            set { min = value; }
+        }
 
         /// <summary>
         /// The maximum point in the box.
         /// </summary>
-        public Vector3 Max { get; set; }
+        public Vector3 Max
+        {
+            get { return Vector3.Transform(max, TranformMatrix); }
+            set { max = value; }
+        }
 
         /// <summary>
         /// Gets the center of the bounding box.
@@ -40,6 +53,21 @@ namespace Fushigi.gl
         public Vector3 GetSize()
         {
             return Max - Min;
+        }
+
+        public void Include(BoundingBox box)
+        {
+            this.min.X = MathF.Min(Min.X, box.Min.X);
+            this.min.Y = MathF.Min(Min.Y, box.Min.Y);
+            this.min.Z = MathF.Min(Min.Z, box.Min.Z);
+            this.max.X = MathF.Max(Max.X, box.Max.X);
+            this.max.Y = MathF.Max(Max.Y, box.Max.Y);
+            this.max.Z = MathF.Max(Max.Z, box.Max.Z);
+        }
+
+        public void Transform(Matrix4x4 matrix)
+        {
+            TranformMatrix = matrix;
         }
 
         public void Set(Vector4[] vertices)

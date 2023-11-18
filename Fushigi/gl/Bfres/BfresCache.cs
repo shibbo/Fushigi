@@ -14,13 +14,16 @@ namespace Fushigi.gl.Bfres
 
         public static BfresRender Load(GL gl, string projectName)
         {
-            var path = FileUtil.FindContentPath(Path.Combine("Model", projectName + ".bfres.zs"));
-            if (!File.Exists(path))
-                return null;
-
             if (!Cache.ContainsKey(projectName))
-                Cache.Add(projectName, new BfresRender(gl, new MemoryStream(FileUtil.DecompressFile(path))));
-
+            {
+                var path = FileUtil.FindContentPath(Path.Combine("Model", projectName + ".bfres.zs"));
+                if (File.Exists(path))
+                    Cache.Add(projectName, new BfresRender(gl, FileUtil.DecompressAsStream(path)));
+                else //use null renderer to not check the file again (todo this function should only load during course load)
+                {
+                    Cache.Add(projectName, null);
+                }
+            }
             return Cache[projectName];
         }
     }

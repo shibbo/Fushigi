@@ -9,6 +9,16 @@ namespace Fushigi.util
 {
     public static class Matrix4x4Extension
     {
+        public static Matrix4x4 Transpose(this Matrix4x4 matrix)
+        {
+            return new Matrix4x4(
+                matrix.M11, matrix.M21, matrix.M31, matrix.M41,
+                matrix.M12, matrix.M22, matrix.M32, matrix.M42,
+                matrix.M13, matrix.M23, matrix.M33, matrix.M43,
+                matrix.M14, matrix.M24, matrix.M34, matrix.M44
+            );
+        }
+
         public static Matrix4x4 Create(Vector4 c0, Vector4 c1, Vector4 c2, Vector4 c3)
         {
             return new Matrix4x4(

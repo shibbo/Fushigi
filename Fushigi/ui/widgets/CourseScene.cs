@@ -1,6 +1,7 @@
 using Fushigi.Byml;
 using Fushigi.course;
 using Fushigi.gl;
+using Fushigi.gl.Bfres;
 using Fushigi.param;
 using Fushigi.rstb;
 using Fushigi.ui.SceneObjects;
@@ -101,6 +102,36 @@ namespace Fushigi.ui.widgets
             }
 
             activeViewport = viewports[selectedArea];
+            PrepareResourcesLoad(gl);
+        }
+
+        public void PrepareResourcesLoad(GL gl)
+        {
+            //Check what files are needed to load/unload by area
+            List<string> resourceFiles = new List<string>();
+            foreach (var area in course.GetAreas())
+            {
+                foreach (var actor in area.GetActors())
+                {
+                    if (actor.mActorPack != null)
+                        resourceFiles.Add(actor.mActorPack.GetModelFileName());
+                }
+            }
+            //All resource files to load
+            resourceFiles = resourceFiles.Distinct().Where(x => !string.IsNullOrEmpty(x)).ToList();
+            //Unload any unused resources in the cache
+            foreach (var bfres in BfresCache.Cache)
+            {
+                //Not currently used by area, dispose
+                if (!resourceFiles.Contains(bfres.Key))
+                {
+                    bfres.Value.Dispose();
+                    Console.WriteLine($"Disposing resource {bfres.Key}");
+                }
+            }
+            //Load all used resources
+            foreach (var file in resourceFiles)
+                BfresCache.Load(gl, file);
         }
 
         public bool HasUnsavedChanges()
@@ -184,8 +215,6 @@ namespace Fushigi.ui.widgets
 
                     var topLeft = ImGui.GetCursorScreenPos();
                     var size = ImGui.GetContentRegionAvail();
-
-                //    viewport.DrawScene3D(size);
 
                     ImGui.SetNextItemAllowOverlap();
                     ImGui.SetCursorScreenPos(topLeft);

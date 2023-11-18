@@ -27,8 +27,8 @@ namespace Fushigi.gl
 
         public CameraFrustum CameraFrustum = new CameraFrustum();
 
-        public bool InFrustum(BoundingBox box) {
-            return CameraFrustum.CheckIntersection(this, box, 1f);
+        public bool InFrustum(BoundingBox box, float radius = 1f) {
+            return CameraFrustum.CheckIntersection(this, box, radius);
         }
 
         public bool UpdateMatrices()

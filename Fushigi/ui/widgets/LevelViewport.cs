@@ -188,19 +188,12 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        Plane2DRenderer Plane2DRenderer;
-        BfresRender BfresRender;
-
-        public void DrawScene3D(Vector2 size)
+        public void DrawScene3D(Vector2 size, IDictionary<string, bool> layersVisibility)
         {
+            mLayersVisibility = layersVisibility;
+
             if (Framebuffer == null)
                 Framebuffer = new GLFramebuffer(gl, FramebufferTarget.Framebuffer, (uint)size.X, (uint)size.Y);
-
-            if (Plane2DRenderer == null)
-                Plane2DRenderer = new Plane2DRenderer(gl, 10);
-
-            //if (BfresRender == null)
-             //   BfresRender = new BfresRender(gl, "PlayerMarioSuper.bfres"); 
 
             //Resize if needed
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
@@ -214,21 +207,35 @@ namespace Fushigi.ui.widgets
 
             gl.Enable(EnableCap.DepthTest);
 
+            RenderStats.Reset();
+
             foreach (var actor in this.mArea.GetActors())
             {
+                if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
+                    continue;
+
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
                 RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
             }
             Framebuffer.Unbind();
 
+             ImGui.SetCursorScreenPos(mTopLeft);
+
             //Draw framebuffer
             ImGui.Image((IntPtr)((GLTexture)Framebuffer.Attachments[0]).ID, new Vector2(size.X, size.Y),
                 new Vector2(0, 1), new Vector2(1, 0));
+
+            ImGui.SetNextItemAllowOverlap();
+
+            //Temp quick fix, add canvas below for handling 2d pick later
+            ImGui.SetCursorScreenPos(mTopLeft);
+            ImGui.InvisibleButton("canvas", size,
+                  ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
         }
 
         private void RenderActor(CourseActor actor, ModelInfo modelInfo)
         {
-            if (modelInfo == null)
+            if (modelInfo == null || modelInfo.mFilePath == null)
                 return;
 
             var resourceName = modelInfo.mFilePath;
@@ -238,10 +245,39 @@ namespace Fushigi.ui.widgets
             if (render == null || !render.Models.ContainsKey(modelName))
                 return;
 
-            var mat = Matrix4x4.CreateTranslation(actor.mTranslation);
+            var transMat = Matrix4x4.CreateTranslation(actor.mTranslation);
+            var scaleMat = Matrix4x4.CreateScale(actor.mScale);
+            var rotMat = Matrix4x4.CreateRotationX(actor.mRotation.X) *
+                     Matrix4x4.CreateRotationY(actor.mRotation.Y) *
+                    Matrix4x4.CreateRotationZ(actor.mRotation.Z);
 
-            var model = render.Models[modelName];
-            model.Render(gl, render, mat, this.Camera);
+            var mat = scaleMat * rotMat * transMat;
+
+             var model = render.Models[modelName];
+            //switch for drawing models with different methods easier
+            switch (modelName){
+                case "DokanTop":
+                    var matPTop = 
+                    Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.X, actor.mScale.Z) * 
+                    Matrix4x4.CreateTranslation(0, (actor.mScale.Y-actor.mScale.X)*2, 0) *
+                    rotMat *
+                    transMat;
+
+                    var matPMid = 
+                    Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.Y*2, actor.mScale.Z) * 
+                    rotMat *
+                    transMat;
+
+                    model.Render(gl, render, matPTop, this.Camera);
+                    render.Models["DokanMiddle"].Render(gl, render, matPMid, this.Camera);
+                    break;
+                default:
+                    model.Render(gl, render, mat, this.Camera);
+                    break;
+            }
+                
+            
+            
         }
 
         public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility)
@@ -273,6 +309,8 @@ namespace Fushigi.ui.widgets
 
             if (!Camera.UpdateMatrices())
                 return;
+
+            this.DrawScene3D(size, mLayersVisibility);
 
             DrawGrid();
 
@@ -924,8 +962,26 @@ namespace Fushigi.ui.widgets
                             actor.mTranslation.X,
                             actor.mTranslation.Y,
                             actor.mTranslation.Z
-                        );;
+                        ); ;
 
+                    uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
+
+                    if (actor.mActorName.Contains("CameraArea") || actor.mActorPack?.Category == "AreaObj")
+                    {
+                        if (actor.mActorName.Contains("CameraArea"))
+                            color = ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1));
+
+                        //topLeft
+                        s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 1f, 0), transform));
+                        //topRight
+                        s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(0.5f, 1f, 0), transform));
+                        //bottomRight
+                        s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(0.5f, 0, 0), transform));
+                        //bottomLeft
+                        s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(-0.5f, 0, 0), transform));
+                    }
+                    else
+                    {
                         //topLeft
                         s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 0.5f, 0), transform));
                         //topRight
@@ -934,43 +990,42 @@ namespace Fushigi.ui.widgets
                         s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(0.5f, -0.5f, 0), transform));
                         //bottomLeft
                         s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(-0.5f, -0.5f, 0), transform));
+                    }
 
-                        bool isHovered = HoveredObject == actor;
+                    if (mEditContext.IsSelected(actor))
+                    {
+                        color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+                    }
 
-                        uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
+                    bool isHovered = HoveredObject == actor;
 
+                    for (int i = 0; i < 4; i++)
+                    {
                         if (mEditContext.IsSelected(actor))
                         {
-                            color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+                            mDrawList.AddCircleFilled(s_actorRectPolygon[i],
+                                pointSize, color);
                         }
+                        mDrawList.AddLine(
+                            s_actorRectPolygon[i],
+                            s_actorRectPolygon[(i + 1) % 4],
+                            color, isHovered ? 2.5f : 1.5f);
+                    }
 
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (mEditContext.IsSelected(actor))
-                            {
-                                mDrawList.AddCircleFilled(s_actorRectPolygon[i],
-                                    pointSize, color);
-                            }
-                            mDrawList.AddLine(
-                                s_actorRectPolygon[i],
-                                s_actorRectPolygon[(i + 1) % 4],
-                                color, isHovered ? 2.5f : 1.5f);
-                        }
+                    string name = actor.mActorName;
 
-                        string name = actor.mActorName;
+                    isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
 
-                        isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
+                    if (name.Contains("Area"))
+                    {
+                        isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
+                            ImGui.GetMousePos());
+                    }
 
-                        if (name.Contains("Area"))
-                        {
-                            isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
-                                ImGui.GetMousePos());
-                        }
-
-                        if (isHovered)
-                        {
-                            newHoveredObject = actor;
-                        }
+                    if (isHovered)
+                    {
+                        newHoveredObject = actor;
+                    }
                 }
             }
 

@@ -30,8 +30,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Ryujinx.Graphics.Shader">
+      <HintPath>..\Fushigi.Bfres\ExternalLibraries\Ryujinx.Graphics.Shader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="res\AreaParam.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="res\DefaultTexture.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="res\Font.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

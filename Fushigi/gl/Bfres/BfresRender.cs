@@ -1,7 +1,11 @@
 ﻿using Fushigi.Bfres;
+using Fushigi.ui;
+using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using System.IO;
 using System.Numerics;
+using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace Fushigi.gl.Bfres
@@ -21,20 +25,22 @@ namespace Fushigi.gl.Bfres
             Init(gl, stream);
         }
 
+        //Cached
+        public BfresRender(BfresRender render)
+        {
+            foreach (var model in render.Models)
+                Models.Add(model.Key, new BfresModel(model.Value));
+            foreach (var texture in render.Textures)
+                Textures.Add(texture.Key, texture.Value);
+        }
+
         private void Init(GL gl, Stream stream)
         {
-            try
-            {
-                BfresFile file = new BfresFile(stream);
-                foreach (var model in file.Models.Values)
-                    Models.Add(model.Name, new BfresModel(gl, model));
-                foreach (var texture in file.TryGetTextureBinary().Textures)
-                    Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
-            }
-            catch
-            {
-
-            }
+            BfresFile file = new BfresFile(stream);
+            foreach (var model in file.Models.Values)
+                Models.Add(model.Name, new BfresModel(gl, model));
+            //foreach (var texture in file.TryGetTextureBinary().Textures)
+            //   Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
         }
 
         internal void Render(GL gl, Matrix4x4 transform, Camera camera)
@@ -43,9 +49,20 @@ namespace Fushigi.gl.Bfres
                 model.Render(gl, this, transform, camera);
         }
 
+        public void Dispose()
+        {
+            foreach (var model in Models.Values)
+                model.Dispose();
+
+            foreach (var tex in Textures.Values)
+                tex.Dispose();
+        }
+
         public class BfresModel
         {
             public List<BfresMesh> Meshes = new List<BfresMesh>();
+
+            public BoundingBox BoundingBox = new BoundingBox();
 
             public bool IsVisible = true;
 
@@ -55,9 +72,19 @@ namespace Fushigi.gl.Bfres
                     Meshes.Add(new BfresMesh(gl, model, shape));
             }
 
+            //Cached
+            public BfresModel(BfresModel bfresModel)
+            {            
+                foreach (var mesh in bfresModel.Meshes)
+                    Meshes.Add(mesh);
+            }
+
             internal void Render(GL gl, BfresRender render, Matrix4x4 transform, Camera camera)
             {
-                if (!IsVisible)
+                foreach (var mesh in Meshes)
+                    BoundingBox.Include(mesh.LodMeshes[0].BoundingBox);
+
+                if (!IsVisible || !camera.InFrustum(BoundingBox))
                     return;
 
                 foreach (var mesh in Meshes)
@@ -65,8 +92,20 @@ namespace Fushigi.gl.Bfres
                     if (!mesh.IsVisible)
                         continue;
 
+                    //Cull in camera frustum
+                    mesh.LodMeshes[0].BoundingBox.Transform(transform);
+
+                    if (!camera.InFrustum(mesh.LodMeshes[0].BoundingBox, mesh.LodMeshes[0].BoundingRadius))
+                        continue;
+
                     mesh.Render(gl, render, transform, camera.ViewProjectionMatrix);
                 }
+            }
+
+            public void Dispose()
+            {
+                foreach (var mesh in Meshes)
+                    mesh.Dispose();
             }
         }
 
@@ -74,7 +113,7 @@ namespace Fushigi.gl.Bfres
         {
             public bool IsVisible = true;
 
-            private List<DetailLevel> LodMeshes = new List<DetailLevel>();
+            public List<DetailLevel> LodMeshes = new List<DetailLevel>();
 
             public BfresMaterialRender MaterialRender = new BfresMaterialRender();
 
@@ -82,6 +121,7 @@ namespace Fushigi.gl.Bfres
             private List<BufferObject> Buffers = new List<BufferObject>();
             private BufferObject IndexBuffer;
             private VertexArrayObject vbo;
+            private VertexArrayObject vbo_game_shaders; //game shaders map attributes differently
 
             public BfresMesh(GL gl, Model model, Shape shape)
             {
@@ -99,6 +139,7 @@ namespace Fushigi.gl.Bfres
                 }
 
                 vbo = new VertexArrayObject(gl, this.Buffers, IndexBuffer);
+                vbo_game_shaders = new VertexArrayObject(gl, this.Buffers, IndexBuffer);
 
                 foreach (var attr in shape.VertexBuffer.Attributes.Values)
                 {
@@ -116,6 +157,23 @@ namespace Fushigi.gl.Bfres
                         normalized = true;
 
                     vbo.AddAttribute(name, count, format, normalized, stride, attr.Offset, attr.BufferIndex);
+
+                }
+
+                //Calculate the min/max from vertex positions
+                Vector3 min = new Vector3(float.MaxValue);
+                Vector3 max = new Vector3(float.MinValue);
+
+                var positions = shape.VertexBuffer.GetPositions();
+                for (int i = 0; i < positions.Length; i++)
+                {
+                    var position = new Vector3(positions[i].X, positions[i].Y, positions[i].Z);
+                    min.X = MathF.Min(min.X, position.X);
+                    min.Y = MathF.Min(min.Y, position.Y);
+                    min.Z = MathF.Min(min.Z, position.Z);
+                    max.X = MathF.Max(max.X, position.X);
+                    max.Y = MathF.Max(max.Y, position.Y);
+                    max.Z = MathF.Max(max.Z, position.Z);
                 }
 
                 LodMeshes.Add(new DetailLevel()
@@ -123,6 +181,12 @@ namespace Fushigi.gl.Bfres
                     IndexCount = (int)shape.Meshes[0].IndexCount,
                     Type = ElementTypes[shape.Meshes[0].IndexFormat],
                     PrimitiveType = PrimitiveTypes[shape.Meshes[0].PrimitiveType],
+                    BoundingBox = new BoundingBox()
+                    {
+                        Min = min,
+                        Max = max,
+                    },
+                    BoundingRadius = 1F, //center xyz, w = radius size
                 });
             }
 
@@ -139,6 +203,12 @@ namespace Fushigi.gl.Bfres
                 {
                     gl.DrawElements(mesh.PrimitiveType, (uint)mesh.IndexCount, mesh.Type, (void*)0);
                 }
+
+                RenderStats.NumDrawCalls += 1;
+                RenderStats.NumTriangles += mesh.IndexCount;
+
+                //Reset render state
+                GLMaterialRenderState.Reset(gl);
             }
 
 
@@ -151,9 +221,10 @@ namespace Fushigi.gl.Bfres
                 IndexBuffer?.Dispose();
                 //Dispose vertex array
                 vbo?.Dispose();
+                vbo_game_shaders?.Dispose();
             }
 
-            class DetailLevel
+            public class DetailLevel
             {
                 public int Offset;
                 public int IndexCount;
@@ -161,6 +232,9 @@ namespace Fushigi.gl.Bfres
                 public DrawElementsType Type = DrawElementsType.UnsignedInt;
 
                 public PrimitiveType PrimitiveType = PrimitiveType.Triangles;
+
+                public BoundingBox BoundingBox;
+                public float BoundingRadius;
             }
 
             Dictionary<BfresIndexFormat, DrawElementsType> ElementTypes = new Dictionary<BfresIndexFormat, DrawElementsType>()
@@ -181,7 +255,10 @@ namespace Fushigi.gl.Bfres
                 { "_p0", "aPosition" },
                 { "_n0", "aNormal" },
                 { "_u0", "aTexCoord0" },
+                { "_u1", "aTexCoord1" },
+                { "_u2", "aTexCoord2" },
                 { "_t0", "aTangent" },
+                { "_c0", "aColor" },
             };
 
             Dictionary<BfresAttribFormat, FormatInfo> FormatList = new Dictionary<BfresAttribFormat, FormatInfo>()
