@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -91,7 +92,7 @@ namespace Fushigi.Msbt
             writer.Write(Utils.AsSpan(ref Header));
 
             writer.BaseStream.Seek(32, SeekOrigin.Begin);
-            WriteSection(writer, "LBL1", () => WriteLabel(writer));
+            WriteSection(writer, "LBL1", () => WriteLabel(writer, Messages.Keys.ToArray()));
             WriteSection(writer, "ATR1", () => WriteAttribute(writer));
             WriteSection(writer, "TXT2", () => WriteText2(writer));
         }
@@ -192,9 +193,17 @@ namespace Fushigi.Msbt
             return sb.ToString(); 
         }
 
-        private void WriteLabel(BinaryWriter writer)
+        private void WriteLabel(BinaryWriter writer, string[] labels)
         {
-
+            writer.Write(1);
+            writer.Write((uint)labels.Length);
+            writer.Write(0x0C);
+            for (uint i = 0; i < labels.Length; i++)
+            {
+                writer.Write((byte)labels[i].Length);
+                writer.Write(Encoding.ASCII.GetBytes(labels[i]));
+                writer.Write(i);
+            }
         }
 
         private void WriteAttribute(BinaryWriter writer)
@@ -202,17 +211,21 @@ namespace Fushigi.Msbt
             writer.Write(AttributeData);
         }
 
-        private void WriteText2(BinaryWriter writer)
+        private void WriteText2(BinaryWriter writer, string[] text)
         {
             long startPosition = writer.BaseStream.Position;
 
-            writer.Write(Messages.Count);
-            for (int i = 0; i<Messages.Count; i++)
+            writer.Write(text.Length);
+            for (int i = 0; i < text.Length; i++)
                 writer.Write(0);
 
-            foreach (var text in Messages.Values)
+            for (int i = 0; i < text.Length; i++)
             {
-                writer.Write(text);
+                writer.WriteOffset(startPosition + 4 + i * 4, startPosition);
+                for (int j = 0; j < text[i].Length; j++)
+                    writer.Write((char)text[i][j]);
+
+                writer.Write((char)0);
             }
         }
     }
