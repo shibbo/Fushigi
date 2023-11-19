@@ -70,6 +70,7 @@ namespace Fushigi.ui.widgets
 
         public Camera Camera = new Camera();
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
+        public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
 
         public object? HoveredObject;
         public CourseLink? CurCourseLink = null;
@@ -228,9 +229,13 @@ namespace Fushigi.ui.widgets
 
              ImGui.SetCursorScreenPos(mTopLeft);
 
+            //Draw final output in post buffer
+            HDRScreenBuffer.Render(gl, (int)size.X, (int)size.Y, (GLTexture2D)Framebuffer.Attachments[0]);
+
+            Framebuffer.Unbind();
+
             //Draw framebuffer
-            ImGui.Image((IntPtr)((GLTexture)Framebuffer.Attachments[0]).ID, new Vector2(size.X, size.Y),
-                new Vector2(0, 1), new Vector2(1, 0));
+            ImGui.Image((IntPtr)HDRScreenBuffer.GetOutput().ID, new Vector2(size.X, size.Y));
 
             ImGui.SetNextItemAllowOverlap();
 
@@ -282,9 +287,6 @@ namespace Fushigi.ui.widgets
                     model.Render(gl, render, mat, this.Camera);
                     break;
             }
-                
-            
-            
         }
 
         public void Draw(Vector2 size, double deltaSeconds, IDictionary<string, bool> layersVisibility)
@@ -320,7 +322,6 @@ namespace Fushigi.ui.widgets
             this.DrawScene3D(size, mLayersVisibility);
 
             DrawGrid();
-
             DrawAreaContent();
 
             if (!mouseHover)
