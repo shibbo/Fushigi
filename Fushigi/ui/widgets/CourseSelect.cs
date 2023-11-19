@@ -16,7 +16,7 @@ namespace Fushigi.ui.widgets
     {
         string? selectedWorld;
         string? selectedCourseName;
-        Vector2 thumbnailSize = new(200, 100);
+        Vector2 thumbnailSize = new(200f, 112.5f);
         GL gl;
         Action<string> switchCourseCallback;
 
@@ -88,7 +88,7 @@ namespace Fushigi.ui.widgets
                 ImGui.PushID(course.Key);
                 ImGui.TableNextColumn();
                 bool clicked = ImGui.Selectable(string.Empty, course.Key == selectedCourseName, 
-                    ImGuiSelectableFlags.None, new Vector2(thumbnailSize.X, thumbnailSize.Y + em * 2.5f));
+                    ImGuiSelectableFlags.None, new Vector2(thumbnailSize.X, thumbnailSize.Y + em * 1.8f));
 
                 if (clicked)
                 {
@@ -127,7 +127,6 @@ namespace Fushigi.ui.widgets
                     ImGui.SetTooltip(text);
                 }
 
-
                 text = course.Key;
                 textWidth = ImGui.CalcTextSize(text).X;
 
@@ -138,14 +137,6 @@ namespace Fushigi.ui.widgets
 
                 dl.PopClipRect();
 
-                /*
-                ImGui.Image(course.Value.thumbnail, thumbnailSize);
-                ImGui.Text(course.Value.name);
-                if (ImGui.RadioButton(course.Key, course.Key == selectedCourseName))
-                {
-                    
-                }
-                */
                 ImGui.PopID();
             }
 
