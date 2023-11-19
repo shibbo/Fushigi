@@ -18,6 +18,8 @@ namespace Fushigi.gl.Bfres
 
         private Task<byte[]> Decoder;
 
+        private bool IsSrgb = false;
+
         public BfresTextureRender(GL gl, BntxTexture texture) : base(gl)
         {
             Load(texture);
@@ -26,6 +28,7 @@ namespace Fushigi.gl.Bfres
         public void Load(BntxTexture texture)
         {
             this.Target = TextureTarget.Texture2D;
+            this.IsSrgb = texture.IsSrgb;
 
             if (texture.SurfaceDim == SurfaceDim.Dim2DArray)
                 this.Target = TextureTarget.Texture2DArray;
@@ -113,11 +116,13 @@ namespace Fushigi.gl.Bfres
 
         public void CheckState()
         {
-            if (TextureState == State.Decoded && Decoder.IsCompleted)
+            if (TextureState == State.Decoded && Decoder.IsCompleted && !this.IsDisposed)
             {
                 Bind();
 
-                var formatInfo = GLFormatHelper.ConvertPixelFormat(SurfaceFormat.R8_G8_B8_A8_UNORM);
+                var format = IsSrgb ? SurfaceFormat.R8_G8_B8_A8_SRGB : SurfaceFormat.R8_G8_B8_A8_UNORM;
+
+                var formatInfo = GLFormatHelper.ConvertPixelFormat(format);
                 GLTextureDataLoader.LoadImage(_gl, this.Target, Width, Height, 0, formatInfo, Decoder.Result, 0);
 
                // var internalFormat = GLFormatHelper.ConvertCompressedFormat(SurfaceFormat.BC7_UNORM, true);

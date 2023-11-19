@@ -28,6 +28,8 @@ namespace Fushigi.gl
 
         internal GL _gl { get; private set; }
 
+        public bool IsDisposed = false;
+
         public GLTexture(GL gl) : base(gl.GenTexture())
         {
             _gl = gl;
@@ -65,6 +67,8 @@ namespace Fushigi.gl
 
         public void Dispose()
         {
+            IsDisposed = true;
+            _gl.DeleteTexture(ID);
         }
 
         internal static uint CalculateMipDimension(uint baseLevelDimension, uint mipLevel)
