@@ -23,6 +23,7 @@ namespace Fushigi.Bfres
         public Vector4[] GetTangents() => TryGetAttributeData($"_t0");
         public Vector4[] GetBitangent() => TryGetAttributeData($"_b0");
 
+
         /// <summary>
         /// The buffer data used to store attribute data.
         /// </summary>
@@ -178,11 +179,6 @@ namespace Fushigi.Bfres
         public string Name { get; set; }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public byte SkinCount => header.MaxSkinInfluence;
-
-        /// <summary>
         /// The index for the vertex buffer.
         /// </summary>
         internal int VertexBufferIndex
@@ -199,14 +195,6 @@ namespace Fushigi.Bfres
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public int BoneIndex
-        {
-            get { return header.BoneIndex; }
-        }
-        
-        /// <summary>
         /// The mesh list for handling level of details.
         /// The first mesh is used by default without LODs.
         /// </summary>
@@ -221,11 +209,6 @@ namespace Fushigi.Bfres
         /// Bounding boxes used to frustum check mesh LODs and submeshes.
         /// </summary>
         public List<ShapeBounding> BoundingBoxes { get; set; } = new List<ShapeBounding>();
-        
-        /// <summary>
-        /// List of spheres for culling either per mesh or per bone for rigged models.
-        /// </summary>
-        public List<Vector4> BoundingSpheres { get; set; } = new List<Vector4>();
 
         private ShapeHeader header;
 
@@ -239,21 +222,10 @@ namespace Fushigi.Bfres
             Meshes = reader.ReadArray<Mesh>(header.MeshArrayOffset, header.MeshCount);
 
             var numBounding = (int)Meshes.Sum(x => x.SubMeshes.Count + 1);
-
-            BoundingSpheres = reader.ReadCustom(() =>
-            {
-                //Only load per mesh for now
-                //Rigs can use per bone
-                var numRadius = this.Meshes.Count; 
-
-                Vector4[] values = new Vector4[numRadius];
-                for (int i = 0; i < values.Length; i++)
-                    values[i] = reader.ReadVector4();
-
-                return values.ToList();
-            }, header.BoundingSphereOffset);
-
             BoundingBoxes = reader.ReadArray<ShapeBounding>(header.BoundingBoxOffset, numBounding);
+
+            Console.WriteLine($"Shape - {Name} -");
+
             reader.SeekBegin(pos);
         }
 
@@ -313,10 +285,10 @@ namespace Fushigi.Bfres
             header = new MeshHeader();
             reader.BaseStream.Read(Utils.AsSpan(ref header));
 
-            reader.SeekBegin(header.BufferInfoOffset);
+            reader.Seek(header.BufferInfoOffset);
             BufferInfo = reader.Read<IndexBufferInfo>();
 
-            reader.SeekBegin(header.SubMeshArrayOffset);
+            reader.Seek(header.SubMeshArrayOffset);
             SubMeshes = reader.ReadArray<SubMesh>(header.SubMeshCount);
         }
 

@@ -120,23 +120,15 @@ namespace Fushigi.ui.widgets
             //All resource files to load
             resourceFiles = resourceFiles.Distinct().Where(x => !string.IsNullOrEmpty(x)).ToList();
             //Unload any unused resources in the cache
-
-            List<string> removed = new List<string>();
             foreach (var bfres in BfresCache.Cache)
             {
                 //Not currently used by area, dispose
                 if (!resourceFiles.Contains(bfres.Key))
                 {
                     bfres.Value.Dispose();
-                    removed.Add(bfres.Key);
-
                     Console.WriteLine($"Disposing resource {bfres.Key}");
                 }
             }
-
-            foreach (var bfres in removed)
-                BfresCache.Cache.Remove(bfres);
-
             //Load all used resources
             foreach (var file in resourceFiles)
                 BfresCache.Load(gl, file);
@@ -170,7 +162,7 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        public void DrawUI(GL gl, double deltaSeconds)
+        public void DrawUI(GL gl)
         {
             UndoHistoryPanel();
 
@@ -228,7 +220,7 @@ namespace Fushigi.ui.widgets
                     ImGui.SetCursorScreenPos(topLeft);
 
                     ImGui.SetNextItemAllowOverlap();
-                    viewport.Draw(ImGui.GetContentRegionAvail(), deltaSeconds, mLayersVisibility);
+                    viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
                     if(activeViewport != viewport)
                         ImGui.GetWindowDrawList().AddRectFilled(topLeft, topLeft + size, 0x44000000);
 

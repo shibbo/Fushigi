@@ -29,7 +29,6 @@ namespace Fushigi.course
             mName = BymlUtil.GetNodeData<string>(actorNode["Name"]);
             mActorPack = ActorPackCache.Load(mActorName);
 
-
             if (actorNode.ContainsKey("Dynamic"))
             {
                 if (ParamDB.HasActorComponents(mActorName))
@@ -124,7 +123,6 @@ namespace Fushigi.course
             mActorHash = RandomUtil.GetRandom();
             mActorParameters = new();
             mSystemParameters = new();
-            mActorPack = ActorPackCache.Load(mActorName);
 
             InitializeDefaultDynamicParams();
         }

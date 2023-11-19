@@ -308,7 +308,7 @@ namespace Fushigi.ui
                         mCourseSelect.Draw();
                     }
 
-                    mSelectedCourseScene?.DrawUI(gl, delta);
+                    mSelectedCourseScene?.DrawUI(gl);
                 }
 
                 if (mIsChoosingPreferences)

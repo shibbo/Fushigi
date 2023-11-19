@@ -32,27 +32,6 @@ namespace Fushigi.Bfres
         private ShaderInfoHeader shaderInfoHeader;
         private ShaderAssignHeader shaderAssignHeader;
 
-        public string GetRenderInfoString(string key)
-        {
-            if (this.RenderInfos.ContainsKey(key))
-                return this.RenderInfos[key].GetValueStrings().FirstOrDefault();
-            return "";
-        }
-
-        public float GetRenderInfoFloat(string key)
-        {
-            if (this.RenderInfos.ContainsKey(key))
-                return this.RenderInfos[key].GetValueSingles().FirstOrDefault();
-            return 1f;
-        }
-
-        public int GetRenderInfoInt(string key)
-        {
-            if (this.RenderInfos.ContainsKey(key))
-                return this.RenderInfos[key].GetValueInt32s().FirstOrDefault();
-            return 1;
-        }
-
         public void Read(BinaryReader reader)
         {
             reader.BaseStream.Read(Utils.AsSpan(ref header));
@@ -277,7 +256,7 @@ namespace Fushigi.Bfres
             MinLOD = reader.ReadSingle();
             MaxLOD = reader.ReadSingle();
             LODBias = reader.ReadSingle();
-            reader.ReadBytes(12);
+            reader.Seek(12);
         }
     }
 

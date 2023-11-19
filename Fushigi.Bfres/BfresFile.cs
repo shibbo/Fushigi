@@ -56,15 +56,13 @@ namespace Fushigi.Bfres
             Name = reader.ReadStringOffset(Header.NameOffset);
 
 
-            reader.SeekBegin(Header.MemoryPoolInfoOffset);
+            reader.Seek(Header.MemoryPoolInfoOffset);
             stream.Read(Utils.AsSpan(ref BufferMemoryPoolInfo));
 
             Models = reader.ReadDictionary<Model>(Header.ModelDictionaryOffset, Header.ModelOffset);
             EmbeddedFiles = reader.ReadDictionary<EmbeddedFile>(Header.EmbeddedFilesDictionaryOffset, Header.EmbeddedFilesOffset);
 
             Init(reader);
-
-            stream.Dispose();
         }
 
         internal void Init(BinaryReader reader)

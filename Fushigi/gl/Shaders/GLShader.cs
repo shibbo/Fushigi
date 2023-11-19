@@ -62,7 +62,7 @@ namespace Fushigi.gl
         {
             _gl.ActiveTexture(TextureUnit.Texture0 + slot);
             texture.Bind();
-            SetUniform(uniform, slot);
+            SetUniform(uniform, 1);
         }
 
         public void SetUniform(string name, int value)
@@ -71,18 +71,9 @@ namespace Fushigi.gl
             if (location == -1)
             {
                 return;
+         //       throw new Exception($"{name} uniform not found on shader.");
             }
             _gl.Uniform1(location, value);
-        }
-
-        public void SetUniform(string name, Vector4 value)
-        {
-            int location = _gl.GetUniformLocation(ID, name);
-            if (location == -1)
-            {
-                return;
-            }
-            _gl.Uniform4(location, value);
         }
 
         public unsafe void SetUniform(string name, Matrix4x4 value)
@@ -91,7 +82,7 @@ namespace Fushigi.gl
             int location = _gl.GetUniformLocation(ID, name);
             if (location == -1)
             {
-                return;
+                throw new Exception($"{name} uniform not found on shader.");
             }
             _gl.UniformMatrix4(location, 1, false, (float*)&value);
         }
@@ -101,7 +92,7 @@ namespace Fushigi.gl
             int location = _gl.GetUniformLocation(ID, name);
             if (location == -1)
             {
-                return;
+                throw new Exception($"{name} uniform not found on shader.");
             }
             _gl.Uniform1(location, value);
         }
@@ -111,7 +102,7 @@ namespace Fushigi.gl
             int location = _gl.GetUniformLocation(ID, name);
             if (location == -1)
             {
-                return;
+                throw new Exception($"{name} uniform not found on shader.");
             }
             _gl.Uniform3(location, value.X, value.Y, value.Z);
         }

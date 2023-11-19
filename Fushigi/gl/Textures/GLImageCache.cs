@@ -19,17 +19,6 @@ namespace Fushigi.gl
         /// </summary>
         public Dictionary<string, uint> Images = new Dictionary<string, uint>();
 
-        public static GLTexture2D DefaultTexture;
-
-        public static GLTexture GetDefaultTexture(GL gl)
-        {
-            //Default texture
-            if (DefaultTexture == null)
-                DefaultTexture = GLTexture2D.Load(gl, Path.Combine("res", "DefaultTexture.png"));
-
-            return DefaultTexture;
-        }
-
         public uint GetImage(GL gl, string key, string filePath)
         {
             if (!Images.ContainsKey(key))

@@ -70,7 +70,6 @@ namespace Fushigi.ui.widgets
 
         public Camera Camera = new Camera();
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
-        public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
 
         public object? HoveredObject;
         public CourseLink? CurCourseLink = null;
@@ -152,7 +151,7 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        public void HandleCameraControls(double deltaSeconds, bool mouseHover, bool mouseActive)
+        public void HandleCameraControls(bool mouseHover, bool mouseActive)
         {
             bool isPanGesture = (ImGui.IsMouseDragging(ImGuiMouseButton.Middle)) ||
                 (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyShift);
@@ -167,31 +166,24 @@ namespace Fushigi.ui.widgets
             {
                 Camera.Distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
 
-                // Default camera distance is 10, so speed is constant until 0.5 at 20
-                const float baseCameraSpeed = 0.25f * 60;
-                const float scalingRate = 10.0f;
-                var zoomSpeedFactor = Math.Max(Camera.Distance / scalingRate, 1);
-                var zoomedCameraSpeed = MathF.Floor(zoomSpeedFactor) * baseCameraSpeed;
-                var dt = (float)deltaSeconds;
-
                 if (ImGui.IsKeyDown(ImGuiKey.LeftArrow) || ImGui.IsKeyDown(ImGuiKey.A))
                 {
-                    Camera.Target.X -= zoomedCameraSpeed * dt;
+                    Camera.Target.X -= 0.25f;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.RightArrow) || ImGui.IsKeyDown(ImGuiKey.D))
                 {
-                    Camera.Target.X += zoomedCameraSpeed * dt;
+                    Camera.Target.X += 0.25f;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.UpArrow) || ImGui.IsKeyDown(ImGuiKey.W))
                 {
-                    Camera.Target.Y += zoomedCameraSpeed * dt;
+                    Camera.Target.Y += 0.25f;
                 }
 
                 if (ImGui.IsKeyDown(ImGuiKey.DownArrow) || ImGui.IsKeyDown(ImGuiKey.S))
                 {
-                    Camera.Target.Y -= zoomedCameraSpeed * dt;
+                    Camera.Target.Y -= 0.25f;
                 }
             }
         }
@@ -229,13 +221,9 @@ namespace Fushigi.ui.widgets
 
              ImGui.SetCursorScreenPos(mTopLeft);
 
-            //Draw final output in post buffer
-            HDRScreenBuffer.Render(gl, (int)size.X, (int)size.Y, (GLTexture2D)Framebuffer.Attachments[0]);
-
-            Framebuffer.Unbind();
-
             //Draw framebuffer
-            ImGui.Image((IntPtr)HDRScreenBuffer.GetOutput().ID, new Vector2(size.X, size.Y));
+            ImGui.Image((IntPtr)((GLTexture)Framebuffer.Attachments[0]).ID, new Vector2(size.X, size.Y),
+                new Vector2(0, 1), new Vector2(1, 0));
 
             ImGui.SetNextItemAllowOverlap();
 
@@ -287,9 +275,12 @@ namespace Fushigi.ui.widgets
                     model.Render(gl, render, mat, this.Camera);
                     break;
             }
+                
+            
+            
         }
 
-        public void Draw(Vector2 size, double deltaSeconds, IDictionary<string, bool> layersVisibility)
+        public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility)
         {
             mLayersVisibility = layersVisibility;
             mTopLeft = ImGui.GetCursorScreenPos();
@@ -308,7 +299,7 @@ namespace Fushigi.ui.widgets
 
             ImGui.PushClipRect(mTopLeft, mTopLeft + size, true);
 
-            HandleCameraControls(deltaSeconds, mouseHover, mouseActive);
+            HandleCameraControls(mouseHover, mouseActive);
 
             if (Camera.Width != mSize.X || Camera.Height != mSize.Y)
             {
@@ -322,6 +313,7 @@ namespace Fushigi.ui.widgets
             this.DrawScene3D(size, mLayersVisibility);
 
             DrawGrid();
+
             DrawAreaContent();
 
             if (!mouseHover)

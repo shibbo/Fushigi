@@ -20,7 +20,6 @@ namespace Fushigi.Msbt
             public byte Version; //3
             public ushort NumSections;
             public ushort Padding2;
-            public uint FileSize;
 
             public ulong Padding3;
             public uint Padding4;
@@ -85,17 +84,8 @@ namespace Fushigi.Msbt
             }
         }
 
-        public void Save(string filePath)
+        public void Write(Stream stream)
         {
-            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write)) {
-                Save(fs);
-            }
-        }
-
-        public void Save(Stream stream)
-        {
-            Header.NumSections = CalculateSectionCount();
-
             var encoding = Header.Encoding == 0 ? Encoding.UTF8 : Encoding.Unicode;
 
             var writer = new BinaryWriter(stream, encoding);
@@ -104,31 +94,17 @@ namespace Fushigi.Msbt
             writer.BaseStream.Seek(32, SeekOrigin.Begin);
             WriteSection(writer, "LBL1", () => WriteLabel(writer, Messages.Keys.ToArray()));
             WriteSection(writer, "ATR1", () => WriteAttribute(writer));
-            WriteSection(writer, "TXT2", () => WriteText2(writer, Messages.Values.ToArray(), encoding));
-
-            //file size
-            writer.WriteSize(18, (uint)writer.BaseStream.Length);
-        }
-
-        private ushort CalculateSectionCount()
-        {
-            return 3;
+            WriteSection(writer, "TXT2", () => WriteText2(writer, Messages.Values.ToArray()));
         }
 
         private void WriteSection(BinaryWriter writer, string magic, Action sectionWriter)
         {
             writer.Write(Encoding.ASCII.GetBytes(magic));
             writer.Write(0); //size for later
-            writer.Write(new byte[8]); //padding for alignment
-
-            var pos = writer.BaseStream.Position;
+            writer.Write(new byte[12]); //padding for alignment
 
             sectionWriter.Invoke();
 
-            var endpos = writer.BaseStream.Position;
-
-            //Write size
-            writer.WriteSize(pos - 12, (uint)(endpos - pos));
             writer.Align(16);
         }
 
@@ -189,8 +165,7 @@ namespace Fushigi.Msbt
             while (!isNullTerimated)
             {
                 char c = reader.ReadChar();
-                if (c != 0x00)
-                    sb.Append(c);
+                sb.Append(c);
 
                 switch ((int)c)
                 {
@@ -206,8 +181,7 @@ namespace Fushigi.Msbt
                             sb.Append((char)reader.ReadByte());
                         }
                         break;
-                    case 0xF:
-                        //end tag
+                    case 0x0F: //tag end
                         sb.Append((char)reader.ReadInt16());
                         sb.Append((char)reader.ReadInt16());
                         break;
@@ -237,7 +211,7 @@ namespace Fushigi.Msbt
             writer.Write(AttributeData);
         }
 
-        private void WriteText2(BinaryWriter writer, string[] text, Encoding encoding)
+        private void WriteText2(BinaryWriter writer, string[] text)
         {
             long startPosition = writer.BaseStream.Position;
 
@@ -248,43 +222,11 @@ namespace Fushigi.Msbt
             for (int i = 0; i < text.Length; i++)
             {
                 writer.WriteOffset(startPosition + 4 + i * 4, startPosition);
-                writer.Write(GetMessageBytes(text[i], encoding));
-            }
-        }
+                for (int j = 0; j < text[i].Length; j++)
+                    writer.Write((char)text[i][j]);
 
-        private byte[] GetMessageBytes(string str, Encoding encoding)
-        {
-            var mem = new MemoryStream();
-            using (var bw = new BinaryWriter(mem, encoding))
-            {
-                for (var i = 0; i < str.Length; i++)
-                {
-                    var c = str[i];
-                    bw.Write(c);
-                    if (c == 0xE)
-                    {
-                        //tag code
-                        bw.Write((short)str[++i]);
-                        bw.Write((short)str[++i]);
-
-                        //tag parameters
-                        int num_params = str[++i];
-                        bw.Write((short)num_params);
-                        for (var j = 0; j < num_params; j++)
-                        {
-                            bw.Write((byte)str[++i]);
-                        }
-                    }
-                    if (c == 0xF)
-                    {
-                        //end tag
-                        bw.Write((short)str[++i]);
-                        bw.Write((short)str[++i]);
-                    }
-                }
-                bw.Write('\0'); //null terminator
+                writer.Write((char)0);
             }
-            return mem.ToArray();
         }
     }
 }

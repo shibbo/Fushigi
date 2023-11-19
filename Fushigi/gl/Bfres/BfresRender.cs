@@ -4,6 +4,9 @@ using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using System.IO;
 using System.Numerics;
+using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
+
 
 namespace Fushigi.gl.Bfres
 {
@@ -36,8 +39,8 @@ namespace Fushigi.gl.Bfres
             BfresFile file = new BfresFile(stream);
             foreach (var model in file.Models.Values)
                 Models.Add(model.Name, new BfresModel(gl, model));
-            foreach (var texture in file.TryGetTextureBinary().Textures)
-               Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
+            //foreach (var texture in file.TryGetTextureBinary().Textures)
+            //   Textures.Add(texture.Key, new BfresTextureRender(gl, texture.Value));
         }
 
         internal void Render(GL gl, Matrix4x4 transform, Camera camera)
@@ -66,7 +69,7 @@ namespace Fushigi.gl.Bfres
             public BfresModel(GL gl, Model model)
             {
                 foreach (var shape in model.Shapes.Values)
-                    Meshes.Add(new BfresMesh(gl, this, model, shape));
+                    Meshes.Add(new BfresMesh(gl, model, shape));
             }
 
             //Cached
@@ -95,7 +98,7 @@ namespace Fushigi.gl.Bfres
                     if (!camera.InFrustum(mesh.LodMeshes[0].BoundingBox, mesh.LodMeshes[0].BoundingRadius))
                         continue;
 
-                    mesh.Render(gl, render, this, transform, camera);
+                    mesh.Render(gl, render, transform, camera.ViewProjectionMatrix);
                 }
             }
 
@@ -120,10 +123,10 @@ namespace Fushigi.gl.Bfres
             private VertexArrayObject vbo;
             private VertexArrayObject vbo_game_shaders; //game shaders map attributes differently
 
-            public BfresMesh(GL gl, BfresModel modelRender, Model model, Shape shape)
+            public BfresMesh(GL gl, Model model, Shape shape)
             {
                 var material = model.Materials[shape.MaterialIndex];
-                MaterialRender.Init(gl, modelRender, this, shape, material);
+                MaterialRender.Init(gl, material);
 
                 IndexBuffer = new BufferObject(gl, BufferTargetARB.ElementArrayBuffer);
                 IndexBuffer.SetData(shape.Meshes[0].IndexBuffer);
@@ -187,11 +190,11 @@ namespace Fushigi.gl.Bfres
                 });
             }
 
-            public void Render(GL gl, BfresRender renderer, BfresModel modelRender, Matrix4x4 transform, Camera camera)
+            public void Render(GL gl, BfresRender renderer, Matrix4x4 transform, Matrix4x4 cameraMatrix)
             {
                 var mesh = this.LodMeshes[0]; //only use first level of detail
 
-                MaterialRender.Render(gl, renderer, modelRender, transform, camera);
+                MaterialRender.Render(gl, renderer, transform, cameraMatrix);
 
                 vbo.Enable(MaterialRender.Shader);
                 vbo.Use();
@@ -278,19 +281,8 @@ namespace Fushigi.gl.Bfres
                 { BfresAttribFormat.Format_8_8_8_8_SNorm, new FormatInfo(4, true, VertexAttribIType.Byte) },
                 { BfresAttribFormat.Format_8_8_8_8_UNorm, new FormatInfo(4, true, VertexAttribIType.UnsignedByte) },
 
-                { BfresAttribFormat.Format_8_8_UNorm, new FormatInfo(2, true, VertexAttribIType.UnsignedByte) },
-                { BfresAttribFormat.Format_8_UNorm, new FormatInfo(1, true, VertexAttribIType.UnsignedByte) },
-
                 //Ints
                 { BfresAttribFormat.Format_10_10_10_2_UInt, new FormatInfo(4, true, VertexAttribIType.UnsignedInt) },
-
-                { BfresAttribFormat.Format_8_8_8_8_UInt, new FormatInfo(4, false, VertexAttribIType.UnsignedByte) },
-                { BfresAttribFormat.Format_8_8_UInt, new FormatInfo(2, false, VertexAttribIType.UnsignedByte) },
-                { BfresAttribFormat.Format_8_UInt, new FormatInfo(1, false, VertexAttribIType.UnsignedByte) },
-
-                { BfresAttribFormat.Format_16_16_16_16_UInt, new FormatInfo(4, false, VertexAttribIType.UnsignedShort) },
-                { BfresAttribFormat.Format_16_16_UInt, new FormatInfo(2, false, VertexAttribIType.UnsignedShort) },
-                { BfresAttribFormat.Format_16_UInt, new FormatInfo(1, false, VertexAttribIType.UnsignedShort) },
             };
            
 
