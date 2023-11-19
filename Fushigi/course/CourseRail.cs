@@ -107,38 +107,18 @@ namespace Fushigi.course
         {
             BymlHashTable node = new();
 
-            node.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>("AreaHash", mAreaHash), "AreaHash");
-            node.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Gyaml", mGyml), "Gyaml");
-            node.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Hash", mHash), "Hash");
-            node.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>("IsClosed", mIsClosed), "IsClosed");
+            node.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(mAreaHash), "AreaHash");
+            node.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mGyml), "Gyaml");
+            node.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mHash), "Hash");
+            node.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(mIsClosed), "IsClosed");
 
             BymlHashTable dynamicNode = new();
 
             foreach (KeyValuePair<string, object> dynParam in mParameters)
             {
                 object param = mParameters[dynParam.Key];
-                string shit = param.GetType().ToString();
-
-                switch (param.GetType().ToString())
-                {
-                    case "System.UInt32":
-                        dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
-                        break;
-                    case "System.Int32":
-                        dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
-                        break;
-                    case "System.Boolean":
-                        dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
-                        break;
-                    case "System.String":
-                        dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
-                        break;
-                    case "System.Single":
-                        dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
-                        break;
-                    default:
-                        break;
-                }
+                var valueNode = BymlUtil.CreateNode(param);
+                dynamicNode.AddNode(valueNode.Id, valueNode, dynParam.Key);
             }
 
             node.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
@@ -292,35 +272,15 @@ namespace Fushigi.course
             public BymlHashTable BuildNode()
             {
                 BymlHashTable tbl = new();
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Hash", mHash), "Hash");
+                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mHash), "Hash");
 
                 BymlHashTable dynamicNode = new();
 
                 foreach (KeyValuePair<string, object> dynParam in mParameters)
                 {
                     object param = mParameters[dynParam.Key];
-                    string shit = param.GetType().ToString();
-
-                    switch (param.GetType().ToString())
-                    {
-                        case "System.UInt32":
-                            dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
-                            break;
-                        case "System.Int32":
-                            dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
-                            break;
-                        case "System.Boolean":
-                            dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
-                            break;
-                        case "System.String":
-                            dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
-                            break;
-                        case "System.Single":
-                            dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
-                            break;
-                        default:
-                            break;
-                    }
+                    var valueNode = BymlUtil.CreateNode(param);
+                    dynamicNode.AddNode(valueNode.Id, valueNode, dynParam.Key);
                 }
 
                 tbl.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
