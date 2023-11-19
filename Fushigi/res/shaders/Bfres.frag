@@ -31,7 +31,6 @@ uniform sampler2DArray normal_texture_array;
 uniform sampler2DArray alpha_mask_texture_array;
 uniform sampler2DArray mix_texture_array;
 
-uniform int is_terrain_tile;
 uniform int tile_id;
 
 uniform int expression;
@@ -39,7 +38,13 @@ uniform int expression;
 uniform mat4 mtxCam;
 uniform vec3 difLightDirection;
 
+uniform int alpha_test;
+uniform float alpha_ref;
+uniform int alpha_fumc;
+
 out vec4 FragColor;
+
+const float GAMMA = 2.2;
 
 float Luminance(vec3 rgb)
 {
@@ -106,4 +111,10 @@ void main()
 
     FragColor.rgb *= const_color0.rgb;
     FragColor.rgb *= halfLambert * 2;
+
+    if (alpha_test == 1)
+    {
+        if (FragColor.a <= alpha_ref)
+            discard;
+    }
 }

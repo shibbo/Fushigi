@@ -17,6 +17,8 @@ namespace Fushigi.gl.Bfres
 
         public GsysRenderState GsysRenderState = new GsysRenderState();
 
+     //   public WonderGameShader GsysShaderRender = new WonderGameShader();
+
         private Material Material;
 
         public void Init(GL gl, BfresRender.BfresModel modelRender, BfresRender.BfresMesh meshRender, Shape shape, Material material) {
@@ -27,10 +29,12 @@ namespace Fushigi.gl.Bfres
                Path.Combine("res", "shaders", "Bfres.frag"));
 
             GsysRenderState.Init(material);
+          //  GsysShaderRender.Init(gl, modelRender, meshRender, shape, material);
         }
 
         public void RenderGameShaders(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
         {
+          //  GsysShaderRender.Render(gl, renderer, model, transform, camera);
         }
 
         public void Render(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
@@ -44,6 +48,12 @@ namespace Fushigi.gl.Bfres
             Shader.SetUniform("hasNormalMap", 0);
             Shader.SetUniform("const_color0", Vector4.One);
 
+            Shader.SetUniform("tile_id", 0);
+
+            Shader.SetUniform("alpha_test", this.GsysRenderState.State.AlphaTest ? 1 : 0);
+            Shader.SetUniform("alpha_ref", this.GsysRenderState.State.AlphaValue);
+            Shader.SetUniform("alpha_test_func", (int)this.GsysRenderState.State.AlphaFunction);
+
             Vector3 dir = Vector3.Normalize(Vector3.TransformNormal(new Vector3(0f, 0f, -1f), camera.ViewProjectionMatrixInverse));
             Shader.SetUniform("const_color0", dir);
 
@@ -54,8 +64,6 @@ namespace Fushigi.gl.Bfres
             }
 
             int unit_slot = 2;
-
-            bool isTile = false;
 
             for (int i = 0; i < this.Material.Samplers.Count; i++)
             {
