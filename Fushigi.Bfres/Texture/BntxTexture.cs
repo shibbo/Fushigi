@@ -142,6 +142,8 @@ namespace Fushigi.Bfres
 
         public bool IsAstc => this.Format.ToString().ToLower().Contains("astc");
 
+        public bool IsSrgb => this.Format.ToString().ToLower().Contains("srgb");
+
         public bool IsBCNCompressed() => this.Format.ToString().StartsWith("BC");
 
         TextureHeader Header;

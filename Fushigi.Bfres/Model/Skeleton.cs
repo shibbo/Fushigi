@@ -17,6 +17,8 @@ namespace Fushigi.Bfres
         public ResDict<Bone> Bones { get; set; } = new ResDict<Bone>();
 
         public ushort[] MatrixToBoneList { get; set; }
+        public ushort NumSmoothMatrices => header.NumSmoothMatrices;
+        public ushort NumRigidMatrices => header.NumRigidMatrices;
 
         private SkeletonHeader header;
 
@@ -31,6 +33,14 @@ namespace Fushigi.Bfres
 
             Bones = reader.ReadDictionary<Bone>(header.BoneDictionaryOffset, header.BoneArrayOffset);
             MatrixToBoneList = reader.ReadCustom(() => reader.ReadUInt16s(num_bone_indices), header.MatrixToBoneListOffset);
+
+            foreach (var bone in Bones.Values)
+            {
+                bone.WorldMatrix = bone.CalculateWorldMatrix(this);
+
+                Matrix4x4.Invert(bone.WorldMatrix, out Matrix4x4 inv);
+                bone.InverseMatrix = bone.WorldMatrix * inv;
+            }
 
             //return
             reader.SeekBegin(pos);
@@ -79,6 +89,8 @@ namespace Fushigi.Bfres
         public short RigidMatrixIndex => header.RigidMatrixIndex;
         public short ParentIndex => header.ParentIndex;
 
+        public Matrix4x4 WorldMatrix;
+        public Matrix4x4 InverseMatrix;
 
         private BoneHeader header;
 
@@ -93,6 +105,7 @@ namespace Fushigi.Bfres
         public Matrix4x4 CalculateWorldMatrix(Skeleton skeleton)
         {
             var matrix = CalculateLocalMatrix();
+
             if (this.ParentIndex != -1)
                 return matrix * skeleton.Bones[this.ParentIndex].CalculateWorldMatrix(skeleton);
 

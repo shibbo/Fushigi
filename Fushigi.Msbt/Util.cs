@@ -25,8 +25,7 @@ namespace Fushigi.Msbt
 
         public static void Align(this BinaryWriter writer, uint amount)
         {
-            while (writer.BaseStream.Position % amount != 0 && writer.BaseStream.Position != writer.BaseStream.Length)
-                writer.Write((byte)0);
+            writer.Write(new byte[(int)(-writer.BaseStream.Position % amount + amount) % amount]);
         }
 
         public static void WriteOffset(this BinaryWriter writer, long pos, long startPosition)
@@ -35,6 +34,16 @@ namespace Fushigi.Msbt
 
             writer.BaseStream.Seek(pos, SeekOrigin.Begin);
             writer.Write((uint)(base_pos - startPosition));
+
+            writer.BaseStream.Seek(base_pos, SeekOrigin.Begin);
+        }
+
+        public static void WriteSize(this BinaryWriter writer, long pos, uint size)
+        {
+            var base_pos = writer.BaseStream.Position;
+
+            writer.BaseStream.Seek(pos, SeekOrigin.Begin);
+            writer.Write(size);
 
             writer.BaseStream.Seek(base_pos, SeekOrigin.Begin);
         }

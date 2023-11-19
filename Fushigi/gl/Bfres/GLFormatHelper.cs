@@ -83,8 +83,8 @@ namespace Fushigi.gl.Bfres
             { InternalFormat.CompressedRedRgtc1, 8 },
             { InternalFormat.CompressedSignedRedRgtc1, 8 },
             //BC5
-            { InternalFormat.CompressedRGRgtc2, 8 },
-            { InternalFormat.CompressedSignedRGRgtc2, 8 },
+            { InternalFormat.CompressedRGRgtc2, 16 },
+            { InternalFormat.CompressedSignedRGRgtc2, 16 },
             //BC6
             { InternalFormat.CompressedRgbBptcUnsignedFloat, 16 },
             { InternalFormat.CompressedRgbBptcSignedFloat, 16 },
