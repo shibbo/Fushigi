@@ -108,8 +108,13 @@ namespace Fushigi.gl
             _gl.EnableVertexAttribArray(index);
             Buffers[attr.bufferIndex].Bind();
 
-            if (attr.type == VertexAttribPointerType.Int)
+            if (attr.type == VertexAttribPointerType.Int ||
+                attr.type == VertexAttribPointerType.UnsignedShort && !attr.normalized ||
+                attr.type == VertexAttribPointerType.UnsignedByte && !attr.normalized ||
+                attr.type == VertexAttribPointerType.UnsignedInt && !attr.normalized)
+            {
                 _gl.VertexAttribIPointer(index, attr.elementCount, (VertexAttribIType)attr.type, attr.stride, (void*)(attr.offset));
+            }
             else
                 _gl.VertexAttribPointer(index, attr.elementCount, attr.type, attr.normalized, attr.stride, (void*)(attr.offset));
 
