@@ -181,11 +181,11 @@ namespace Fushigi.course
         public BymlHashTable BuildNode(CourseLinkHolder linkHolder)
         {
             BymlHashTable table = new();
-            table.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>("AreaHash", mAreaHash), "AreaHash");
-            table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Gyaml", mActorName), "Gyaml");
-            table.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Hash", mActorHash), "Hash");
-            table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Layer", mLayer), "Layer");
-            table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Name", mName), "Name");
+            table.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(mAreaHash), "AreaHash");
+            table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mActorName), "Gyaml");
+            table.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mActorHash), "Hash");
+            table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mLayer), "Layer");
+            table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mName), "Name");
 
             if (mActorParameters.Count > 0)
             {
@@ -194,29 +194,9 @@ namespace Fushigi.course
                 foreach (KeyValuePair<string, object> dynParam in mActorParameters)
                 {
                     object param = mActorParameters[dynParam.Key];
-                    string shit = param.GetType().ToString();
-                   
 
-                    switch (param.GetType().ToString())
-                    {
-                        case "System.UInt32":
-                                dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
-                            break;
-                        case "System.Int32":
-                                dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
-                            break;
-                        case "System.Boolean":
-                                dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
-                            break;
-                        case "System.String":
-                                dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
-                            break;
-                        case "System.Single":
-                                dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
-                            break;
-                        default:
-                            break;
-                    }
+                    var valueNode = BymlUtil.CreateNode(param);
+                    dynamicNode.AddNode(valueNode.Id, valueNode, dynParam.Key);
                 }
 
                 table.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
@@ -229,28 +209,9 @@ namespace Fushigi.course
                 foreach (KeyValuePair<string, object> sysParam in mSystemParameters)
                 {
                     object param = mSystemParameters[sysParam.Key];
-                    string shit = param.GetType().ToString();
 
-                    switch (param.GetType().ToString())
-                    {
-                        case "System.UInt32":
-                            sysNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(sysParam.Key, (uint)param), sysParam.Key);
-                            break;
-                        case "System.Int32":
-                            sysNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(sysParam.Key, (int)param), sysParam.Key);
-                            break;
-                        case "System.Boolean":
-                            sysNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(sysParam.Key, (bool)param), sysParam.Key);
-                            break;
-                        case "System.String":
-                            sysNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(sysParam.Key, (string)param), sysParam.Key);
-                            break;
-                        case "System.Single":
-                            sysNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(sysParam.Key, (float)param), sysParam.Key);
-                            break;
-                        default:
-                            break;
-                    }
+                    var valueNode = BymlUtil.CreateNode(param);
+                    sysNode.AddNode(valueNode.Id, valueNode, sysParam.Key);
                 }
 
                 table.AddNode(BymlNodeId.Hash, sysNode, "System");
@@ -262,30 +223,30 @@ namespace Fushigi.course
 
                 foreach (var (linkName, links) in linkHolder.GetSrcHashesFromDest(mActorHash))
                 {
-                    inLinksNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(linkName, (int)links.Count), linkName);
+                    inLinksNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(links.Count), linkName);
                 }
 
                 table.AddNode(BymlNodeId.Hash, inLinksNode, "InLinks");
             }
 
             BymlArrayNode rotateNode = new(3);
-            rotateNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mRotation.X));
-            rotateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mRotation.Y));
-            rotateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", mRotation.Z));
+            rotateNode.AddNodeToArray(BymlUtil.CreateNode<float>(mRotation.X));
+            rotateNode.AddNodeToArray(BymlUtil.CreateNode<float>(mRotation.Y));
+            rotateNode.AddNodeToArray(BymlUtil.CreateNode<float>(mRotation.Z));
 
             table.AddNode(BymlNodeId.Array, rotateNode, "Rotate");
 
             BymlArrayNode scaleNode = new(3);
-            scaleNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mScale.X));
-            scaleNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mScale.Y));
-            scaleNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", mScale.Z));
+            scaleNode.AddNodeToArray(BymlUtil.CreateNode<float>(mScale.X));
+            scaleNode.AddNodeToArray(BymlUtil.CreateNode<float>(mScale.Y));
+            scaleNode.AddNodeToArray(BymlUtil.CreateNode<float>(mScale.Z));
 
             table.AddNode(BymlNodeId.Array, scaleNode, "Scale");
 
             BymlArrayNode translateNode = new(3);
-            translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mTranslation.X));
-            translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mTranslation.Y));
-            translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", mTranslation.Z));
+            translateNode.AddNodeToArray(BymlUtil.CreateNode<float>(mTranslation.X));
+            translateNode.AddNodeToArray(BymlUtil.CreateNode<float>(mTranslation.Y));
+            translateNode.AddNodeToArray(BymlUtil.CreateNode<float>(mTranslation.Z));
 
             table.AddNode(BymlNodeId.Array, translateNode, "Translate");
 

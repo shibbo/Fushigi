@@ -1,6 +1,8 @@
 ﻿using Fushigi.Byml;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,26 +26,27 @@ namespace Fushigi.util
             return ((BymlNode<T>)array[idx]).Data;
         }
 
-        public static BymlNode<T> CreateNode<T>(string name, T data)
+        [Obsolete("Use CreateNode(data) instead")]
+        public static IBymlNode CreateNode<T>(string name, T data) 
+            => CreateNode<T>(data);
+        public static IBymlNode CreateNode<T>(T data)
         {
-            switch (data.GetType().ToString())
+            var node = data switch
             {
-                case "System.Int32":
-                    return new BymlNode<T>(BymlNodeId.Int, data);
-                case "System.UInt32":
-                    return new BymlNode<T>(BymlNodeId.UInt, data);
-                case "System.Single":
-                    return new BymlNode<T>(BymlNodeId.Float, data);
-                case "System.UInt64":
-                    return new BymlNode<T>(BymlNodeId.UInt64, data);
-                case "System.Boolean":
-                    return new BymlNode<T>(BymlNodeId.Bool, data);
-                case "System.String":
-                    return new BymlNode<T>(BymlNodeId.String, data);
-            }
-
-            return null;
+                int value => new BymlNode<int>(BymlNodeId.Int, value),
+                uint value => new BymlNode<uint>(BymlNodeId.UInt, value),
+                float value => new BymlNode<float>(BymlNodeId.Float, value),
+                ulong value => new BymlNode<ulong>(BymlNodeId.UInt64, value),
+                bool value => new BymlNode<bool>(BymlNodeId.Bool, value),
+                string value => new BymlNode<string>(BymlNodeId.String, value),
+                null => CreateNullNode(),
+                _ => null
+            };
+            Debug.Assert(node is not null);
+            return node;
         }
+
+        public static IBymlNode CreateNullNode() => new BymlNode<uint>(BymlNodeId.Null, 0);
 
         public static System.Numerics.Vector3 GetVector3FromArray(BymlArrayNode? array)
         {
