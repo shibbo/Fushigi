@@ -106,7 +106,8 @@ namespace Fushigi.ui.widgets
 
                 dl.PushClipRect(min, max, true);
 
-                dl.AddImage(course.Value.thumbnail,
+                course.Value.thumbnail.CheckState(false);
+                dl.AddImage((IntPtr)course.Value.thumbnail.ID,
                     (min + max - thumbnailSize) / 2 - new Vector2(0, em * 1.25f),
                     (min + max + thumbnailSize) / 2 - new Vector2(0, em * 1.25f));
 

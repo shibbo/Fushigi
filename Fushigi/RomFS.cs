@@ -124,7 +124,7 @@ namespace Fushigi
             foreach (var course in sCourseEntries[world].Keys)
             {
                 // Skip the process if this course's thumbnail is already cached
-                if (sCourseEntries[world][course].thumbnail != 0)
+                if (sCourseEntries[world][course].thumbnail != null)
                 {
                     continue;
                 }
@@ -142,14 +142,14 @@ namespace Fushigi
                 var bntx = new BntxFile(new MemoryStream(fileBytes));
                 var render = new BfresTextureRender(gl, bntx.Textures[0]);
 
-                sCourseEntries[world][course].thumbnail = (IntPtr)render.ID;
+                sCourseEntries[world][course].thumbnail = render;
             }
         }
 
         public class CourseEntry
         {
             public string name;
-            public IntPtr thumbnail;
+            public BfresTextureRender thumbnail;
         }
         
         private static string sRomFSRoot;
