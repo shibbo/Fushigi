@@ -11,6 +11,7 @@ using Fushigi;
 using Fushigi.course;
 using Fushigi.rstb;
 using Fushigi.ui.widgets;
+using System.IO;
 
 namespace Fushigi.course
 {
@@ -133,6 +134,10 @@ namespace Fushigi.course
             byml.Save(mem);
             resource_table.SetResource($"BancMapUnit/{mCourseName}.bcett.byml", (uint)mem.Length);
             string folder = Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit");
+
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
             string levelPath = Path.Combine(folder, $"{mCourseName}.bcett.byml.zs");
             File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
 
