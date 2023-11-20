@@ -20,6 +20,7 @@ namespace Fushigi.ui.widgets
         float worldNameSize = 12f;
         GL gl;
         Action<string> selectCourseCallback;
+        bool isOpen = true;
 
         public CourseSelect(GL gl, Action<string> selectCourseCallback, string? selectedCourseName = null)
         {
@@ -30,9 +31,17 @@ namespace Fushigi.ui.widgets
 
         public void Draw()
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, thumbnailSize * 1.2f);
+            Vector2 center = ImGui.GetMainViewport().GetCenter();
+            ImGui.SetNextWindowPos(center, ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
 
-            if (!ImGui.Begin("Select Course"))
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, thumbnailSize * 1.25f);
+
+            if (isOpen && !ImGui.IsPopupOpen("Select Course"))
+            {
+                ImGui.OpenPopup("Select Course");
+            }
+
+            if (!ImGui.BeginPopupModal("Select Course", ref isOpen))
             {
                 return;
             }
@@ -43,7 +52,7 @@ namespace Fushigi.ui.widgets
 
             DrawCourses();
 
-            ImGui.End();
+            ImGui.EndPopup();
         }
 
         void DrawTabs()
