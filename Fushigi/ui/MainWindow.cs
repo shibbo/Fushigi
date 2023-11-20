@@ -222,6 +222,20 @@ namespace Fushigi.ui
                             mSelectedCourseScene.Save();
                         }
                     }
+                    if (ImGui.MenuItem("Blank out baked collision [EXPERIMENTAL]") && mSelectedCourseScene != null)
+                    {
+                        string directory = Path.Combine(UserSettings.GetModRomFSPath(), "Phive", "StaticCompoundBody");
+
+                        if(!Directory.Exists(directory))
+                            Directory.CreateDirectory(directory);
+
+                        foreach (var area in mSelectedCourseScene.GetCourse().GetAreas())
+                        {
+                            var filePath = Path.Combine(directory, $"{area.GetName()}.Nin_NX_NVN.bphsc.zs");
+                            File.Copy(Path.Combine(AppContext.BaseDirectory, "res", "BlankStaticCompoundBody.bphsc.zs"), 
+                                filePath, overwrite: true);
+                        }
+                    }
 
                     ImGui.PopStyleColor();
 
