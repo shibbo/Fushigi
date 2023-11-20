@@ -17,14 +17,15 @@ namespace Fushigi.ui.widgets
         string? selectedWorld;
         string? selectedCourseName;
         Vector2 thumbnailSize = new(200f, 112.5f);
+        float worldNameSize = 12f;
         GL gl;
-        Action<string> switchCourseCallback;
+        Action<string> selectCourseCallback;
 
-        public CourseSelect(GL gl, Action<string> switchCourseCallback, string? selectedCourseName = null)
+        public CourseSelect(GL gl, Action<string> selectCourseCallback, string? selectedCourseName = null)
         {
             this.gl = gl;
             this.selectedCourseName = selectedCourseName;
-            this.switchCourseCallback = switchCourseCallback;
+            this.selectCourseCallback = selectCourseCallback;
         }
 
         public void Draw()
@@ -68,7 +69,7 @@ namespace Fushigi.ui.widgets
         {
             var fontSize = ImGui.GetFontSize();
             var font = ImGui.GetFont();
-            font.FontSize = 12;
+            font.FontSize = worldNameSize;
             ImGui.Text(RomFS.GetCourseEntries()[selectedWorld!].name);
             font.FontSize = fontSize;
 
@@ -99,11 +100,7 @@ namespace Fushigi.ui.widgets
 
                 if (clicked)
                 {
-                    if (selectedCourseName != course.Key)
-                    {
-                        Debug.WriteLine($"Switching to {course.Key}");
-                        switchCourseCallback(course.Key);
-                    }
+                    selectCourseCallback(course.Key);
                 }
 
                 var min = ImGui.GetItemRectMin();

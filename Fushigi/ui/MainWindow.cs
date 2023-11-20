@@ -168,6 +168,12 @@ namespace Fushigi.ui
                         {
                             void SwitchCourse(string courseLocation)
                             {
+                                if (mCurrentCourseName == courseLocation)
+                                {
+                                    mCourseSelect = null;
+                                    return;
+                                }                                 
+
                                 if (!TryCloseCourse(onSuccessRetryAction: () => SwitchCourse(courseLocation)))
                                     return;
 
