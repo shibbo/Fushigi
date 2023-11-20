@@ -108,6 +108,11 @@ namespace Fushigi.ui.widgets
             {
                 ImGui.PushID(course.Key);
                 ImGui.TableNextColumn();
+
+                // Offset cursor pos to center each item within the column
+                var posX = ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() - thumbnailSize.X) / 2;
+                ImGui.SetCursorPosX(posX);
+
                 bool clicked = ImGui.Selectable(string.Empty, course.Key == selectedCourseName, 
                     ImGuiSelectableFlags.None, new Vector2(thumbnailSize.X, thumbnailSize.Y + em * 1.8f));
 
