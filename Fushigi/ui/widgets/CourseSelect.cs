@@ -66,6 +66,8 @@ namespace Fushigi.ui.widgets
 
         void DrawCourses()
         {
+            ImGui.Text(RomFS.GetCourseEntries()[selectedWorld!].name);
+
             if (!ImGui.BeginListBox(selectedWorld, ImGui.GetContentRegionAvail()))
             {
                 return;
@@ -79,7 +81,7 @@ namespace Fushigi.ui.widgets
             ImGui.TableNextRow();
 
             RomFS.CacheCourseThumbnails(gl, selectedWorld!);
-            var courses = RomFS.GetCourseEntries()[selectedWorld!];
+            var courses = RomFS.GetCourseEntries()[selectedWorld!].courseEntries;
 
             float em = ImGui.GetFrameHeight();
 

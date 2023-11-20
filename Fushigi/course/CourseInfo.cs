@@ -30,8 +30,6 @@ namespace Fushigi.course
             var byml = new Byml.Byml(new MemoryStream(File.ReadAllBytes(courseFilePath)));
 
             this.Load((BymlHashTable)byml.Root);
-
-            Console.WriteLine();
         }
 
         public void Save(string name)
