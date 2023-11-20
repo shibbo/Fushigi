@@ -15,7 +15,7 @@ Open a CMD or terminal and run the following:
 ```
 cd Desktop
 rm -rf Fushigi
-git clone Fushigi
+git clone https://github.com/shibbo/Fushigi.git
 cd Fushigi
 dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp --version 0.6.0-alpha
 dotnet add Fushigi/Fushigi.csproj package Newtonsoft.Json 
