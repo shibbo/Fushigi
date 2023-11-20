@@ -168,6 +168,12 @@ namespace Fushigi.ui
                         {
                             void SwitchCourse(string courseLocation)
                             {
+                                if (mCurrentCourseName == courseLocation)
+                                {
+                                    mCourseSelect = null;
+                                    return;
+                                }                                 
+
                                 if (!TryCloseCourse(onSuccessRetryAction: () => SwitchCourse(courseLocation)))
                                     return;
 
@@ -308,7 +314,7 @@ namespace Fushigi.ui
                         mCourseSelect.Draw();
                     }
 
-                    mSelectedCourseScene?.DrawUI(gl);
+                    mSelectedCourseScene?.DrawUI(gl, delta);
                 }
 
                 if (mIsChoosingPreferences)

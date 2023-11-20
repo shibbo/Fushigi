@@ -16,15 +16,16 @@ namespace Fushigi.ui.widgets
     {
         string? selectedWorld;
         string? selectedCourseName;
-        Vector2 thumbnailSize = new(200, 100);
+        Vector2 thumbnailSize = new(200f, 112.5f);
+        float worldNameSize = 12f;
         GL gl;
-        Action<string> switchCourseCallback;
+        Action<string> selectCourseCallback;
 
-        public CourseSelect(GL gl, Action<string> switchCourseCallback, string? selectedCourseName = null)
+        public CourseSelect(GL gl, Action<string> selectCourseCallback, string? selectedCourseName = null)
         {
             this.gl = gl;
             this.selectedCourseName = selectedCourseName;
-            this.switchCourseCallback = switchCourseCallback;
+            this.selectCourseCallback = selectCourseCallback;
         }
 
         public void Draw()
@@ -66,6 +67,13 @@ namespace Fushigi.ui.widgets
 
         void DrawCourses()
         {
+            var fontSize = ImGui.GetFontSize();
+            var font = ImGui.GetFont();
+            font.FontSize = worldNameSize;
+            ImGui.Text(RomFS.GetCourseEntries()[selectedWorld!].name);
+            font.FontSize = fontSize;
+
+
             if (!ImGui.BeginListBox(selectedWorld, ImGui.GetContentRegionAvail()))
             {
                 return;
@@ -79,7 +87,7 @@ namespace Fushigi.ui.widgets
             ImGui.TableNextRow();
 
             RomFS.CacheCourseThumbnails(gl, selectedWorld!);
-            var courses = RomFS.GetCourseEntries()[selectedWorld!];
+            var courses = RomFS.GetCourseEntries()[selectedWorld!].courseEntries;
 
             float em = ImGui.GetFrameHeight();
 
@@ -88,15 +96,11 @@ namespace Fushigi.ui.widgets
                 ImGui.PushID(course.Key);
                 ImGui.TableNextColumn();
                 bool clicked = ImGui.Selectable(string.Empty, course.Key == selectedCourseName, 
-                    ImGuiSelectableFlags.None, new Vector2(thumbnailSize.X, thumbnailSize.Y + em * 2.5f));
+                    ImGuiSelectableFlags.None, new Vector2(thumbnailSize.X, thumbnailSize.Y + em * 1.8f));
 
                 if (clicked)
                 {
-                    if (selectedCourseName != course.Key)
-                    {
-                        Debug.WriteLine($"Switching to {course.Key}");
-                        switchCourseCallback(course.Key);
-                    }
+                    selectCourseCallback(course.Key);
                 }
 
                 var min = ImGui.GetItemRectMin();
@@ -106,7 +110,8 @@ namespace Fushigi.ui.widgets
 
                 dl.PushClipRect(min, max, true);
 
-                dl.AddImage(course.Value.thumbnail,
+                course.Value.thumbnail.CheckState(false);
+                dl.AddImage((IntPtr)course.Value.thumbnail.ID,
                     (min + max - thumbnailSize) / 2 - new Vector2(0, em * 1.25f),
                     (min + max + thumbnailSize) / 2 - new Vector2(0, em * 1.25f));
 
@@ -127,7 +132,6 @@ namespace Fushigi.ui.widgets
                     ImGui.SetTooltip(text);
                 }
 
-
                 text = course.Key;
                 textWidth = ImGui.CalcTextSize(text).X;
 
@@ -138,14 +142,6 @@ namespace Fushigi.ui.widgets
 
                 dl.PopClipRect();
 
-                /*
-                ImGui.Image(course.Value.thumbnail, thumbnailSize);
-                ImGui.Text(course.Value.name);
-                if (ImGui.RadioButton(course.Key, course.Key == selectedCourseName))
-                {
-                    
-                }
-                */
                 ImGui.PopID();
             }
 

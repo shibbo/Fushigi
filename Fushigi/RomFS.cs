@@ -6,6 +6,8 @@ using Fushigi.Msbt;
 using Fushigi.util;
 using Silk.NET.OpenGL;
 using System.Diagnostics;
+using Fushigi.course;
+using Silk.NET.Input;
 
 namespace Fushigi
 {
@@ -37,7 +39,7 @@ namespace Fushigi
                 Directory.Exists(Path.Combine(root, "Stage"));
         }
 
-        public static Dictionary<string, Dictionary<string, CourseEntry>> GetCourseEntries()
+        public static Dictionary<string, WorldEntry> GetCourseEntries()
         {
             return sCourseEntries;
         }
@@ -60,15 +62,35 @@ namespace Fushigi
         private static void CacheCourseFiles()
         {
             sCourseEntries.Clear();
+
+            var path = Path.Combine(GetRoot(), "Mals", "USen.Product.100.sarc.zs");
+            var sarc = new SARC.SARC(new(FileUtil.DecompressFile(path)));
+            var courseNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_CourseRemoveLineFeed.msbt"))).Messages;
+            var worldNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_World.msbt"))).Messages;
+
             string[] loadFiles = GetFiles(Path.Combine("Stage", "WorldMapInfo"));
             foreach (string loadFile in loadFiles)
             {
                 string worldName = Path.GetFileName(loadFile).Split(".game")[0];
-                Dictionary<string, CourseEntry> courseLocationList = new();
+
+                if (sCourseEntries.ContainsKey(worldName))
+                {
+                    return;
+                }
+
+                WorldEntry worldEntry = new();
+                worldEntry.name = worldName;
+
+                var worldKey = worldName.Replace("World", "WorldNameOrigin");              
+                if (worldNames.ContainsKey(worldKey))
+                {
+                    worldEntry.name = worldNames[worldKey];
+                }
+
+                Dictionary<string, WorldEntry.CourseEntry> courseLocationList = new();
                 Byml.Byml byml = new Byml.Byml(new MemoryStream(File.ReadAllBytes(loadFile)));
                 var root = (BymlHashTable)byml.Root;
                 var courseList = (BymlArrayNode)root["CourseTable"];
-
                 for (int i = 0; i < courseList.Length; i++)
                 {
                     var course = (BymlHashTable)courseList[i];
@@ -77,43 +99,24 @@ namespace Fushigi
                     // we need to "fix" our StagePath so it points to our course
                     string courseLocation = Path.GetFileName(derp).Split(".game")[0];
 
-                    courseLocationList.Add(courseLocation, new());
-                }
-                if (!sCourseEntries.ContainsKey(worldName))
-                {
-                    sCourseEntries.Add(worldName, courseLocationList);
-                }
-            }
-
-            CacheCourseNames();
-        }
-
-        static void CacheCourseNames()
-        {
-            var path = Path.Combine(GetRoot(), "Mals", "USen.Product.100.sarc.zs");
-            var fileBytes = FileUtil.DecompressFile(path);
-            var sarc = new SARC.SARC(new(fileBytes));
-            var msbt = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_CourseRemoveLineFeed.msbt")));
-
-            foreach (var world in sCourseEntries.Keys)
-            {
-                foreach (var course in sCourseEntries[world].Keys)
-                {
-                    // TODO - get course names from CourseInfo
-                    var courseName = course.Substring(0, 9);
-                    foreach (var key in msbt.Messages.Keys)
+                    WorldEntry.CourseEntry courseEntry = new();
+                    var courseInfo = new CourseInfo(courseLocation);
+                    if (courseInfo.CourseNameLabel != null && 
+                        courseNames.ContainsKey(courseInfo.CourseNameLabel))
                     {
-                        if (key.EndsWith(courseName))
-                        {
-                            sCourseEntries[world][course].name = msbt.Messages[key];
-                        }
+                        courseEntry.name = courseNames[courseInfo.CourseNameLabel];
+                    }
+                    else
+                    {
+                        courseEntry.name = "Name not found";
                     }
 
-                    if (string.IsNullOrEmpty(sCourseEntries[world][course].name))
-                    {
-                        sCourseEntries[world][course].name = "Name not found";
-                    }                   
+                    courseLocationList.Add(courseLocation, courseEntry);
                 }
+
+                worldEntry.courseEntries = courseLocationList;
+
+                sCourseEntries.Add(worldName, worldEntry);
             }
         }
 
@@ -121,10 +124,10 @@ namespace Fushigi
         {
             var thumbnailFolder = Path.Combine(GetRoot(), "UI", "Tex", "Thumbnail");
 
-            foreach (var course in sCourseEntries[world].Keys)
+            foreach (var course in sCourseEntries[world].courseEntries.Keys)
             {
                 // Skip the process if this course's thumbnail is already cached
-                if (sCourseEntries[world][course].thumbnail != 0)
+                if (sCourseEntries[world].courseEntries[course].thumbnail != null)
                 {
                     continue;
                 }
@@ -142,17 +145,25 @@ namespace Fushigi
                 var bntx = new BntxFile(new MemoryStream(fileBytes));
                 var render = new BfresTextureRender(gl, bntx.Textures[0]);
 
-                sCourseEntries[world][course].thumbnail = (IntPtr)render.ID;
+                sCourseEntries[world].courseEntries[course].thumbnail = render;
             }
         }
 
-        public class CourseEntry
+        public class WorldEntry
         {
+            public class CourseEntry
+            {
+                public string name;
+                public BfresTextureRender thumbnail;
+            }
+
             public string name;
-            public IntPtr thumbnail;
+            public Dictionary<string,  CourseEntry> courseEntries;
         }
+
+        
         
         private static string sRomFSRoot;
-        private static Dictionary<string, Dictionary<string, CourseEntry>> sCourseEntries = [];
+        private static Dictionary<string, WorldEntry> sCourseEntries = [];
     }
 }

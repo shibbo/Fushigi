@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 
 namespace Fushigi.Byml.Serializer
 {
-    internal class BymlObject
+    public class BymlObject
     {
         public BymlHashTable HashTable;
 
-        public BymlObject(BymlHashTable bymlHashTable) {
+        public void Load(BymlHashTable bymlHashTable) {
             this.HashTable = bymlHashTable;
+            this.Deserialize();
         }
 
         public void Deserialize()
@@ -20,7 +21,7 @@ namespace Fushigi.Byml.Serializer
             BymlSerialize.Deserialize(this, HashTable);
         }
 
-        public void Serialize()
+        public BymlHashTable Serialize()
         {
             var hashTable = BymlSerialize.Serialize(this);
             //Merge hash tables. Keep original params intact
@@ -32,6 +33,7 @@ namespace Fushigi.Byml.Serializer
                 else
                     HashTable.AddNode(pair.Id, pair.Value, pair.Name);
             }
+            return hashTable;
         }
     }
 }
