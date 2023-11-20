@@ -443,12 +443,12 @@ namespace Fushigi.ui.widgets
                     }
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.Delete))
+                if (ImGui.IsKeyPressed(ImGuiKey.Delete))
                 {
                     mEditorState = EditorState.DeleteActorLinkCheck;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
                 {
                     mEditContext.DeselectAll();
                     mSelectedPoint = null;
@@ -458,7 +458,7 @@ namespace Fushigi.ui.widgets
             {
                 ImGui.SetTooltip($"Placing actor {mActorToAdd} -- Hold SHIFT to place multiple, ESCAPE to cancel.");
 
-                if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
                 {
                     mEditorState = EditorState.Selecting;
                 }
@@ -511,7 +511,7 @@ namespace Fushigi.ui.widgets
                             Hold SHIFT to delete multiple actors, ESCAPE to cancel.
                             """);
 
-                    if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                    if (ImGui.IsKeyPressed(ImGuiKey.Escape))
                     {
                         mEditorState = EditorState.Selecting;
                     }
@@ -538,7 +538,7 @@ namespace Fushigi.ui.widgets
                     ImGui.SetWindowFocus();
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
                 {
                     mEditorState = EditorState.Selecting;
                 }
@@ -839,7 +839,7 @@ namespace Fushigi.ui.widgets
                     }
 
                     //Delete selected
-                    if (selectedPoint != null && ImGui.IsKeyDown(ImGuiKey.Delete))
+                    if (selectedPoint != null && ImGui.IsKeyPressed(ImGuiKey.Delete))
                     {
                         rail.mPoints.Remove(selectedPoint);
                     }
