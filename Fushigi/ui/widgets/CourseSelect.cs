@@ -30,10 +30,14 @@ namespace Fushigi.ui.widgets
 
         public void Draw()
         {
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, thumbnailSize * 1.2f);
+
             if (!ImGui.Begin("Select Course"))
             {
                 return;
             }
+
+            ImGui.PopStyleVar();
 
             DrawTabs();
 
