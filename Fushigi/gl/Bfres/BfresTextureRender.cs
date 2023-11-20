@@ -114,19 +114,18 @@ namespace Fushigi.gl.Bfres
             }
         }
 
-        public void CheckState()
+        public void CheckState(bool useSrgb = true)
         {
             if (TextureState == State.Decoded && Decoder.IsCompleted && !this.IsDisposed)
             {
                 Bind();
 
-                var format = IsSrgb ? SurfaceFormat.R8_G8_B8_A8_SRGB : SurfaceFormat.R8_G8_B8_A8_UNORM;
+                // TODO - useSrgb argument is a temporary solution for the CourseSelect thumbnails
+                //        should find a more permanent solution for this
+                var format = useSrgb && IsSrgb ? SurfaceFormat.R8_G8_B8_A8_SRGB : SurfaceFormat.R8_G8_B8_A8_UNORM;
 
                 var formatInfo = GLFormatHelper.ConvertPixelFormat(format);
                 GLTextureDataLoader.LoadImage(_gl, this.Target, Width, Height, 0, formatInfo, Decoder.Result, 0);
-
-               // var internalFormat = GLFormatHelper.ConvertCompressedFormat(SurfaceFormat.BC7_UNORM, true);
-             //   GLTextureDataLoader.LoadCompressedImage(_gl, this.Target, Width, Height, 0, internalFormat, Decoder.Result, 0);
 
                 Unbind();
 
