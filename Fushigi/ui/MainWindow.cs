@@ -125,7 +125,7 @@ namespace Fushigi.ui
             string romFSPath = UserSettings.GetRomFSPath();
             if (RomFS.IsValidRoot(romFSPath))
             {
-                RomFS.SetRoot(romFSPath);
+                RomFS.SetRoot(romFSPath, gl);
                 ChildActorParam.Load();
             }
 
@@ -333,7 +333,7 @@ namespace Fushigi.ui
 
                 if (mIsChoosingPreferences)
                 {
-                    Preferences.Draw(ref mIsChoosingPreferences);
+                    Preferences.Draw(ref mIsChoosingPreferences, gl);
                 }
 
                 if (mIsWelcome)

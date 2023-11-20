@@ -13,7 +13,7 @@ namespace Fushigi
 {
     public class RomFS
     {
-        public static void SetRoot(string root)
+        public static void SetRoot(string root, GL gl)
         {           
             if (!IsValidRoot(root))
             {
@@ -22,6 +22,7 @@ namespace Fushigi
 
             sRomFSRoot = root;
             CacheCourseFiles();
+            CacheCourseThumbnails(gl);
         }
 
         public static string GetRoot()
@@ -120,6 +121,14 @@ namespace Fushigi
             }
         }
 
+        public static void CacheCourseThumbnails(GL gl)
+        {
+            foreach (var world in sCourseEntries.Keys)
+            {
+                CacheCourseThumbnails(gl, world);
+            }
+        }
+
         public static void CacheCourseThumbnails(GL gl, string world)
         {
             var thumbnailFolder = Path.Combine(GetRoot(), "UI", "Tex", "Thumbnail");
@@ -138,8 +147,6 @@ namespace Fushigi
                 {
                     path = Path.Combine(thumbnailFolder, "Default.bntx.zs");
                 }
-
-                Console.WriteLine($"Thumbnail - {course}");
 
                 byte[] fileBytes = FileUtil.DecompressFile(path);
                 var bntx = new BntxFile(new MemoryStream(fileBytes));

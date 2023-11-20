@@ -99,7 +99,6 @@ namespace Fushigi.ui.widgets
             }
             ImGui.TableNextRow();
 
-            RomFS.CacheCourseThumbnails(gl, selectedWorld!);
             var courses = RomFS.GetCourseEntries()[selectedWorld!].courseEntries;
 
             float em = ImGui.GetFrameHeight();
