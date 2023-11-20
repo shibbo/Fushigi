@@ -66,7 +66,12 @@ namespace Fushigi.ui.widgets
 
         void DrawCourses()
         {
+            var fontSize = ImGui.GetFontSize();
+            var font = ImGui.GetFont();
+            font.FontSize = 12;
             ImGui.Text(RomFS.GetCourseEntries()[selectedWorld!].name);
+            font.FontSize = fontSize;
+
 
             if (!ImGui.BeginListBox(selectedWorld, ImGui.GetContentRegionAvail()))
             {
