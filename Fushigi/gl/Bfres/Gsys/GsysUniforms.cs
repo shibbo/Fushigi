@@ -181,19 +181,19 @@ namespace Fushigi.gl.Bfres
             LightSpecColor1 = new Vector4(0, 0, 0, 1);
 
             LightDirection0World = new Vector4(0, 1, 0, 0);
-            HemiDirectionWorld = new Vector4(0.292369f, -0.9563048f, -0.001275723f, 0);
+            HemiDirectionWorld = new Vector4(-0.5714403f, -0.3136818f, -0.7583269f, 0);
             LightDirection1World = new Vector4(0, 1, 0, 0);
 
             for (int i = 0; i < FogList.Length; i++)
                 FogList[i] = new Fog();
 
-            LightBuffer[0] = new Vector4(-0.07066349f, 0.0104383f, 0.01484864f, 0.3762342f);
-            LightBuffer[1] = new Vector4(-0.07834358f, 0.022879f, 0.00286472f, 0.3644175f);
-            LightBuffer[2] = new Vector4(-0.08234646f, 0.07531384f, -0.001357785f, 0.3541074f);
-            LightBuffer[3] = new Vector4(-0.03421519f, -0.01010032f, -0.07968342f, 0.001463851f);
-            LightBuffer[4] = new Vector4(-0.03502026f, -0.004357998f, -0.08492773f, -0.003487148f);
-            LightBuffer[5] = new Vector4(-0.04025555f, 0.002667315f, -0.0995281f, -0.01150249f);
-            LightBuffer[6] = new Vector4(-0.02927722f, -0.03509886f, -0.04652298f, 1.0f);
+            LightBuffer[0] = new Vector4(0, 1, 0, 0);
+            LightBuffer[1] = new Vector4(1, 1, 1, 1);
+            LightBuffer[2] = new Vector4(1.3f, 1, 1, 1);
+            LightBuffer[3] = new Vector4(0.34375f, 0.65625f, 1, 1);
+            LightBuffer[4] = new Vector4(0.125f, 0.25f, 0.5f, 0.72f);
+            LightBuffer[5] = new Vector4(0, 0, 0, 1);
+            LightBuffer[6] = new Vector4(0.8125f, -0.90625f, 1, 1);
         }
 
         public void Set(UniformBlock block)
@@ -245,13 +245,20 @@ namespace Fushigi.gl.Bfres
                 writer.Write(LightBuffer[5]);
                 writer.Write(LightBuffer[6]);
 
-                //Blank out the rest below. Prevents black output in TOTK
-                //Todo figure out why this is needed
-                writer.Seek(46 * 16, SeekOrigin.Begin);
-                for (int i = 0; i < 100; i++)
-                {
-                    writer.Write(new Vector4(0));
-                }
+                writer.Write(new Vector4(0));
+                writer.Write(new Vector4(0));
+                writer.Write(new Vector4(0));
+                writer.Write(new Vector4(0));
+
+                writer.Write(new Vector4(0));
+                writer.Write(new Vector4(1));
+                writer.Write(new Vector4(1));
+                writer.Write(new Vector4(1));
+
+                writer.Write(new Vector4(1));
+                writer.Write(new Vector4(1));
+                writer.Write(new Vector4(1));
+                writer.Write(new Vector4(1));
             }
             block.SetData(mem.ToArray());
         }
