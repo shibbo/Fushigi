@@ -88,11 +88,11 @@ namespace Fushigi.gl.Bfres
             if (UserBlock2 == null)
                 UserBlock2 = new UniformBlock(gl);
 
-            EnvironmentBlock.SetData(File.ReadAllBytes("SMWEnv.bin"));
+            UpdateEnvironment(); 
 
-          //  CubeMap = GLTextureCubeArray.CreateEmpty(gl, 4, 4, 1);
-           // DiffuseLightmap = GLTextureCube.CreateEmpty(gl, 4);
-            SpecularLightmap = GLTextureCube.CreateEmpty(gl, 4);
+                   //  CubeMap = GLTextureCubeArray.CreateEmpty(gl, 4, 4, 1);
+                   // DiffuseLightmap = GLTextureCube.CreateEmpty(gl, 4);
+                   SpecularLightmap = GLTextureCube.CreateEmpty(gl, 4);
 
             CubeMap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapHDR.dds"), TextureTarget.TextureCubeMapArray);
             DiffuseLightmap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapLightmapShadow.dds"), TextureTarget.TextureCubeMap);
