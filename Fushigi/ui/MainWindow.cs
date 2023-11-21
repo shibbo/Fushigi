@@ -1,20 +1,12 @@
-using Fushigi.util;
-using Fushigi.windowing;
-using Silk.NET.OpenGL;
-using Silk.NET.Windowing;
 using Fushigi.param;
 using Fushigi.ui.widgets;
+using Fushigi.util;
+using Fushigi.windowing;
 using ImGuiNET;
-using System.Runtime.CompilerServices;
+using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
 using System.Numerics;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using static System.Net.Mime.MediaTypeNames;
-using System.Reflection;
-using System.Diagnostics;
-using Fushigi.Bfres;
-using Fushigi.SARC;
-using Fushigi.gl.Bfres;
 
 namespace Fushigi.ui
 {
@@ -26,8 +18,9 @@ namespace Fushigi.ui
 
         public MainWindow()
         {
-            WindowManager.CreateWindow(out mWindow, 
-                onConfigureIO: () => { 
+            WindowManager.CreateWindow(out mWindow,
+                onConfigureIO: () =>
+                {
                     unsafe
                     {
                         var io = ImGui.GetIO();
@@ -99,7 +92,7 @@ namespace Fushigi.ui
                 }
             }
 
-            if(mSelectedCourseScene is not null &&
+            if (mSelectedCourseScene is not null &&
                 mSelectedCourseScene.HasUnsavedChanges())
             {
                 mCloseCourseRequest = (onSuccessRetryAction, success: false);
@@ -160,8 +153,8 @@ namespace Fushigi.ui
             if (ImGui.BeginMainMenuBar())
             {
                 if (ImGui.BeginMenu("File"))
-                {                   
-                    if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
+                {
+                    if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
                         !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                     {
                         if (ImGui.MenuItem("Open Course"))
@@ -172,7 +165,7 @@ namespace Fushigi.ui
                                 {
                                     mCourseSelect = null;
                                     return;
-                                }                                 
+                                }
 
                                 if (!TryCloseCourse(onSuccessRetryAction: () => SwitchCourse(courseLocation)))
                                     return;
@@ -226,13 +219,13 @@ namespace Fushigi.ui
                     {
                         string directory = Path.Combine(UserSettings.GetModRomFSPath(), "Phive", "StaticCompoundBody");
 
-                        if(!Directory.Exists(directory))
+                        if (!Directory.Exists(directory))
                             Directory.CreateDirectory(directory);
 
                         foreach (var area in mSelectedCourseScene.GetCourse().GetAreas())
                         {
                             var filePath = Path.Combine(directory, $"{area.GetName()}.Nin_NX_NVN.bphsc.zs");
-                            File.Copy(Path.Combine(AppContext.BaseDirectory, "res", "BlankStaticCompoundBody.bphsc.zs"), 
+                            File.Copy(Path.Combine(AppContext.BaseDirectory, "res", "BlankStaticCompoundBody.bphsc.zs"),
                                 filePath, overwrite: true);
                         }
                     }
@@ -256,18 +249,19 @@ namespace Fushigi.ui
                         mIsChoosingPreferences = true;
                     }
 
-                    if (ImGui.MenuItem("Regenerate Parameter Database", ParamDB.sIsInit)) {
+                    if (ImGui.MenuItem("Regenerate Parameter Database", ParamDB.sIsInit))
+                    {
                         mIsGeneratingParamDB = true;
                     }
 
                     if (ImGui.MenuItem("Undo"))
                     {
-                        mSelectedCourseScene?.activeViewport.mEditContext.Undo();
+                        mSelectedCourseScene?.Undo();
                     }
 
                     if (ImGui.MenuItem("Redo"))
                     {
-                        mSelectedCourseScene?.activeViewport.mEditContext.Redo();
+                        mSelectedCourseScene?.Redo();
                     }
 
                     /* end Edit menu */
@@ -320,7 +314,7 @@ namespace Fushigi.ui
             // ImGui settings are available frame 3
             if (ImGui.GetFrameCount() > 2)
             {
-                if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
+                if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
                     !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                 {
                     if (mCourseSelect != null)
@@ -357,7 +351,7 @@ namespace Fushigi.ui
                         mCloseCourseRequest = request with { success = true };
                         request.onSuccessRetryAction.Invoke();
                     }
-                    else if(result == CloseConfirmationDialog.Result.No)
+                    else if (result == CloseConfirmationDialog.Result.No)
                     {
                         mCloseCourseRequest = null;
                     }
