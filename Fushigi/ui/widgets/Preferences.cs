@@ -1,6 +1,7 @@
 ﻿using Fushigi.param;
 using Fushigi.util;
 using ImGuiNET;
+using Silk.NET.OpenGL;
 using System.Numerics;
 
 namespace Fushigi.ui.widgets
@@ -12,7 +13,7 @@ namespace Fushigi.ui.widgets
         static bool modRomfsTouched = false;
         static bool mIsGeneratingParamDB = false;
 
-        public static void Draw(ref bool continueDisplay)
+        public static void Draw(ref bool continueDisplay, GL gl)
         {
             if (mIsGeneratingParamDB)
             {
@@ -43,7 +44,7 @@ namespace Fushigi.ui.widgets
                         return;
                     }
 
-                    RomFS.SetRoot(romfs);
+                    RomFS.SetRoot(romfs, gl);
                     ChildActorParam.Load();
 
                     /* if our parameter database isn't set, set it */

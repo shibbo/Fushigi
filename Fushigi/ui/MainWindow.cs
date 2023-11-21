@@ -118,8 +118,23 @@ namespace Fushigi.ui
             string romFSPath = UserSettings.GetRomFSPath();
             if (RomFS.IsValidRoot(romFSPath))
             {
-                RomFS.SetRoot(romFSPath);
+                RomFS.SetRoot(romFSPath, gl);
                 ChildActorParam.Load();
+
+                if (!ParamDB.sIsInit)
+                {
+                    Console.WriteLine("Parameter database needs to be initialized...");
+                    mIsGeneratingParamDB = true;
+                }
+
+                string? latestCourse = UserSettings.GetLatestCourse();
+                if (latestCourse != null && ParamDB.sIsInit)
+                {
+                    mCurrentCourseName = latestCourse;
+                    mSelectedCourseScene = new(new(mCurrentCourseName), gl);
+                    mIsChoosingPreferences = false;
+                    mIsWelcome = false;
+                }
             }
 
             ActorIconLoader.Init();
@@ -131,20 +146,7 @@ namespace Fushigi.ui
                 mIsWelcome = false;
             }
 
-            if (!ParamDB.sIsInit && !string.IsNullOrEmpty(RomFS.GetRoot()))
-            {
-                Console.WriteLine("Parameter database needs to be initialized...");
-                mIsGeneratingParamDB = true;
-            }
-
-            string? latestCourse = UserSettings.GetLatestCourse();
-            if (latestCourse != null && ParamDB.sIsInit)
-            {
-                mCurrentCourseName = latestCourse;
-                mSelectedCourseScene = new(new(mCurrentCourseName), gl);
-                mIsChoosingPreferences = false;
-                mIsWelcome = false;
-            }
+             
         }
 
         void DrawMainMenu(GL gl)
@@ -327,7 +329,7 @@ namespace Fushigi.ui
 
                 if (mIsChoosingPreferences)
                 {
-                    Preferences.Draw(ref mIsChoosingPreferences);
+                    Preferences.Draw(ref mIsChoosingPreferences, gl);
                 }
 
                 if (mIsWelcome)
