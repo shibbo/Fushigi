@@ -133,10 +133,10 @@ namespace Fushigi
         {
             var thumbnailFolder = Path.Combine(GetRoot(), "UI", "Tex", "Thumbnail");
 
-            foreach (var course in sCourseEntries[world].courseEntries.Keys)
+            foreach (var course in sCourseEntries[world].courseEntries!.Keys)
             {
                 // Skip the process if this course's thumbnail is already cached
-                if (sCourseEntries[world].courseEntries[course].thumbnail != null)
+                if (sCourseEntries[world].courseEntries![course].thumbnail != null)
                 {
                     continue;
                 }
@@ -152,7 +152,7 @@ namespace Fushigi
                 var bntx = new BntxFile(new MemoryStream(fileBytes));
                 var render = new BfresTextureRender(gl, bntx.Textures[0]);
 
-                sCourseEntries[world].courseEntries[course].thumbnail = render;
+                sCourseEntries[world].courseEntries![course].thumbnail = render;
             }
         }
 
@@ -160,12 +160,12 @@ namespace Fushigi
         {
             public class CourseEntry
             {
-                public string name;
-                public BfresTextureRender thumbnail;
+                public string? name;
+                public BfresTextureRender? thumbnail;
             }
 
-            public string name;
-            public Dictionary<string,  CourseEntry> courseEntries;
+            public string? name;
+            public Dictionary<string, CourseEntry>? courseEntries;
         }
 
         

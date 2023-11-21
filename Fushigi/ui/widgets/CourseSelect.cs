@@ -103,7 +103,7 @@ namespace Fushigi.ui.widgets
 
             float em = ImGui.GetFrameHeight();
 
-            foreach (var course in courses)
+            foreach (var course in courses!)
             {
                 ImGui.PushID(course.Key);
                 ImGui.TableNextColumn();
@@ -127,7 +127,7 @@ namespace Fushigi.ui.widgets
 
                 dl.PushClipRect(min, max, true);
 
-                course.Value.thumbnail.CheckState(false);
+                course.Value.thumbnail!.CheckState(false);
                 dl.AddImage((IntPtr)course.Value.thumbnail.ID,
                     (min + max - thumbnailSize) / 2 - new Vector2(0, em * 1.25f),
                     (min + max + thumbnailSize) / 2 - new Vector2(0, em * 1.25f));
