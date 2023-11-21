@@ -166,15 +166,15 @@ namespace Fushigi.gl.Bfres
         public GsysEnvironment()
         {
             AmbientColor = new Vector4(0, 0, 0, 1);
-            HemiSkyColor = new Vector4(0.5019608f, 0.5019608f, 0.5019608f, 1);
-            HemiGroundColor = new Vector4(0.5019608f, 0.5019608f, 0.5019608f, 1);
+            HemiSkyColor = new Vector4(0.75f, 0.5625f, 1.125f, 1.5f);
+            HemiGroundColor = new Vector4(1.1895f, 0.951f, 0.519f, 1.5f);
 
             HemiGroundColor = new Vector4(1, 0, 0, 1);
 
             HemiDirection = new Vector4(-0.01f, 0.9999935f, -0.003626907f, 0);
-            LightDirection0 = new Vector4(0.8175079f, -0.4740172f, -0.3270913f, 4);
-            LightColor = new Vector4(4.4f, 3.96f, 3.74f, 4);
-            LightSpecColor = new Vector4(4);
+            LightDirection0 = new Vector4(-0.5714403f, -0.3136818f, -0.7583269f, 3.8f);
+            LightColor = new Vector4(3.8f, 3.3516f, 2.8842f, 3.8f);
+            LightSpecColor = new Vector4(3.8f);
 
             LightDirection1 = new Vector4(0, 1, 0, 0);
             LightColor1 = new Vector4(0, 0, 0, 1);
