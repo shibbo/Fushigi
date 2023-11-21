@@ -140,12 +140,132 @@ namespace Fushigi.gl.Bfres
         }
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 2048)]
-    public struct GsysEnvironment
+    public class GsysEnvironment
     {
+        public Vector4 AmbientColor;
+        public Vector4 HemiSkyColor;
+        public Vector4 HemiGroundColor;
+        public Vector4 HemiDirection;
+        public Vector4 LightDirection0;
+        public Vector4 LightColor;
+        public Vector4 LightSpecColor;
+
+        public Vector4 LightDirection1;
+        public Vector4 LightColor1;
+        public Vector4 LightSpecColor1;
+
+        public Vector4 LightDirection0World;
+        public Vector4 HemiDirectionWorld;
+        public Vector4 LightDirection1World;
+
+        //Normal, world space, mask, effect fog
+        public Fog[] FogList = new Fog[4];
+
+        public Vector4[] LightBuffer = new Vector4[7];
+
+        public GsysEnvironment()
+        {
+            AmbientColor = new Vector4(0, 0, 0, 1);
+            HemiSkyColor = new Vector4(0.5019608f, 0.5019608f, 0.5019608f, 1);
+            HemiGroundColor = new Vector4(0.5019608f, 0.5019608f, 0.5019608f, 1);
+
+            HemiGroundColor = new Vector4(1, 0, 0, 1);
+
+            HemiDirection = new Vector4(-0.01f, 0.9999935f, -0.003626907f, 0);
+            LightDirection0 = new Vector4(0.8175079f, -0.4740172f, -0.3270913f, 4);
+            LightColor = new Vector4(4.4f, 3.96f, 3.74f, 4);
+            LightSpecColor = new Vector4(4);
+
+            LightDirection1 = new Vector4(0, 1, 0, 0);
+            LightColor1 = new Vector4(0, 0, 0, 1);
+            LightSpecColor1 = new Vector4(0, 0, 0, 1);
+
+            LightDirection0World = new Vector4(0, 1, 0, 0);
+            HemiDirectionWorld = new Vector4(0.292369f, -0.9563048f, -0.001275723f, 0);
+            LightDirection1World = new Vector4(0, 1, 0, 0);
+
+            for (int i = 0; i < FogList.Length; i++)
+                FogList[i] = new Fog();
+
+            LightBuffer[0] = new Vector4(-0.07066349f, 0.0104383f, 0.01484864f, 0.3762342f);
+            LightBuffer[1] = new Vector4(-0.07834358f, 0.022879f, 0.00286472f, 0.3644175f);
+            LightBuffer[2] = new Vector4(-0.08234646f, 0.07531384f, -0.001357785f, 0.3541074f);
+            LightBuffer[3] = new Vector4(-0.03421519f, -0.01010032f, -0.07968342f, 0.001463851f);
+            LightBuffer[4] = new Vector4(-0.03502026f, -0.004357998f, -0.08492773f, -0.003487148f);
+            LightBuffer[5] = new Vector4(-0.04025555f, 0.002667315f, -0.0995281f, -0.01150249f);
+            LightBuffer[6] = new Vector4(-0.02927722f, -0.03509886f, -0.04652298f, 1.0f);
+        }
+
         public void Set(UniformBlock block)
         {
-            block.SetData(File.ReadAllBytes("SMWEnv.bin"));
+            var mem = new System.IO.MemoryStream();
+            using (var writer = new BinaryWriter(mem))
+            {
+                writer.Write(AmbientColor);
+                writer.Write(HemiSkyColor);
+                writer.Write(HemiGroundColor);
+                writer.Write(HemiDirection);
+                writer.Write(LightDirection0);
+                writer.Write(LightColor);
+                writer.Write(LightSpecColor);
+                writer.Write(LightDirection1);
+                writer.Write(LightColor1);
+                writer.Write(LightSpecColor1);
+
+                //vec4[10]
+
+                writer.Seek(10 * 16, SeekOrigin.Begin);
+                for (int i = 0; i < FogList.Length; i++)
+                {
+                    writer.Write(FogList[i].Color);
+                    writer.Write(FogList[i].Direciton.X);
+                    writer.Write(FogList[i].Direciton.Y);
+                    writer.Write(FogList[i].Direciton.Z);
+                    writer.Write(FogList[i].StartC);
+                    writer.Write(FogList[i].EndC);
+                    writer.Write(1f);
+                    writer.Write(0);
+                    writer.Write(0);
+                }
+
+                //vec4[21]
+
+                writer.Write(LightDirection0World);
+                writer.Write(HemiDirectionWorld);
+                writer.Write(LightDirection1World);
+
+                //vec4[24]
+
+                writer.Write(LightBuffer[0]);
+                writer.Write(LightBuffer[1]);
+                writer.Write(LightBuffer[2]);
+                writer.Write(LightBuffer[3]);
+
+                writer.Write(LightBuffer[4]);
+                writer.Write(LightBuffer[5]);
+                writer.Write(LightBuffer[6]);
+
+                //Blank out the rest below. Prevents black output in TOTK
+                //Todo figure out why this is needed
+                writer.Seek(46 * 16, SeekOrigin.Begin);
+                for (int i = 0; i < 100; i++)
+                {
+                    writer.Write(new Vector4(0));
+                }
+            }
+            block.SetData(mem.ToArray());
+        }
+
+        public class Fog
+        {
+            public float End = 100000;
+            public float Start = 1000;
+
+            public float StartC => -Start / (End - Start);
+            public float EndC => 1.0f / (End - Start);
+
+            public Vector3 Direciton = new Vector3(0, 0, 0);
+            public Vector4 Color = new Vector4(0);
         }
     }
 
