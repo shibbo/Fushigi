@@ -183,7 +183,7 @@ namespace Fushigi.ui.widgets
 
             ulong selectionVersionBefore = areaScenes[selectedArea].EditContext.SelectionVersion;
 
-            bool status = ImGui.Begin("Viewports");
+            bool status = ImGui.Begin("Viewports", ImGuiWindowFlags.NoNavFocus);
 
             ImGui.DockSpace(0x100, ImGui.GetContentRegionAvail());
 
@@ -194,7 +194,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.SetNextWindowDockID(0x100, ImGuiCond.Once);
 
-                if (ImGui.Begin(area.GetName()))
+                if (ImGui.Begin(area.GetName(), ImGuiWindowFlags.NoNavFocus))
                 {
                     if (ImGui.IsWindowFocused())
                     {
