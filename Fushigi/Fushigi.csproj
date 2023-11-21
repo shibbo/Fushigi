@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Fushigi.Bfres\Fushigi.Bfres.csproj" />
     <ProjectReference Include="..\Fushigi.Byml\Fushigi.Byml.csproj" />
+    <ProjectReference Include="..\Fushigi.Msbt\Fushigi.Msbt.csproj" />
     <ProjectReference Include="..\SARC\Fushigi.SARC.csproj" />
   </ItemGroup>
 
@@ -38,6 +39,9 @@
   <ItemGroup>
     <None Update="res\AreaParam.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="res\BlankStaticCompoundBody.bphsc.zs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="res\DefaultTexture.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

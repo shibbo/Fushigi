@@ -440,10 +440,10 @@ namespace Fushigi.ui.widgets
             {
                 if (activeViewport.mEditContext.IsAnySelected<CourseActor>())
                 {
-                    Console.WriteLine("Switching state to EditorState.DeletingActor");
                     activeViewport.mEditContext.DeleteSelectedActors();
-                    activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
                 }
+                Console.WriteLine("Switching state to EditorState.Selecting");
+                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
                 return;
             }
 
