@@ -24,6 +24,10 @@ namespace Fushigi.actor_pack.components
         public class SubModel
         {
             public string FmdbName { get; set; }
+
+            public string ModelProjectName { get; set; }
+
+            public string SearchModelKey { get; set; }
         }
 
         [Serializable]

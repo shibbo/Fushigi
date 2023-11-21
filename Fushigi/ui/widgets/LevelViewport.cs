@@ -25,6 +25,7 @@ using Fushigi.actor_pack.components;
 using System.Runtime.InteropServices;
 using static Fushigi.ui.SceneObjects.bgunit.BGUnitRailSceneObj;
 using Fushigi.ui.SceneObjects.bgunit;
+using System.Diagnostics;
 
 namespace Fushigi.ui.widgets
 {
@@ -268,20 +269,25 @@ namespace Fushigi.ui.widgets
              var model = render.Models[modelName];
             //switch for drawing models with different methods easier
             switch (modelName){
+                case "DokanJunction":
                 case "DokanTop":
-                    var matPTop = 
-                    Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.X, actor.mScale.Z) * 
-                    Matrix4x4.CreateTranslation(0, (actor.mScale.Y-actor.mScale.X)*2, 0) *
-                    rotMat *
-                    transMat;
+                    var drainRef = actor.mActorPack.DrainPipeRef;
 
-                    var matPMid = 
-                    Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.Y*2, actor.mScale.Z) * 
-                    rotMat *
-                    transMat;
+                    var KeyMats = new Dictionary<string, Matrix4x4>{
+                        {drainRef.ModelKeyTop,
+                            Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.X, actor.mScale.Z) * 
+                            Matrix4x4.CreateTranslation(0, (actor.mScale.Y-actor.mScale.X)*2, 0) *
+                            rotMat *
+                            transMat},
 
-                    model.Render(gl, render, matPTop, this.Camera);
-                    render.Models["DokanMiddle"].Render(gl, render, matPMid, this.Camera);
+                        {drainRef.ModelKeyMiddle,
+                            Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.Y*2, actor.mScale.Z) * 
+                            rotMat *
+                            transMat}};
+
+                    render.Models[modelName].Render(gl, render, KeyMats[modelInfo.SearchModelKey], this.Camera);
+                    if(modelInfo.SubModels.Any())
+                        render.Models[modelInfo.SubModels[0].FmdbName].Render(gl, render, KeyMats[modelInfo.SubModels[0].SearchModelKey], this.Camera);
                     break;
                 default:
                     model.Render(gl, render, mat, this.Camera);
@@ -956,6 +962,29 @@ namespace Fushigi.ui.widgets
 
             foreach (CourseActor actor in mEditContext.GetActorHolder().GetActors())
             {
+                Vector3 min = new(-.5f);
+                Vector3 max = new(.5f);
+                Vector3 off = new(0f);
+                Vector3 center = new(0f);
+                var drawing = "box";
+
+                if (actor.mActorPack.ShapeParams != null)
+                {
+                    var calc = actor.mActorPack.ShapeParams.mCalc;
+                    min = calc.mMin;
+                    max = calc.mMax;
+                    center = calc.mCenter;
+
+                    if(actor.mActorPack.ShapeParams.mSphere != null)
+                    { 
+                        drawing = "sphere";
+                    }
+                    else if(actor.mActorPack.ShapeParams.mCapsule != null)
+                    { 
+                        drawing = "cap";
+                    }
+                }
+                    
                 string layer = actor.mLayer;
 
                 if (mLayersVisibility!.TryGetValue(layer, out bool isVisible) && isVisible)
@@ -978,27 +1007,17 @@ namespace Fushigi.ui.widgets
                     {
                         if (actor.mActorName.Contains("CameraArea"))
                             color = ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1));
-
-                        //topLeft
-                        s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 1f, 0), transform));
-                        //topRight
-                        s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(0.5f, 1f, 0), transform));
-                        //bottomRight
-                        s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(0.5f, 0, 0), transform));
-                        //bottomLeft
-                        s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(-0.5f, 0, 0), transform));
+                            
+                        off = new(0, .5f, 0);
                     }
-                    else
-                    {
-                        //topLeft
-                        s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 0.5f, 0), transform));
-                        //topRight
-                        s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(0.5f, 0.5f, 0), transform));
-                        //bottomRight
-                        s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(0.5f, -0.5f, 0), transform));
-                        //bottomLeft
-                        s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(-0.5f, -0.5f, 0), transform));
-                    }
+                    //topLeft
+                    s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(min.X, off.Y+max.Y, 0), transform));
+                    //topRight
+                    s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(max.X, off.Y+max.Y, 0), transform));
+                    //bottomRight
+                    s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(max.X, off.Y+min.Y, 0), transform));
+                    //bottomLeft
+                    s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(min.X, off.Y+min.Y, 0), transform));
 
                     if (mEditContext.IsSelected(actor))
                     {
@@ -1007,17 +1026,28 @@ namespace Fushigi.ui.widgets
 
                     bool isHovered = HoveredObject == actor;
 
-                    for (int i = 0; i < 4; i++)
+                    switch(drawing)
                     {
-                        if (mEditContext.IsSelected(actor))
-                        {
-                            mDrawList.AddCircleFilled(s_actorRectPolygon[i],
-                                pointSize, color);
-                        }
-                        mDrawList.AddLine(
-                            s_actorRectPolygon[i],
-                            s_actorRectPolygon[(i + 1) % 4],
-                            color, isHovered ? 2.5f : 1.5f);
+                        default:
+                            for (int i = 0; i < 4; i++)
+                            {
+                                if (mEditContext.IsSelected(actor))
+                                {
+                                    mDrawList.AddCircleFilled(s_actorRectPolygon[i],
+                                        pointSize, color);
+                                }
+                                mDrawList.AddLine(
+                                s_actorRectPolygon[i],
+                                s_actorRectPolygon[(i+1) % 4 ],
+                                color, isHovered ? 2.5f : 1.5f);
+                            }
+                            break;
+                        case "sphere": 
+                            var pos = WorldToScreen(Vector3.Transform(center, transform));
+                            var rad = WorldToScreen(Vector3.Transform(max, transform)).X-
+                            WorldToScreen(Vector3.Transform(center, transform)).X;
+                            mDrawList.AddCircle(pos, Math.Abs(rad), color, 0, isHovered ? 2.5f : 1.5f);
+                            break;
                     }
 
                     string name = actor.mActorName;
