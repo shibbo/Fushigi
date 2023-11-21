@@ -112,7 +112,7 @@ namespace Fushigi.gl.Bfres
                     if (!camera.InFrustum(mesh.LodMeshes[0].BoundingBox, mesh.LodMeshes[0].BoundingRadius))
                         continue;
 
-                    mesh.Render(gl, render, this, transform, camera);
+                    mesh.RenderGameShaders(gl, render, this, transform, camera);
                 }
             }
 
