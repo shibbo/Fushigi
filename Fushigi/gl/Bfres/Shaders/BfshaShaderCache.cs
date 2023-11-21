@@ -20,7 +20,11 @@ namespace Fushigi.gl.Bfres
             //Init
             if (Shaders.Count == 0)
             {
-                foreach (var file in Directory.GetFiles(Path.Combine("ShaderCache", "Archives")))
+                string folder = Path.Combine("ShaderCache", "Archives");
+
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                foreach (var file in Directory.GetFiles(folder))
                 {
                     var shader = new BfshaFile(file);
                     Shaders.Add(shader);
