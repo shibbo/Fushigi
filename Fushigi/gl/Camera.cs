@@ -9,6 +9,8 @@ namespace Fushigi.gl
 {
     public class Camera
     {
+        public EventHandler OnCameraChanged;
+
         public Quaternion Rotation = Quaternion.Identity;
         public Vector3 Target = Vector3.Zero;
         public float Distance = 10;
@@ -19,6 +21,8 @@ namespace Fushigi.gl
         public float Height;
 
         public float AspectRatio => Width / Height;
+
+        public bool IsOrthographic = true;
 
         public Matrix4x4 ProjectionMatrix { get; private set; }
         public Matrix4x4 ViewMatrix { get; private set; }
@@ -35,9 +39,19 @@ namespace Fushigi.gl
         {
             float tanFOV = MathF.Tan(Fov / 2);
 
-            ProjectionMatrix = Matrix4x4.CreateOrthographic(AspectRatio * tanFOV * Distance, tanFOV * Distance,
-                -1000, 1000);
-            ViewMatrix = Matrix4x4.CreateTranslation(-Target);
+            if (IsOrthographic)
+            {
+                ProjectionMatrix = Matrix4x4.CreateOrthographic(AspectRatio * tanFOV * Distance, tanFOV * Distance,
+                        -10000, 10000);
+
+                ViewMatrix = Matrix4x4.CreateTranslation(-Target + new Vector3(0, 0, -10));
+            }
+            else
+            {
+                ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(Fov, AspectRatio, 1.0f, 10000);
+                ViewMatrix = Matrix4x4.CreateTranslation(-Target) * Matrix4x4.CreateTranslation(0, 0, -Distance / 2);
+            }
+
             ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
 
             if (!Matrix4x4.Invert(ViewProjectionMatrix, out var inv))
@@ -46,10 +60,11 @@ namespace Fushigi.gl
             //Temp. since matrices are updated per frame, check for any changes
             //So we don't have to keep updating frustum info each frame
             if (inv != ViewProjectionMatrixInverse)
+            {
                 CameraFrustum.UpdateCamera(this);
-
+                OnCameraChanged?.Invoke(this, EventArgs.Empty);
+            }
             ViewProjectionMatrixInverse = inv;
-
 
             return true;
         }

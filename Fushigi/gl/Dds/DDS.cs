@@ -1,5 +1,6 @@
 ﻿using Fushigi.Bfres;
 using Fushigi.gl.Bfres;
+using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using System;
 using System.Collections.Generic;
@@ -340,7 +341,7 @@ namespace Fushigi.gl
                 stream.Read(AsSpan(ref MainHeader));
                 stream.Read(AsSpan(ref PfHeader));
 
-                reader.BaseStream.Seek(MainHeader.Size, SeekOrigin.Begin);
+                reader.BaseStream.Seek(MainHeader.Size + 4, SeekOrigin.Begin);
 
                 if (IsDX10)
                     stream.Read(AsSpan(ref Dx10Header));
@@ -348,25 +349,66 @@ namespace Fushigi.gl
                 SetupFormat();
 
                 ImageData = reader.ReadBytes((int)(reader.BaseStream.Length - reader.BaseStream.Position));
+                uint size = CalculateSize();
+                Console.WriteLine();
             }
         }
 
-        public byte[] GetSurface(int arrayIndex)
+        public uint CalculateSize()
+        {
+            uint size = 0;
+
+            int CalculateMipDimension(uint baseLevelDimension, int mipLevel) {
+                return (int)baseLevelDimension / (int)Math.Pow(2, mipLevel);
+            }
+
+            for (int arrayLevel = 0; arrayLevel < ArrayCount; arrayLevel++)
+            {
+                for (int mipLevel = 0; mipLevel < this.MainHeader.MipCount; mipLevel++)
+                {
+                    int mipWidth = CalculateMipDimension(this.MainHeader.Width, mipLevel);
+                    int mipHeight = CalculateMipDimension(this.MainHeader.Height, mipLevel);
+
+                    uint imageSize = DDSFormatHelper.CalculateImageSize((uint)mipWidth, (uint)mipHeight, this.Format);
+                    size += imageSize;
+                }
+            }
+            return size;
+        }
+
+        public byte[] GetSurfaces(int mip_level = 0)
+        {
+            List<byte> surfaces = new List<byte>();
+
+            for (int i = 0; i < this.ArrayCount; i++)
+                surfaces.AddRange(GetSurface(i, mip_level));
+
+            return surfaces.ToArray();  
+        }
+
+        public byte[] GetSurface(int arrayIndex, int mip_level = 0)
         {
             Span<byte> buffer = ImageData;
 
             uint offset = 0;
-            var width = this.MainHeader.Width;
-            var height = this.MainHeader.Height;
+
+            int CalculateMipDimension(uint baseLevelDimension, int mipLevel) {
+                return (int)baseLevelDimension / (int)Math.Pow(2, mipLevel);
+            }
 
             for (int arrayLevel = 0; arrayLevel < ArrayCount; arrayLevel++)
             {
-                uint imageSize = DDSFormatHelper.CalculateImageSize(width, height, this.Format);
+                for (int mipLevel = 0; mipLevel < this.MainHeader.MipCount; mipLevel++)
+                {
+                    int mipWidth = CalculateMipDimension(this.MainHeader.Width, mipLevel);
+                    int mipHeight = CalculateMipDimension(this.MainHeader.Height, mipLevel);
+                    uint imageSize = DDSFormatHelper.CalculateImageSize((uint)mipWidth, (uint)mipHeight, this.Format);
 
-                if (arrayIndex == arrayLevel)
-                    return buffer.Slice((int)offset, (int)imageSize).ToArray();
+                    if (arrayIndex == arrayLevel && mip_level == mipLevel)
+                        return buffer.Slice((int)offset, (int)imageSize).ToArray();
 
-                offset += imageSize;
+                    offset += imageSize;
+                }
             }
             return ImageData;
         }

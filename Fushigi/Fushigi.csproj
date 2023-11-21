@@ -19,6 +19,7 @@
     <PackageReference Include="Silk.NET.Input" Version="2.19.0" />
     <PackageReference Include="Silk.NET.Input.Extensions" Version="2.19.0" />
     <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.19.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
     <PackageReference Include="ZstdSharp.Port" Version="0.7.3" />
   </ItemGroup>
@@ -38,6 +39,15 @@
   <ItemGroup>
     <None Update="res\AreaParam.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="res\bfres\CubemapHDR.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\bfres\CubemapLightmap.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\bfres\CubemapLightmapShadow.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="res\DefaultTexture.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

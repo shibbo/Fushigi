@@ -70,6 +70,18 @@ namespace Fushigi.gl
             Unbind();
         }
 
+        public unsafe void SetStruct<T>(T[] data, int size, BufferUsageARB hint = BufferUsageARB.StaticDraw) where T : struct
+        {
+            Bind();
+
+            fixed (void* d = data)
+            {
+                _gl.BufferData(Target, (nuint)size, d, BufferUsageARB.StaticDraw);
+            }
+
+            Unbind();
+        }
+
         public void Bind()
         {
             _gl.BindBuffer(Target, ID);

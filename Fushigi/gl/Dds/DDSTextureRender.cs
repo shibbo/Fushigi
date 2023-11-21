@@ -36,30 +36,69 @@ namespace Fushigi.gl
             this.WrapR = TextureWrapMode.Repeat;
             this.UpdateParameters();
 
-            uint numArrays = !texture.IsDX10 ? 1u : texture.Dx10Header.ArrayCount;
+            uint numArrays = texture.ArrayCount;
 
-            for (int i = 0; i < numArrays; i++)
+            //Pass all data at once
+            if (this.Target == TextureTarget.TextureCubeMapArray || 
+                this.Target == TextureTarget.Texture2DArray ||
+                this.Target == TextureTarget.Texture3D)
             {
-                //Load each surface
-                var surface = texture.GetSurface(i);
-                var mipLevel = 0;
-                var depthLevel = (uint)i;
+                //Allocate mip data
+                if (texture.MainHeader.MipCount > 1)
+                    _gl.GenerateMipmap(Target);
 
-                if (texture.IsBCNCompressed())
+                for (int j = 0; j < texture.MainHeader.MipCount; j++)
                 {
-                    var internalFormat = DDSFormatHelper.ConvertCompressedFormat(texture.Format, true);
-                    GLTextureDataLoader.LoadCompressedImage(_gl, this.Target, Width, Height, depthLevel, internalFormat, surface, mipLevel);
+                    var surface = texture.GetSurfaces(j);
+                    var mipLevel = j;
+
+                    var mipWidth = CalculateMipDimension(this.Width, (uint)j);
+                    var mipHeight = CalculateMipDimension(this.Height, (uint)j);
+
+                    if (texture.IsBCNCompressed())
+                    {
+                        var internalFormat = DDSFormatHelper.ConvertCompressedFormat(texture.Format, true);
+                        GLTextureDataLoader.LoadCompressedImage(_gl, this.Target, mipWidth, mipHeight, numArrays, internalFormat, surface, mipLevel);
+                    }
+                    else
+                    {
+                        var formatInfo = DDSFormatHelper.ConvertPixelFormat(texture.Format);
+                        GLTextureDataLoader.LoadImage(_gl, this.Target, mipWidth, mipHeight, numArrays, formatInfo, surface, mipLevel);
+                    }
                 }
-                else
+            }
+            else //insert slices of data
+            {
+                //Allocate mip data
+                if (texture.MainHeader.MipCount > 1)
+                    _gl.GenerateMipmap(Target);
+
+                for (int i = 0; i < numArrays; i++)
                 {
-                    var formatInfo = DDSFormatHelper.ConvertPixelFormat(texture.Format);
-                    GLTextureDataLoader.LoadImage(_gl, this.Target, Width, Height, depthLevel, formatInfo, surface, mipLevel);
+                    for (int j = 0; j < texture.MainHeader.MipCount; j++)
+                    {
+                        //Load each surface
+                        var surface = texture.GetSurface(i, j);
+                        var mipLevel = j;
+                        var depthLevel = (uint)i;
+
+                        var mipWidth = CalculateMipDimension(this.Width, (uint)j);
+                        var mipHeight = CalculateMipDimension(this.Height, (uint)j);
+
+                        if (texture.IsBCNCompressed())
+                        {
+                            var internalFormat = DDSFormatHelper.ConvertCompressedFormat(texture.Format, true);
+                            GLTextureDataLoader.LoadCompressedImage(_gl, this.Target, mipWidth, mipHeight, depthLevel, internalFormat, surface, mipLevel);
+                        }
+                        else
+                        {
+                            var formatInfo = DDSFormatHelper.ConvertPixelFormat(texture.Format);
+                            GLTextureDataLoader.LoadImage(_gl, this.Target, mipWidth, mipHeight, depthLevel, formatInfo, surface, mipLevel);
+                        }
+                    }
                 }
             }
 
-            if (texture.MainHeader.MipCount > 1) {
-                _gl.GenerateMipmap(this.Target);
-            }
             this.Unbind();
         }
     }

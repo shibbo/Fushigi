@@ -71,6 +71,8 @@ namespace Fushigi.ui.widgets
         public Camera Camera = new Camera();
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
         public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
+        public VRSkybox VRSkybox;
+        public TileBfresRender TileBfresRender;
 
         public object? HoveredObject;
         public CourseLink? CurCourseLink = null;
@@ -201,7 +203,20 @@ namespace Fushigi.ui.widgets
             mLayersVisibility = layersVisibility;
 
             if (Framebuffer == null)
-                Framebuffer = new GLFramebuffer(gl, FramebufferTarget.Framebuffer, (uint)size.X, (uint)size.Y);
+                Framebuffer = new GLFramebuffer(gl, FramebufferTarget.Framebuffer, (uint)size.X, (uint)size.Y, InternalFormat.Rgba16f);
+
+            if (VRSkybox == null)
+                VRSkybox = new VRSkybox(gl);
+            if (TileBfresRender == null)
+            {
+                TileBfresRender = new TileBfresRender(gl);
+                TileBfresRender.Load(this.mArea.mUnitHolder, this.Camera);
+
+                this.Camera.OnCameraChanged += delegate
+                {
+                  //  TileBfresRender.Load(this.mArea.mUnitHolder, this.Camera);
+                };
+            }
 
             //Resize if needed
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
@@ -217,6 +232,8 @@ namespace Fushigi.ui.widgets
 
             RenderStats.Reset();
 
+            TileBfresRender.Render(gl, this.Camera);
+
             foreach (var actor in this.mArea.GetActors())
             {
                 if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
@@ -225,6 +242,9 @@ namespace Fushigi.ui.widgets
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
                 RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
             }
+
+            //  VRSkybox.Render(gl, this.Camera);
+
             Framebuffer.Unbind();
 
              ImGui.SetCursorScreenPos(mTopLeft);
@@ -685,7 +705,7 @@ namespace Fushigi.ui.widgets
             {
                 if(!unit.Visible)
                     continue;
-
+/*
                 if (unit.mTileSubUnits.Count > 0)
                 {
                     var clipMin = new Vector2(float.NegativeInfinity);
@@ -766,7 +786,7 @@ namespace Fushigi.ui.widgets
                             }
                         }
                     }
-                }
+                }*/
 
                 foreach (var wall in unit.Walls)
                 {
@@ -803,7 +823,7 @@ namespace Fushigi.ui.widgets
 
             if (mArea.mRailHolder.mRails.Count > 0)
             {
-                uint color = Color.HotPink.ToAbgr();
+                uint color = System.Drawing.Color.HotPink.ToAbgr();
 
                 foreach (CourseRail rail in mArea.mRailHolder.mRails)
                 {
@@ -956,6 +976,12 @@ namespace Fushigi.ui.widgets
 
             foreach (CourseActor actor in mEditContext.GetActorHolder().GetActors())
             {
+                if (actor.mActorPack != null)
+                {
+                    if (!string.IsNullOrEmpty(actor.mActorPack.GetModelFileName()))
+                        continue;
+                }
+
                 string layer = actor.mLayer;
 
                 if (mLayersVisibility!.TryGetValue(layer, out bool isVisible) && isVisible)
@@ -1098,7 +1124,7 @@ namespace Fushigi.ui.widgets
 
     static class ColorExtensions
     {
-        public static uint ToAbgr(this Color c) => (uint)(
+        public static uint ToAbgr(this System.Drawing.Color c) => (uint)(
             c.A << 24 |
             c.B << 16 |
             c.G << 8 |

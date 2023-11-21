@@ -61,7 +61,7 @@ namespace Fushigi.gl
             { DDS.DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB, InternalFormat.CompressedSrgbAlphaS3TCDxt5Ext },
             { DDS.DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM, InternalFormat.CompressedRedRgtc1 },
             { DDS.DXGI_FORMAT.DXGI_FORMAT_BC4_SNORM, InternalFormat.CompressedSignedRedRgtc1 },
-            { DDS.DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM, InternalFormat.CompressedRGRgtc2 },
+            { DDS.DXGI_FORMAT.DXGI_FORMAT_BC5_UNORM, InternalFormat.CompressedRGRgtc2 },
             { DDS.DXGI_FORMAT.DXGI_FORMAT_BC5_SNORM, InternalFormat.CompressedSignedRGRgtc2 },
             { DDS.DXGI_FORMAT.DXGI_FORMAT_BC6H_UF16, InternalFormat.CompressedRgbBptcUnsignedFloat },
             { DDS.DXGI_FORMAT.DXGI_FORMAT_BC6H_SF16, InternalFormat.CompressedRgbBptcSignedFloat },

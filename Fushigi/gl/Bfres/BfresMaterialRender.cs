@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Fushigi.gl.Bfres
 {
@@ -15,26 +16,30 @@ namespace Fushigi.gl.Bfres
     {
         public GLShader Shader;
 
+        public string Name {  get; set; }
+
         public GsysRenderState GsysRenderState = new GsysRenderState();
 
-     //   public WonderGameShader GsysShaderRender = new WonderGameShader();
+        public WonderGameShader GsysShaderRender = new WonderGameShader();
 
         private Material Material;
 
         public void Init(GL gl, BfresRender.BfresModel modelRender, BfresRender.BfresMesh meshRender, Shape shape, Material material) {
             Material = material;
+            Name = material.Name;
 
             Shader = GLShaderCache.GetShader(gl, "Bfres",
                Path.Combine("res", "shaders", "Bfres.vert"),
                Path.Combine("res", "shaders", "Bfres.frag"));
 
             GsysRenderState.Init(material);
-          //  GsysShaderRender.Init(gl, modelRender, meshRender, shape, material);
+            GsysShaderRender.Init(gl, modelRender, meshRender, shape, material);
         }
 
         public void RenderGameShaders(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
         {
-          //  GsysShaderRender.Render(gl, renderer, model, transform, camera);
+            gl.Enable(EnableCap.TextureCubeMapSeamless);
+            GsysShaderRender.Render(gl, renderer, model, transform, camera);
         }
 
         public void Render(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
@@ -46,7 +51,9 @@ namespace Fushigi.gl.Bfres
             Shader.SetUniform("mtxMdl", transform);
             Shader.SetUniform("hasAlbedoMap", 0);
             Shader.SetUniform("hasNormalMap", 0);
+            Shader.SetUniform("hasEmissionMap", 0);
             Shader.SetUniform("const_color0", Vector4.One);
+            Shader.SetUniform("const_color1", Vector4.Zero);
 
             Shader.SetUniform("tile_id", 0);
 
@@ -61,6 +68,11 @@ namespace Fushigi.gl.Bfres
             {
                 var color = (float[])this.Material.ShaderParams["const_color0"].DataValue;
                 Shader.SetUniform("const_color0", new Vector4(color[0], color[1], color[2], color[3]));
+            }
+            if (this.Material.ShaderParams.ContainsKey("const_color1"))
+            {
+                var color = (float[])this.Material.ShaderParams["const_color1"].DataValue;
+                Shader.SetUniform("const_color1", new Vector4(color[0], color[1], color[2], color[3]));
             }
 
             int unit_slot = 2;

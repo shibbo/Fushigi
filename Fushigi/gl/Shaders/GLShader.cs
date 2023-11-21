@@ -7,6 +7,8 @@ namespace Fushigi.gl
 {
     public class GLShader : GLObject, IDisposable
     {
+        public Dictionary<string, UniformType> UniformInfo = new Dictionary<string, UniformType>();
+
         private GL _gl;
 
         public GLShader(GL gl) : base(gl.CreateProgram())
@@ -46,6 +48,23 @@ namespace Fushigi.gl
             _gl.DetachShader(ID, fragment);
             _gl.DeleteShader(vertex);
             _gl.DeleteShader(fragment);
+
+            ShaderReflection();
+        }
+
+        public void ShaderReflection()
+        {
+            _gl.GetProgram(ID, ProgramPropertyARB.ActiveUniforms, out int activeUniforms);
+
+            UniformInfo.Clear();
+            for (int i = 0; i < activeUniforms; i++)
+            {
+                string name = _gl.GetActiveUniform(ID, (uint)i, out int size, out UniformType type);
+                int location = _gl.GetUniformLocation(ID, name);
+
+                if (!UniformInfo.ContainsKey(name))
+                    UniformInfo.Add(name, type);
+            }
         }
 
         public void Use()

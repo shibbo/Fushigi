@@ -1,4 +1,5 @@
 ﻿using Fushigi.course;
+using Fushigi.gl;
 using Fushigi.ui.widgets;
 using Fushigi.util;
 using ImGuiNET;
@@ -267,10 +268,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
             {
                 if (transformStart && ctx.IsSelected(Points[i]))
                 {
-                    diff.X = MathF.Round(diff.X, MidpointRounding.AwayFromZero);
-                    diff.Y = MathF.Round(diff.Y, MidpointRounding.AwayFromZero);
-                    posVec.Z = Points[i].Position.Z;
-                    Points[i].Position = Points[i].PreviousPosition + diff;
                     anyTransformed = true;
                 }
             }

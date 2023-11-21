@@ -42,6 +42,12 @@ namespace Fushigi
             return Directory.GetFiles(Path.Combine(sRomFSRoot, path));
         }
 
+        public static Stream GetFileStream(string path)
+        {
+            Console.WriteLine($"RomFS::GetFileStream() -- {path}");
+            return File.OpenRead(Path.Combine(sRomFSRoot, path));
+        }
+
         public static byte[] GetFileBytes(string path)
         {
             Console.WriteLine($"RomFS::GetFileBytes() -- {path}");

@@ -1,4 +1,5 @@
-﻿using Silk.NET.Core.Native;
+﻿using Fushigi.gl.Bfres;
+using Silk.NET.Core.Native;
 using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using StbImageSharp;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Fushigi.gl
 {
@@ -19,7 +21,8 @@ namespace Fushigi.gl
             Target = TextureTarget.Texture2D;
         }
 
-        public static GLTexture2D CreateUncompressedTexture(GL gl, uint width, uint height, InternalFormat format,
+        public static GLTexture2D CreateUncompressedTexture(GL gl, uint width, uint height
+            , InternalFormat format = InternalFormat.Rgba,
              Silk.NET.OpenGL.PixelFormat pixelFormat = Silk.NET.OpenGL.PixelFormat.Rgba,
               Silk.NET.OpenGL.PixelType pixelType = Silk.NET.OpenGL.PixelType.UnsignedByte)
         {
@@ -37,6 +40,43 @@ namespace Fushigi.gl
                 gl.TexImage2D(tex.Target, 0, tex.InternalFormat, tex.Width, tex.Height, 0,
                                   tex.PixelFormat, tex.PixelType, null);
             }
+
+            tex.MagFilter = TextureMagFilter.Linear;
+            tex.MinFilter = TextureMinFilter.Linear;
+            tex.UpdateParameters();
+
+            tex.Unbind();
+
+            return tex;
+        }
+
+        public static GLTexture2D CreateWhiteTex(GL gl, uint width, uint height)
+        {
+            GLTexture2D tex = new GLTexture2D(gl);
+            tex.Width = width;
+            tex.Height = height;
+            tex.InternalFormat = InternalFormat.Rgba;
+            tex.PixelFormat = Silk.NET.OpenGL.PixelFormat.Rgba;
+            tex.PixelType = Silk.NET.OpenGL.PixelType.UnsignedByte;
+
+            tex.Bind();
+
+            unsafe
+            {
+                byte[] image = new byte[width * height * 4];
+                for (int i = 0; i < width * height * 4; i++)
+                    image[i] = 255;
+
+                fixed (byte* ptr = image)
+                {
+                    gl.TexImage2D(tex.Target, 0, tex.InternalFormat, tex.Width, tex.Height, 0,
+                                      tex.PixelFormat, tex.PixelType, ptr);
+                }
+            }
+
+            tex.MagFilter = TextureMagFilter.Linear;
+            tex.MinFilter = TextureMinFilter.Linear;
+            tex.UpdateParameters();
 
             tex.Unbind();
 

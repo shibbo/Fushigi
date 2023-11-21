@@ -19,6 +19,7 @@ uniform int hasMixMapArray;
 uniform int hasEmissiveMap;
 
 uniform vec4 const_color0;
+uniform vec4 const_color1;
 
 uniform sampler2D albedo_texture;
 uniform sampler2D normal_texture;

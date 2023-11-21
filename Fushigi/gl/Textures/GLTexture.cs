@@ -26,6 +26,9 @@ namespace Fushigi.gl
         public TextureWrapMode WrapT { get; set; }
         public TextureWrapMode WrapR { get; set; }
 
+        //
+        public List<GLTexture> SubTextures = new List<GLTexture>();
+
         internal GL _gl { get; private set; }
 
         public bool IsDisposed = false;
@@ -63,6 +66,58 @@ namespace Fushigi.gl
             _gl.TexParameter(Target, TextureParameterName.TextureWrapS, (int)WrapS);
             _gl.TexParameter(Target, TextureParameterName.TextureWrapT, (int)WrapT);
             _gl.TexParameter(Target, TextureParameterName.TextureWrapR, (int)WrapR);
+        }
+
+
+        public unsafe static GLTexture ToCopy(GL gl, GLTexture texture, TextureTarget target)
+        {
+            //Src
+            byte[] buffer = new byte[texture.Width * texture.Height * 4];
+
+            var dest_format = InternalFormat.Rgba;
+
+            texture.Bind();
+            gl.GetTexImage(texture.Target, 0, texture.PixelFormat, texture.PixelType, buffer.AsSpan());
+
+            //Use srgb if enabled
+            if (texture.InternalFormat == InternalFormat.SrgbAlpha)
+                dest_format = InternalFormat.SrgbAlpha;
+
+
+            GLTexture tex = new GLTexture(gl);
+            tex.Target = target;
+            tex.Width = texture.Width;
+            tex.Height = texture.Height;
+            tex.MinFilter = texture.MinFilter;
+            tex.MagFilter = texture.MagFilter;
+            tex.InternalFormat = dest_format;
+            tex.PixelFormat = PixelFormat.Rgba;
+            tex.PixelType = PixelType.UnsignedByte;
+
+            //Dst
+            tex.Bind();
+
+            //Copy
+            fixed (byte* ptr = buffer)
+            {
+                gl.TexImage3D(tex.Target, 0, tex.InternalFormat, tex.Width, tex.Height, 1, 0,
+                     tex.PixelFormat, tex.PixelType, ptr);
+            }
+
+            gl.GenerateMipmap(tex.Target);
+
+            //Check for errors
+            var error = gl.GetError();
+            if (error != GLEnum.NoError)
+            {
+                Console.WriteLine($"OpenGL Error: {error}");
+               // throw new Exception();
+            }
+
+            //unbind
+            tex.Unbind();
+
+            return tex;
         }
 
         public void Dispose()

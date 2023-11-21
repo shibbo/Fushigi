@@ -35,8 +35,10 @@ namespace Fushigi.ui.widgets
                 for (var i = 0; i < context.GetUndoStack().Count(); i++)
                 {
                     var op = context.GetUndoStack().Reverse().ElementAt(i);
+                    string name = op.Name == null ? $"Operation{i}" : op.Name;
+
                     bool selected = context.GetLastAction() == op;
-                    if (ImGui.Selectable(op.Name+"##"+i, selected))
+                    if (ImGui.Selectable(name + "##"+i, selected))
                     {
                         for(var a = context.GetUndoStack().Count()-1; a > i; a--)
                         {

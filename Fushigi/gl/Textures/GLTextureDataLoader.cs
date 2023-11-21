@@ -40,7 +40,7 @@ namespace Fushigi.gl
                 case TextureTarget.Texture2DArray:
                 case TextureTarget.Texture3D:
                 case TextureTarget.TextureCubeMapArray:
-                    LoadImage3D(gl, target, mipLevel, depth, width, height, format, data);
+                    LoadImage3D(gl, target, mipLevel, width, height, depth, format, data);
                     break;
                 case TextureTarget.TextureCubeMap:
                     LoadImageCubemap2D(gl, mipLevel, depth, width, height, format, data);

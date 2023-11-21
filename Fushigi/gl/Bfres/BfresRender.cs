@@ -1,9 +1,12 @@
 ﻿using Fushigi.Bfres;
 using Fushigi.ui;
+using Fushigi.util;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using System.IO;
 using System.Numerics;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace Fushigi.gl.Bfres
 {
@@ -59,25 +62,39 @@ namespace Fushigi.gl.Bfres
         {
             public List<BfresMesh> Meshes = new List<BfresMesh>();
 
+            public Skeleton Skeleton = new Skeleton();
+
             public BoundingBox BoundingBox = new BoundingBox();
 
             public bool IsVisible = true;
 
+            public UniformBlock SkeletonBuffer; //matrix buffer for bone data
+
             public BfresModel(GL gl, Model model)
             {
+                SkeletonBuffer = new UniformBlock(gl);
+
+                Skeleton = model.Skeleton;
                 foreach (var shape in model.Shapes.Values)
                     Meshes.Add(new BfresMesh(gl, this, model, shape));
             }
 
             //Cached
             public BfresModel(BfresModel bfresModel)
-            {            
+            {
+                this.SkeletonBuffer = bfresModel.SkeletonBuffer;
+
+                Skeleton = bfresModel.Skeleton;
                 foreach (var mesh in bfresModel.Meshes)
                     Meshes.Add(mesh);
             }
 
             internal void Render(GL gl, BfresRender render, Matrix4x4 transform, Camera camera)
             {
+                UpdateSkeleton(transform);
+
+                GsysShaderRender.GsysResources.UpdateViewport(camera);
+
                 foreach (var mesh in Meshes)
                     BoundingBox.Include(mesh.LodMeshes[0].BoundingBox);
 
@@ -99,6 +116,39 @@ namespace Fushigi.gl.Bfres
                 }
             }
 
+            //Computes the skeleton matrix block
+            public void UpdateSkeleton(Matrix4x4 root)
+            {
+                if (Skeleton.MatrixToBoneList == null)
+                    return;
+
+                var mem = new MemoryStream();
+                using (var writer = new BinaryWriter(mem))
+                {
+                    //Smooth skinning using inverse matrices
+                    for (int i = 0; i < Skeleton.NumSmoothMatrices; i++)
+                    {
+                        var bone_index = Skeleton.MatrixToBoneList[i];
+                        var value = (Skeleton.Bones[bone_index].InverseMatrix) * root;
+
+                        writer.Write(value.Column0());
+                        writer.Write(value.Column1());
+                        writer.Write(value.Column2());
+                    }
+                    //Rigid matrices using direct matrices
+                    for (int i = 0; i < Skeleton.NumRigidMatrices; i++)
+                    {
+                        var bone_index = Skeleton.MatrixToBoneList[Skeleton.NumSmoothMatrices + i];
+                        var value = Skeleton.Bones[bone_index].WorldMatrix * root;
+
+                        writer.Write(value.Column0());
+                        writer.Write(value.Column1());
+                        writer.Write(value.Column2());
+                    }
+                }
+                SkeletonBuffer.SetData(mem.ToArray());
+            }
+
             public void Dispose()
             {
                 foreach (var mesh in Meshes)
@@ -109,6 +159,10 @@ namespace Fushigi.gl.Bfres
         public class BfresMesh
         {
             public bool IsVisible = true;
+
+            public bool TransparentPass = false;
+
+            public int BoneIndex = 0;
 
             public List<DetailLevel> LodMeshes = new List<DetailLevel>();
 
@@ -123,7 +177,10 @@ namespace Fushigi.gl.Bfres
             public BfresMesh(GL gl, BfresModel modelRender, Model model, Shape shape)
             {
                 var material = model.Materials[shape.MaterialIndex];
-                MaterialRender.Init(gl, modelRender, this, shape, material);
+
+                BoneIndex = shape.BoneIndex;
+
+                TransparentPass = MaterialRender.GsysRenderState.State.EnableBlending;
 
                 IndexBuffer = new BufferObject(gl, BufferTargetARB.ElementArrayBuffer);
                 IndexBuffer.SetData(shape.Meshes[0].IndexBuffer);
@@ -136,7 +193,8 @@ namespace Fushigi.gl.Bfres
                 }
 
                 vbo = new VertexArrayObject(gl, this.Buffers, IndexBuffer);
-                vbo_game_shaders = new VertexArrayObject(gl, this.Buffers, IndexBuffer);
+
+                MaterialRender.Init(gl, modelRender, this, shape, material);
 
                 foreach (var attr in shape.VertexBuffer.Attributes.Values)
                 {
@@ -148,10 +206,6 @@ namespace Fushigi.gl.Bfres
                     var count = FormatList[attr.Format].Count;
                     var stride = shape.VertexBuffer.Buffers[attr.BufferIndex].Stride;
                     var normalized = FormatList[attr.Format].Normalized;
-
-                    //Force normalize on normals, tangents, bitangents
-                    if (attr.Name == "_n0" || attr.Name == "_t0" || attr.Name == "_b0")
-                        normalized = true;
 
                     vbo.AddAttribute(name, count, format, normalized, stride, attr.Offset, attr.BufferIndex);
 
@@ -187,14 +241,75 @@ namespace Fushigi.gl.Bfres
                 });
             }
 
+            public void InitGameShaderVbo(GL gl, Material material, Shape shape, Dictionary<string, int> Attributes)
+            {
+                vbo_game_shaders = new VertexArrayObject(gl, this.Buffers, IndexBuffer);
+                foreach (var attr in shape.VertexBuffer.Attributes.Values)
+                {
+                    //Unsupported format or not used by material, skip
+                    if (material.ShaderAssign.AttributeAssign.Count > 0)
+                    {
+                        if (!FormatList.ContainsKey(attr.Format) || !material.ShaderAssign.AttributeAssign.ContainsKey(attr.Name))
+                            continue;
+
+                        //Use shader assign to map bfres attributes to shader
+                        string attribute = material.ShaderAssign.AttributeAssign[attr.Name];
+
+                        //Not in shader attribute list, skip
+                        if (!Attributes.ContainsKey(attribute))
+                            continue;
+                    }
+                    else
+                    {
+                        if (!Attributes.ContainsKey(attr.Name))
+                            continue;
+                    }
+
+                    var location = Attributes[attr.Name];
+                    var format = FormatList[attr.Format].Type;
+                    var count = FormatList[attr.Format].Count;
+                    var stride = shape.VertexBuffer.Buffers[attr.BufferIndex].Stride;
+                    var normalized = FormatList[attr.Format].Normalized;
+
+                    vbo_game_shaders.AddAttribute((uint)location, count, format, normalized, stride, attr.Offset, attr.BufferIndex);
+                }
+            }
+
             public void Render(GL gl, BfresRender renderer, BfresModel modelRender, Matrix4x4 transform, Camera camera)
             {
-                var mesh = this.LodMeshes[0]; //only use first level of detail
+                var worldTransform = modelRender.Skeleton.Bones[this.BoneIndex].WorldMatrix * transform;
 
-                MaterialRender.Render(gl, renderer, modelRender, transform, camera);
+                MaterialRender.Render(gl, renderer, modelRender, worldTransform, camera);
 
                 vbo.Enable(MaterialRender.Shader);
                 vbo.Use();
+
+                Draw(gl);
+            }
+
+            public void RenderMaterialOnly(GL gl, BfresRender renderer, BfresModel modelRender, Matrix4x4 transform, Camera camera)
+            {
+                var worldTransform = modelRender.Skeleton.Bones[this.BoneIndex].WorldMatrix * transform;
+                MaterialRender.RenderGameShaders(gl, renderer, modelRender, worldTransform, camera);
+            }
+
+            public void RenderGameShaders(GL gl, BfresRender renderer, BfresModel modelRender, Matrix4x4 transform, Camera camera)
+            {
+                if (vbo_game_shaders == null)
+                    return;
+
+                var worldTransform = modelRender.Skeleton.Bones[this.BoneIndex].WorldMatrix * transform;
+                MaterialRender.RenderGameShaders(gl, renderer, modelRender, worldTransform, camera);
+
+                vbo_game_shaders.Enable(MaterialRender.Shader);
+                vbo_game_shaders.Use();
+
+                Draw(gl);
+            }
+
+            private void Draw(GL gl)
+            {
+                var mesh = this.LodMeshes[0]; //only use first level of detail
 
                 unsafe
                 {
@@ -207,7 +322,6 @@ namespace Fushigi.gl.Bfres
                 //Reset render state
                 GLMaterialRenderState.Reset(gl);
             }
-
 
             public void Dispose()
             {
