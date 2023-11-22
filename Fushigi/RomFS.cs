@@ -65,9 +65,17 @@ namespace Fushigi
             sCourseEntries.Clear();
 
             var path = Path.Combine(GetRoot(), "Mals", "USen.Product.100.sarc.zs");
-            var sarc = new SARC.SARC(new(FileUtil.DecompressFile(path)));
-            var courseNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_CourseRemoveLineFeed.msbt"))).Messages;
-            var worldNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_World.msbt"))).Messages;
+
+
+            Dictionary<string, string> courseNames = new();
+            Dictionary<string, string> worldNames = new();
+
+            if (File.Exists(path))
+            {
+                var sarc = new SARC.SARC(new(FileUtil.DecompressFile(path)));
+                courseNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_CourseRemoveLineFeed.msbt"))).Messages;
+                worldNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_World.msbt"))).Messages;
+            }
 
             string[] loadFiles = GetFiles(Path.Combine("Stage", "WorldMapInfo"));
             foreach (string loadFile in loadFiles)
