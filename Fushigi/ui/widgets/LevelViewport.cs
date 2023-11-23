@@ -773,20 +773,15 @@ namespace Fushigi.ui.widgets
                         }
                     }
                 }
-
-                ISceneObject? newHoveredSceneObj = null;
-
-                areaScene.ForEach<IViewportDrawable>(obj =>
-                {
-                    bool isNewHoveredObj = false;
-                    obj.Draw2D(mEditContext, this, mDrawList, ref isNewHoveredObj);
-                    if (isNewHoveredObj)
-                        newHoveredObject = obj;
-                });
-
-                if (newHoveredSceneObj is not null)
-                    newHoveredObject = newHoveredSceneObj;
             }
+
+            areaScene.ForEach<IViewportDrawable>(obj =>
+            {
+                bool isNewHoveredObj = false;
+                obj.Draw2D(mEditContext, this, mDrawList, ref isNewHoveredObj);
+                if (isNewHoveredObj)
+                    newHoveredObject = obj;
+            });
 
             if (mArea.mRailHolder.mRails.Count > 0)
             {
