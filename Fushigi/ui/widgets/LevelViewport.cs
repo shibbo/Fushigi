@@ -1,27 +1,12 @@
-using Fushigi.Byml;
-using Fushigi.course;
-using ImGuiNET;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Security.Cryptography;
-using Vector3 = System.Numerics.Vector3;
-using static Fushigi.course.CourseUnit;
-using System.Xml.Linq;
-using System.Reflection;
-using Microsoft.VisualBasic;
-using System.Runtime.CompilerServices;
-using Silk.NET.OpenGL;
-using Fushigi.gl;
-using Fushigi.util;
-using System.Reflection.PortableExecutable;
-using static Fushigi.util.MessageBox;
-using Fushigi.gl.Bfres;
 using Fushigi.actor_pack.components;
+using Fushigi.course;
+using Fushigi.gl;
+using Fushigi.gl.Bfres;
+using Fushigi.util;
+using ImGuiNET;
+using Silk.NET.OpenGL;
+using System.Drawing;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using static Fushigi.ui.SceneObjects.bgunit.BGUnitRailSceneObj;
 using Fushigi.ui.SceneObjects.bgunit;
@@ -31,9 +16,30 @@ using ZstdSharp.Unsafe;
 
 namespace Fushigi.ui.widgets
 {
-    interface IViewportDrawableObject
+    interface IViewportDrawable
     {
-        void Draw2D(CourseAreaEditContext editContext, LevelViewport viewport, ViewportImGuiInteractionState iState);
+        void Draw2D(CourseAreaEditContext editContext, LevelViewport viewport, ImDrawListPtr dl, ref bool isNewHoveredObj);
+    }
+
+    interface IViewportSelectable
+    {
+        void OnSelect(CourseAreaEditContext editContext);
+        public static void DefaultSelect(CourseAreaEditContext ctx, object selectable)
+        {
+            if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+            {
+                ctx.Select(selectable);
+            }
+            else
+            {
+                ctx.WithSuspendUpdateDo(() =>
+                {
+                    ctx.DeselectAll();
+                    ctx.Select(selectable);
+                });
+
+            }
+        }
     }
 
     interface ITransformableObject
@@ -41,22 +47,19 @@ namespace Fushigi.ui.widgets
         Transform Transform { get; }
     }
 
-    struct ViewportImGuiInteractionState
-    {
-        public bool IsHovered;
-        public bool IsActive;
-    }
-
     internal class LevelViewport(CourseArea area, GL gl, CourseAreaScene areaScene)
     {
         readonly CourseArea mArea = area;
 
         //this is only so BgUnitRail works, TODO make private
-        public readonly CourseAreaEditContext mEditContext = areaScene.EditContext;
+        private readonly CourseAreaEditContext mEditContext = areaScene.EditContext;
 
         ImDrawListPtr mDrawList;
         public EditorMode mEditorMode = EditorMode.Actors;
         public EditorState mEditorState = EditorState.Selecting;
+
+        public bool IsViewportHovered;
+        public bool IsViewportActive;
 
         Vector2 mSize = Vector2.Zero;
 
@@ -76,7 +79,8 @@ namespace Fushigi.ui.widgets
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
         public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
 
-        public object? HoveredObject;
+        //TODO make this an ISceneObject? as soon as there's a SceneObj class for each course object
+        private object? mHoveredObject;
         public CourseLink? CurCourseLink = null;
         public Vector3? HoveredPoint;
 
@@ -99,6 +103,8 @@ namespace Fushigi.ui.widgets
             Actors,
             Units
         }
+
+        public bool IsHovered(ISceneObject obj) => mHoveredObject == obj;
 
         public Matrix4x4 GetCameraMatrix() => Camera.ViewProjectionMatrix;
 
@@ -129,7 +135,7 @@ namespace Fushigi.ui.widgets
             var world = Vector4.Transform(ndc, Camera.ViewProjectionMatrixInverse);
             world /= world.W;
 
-            return new (world.X, world.Y, world.Z);
+            return new(world.X, world.Y, world.Z);
         }
 
         public void FrameSelectedActor(CourseActor actor)
@@ -137,9 +143,9 @@ namespace Fushigi.ui.widgets
             this.Camera.Target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
         }
 
-        public void SelectBGUnit(BGUnitRailSceneObj rail)
+        public void SelectBGUnit(BGUnitRail rail)
         {
-            mEditContext.DeselectAllOfType<BGUnitRailSceneObj>();
+            mEditContext.DeselectAllOfType<BGUnitRail>();
             mEditContext.Select(rail);
         }
 
@@ -156,18 +162,18 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        public void HandleCameraControls(double deltaSeconds, bool mouseHover, bool mouseActive)
+        public void HandleCameraControls(double deltaSeconds)
         {
             bool isPanGesture = (ImGui.IsMouseDragging(ImGuiMouseButton.Middle)) ||
                 (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyShift && !mEditContext.IsAnySelected<CourseActor>());
 
-            if (mouseActive && isPanGesture)
+            if (IsViewportActive && isPanGesture)
             {
                 Camera.Target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
                     ScreenToWorld(ImGui.GetMousePos());
             }
 
-            if (mouseHover)
+            if (IsViewportHovered)
             {
                 Camera.Distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
 
@@ -231,7 +237,7 @@ namespace Fushigi.ui.widgets
             }
             Framebuffer.Unbind();
 
-             ImGui.SetCursorScreenPos(mTopLeft);
+            ImGui.SetCursorScreenPos(mTopLeft);
 
             //Draw final output in post buffer
             HDRScreenBuffer.Render(gl, (int)size.X, (int)size.Y, (GLTexture2D)Framebuffer.Attachments[0]);
@@ -269,7 +275,7 @@ namespace Fushigi.ui.widgets
 
             var mat = scaleMat * rotMat * transMat;
 
-             var model = render.Models[modelName];
+            var model = render.Models[modelName];
             //switch for drawing models with different methods easier
             switch (modelName){
                 case "DokanJunction":
@@ -303,13 +309,13 @@ namespace Fushigi.ui.widgets
             mLayersVisibility = layersVisibility;
             mTopLeft = ImGui.GetCursorScreenPos();
 
-            ImGui.InvisibleButton("canvas", size, 
+            ImGui.InvisibleButton("canvas", size,
                 ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
 
-            bool mouseHover = ImGui.IsItemHovered();
-            bool mouseActive = ImGui.IsItemActive();
+            IsViewportHovered = ImGui.IsItemHovered();
+            IsViewportActive = ImGui.IsItemActive();
 
-            if (size.X*size.Y == 0) 
+            if (size.X * size.Y == 0)
                 return;
 
             mSize = size;
@@ -317,7 +323,7 @@ namespace Fushigi.ui.widgets
 
             ImGui.PushClipRect(mTopLeft, mTopLeft + size, true);
 
-            HandleCameraControls(deltaSeconds, mouseHover, mouseActive);
+            HandleCameraControls(deltaSeconds);
 
             if (Camera.Width != mSize.X || Camera.Height != mSize.Y)
             {
@@ -333,16 +339,16 @@ namespace Fushigi.ui.widgets
             DrawGrid();
             DrawAreaContent();
 
-            if (!mouseHover)
-                HoveredObject = null;
+            if (!IsViewportHovered)
+                mHoveredObject = null;
 
-            CourseActor? hoveredActor = HoveredObject as CourseActor;
-          
+            CourseActor? hoveredActor = mHoveredObject as CourseActor;
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                if(hoveredActor != null)
+                if (hoveredActor != null)
                     ImGui.SetTooltip($"{hoveredActor.mActorName}");
-                
+
                 if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeySuper)
                 {
                     mEditContext.Undo();
@@ -351,10 +357,12 @@ namespace Fushigi.ui.widgets
                 {
                     mEditContext.Redo();
                 }
-            } else {
-                if(hoveredActor != null)
+            }
+            else
+            {
+                if (hoveredActor != null)
                     ImGui.SetTooltip($"{hoveredActor.mActorName}");
-                
+
                 if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
                 {
                     mEditContext.Undo();
@@ -413,7 +421,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsItemClicked())
                 {
-                    bool isModeActor = HoveredObject != null;
+                    bool isModeActor = mHoveredObject != null;
                     bool isModeUnit = HoveredPoint != null;
 
                     if (isModeActor && !isModeUnit)
@@ -428,27 +436,32 @@ namespace Fushigi.ui.widgets
 
                     /* if the user clicked somewhere and it was not hovered over an element, 
                         * we clear our selected actors array */
-                    if (HoveredObject == null)
+                    if (mHoveredObject == null)
                     {
                         mEditContext.DeselectAll();
                     }
-                    else if(HoveredObject is not BGUnitRailSceneObj &&
-                        HoveredObject is not BGUnitRailSceneObj.RailPoint) 
+                    else if (mHoveredObject is IViewportSelectable obj)
                     {
                         if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {
                             prevSelect = mEditContext.SelectionVersion;
-                            mEditContext.Select(HoveredObject!);
+                            mEditContext.Select(mHoveredObject!);
                         }
-                        else if(!mEditContext.IsSelected(HoveredObject))
+                        else if(!mEditContext.IsSelected(mHoveredObject))
                         {
                             mEditContext.DeselectAll();
-                            mEditContext.Select(HoveredObject!);
+                            mEditContext.Select(mHoveredObject!);
                         }
                         foreach(CourseActor actor in mEditContext.GetSelectedObjects<CourseActor>())
                         {
                             actor.mStartingTrans = actor.mTranslation;
                         }
+                        obj.OnSelect(mEditContext);
+                    }
+                    else
+                    {
+                        //TODO remove this once all course objects have IViewportSelectable SceneObjs
+                        IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
                     }
 
                     if (HoveredPoint == null)
@@ -461,20 +474,20 @@ namespace Fushigi.ui.widgets
                     }
                 }
 
-                if(HoveredObject != null && ImGui.IsMouseReleased(ImGuiMouseButton.Left) &&
-                    HoveredObject is not BGUnitRailSceneObj && HoveredObject is not BGUnitRailSceneObj.RailPoint)
+                if(mHoveredObject != null && ImGui.IsMouseReleased(ImGuiMouseButton.Left) &&
+                    mHoveredObject is not BGUnitRailSceneObj && mHoveredObject is not BGUnitRailSceneObj.RailPoint)
                 {
                     if (ImGui.GetIO().MouseDragMaxDistanceSqr[0] <= ImGui.GetIO().MouseDragThreshold)
                     {
                         if(ImGui.IsKeyDown(ImGuiKey.LeftShift) && 
                         (mEditContext.SelectionVersion == prevSelect))
                         {
-                            mEditContext.Deselect(HoveredObject!);
+                            mEditContext.Deselect(mHoveredObject!);
                         }
                         else if(!ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {
                             mEditContext.DeselectAll();
-                            mEditContext.Select(HoveredObject!);
+                            mEditContext.Select(mHoveredObject!);
                         }
                     }
                 }
@@ -520,7 +533,7 @@ namespace Fushigi.ui.widgets
             }
             else if (isFocused && mEditorState == EditorState.DeleteActorLinkCheck)
             {
-                
+
             }
             else if (isFocused && mEditorState == EditorState.DeletingActor)
             {
@@ -536,7 +549,7 @@ namespace Fushigi.ui.widgets
                 }
                 else
                 {
-                    if(hoveredActor != null)
+                    if (hoveredActor != null)
                         ImGui.SetTooltip($"""
                             Click to delete {hoveredActor.mActorName}.
                             Hold SHIFT to delete multiple actors, ESCAPE to cancel.
@@ -614,7 +627,8 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    if (mEditorState == EditorState.SelectingLinkDest) {
+                    if (mEditorState == EditorState.SelectingLinkDest)
+                    {
                         if (hoveredActor != null)
                         {
                             /* new links have a destination of 0 because there is no hash associated with a null actor */
@@ -700,7 +714,7 @@ namespace Fushigi.ui.widgets
             {
                 bool is_major_tick = (i + tick_offset) % major_tick_interval == 0;
 
-                float t = ((min_tick_value + i * tick_interval) - min_value) / (max_value-min_value);
+                float t = ((min_tick_value + i * tick_interval) - min_value) / (max_value - min_value);
 
                 Vector4 colorVec = ImGui.ColorConvertU32ToFloat4(GridColor);
                 colorVec.W *= is_major_tick ? 1f : blend;
@@ -719,7 +733,7 @@ namespace Fushigi.ui.widgets
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
-                if(!unit.Visible)
+                if (!unit.Visible)
                     continue;
 
                 if (unit.mTileSubUnits.Count > 0)
@@ -803,39 +817,15 @@ namespace Fushigi.ui.widgets
                         }
                     }
                 }
-
-                foreach (var wall in unit.Walls)
-                {
-                    if (wall.ExternalRail != null)
-                    {
-                        wall.ExternalRail.Render(this, mDrawList);
-                        if (wall.ExternalRail.HitTest(this))
-                            newHoveredObject = wall.ExternalRail;
-
-                        foreach (var pt in wall.ExternalRail.Points)
-                        {
-                            if (pt.HitTest(this))
-                                newHoveredObject = pt;
-                        }
-                    }
-                    foreach (BGUnitRailSceneObj rail in wall.InternalRails)
-                    {
-                        rail.Render(this, mDrawList);
-                        if(rail.HitTest(this))
-                            newHoveredObject = rail;
-
-                        foreach (var pt in rail.Points)
-                        {
-                            if (pt.HitTest(this))
-                                newHoveredObject = pt;
-                        }
-                    }
-                }
-
-                //Hide belt for now. TODO how should this be handled?
-                //foreach (var belt in unit.BeltUnitRenders)
-                //    belt.Render(this, mDrawList);
             }
+
+            areaScene.ForEach<IViewportDrawable>(obj =>
+            {
+                bool isNewHoveredObj = false;
+                obj.Draw2D(mEditContext, this, mDrawList, ref isNewHoveredObj);
+                if (isNewHoveredObj)
+                    newHoveredObject = obj;
+            });
 
             if (mArea.mRailHolder.mRails.Count > 0)
             {
@@ -973,7 +963,7 @@ namespace Fushigi.ui.widgets
 
                         if (pointB.mControl.TryGetValue(out control))
                             //invert control point
-                            cpInB2D = WorldToScreen(pointB.mTranslate - (control - pointB.mTranslate)); 
+                            cpInB2D = WorldToScreen(pointB.mTranslate - (control - pointB.mTranslate));
 
                         if (cpOutA2D == posA2D && cpInB2D == posB2D)
                         {
@@ -984,7 +974,7 @@ namespace Fushigi.ui.widgets
                         mDrawList.PathBezierCubicCurveTo(cpOutA2D, cpInB2D, posB2D);
                     }
 
-                    float thickness = newHoveredObject == rail ? 3f :  2.5f;
+                    float thickness = newHoveredObject == rail ? 3f : 2.5f;
 
                     mDrawList.PathStroke(rail_color, ImDrawFlags.None, thickness);
                 }
@@ -1059,7 +1049,7 @@ namespace Fushigi.ui.widgets
                         color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
                     }
 
-                    bool isHovered = HoveredObject == actor;
+                    bool isHovered = mHoveredObject == actor;
 
                     switch(drawing)
                     {
@@ -1110,7 +1100,7 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            HoveredObject = newHoveredObject;
+            mHoveredObject = newHoveredObject;
         }
 
         /// <summary>
@@ -1152,7 +1142,7 @@ namespace Fushigi.ui.widgets
             {
                 var p1 = points[i];
                 var p2 = points[(i + 1) % points.Length];
-                if (HitTestPointLine(point, 
+                if (HitTestPointLine(point,
                     p1, p2, thickness))
                     return true;
             }
@@ -1162,10 +1152,10 @@ namespace Fushigi.ui.widgets
 
         static bool HitTestPointLine(Vector2 p, Vector2 a, Vector2 b, float thickness)
         {
-            Vector2 pa = p-a, ba = b-a;
-            float h = Math.Clamp( Vector2.Dot(pa,ba)/
-                      Vector2.Dot(ba,ba), 0, 1 );
-            return ( pa - ba*h ).Length() < thickness/2;
+            Vector2 pa = p - a, ba = b - a;
+            float h = Math.Clamp(Vector2.Dot(pa, ba) /
+                      Vector2.Dot(ba, ba), 0, 1);
+            return (pa - ba * h).Length() < thickness / 2;
         }
     }
 

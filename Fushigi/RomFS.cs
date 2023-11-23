@@ -13,7 +13,7 @@ namespace Fushigi
 {
     public class RomFS
     {
-        public static void SetRoot(string root)
+        public static void SetRoot(string root, GL gl)
         {           
             if (!IsValidRoot(root))
             {
@@ -22,6 +22,7 @@ namespace Fushigi
 
             sRomFSRoot = root;
             CacheCourseFiles();
+            CacheCourseThumbnails(gl);
         }
 
         public static string GetRoot()
@@ -64,9 +65,17 @@ namespace Fushigi
             sCourseEntries.Clear();
 
             var path = Path.Combine(GetRoot(), "Mals", "USen.Product.100.sarc.zs");
-            var sarc = new SARC.SARC(new(FileUtil.DecompressFile(path)));
-            var courseNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_CourseRemoveLineFeed.msbt"))).Messages;
-            var worldNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_World.msbt"))).Messages;
+
+
+            Dictionary<string, string> courseNames = new();
+            Dictionary<string, string> worldNames = new();
+
+            if (File.Exists(path))
+            {
+                var sarc = new SARC.SARC(new(FileUtil.DecompressFile(path)));
+                courseNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_CourseRemoveLineFeed.msbt"))).Messages;
+                worldNames = new MsbtFile(new MemoryStream(sarc.OpenFile("GameMsg/Name_World.msbt"))).Messages;
+            }
 
             string[] loadFiles = GetFiles(Path.Combine("Stage", "WorldMapInfo"));
             foreach (string loadFile in loadFiles)
@@ -120,14 +129,22 @@ namespace Fushigi
             }
         }
 
+        public static void CacheCourseThumbnails(GL gl)
+        {
+            foreach (var world in sCourseEntries.Keys)
+            {
+                CacheCourseThumbnails(gl, world);
+            }
+        }
+
         public static void CacheCourseThumbnails(GL gl, string world)
         {
             var thumbnailFolder = Path.Combine(GetRoot(), "UI", "Tex", "Thumbnail");
 
-            foreach (var course in sCourseEntries[world].courseEntries.Keys)
+            foreach (var course in sCourseEntries[world].courseEntries!.Keys)
             {
                 // Skip the process if this course's thumbnail is already cached
-                if (sCourseEntries[world].courseEntries[course].thumbnail != null)
+                if (sCourseEntries[world].courseEntries![course].thumbnail != null)
                 {
                     continue;
                 }
@@ -139,13 +156,11 @@ namespace Fushigi
                     path = Path.Combine(thumbnailFolder, "Default.bntx.zs");
                 }
 
-                Console.WriteLine($"Thumbnail - {course}");
-
                 byte[] fileBytes = FileUtil.DecompressFile(path);
                 var bntx = new BntxFile(new MemoryStream(fileBytes));
                 var render = new BfresTextureRender(gl, bntx.Textures[0]);
 
-                sCourseEntries[world].courseEntries[course].thumbnail = render;
+                sCourseEntries[world].courseEntries![course].thumbnail = render;
             }
         }
 
@@ -153,12 +168,12 @@ namespace Fushigi
         {
             public class CourseEntry
             {
-                public string name;
-                public BfresTextureRender thumbnail;
+                public string? name;
+                public BfresTextureRender? thumbnail;
             }
 
-            public string name;
-            public Dictionary<string,  CourseEntry> courseEntries;
+            public string? name;
+            public Dictionary<string, CourseEntry>? courseEntries;
         }
 
         

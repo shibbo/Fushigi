@@ -14,7 +14,7 @@ Console.SetError(consoleWriter);
 AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 #endif
 
-Console.WriteLine("Starting Fushigi v0.5...");
+Console.WriteLine("Starting Fushigi v0.6...");
 
 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 {
