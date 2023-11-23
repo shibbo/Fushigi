@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="FuzzySharp" Version="2.0.2" />
-    <PackageReference Include="ImGui.NET" Version="1.89.9.3" />
+    <PackageReference Include="ImGui.NET" Version="1.90.0.1" />
     <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Silk.NET.Core" Version="2.19.0" />

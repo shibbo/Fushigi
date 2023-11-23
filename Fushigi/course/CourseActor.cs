@@ -256,6 +256,7 @@ namespace Fushigi.course
         public string  mActorName;
         public string mName;
         public string mLayer;
+        public System.Numerics.Vector3 mStartingTrans;
         public System.Numerics.Vector3 mTranslation;
         public System.Numerics.Vector3 mRotation;
         public System.Numerics.Vector3 mScale;

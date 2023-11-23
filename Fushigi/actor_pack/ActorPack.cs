@@ -39,7 +39,7 @@ namespace Fushigi
         public DrainPipe DrainPipeRef;
         public GamePhysics GamePhysicsRef;
         public ControllerSetParam ControllerPath;
-        public ShapeParam ShapeParams;
+        public ShapeParamList ShapeParams;
 
         public string Category = "";
 
@@ -122,23 +122,57 @@ namespace Fushigi
                         break;
                     case "GamePhysicsRef":
                         this.GamePhysicsRef = BymlSerialize.Deserialize<GamePhysics>(data);
-                        filePath = GetPathGyml(GamePhysicsRef.ControllerSetPath);
-                        data = sarc.OpenFile(filePath);
-                        this.ControllerPath = BymlSerialize.Deserialize<ControllerSetParam>(data);
-                        if(this.ControllerPath.ShapeNamePathAry != null)
-                        {
-                            foreach(var shape in this.ControllerPath.ShapeNamePathAry)
-                            {
-                                if(shape.Name == "Body" || shape.Name.Trim() == "BodyShape")
-                                {
-                                    filePath = GetPathGyml(shape.FilePath);
-                                    data = sarc.OpenFile(filePath);
-                                    if(shape.FilePath != null)
-                                        this.ShapeParams = BymlSerialize.Deserialize<ShapeParam>(data);
-                                }
-                            } 
-                        }
+                        if(!string.IsNullOrEmpty(GamePhysicsRef.mPath))
+                            GetActorShape(sarc, data, filePath);
+
                         break;
+                }
+            }
+        }
+
+        private void GetActorShape(SARC.SARC sarc, byte[] data, string filePath)
+        {
+            filePath = GetPathGyml(GamePhysicsRef.mPath);
+            data = sarc.OpenFile(filePath);
+            ControllerPath = BymlSerialize.Deserialize<ControllerSetParam>(data);
+            if(ControllerPath.ShapeNamePathAry != null)
+            {
+                var shapes = ControllerPath.ShapeNamePathAry;
+                if (!string.IsNullOrEmpty(ControllerPath.parent))
+                {
+                    filePath = GetPathGyml(ControllerPath.parent);
+                    data = sarc.OpenFile(filePath);
+                    ControllerPath = BymlSerialize.Deserialize<ControllerSetParam>(data);
+                }
+                var rigidBodies = ControllerPath.mRigids != null && ControllerPath.mRigids.Count > 0 ? ControllerPath.mRigids : ControllerPath.mEntity;
+
+                foreach(var rigid in rigidBodies)
+                {
+                    filePath = GetPathGyml(rigid.FilePath);
+                    data = sarc.OpenFile(filePath);
+                    var body = BymlSerialize.Deserialize<RigidParam>(data);
+
+                    foreach(var shape in shapes)
+                    {
+                        if(body.ShapeName != null)
+                        {
+                            if(body.ShapeName == shape.Name && shape.FilePath != null)
+                            {
+                                filePath = GetPathGyml(shape.FilePath);
+                                data = sarc.OpenFile(filePath);
+                                ShapeParams = BymlSerialize.Deserialize<ShapeParamList>(data);
+                            }
+                        }
+                        else if(body.ShapeNames != null)
+                        {
+                            if(body.ShapeNames.Cast<string>().Contains(shape.Name) && shape.FilePath != null)
+                            {
+                                filePath = GetPathGyml(shape.FilePath);
+                                data = sarc.OpenFile(filePath);
+                                ShapeParams = BymlSerialize.Deserialize<ShapeParamList>(data);
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -11,13 +11,23 @@ namespace Fushigi.actor_pack.components
     [Serializable]
     public class GamePhysics
     {
-        public string ControllerSetPath { get; set; }
+        [BymlProperty("ControllerSetPath", DefaultValue = "")]
+        public string mPath { get; set; }
     }
 
     [Serializable]
     public class ControllerSetParam
     {
+        [BymlProperty("$parent")]
+        public string parent { get; set; }
+        
         public List<ShapeName> ShapeNamePathAry { get; set; }
+
+        [BymlProperty("MatterRigidBodyNamePathAry", DefaultValue = "")]
+        public List<ShapeName> mRigids { get; set; }
+
+        [BymlProperty("RigidBodyEntityNamePathAry", DefaultValue = "")]
+        public List<ShapeName> mEntity { get; set; }
     }
 
     [Serializable]
@@ -28,19 +38,30 @@ namespace Fushigi.actor_pack.components
     }
 
     [Serializable]
-    public class ShapeParam
+    public class ShapeParamList
     {
         [BymlProperty("AutoCalc")]
         public AutoCalc mCalc { get; set; }
 
-        [BymlProperty("Box")]
-        public List<Box> mBox { get; set; }
+        [BymlProperty("Box", DefaultValue = "")]
+        public List<ShapeParam> mBox { get; set; }
 
-        [BymlProperty("Sphere")]
-        public List<Sphere> mSphere { get; set; } 
+        [BymlProperty("Sphere", DefaultValue = "")]
+        public List<ShapeParam> mSphere { get; set; } 
 
-        [BymlProperty("Capsule")]
-        public List<Sphere> mCapsule { get; set; }
+        [BymlProperty("Capsule", DefaultValue = "")]
+        public List<ShapeParam> mCapsule { get; set; }
+
+        [BymlProperty("Polytope", DefaultValue = "")]
+        public List<ShapeParam> mPoly { get; set; }
+    }
+
+    [Serializable]
+    public class RigidParam
+    {
+        public string ShapeName { get; set; }
+
+        public List<object> ShapeNames { get; set; }
     }
 
     [Serializable]
@@ -60,25 +81,19 @@ namespace Fushigi.actor_pack.components
     }
 
     [Serializable]
-    public class Box
+    public class ShapeParam
     {
+        [BymlProperty("AutoCalc", DefaultValue = "")]
+        public AutoCalc mCalc { get; set; }
+
+        public float Radius { get; set; }
+
         [BymlProperty("Center")]
         public Vector3 mCenter { get; set; }
 
         [BymlProperty("HalfExtents")]
         public Vector3 mExtents { get; set; }
 
-    }
-
-    [Serializable]
-    public class Sphere
-    {
-        public float Radius { get; set; }
-
-        [BymlProperty("Center")]
-        public Vector3 mCenter { get; set; }
-
-        
     }
 
     [Serializable]

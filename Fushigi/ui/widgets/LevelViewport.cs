@@ -26,6 +26,8 @@ using System.Runtime.InteropServices;
 using static Fushigi.ui.SceneObjects.bgunit.BGUnitRailSceneObj;
 using Fushigi.ui.SceneObjects.bgunit;
 using System.Diagnostics;
+using Silk.NET.Maths;
+using ZstdSharp.Unsafe;
 
 namespace Fushigi.ui.widgets
 {
@@ -58,6 +60,7 @@ namespace Fushigi.ui.widgets
 
         Vector2 mSize = Vector2.Zero;
 
+        private ulong prevSelect;
         private Vector3? mSelectedPoint;
         private int mWallIdx = -1;
         private int mUnitIdx = -1;
@@ -156,7 +159,7 @@ namespace Fushigi.ui.widgets
         public void HandleCameraControls(double deltaSeconds, bool mouseHover, bool mouseActive)
         {
             bool isPanGesture = (ImGui.IsMouseDragging(ImGuiMouseButton.Middle)) ||
-                (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyShift);
+                (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyShift && !mEditContext.IsAnySelected<CourseActor>());
 
             if (mouseActive && isPanGesture)
             {
@@ -370,20 +373,24 @@ namespace Fushigi.ui.widgets
             {
                 if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
                 {
-                    if (mEditContext.IsSingleObjectSelected(out CourseActor? actor))
+                    if (mEditContext.IsAnySelected<CourseActor>())
                     {
-                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+                        foreach(CourseActor actor in mEditContext.GetSelectedObjects<CourseActor>())
+                        {
+                            Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+                            posVec -= ScreenToWorld(ImGui.GetIO().MouseClickedPos[0]) - actor.mStartingTrans;
 
-                        if (ImGui.GetIO().KeyShift)
-                        {
-                            actor.mTranslation = posVec;
-                        }
-                        else
-                        {
-                            posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
-                            posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
-                            posVec.Z = actor.mTranslation.Z;
-                            actor.mTranslation = posVec;
+                            if (ImGui.GetIO().KeyShift)
+                            {
+                                actor.mTranslation = posVec;
+                            }
+                            else
+                            {
+                                posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                                posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                                posVec.Z = actor.mTranslation.Z;
+                                actor.mTranslation = posVec;
+                            }
                         }
                     }
                     if (mEditContext.IsSingleObjectSelected(out CourseRail.CourseRailPoint? rail))
@@ -430,12 +437,17 @@ namespace Fushigi.ui.widgets
                     {
                         if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {
+                            prevSelect = mEditContext.SelectionVersion;
                             mEditContext.Select(HoveredObject!);
                         }
-                        else
+                        else if(!mEditContext.IsSelected(HoveredObject))
                         {
                             mEditContext.DeselectAll();
                             mEditContext.Select(HoveredObject!);
+                        }
+                        foreach(CourseActor actor in mEditContext.GetSelectedObjects<CourseActor>())
+                        {
+                            actor.mStartingTrans = actor.mTranslation;
                         }
                     }
 
@@ -446,6 +458,24 @@ namespace Fushigi.ui.widgets
                     else
                     {
                         mSelectedPoint = HoveredPoint;
+                    }
+                }
+
+                if(HoveredObject != null && ImGui.IsMouseReleased(ImGuiMouseButton.Left) &&
+                    HoveredObject is not BGUnitRailSceneObj && HoveredObject is not BGUnitRailSceneObj.RailPoint)
+                {
+                    if (ImGui.GetIO().MouseDragMaxDistanceSqr[0] <= ImGui.GetIO().MouseDragThreshold)
+                    {
+                        if(ImGui.IsKeyDown(ImGuiKey.LeftShift) && 
+                        (mEditContext.SelectionVersion == prevSelect))
+                        {
+                            mEditContext.Deselect(HoveredObject!);
+                        }
+                        else if(!ImGui.IsKeyDown(ImGuiKey.LeftShift))
+                        {
+                            mEditContext.DeselectAll();
+                            mEditContext.Select(HoveredObject!);
+                        }
                     }
                 }
 
@@ -847,7 +877,7 @@ namespace Fushigi.ui.widgets
                     //Delete selected
                     if (selectedPoint != null && ImGui.IsKeyPressed(ImGuiKey.Delete))
                     {
-                        rail.mPoints.Remove(selectedPoint);
+                            rail.mPoints.Remove(selectedPoint);
                     }
                     if (selectedPoint != null && ImGui.IsMouseReleased(0))
                     {
@@ -856,7 +886,7 @@ namespace Fushigi.ui.widgets
                         if (matching.Count > 1)
                             rail.mPoints.Remove(selectedPoint);
                     }
-
+                
                     bool add_point = ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt;
 
                     //Insert point to selected
@@ -867,9 +897,9 @@ namespace Fushigi.ui.widgets
                         var index = rail.mPoints.IndexOf(selectedPoint);
                         var newPoint = new CourseRail.CourseRailPoint(selectedPoint);
                         newPoint.mTranslate = new(
-                             MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
-                             MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
-                             selectedPoint.mTranslate.Z);
+                            MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                            MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                            selectedPoint.mTranslate.Z);
 
                         if (rail.mPoints.Count - 1 == index)
                             rail.mPoints.Add(newPoint);
@@ -886,9 +916,9 @@ namespace Fushigi.ui.widgets
 
                         var newPoint = new CourseRail.CourseRailPoint();
                         newPoint.mTranslate = new(
-                             MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
-                             MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
-                             0);
+                            MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                            MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                            0);
 
                         rail.mPoints.Add(newPoint);
 
@@ -971,18 +1001,23 @@ namespace Fushigi.ui.widgets
                 if (actor.mActorPack.ShapeParams != null)
                 {
                     var calc = actor.mActorPack.ShapeParams.mCalc;
-                    min = calc.mMin;
-                    max = calc.mMax;
-                    center = calc.mCenter;
 
                     if(actor.mActorPack.ShapeParams.mSphere != null)
                     { 
                         drawing = "sphere";
                     }
-                    else if(actor.mActorPack.ShapeParams.mCapsule != null)
+                    if(actor.mActorPack.ShapeParams.mCapsule != null)
                     { 
-                        drawing = "cap";
+                        drawing = "sphere";
                     }
+                    if(actor.mActorPack.ShapeParams.mPoly != null && actor.mActorPack.ShapeParams.mPoly.Count > 0)
+                    { 
+                        calc = actor.mActorPack.ShapeParams.mPoly[0].mCalc;
+                    }
+                    
+                    min = calc.mMin;
+                    max = calc.mMax;
+                    center = calc.mCenter;
                 }
                     
                 string layer = actor.mLayer;
@@ -1031,11 +1066,6 @@ namespace Fushigi.ui.widgets
                         default:
                             for (int i = 0; i < 4; i++)
                             {
-                                if (mEditContext.IsSelected(actor))
-                                {
-                                    mDrawList.AddCircleFilled(s_actorRectPolygon[i],
-                                        pointSize, color);
-                                }
                                 mDrawList.AddLine(
                                 s_actorRectPolygon[i],
                                 s_actorRectPolygon[(i+1) % 4 ],
@@ -1044,10 +1074,23 @@ namespace Fushigi.ui.widgets
                             break;
                         case "sphere": 
                             var pos = WorldToScreen(Vector3.Transform(center, transform));
-                            var rad = WorldToScreen(Vector3.Transform(max, transform)).X-
-                            WorldToScreen(Vector3.Transform(center, transform)).X;
-                            mDrawList.AddCircle(pos, Math.Abs(rad), color, 0, isHovered ? 2.5f : 1.5f);
+                            var scale = Matrix4x4.CreateScale(actor.mScale);
+                            Vector2 rad = (WorldToScreen(Vector3.Transform(max, scale))-WorldToScreen(Vector3.Transform(min, scale)))/2;
+                            mDrawList.AddEllipse(pos, Math.Abs(rad.X), Math.Abs(rad.Y), color, -actor.mRotation.Z, 0, isHovered ? 2.5f : 1.5f);
                             break;
+                    }
+                    if (mEditContext.IsSelected(actor))
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            mDrawList.AddCircleFilled(s_actorRectPolygon[i],
+                                pointSize, color);
+                            mDrawList.AddLine(
+                            s_actorRectPolygon[i],
+                            s_actorRectPolygon[(i+1) % 4 ],
+                            color, isHovered ? 2.5f : 1.5f);
+                        }
+                        mDrawList.AddEllipse(WorldToScreen(Vector3.Transform(new(0), transform)), pointSize*3, pointSize*3, color, -actor.mRotation.Z, 4, 2);
                     }
 
                     string name = actor.mActorName;

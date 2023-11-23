@@ -3,6 +3,7 @@ using Fushigi.param;
 using Fushigi.ui;
 using System.Runtime.InteropServices;
 
+
 FileStream outputStream = new FileStream("output.log", FileMode.Create);
 var consoleWriter = new StreamWriter(outputStream);
 consoleWriter.AutoFlush = true;
