@@ -48,6 +48,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="res\bfres\CubemapLightmapShadow.dds">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="res\BlankStaticCompoundBody.bphsc.zs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
