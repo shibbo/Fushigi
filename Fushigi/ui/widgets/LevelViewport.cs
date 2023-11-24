@@ -8,11 +8,8 @@ using Silk.NET.OpenGL;
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using static Fushigi.ui.SceneObjects.bgunit.BGUnitRailSceneObj;
-using Fushigi.ui.SceneObjects.bgunit;
-using System.Diagnostics;
-using Silk.NET.Maths;
-using ZstdSharp.Unsafe;
+using static Fushigi.course.CourseUnit;
+using Vector3 = System.Numerics.Vector3;
 
 namespace Fushigi.ui.widgets
 {
@@ -30,14 +27,17 @@ namespace Fushigi.ui.widgets
             {
                 ctx.Select(selectable);
             }
-            else
+            else  if(!ctx.IsSelected(selectable))
             {
                 ctx.WithSuspendUpdateDo(() =>
                 {
                     ctx.DeselectAll();
                     ctx.Select(selectable);
                 });
-
+            }
+            foreach(CourseActor act in ctx.GetSelectedObjects<CourseActor>())
+            {
+                act.mStartingTrans = act.mTranslation;
             }
         }
     }
@@ -63,7 +63,7 @@ namespace Fushigi.ui.widgets
 
         Vector2 mSize = Vector2.Zero;
 
-        private ulong prevSelect;
+        public ulong prevSelectVersion { get; private set; } = 0;
         private Vector3? mSelectedPoint;
         private int mWallIdx = -1;
         private int mUnitIdx = -1;
@@ -419,6 +419,7 @@ namespace Fushigi.ui.widgets
                     }
                 }
 
+
                 if (ImGui.IsItemClicked())
                 {
                     bool isModeActor = mHoveredObject != null;
@@ -438,29 +439,18 @@ namespace Fushigi.ui.widgets
                         * we clear our selected actors array */
                     if (mHoveredObject == null)
                     {
-                        mEditContext.DeselectAll();
+                        if(!ImGui.IsKeyDown(ImGuiKey.LeftShift))
+                            mEditContext.DeselectAll();
                     }
                     else if (mHoveredObject is IViewportSelectable obj)
                     {
-                        if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
-                        {
-                            prevSelect = mEditContext.SelectionVersion;
-                            mEditContext.Select(mHoveredObject!);
-                        }
-                        else if(!mEditContext.IsSelected(mHoveredObject))
-                        {
-                            mEditContext.DeselectAll();
-                            mEditContext.Select(mHoveredObject!);
-                        }
-                        foreach(CourseActor actor in mEditContext.GetSelectedObjects<CourseActor>())
-                        {
-                            actor.mStartingTrans = actor.mTranslation;
-                        }
+                        prevSelectVersion = mEditContext.SelectionVersion;
                         obj.OnSelect(mEditContext);
                     }
                     else
                     {
                         //TODO remove this once all course objects have IViewportSelectable SceneObjs
+                        prevSelectVersion = mEditContext.SelectionVersion;
                         IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
                     }
 
@@ -474,20 +464,20 @@ namespace Fushigi.ui.widgets
                     }
                 }
 
-                if(mHoveredObject != null && ImGui.IsMouseReleased(ImGuiMouseButton.Left) &&
-                    mHoveredObject is not BGUnitRailSceneObj && mHoveredObject is not BGUnitRailSceneObj.RailPoint)
+                if(mHoveredObject != null &&
+                ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                 {
                     if (ImGui.GetIO().MouseDragMaxDistanceSqr[0] <= ImGui.GetIO().MouseDragThreshold)
                     {
-                        if(ImGui.IsKeyDown(ImGuiKey.LeftShift) && 
-                        (mEditContext.SelectionVersion == prevSelect))
+                        if(ImGui.IsKeyDown(ImGuiKey.LeftShift)
+                        && prevSelectVersion == mEditContext.SelectionVersion)
                         {
                             mEditContext.Deselect(mHoveredObject!);
                         }
                         else if(!ImGui.IsKeyDown(ImGuiKey.LeftShift))
                         {
                             mEditContext.DeselectAll();
-                            mEditContext.Select(mHoveredObject!);
+                            IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
                         }
                     }
                 }

@@ -7,6 +7,7 @@ using Fushigi.util;
 using ImGuiNET;
 using Silk.NET.OpenGL;
 using System.Collections.Immutable;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -221,7 +222,7 @@ namespace Fushigi.ui.widgets
                         ImGui.OpenPopup("AreaParams");
 
                     //Display Mouse Position  
-                    if (ImGui.IsWindowHovered())
+                    if (new RectangleF((PointF)topLeft, (SizeF)size).Contains((PointF)ImGui.GetMousePos()))
                     {
                         var _mousePos = activeViewport.ScreenToWorld(ImGui.GetMousePos());
                         ImGui.Text("X: " + Math.Round(_mousePos.X, 3) + "\nY: " + Math.Round(_mousePos.Y, 3));
