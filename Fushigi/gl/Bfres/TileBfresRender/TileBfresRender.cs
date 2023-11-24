@@ -79,7 +79,8 @@ namespace Fushigi.gl.Bfres
                         foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
                         {
                             var pos = subUnit.mOrigin + new Vector3(position, 0);
-                            model.TileManager.AddWallTile(pos, 0);
+                            model.TileManager.AddWallTile(pos, tileID);
+                            model.TileManager.AddGroundTile(pos, tileID);
 
                             //     var bb = new BoundingBox(pos - new Vector3(0.5f), pos + new Vector3(0.5f));
                             //     if (camera.InFrustum(bb))

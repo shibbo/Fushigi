@@ -1,4 +1,5 @@
 ﻿using Fushigi.Byml;
+using Fushigi.course.terrain_processing;
 using Fushigi.ui.SceneObjects.bgunit;
 using Fushigi.util;
 using System;
@@ -420,6 +421,19 @@ namespace Fushigi.course
             if (!isBridgeModel)
             {
                 component.mTileMap.FillTiles(IsInside, Vector2.Zero, size2D);
+
+                component.mTileMap.ConnectTiles(
+                    ((int x, int y) tilePos, TileNeighborPattern neighbors) =>
+                    {
+                        var tileInfo = new TileInfo
+                        {
+                            Neighbors = neighbors
+                        };
+
+                        return TileIDLookup.GetTileFor(tileInfo);
+                    }
+                );
+
                 return component;
             }
 
