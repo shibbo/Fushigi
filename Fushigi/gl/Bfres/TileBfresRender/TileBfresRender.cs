@@ -50,16 +50,19 @@ namespace Fushigi.gl.Bfres
                 if (!unit.Visible)
                     continue;
 
-                var model = this.Models[0];
-                model.TileManager.Clear();
+                //var model = this.Models[0];
+                //model.TileManager.Clear();
 
-                switch (unit.mModelType)
+                var model = unit.mModelType switch
                 {
-                    case ModelType.Solid: model = this.Models[0]; break;
-                    case ModelType.SemiSolid: model = this.Models[0]; break;
-                    case ModelType.Bridge: model = this.Models[1]; break;
-                    case ModelType.NoCollision: model = this.Models[2]; break;
-                }
+                    ModelType.Solid => this.Models[0],
+                    ModelType.SemiSolid => this.Models[2],
+                    ModelType.NoCollision => this.Models[1],
+                    _ => null
+                };
+
+                if (model == null)
+                    continue;
 
                 if (unit.mTileSubUnits.Count > 0)
                 {
@@ -69,18 +72,26 @@ namespace Fushigi.gl.Bfres
                     var nearZ = unit.mTileSubUnits.Min(x => x.mOrigin.Z);
                     var farZ = unit.mTileSubUnits.Max(x => x.mOrigin.Z);
 
-                    foreach (TileSubUnits subUnit in unit.mTileSubUnits.OrderBy(x => x.mOrigin.Z))
+                    foreach (TileSubUnits subUnit in unit.mTileSubUnits)
                     {
-                        float blend = ((subUnit.mOrigin.Z - farZ) / (nearZ - farZ));
-                        if (float.IsNaN(blend)) blend = 0;
-
                         var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
 
                         foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
                         {
-                            var pos = subUnit.mOrigin + new Vector3(position, 0);
-                            model.TileManager.AddWallTile(pos, tileID);
-                            model.TileManager.AddGroundTile(pos, tileID);
+                            var pos = subUnit.mOrigin + new Vector3(position, subUnit.mOrigin.Z);
+                            if(tileID == 0)
+                            {
+                                model.TileManager.AddWallTile(pos, tileID);
+                            }
+                            else
+                            {
+                                model.TileManager.AddEdgeTile(pos, tileID);
+                                if(unit.mModelType != ModelType.NoCollision)
+                                {
+                                    model.TileManager.AddGroundTile(pos, tileID);
+
+                                }
+                            }
 
                             //     var bb = new BoundingBox(pos - new Vector3(0.5f), pos + new Vector3(0.5f));
                             //     if (camera.InFrustum(bb))
@@ -100,11 +111,6 @@ namespace Fushigi.gl.Bfres
                 }
                 model.TileManager.UpdateTileParameters();
             }
-        }
-
-        private int CalculateEdgeTileType()
-        {
-            return 0;
         }
 
         public void Render(GL gl, Camera camera)
@@ -204,7 +210,7 @@ namespace Fushigi.gl.Bfres
                 List<int> indices = new List<int>();
                 int[] quad_indices = new int[6] { 0, 1, 2, 2, 3, 0 };
 
-                Vector2 offset = new Vector2(0.5f, 0.5f);
+                var offset = new Vector3(0.5f, 0.5f, 0);
               //  Vector2 offset = new Vector2(0, 0);
 
                 int index = 0;
@@ -212,13 +218,13 @@ namespace Fushigi.gl.Bfres
                 {
                     //The game actually transforms tiles in the tile buffer, but to keep things simple, do this per quad
                     //This helps keep the uniform block memory to be much lower
-                    var pos = offset + new Vector2(tile_ind_params[i].Position.X, tile_ind_params[i].Position.Y);
+                    var pos = offset + tile_ind_params[i].Position;
                     Vertex[] quad = new Vertex[4];
                     //4 vertex positions as quad in local space
-                    quad[0] = new Vertex(new Vector2(-0.5f, -0.5f) + pos, new Vector2(0, 1), tile_ind_params[i].TileTextureID);
-                    quad[1] = new Vertex(new Vector2(0.5f, -0.5f) + pos, new Vector2(1, 1), tile_ind_params[i].TileTextureID);
-                    quad[2] = new Vertex(new Vector2(0.5f, 0.5f) + pos, new Vector2(1, 0), tile_ind_params[i].TileTextureID);
-                    quad[3] = new Vertex(new Vector2(-0.5f, 0.5f) + pos, new Vector2(0, 0), tile_ind_params[i].TileTextureID);
+                    quad[0] = new Vertex(new Vector3(-0.5f, -0.5f, 0) + pos, new Vector2(0, 1), tile_ind_params[i].TileTextureID);
+                    quad[1] = new Vertex(new Vector3(0.5f, -0.5f, 0) + pos, new Vector2(1, 1), tile_ind_params[i].TileTextureID);
+                    quad[2] = new Vertex(new Vector3(0.5f, 0.5f, 0) + pos, new Vector2(1, 0), tile_ind_params[i].TileTextureID);
+                    quad[3] = new Vertex(new Vector3(-0.5f, 0.5f, 0) + pos, new Vector2(0, 0), tile_ind_params[i].TileTextureID);
                     vertices.AddRange(quad);
 
                     //Indices
@@ -306,12 +312,12 @@ namespace Fushigi.gl.Bfres
         public struct Vertex
         {
             [RenderAttribute(0, VertexAttribPointerType.Float, 0)]
-            public Vector2 Position;
+            public Vector3 Position;
 
-            [RenderAttribute(1, VertexAttribPointerType.Float, 8)]
+            [RenderAttribute(1, VertexAttribPointerType.Float, 12)]
             public Vector3 TexCoord; //+ tile id in TileParamBlock
 
-            public Vertex(Vector2 position, Vector2 texCoord, float tileID)
+            public Vertex(Vector3 position, Vector2 texCoord, float tileID)
             {
                 Position = position;
                 TexCoord = new Vector3(texCoord, tileID);
