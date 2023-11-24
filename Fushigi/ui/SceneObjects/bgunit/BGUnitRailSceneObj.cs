@@ -1,34 +1,16 @@
 ﻿using Fushigi.course;
-using Fushigi.gl;
+using Fushigi.ui.undo;
 using Fushigi.ui.widgets;
 using Fushigi.util;
 using ImGuiNET;
-using Microsoft.VisualBasic;
-using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Reflection;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Fushigi.ui.SceneObjects.bgunit
 {
-    //TODO make this into a proper scene object that creates/updates it's points on update
-    //via AddOrUpdateChildObject
-    //and isn't referenced in CourseUnit.cs
-    internal class BGUnitRailSceneObj
+    internal class BGUnitRailSceneObj(CourseUnit unit, BGUnitRail rail) : ISceneObject, IViewportDrawable, IViewportSelectable
     {
-        public List<RailPoint> Points = new List<RailPoint>();
-
-        public List<RailPoint> GetSelected(CourseAreaEditContext ctx) => Points.Where(x => ctx.IsSelected(x)).ToList();
-
-        public bool IsClosed = false;
-
-        public bool IsInternal = false;
+        public IReadOnlyDictionary<BGUnitRail.RailPoint, RailPoint> ChildPoints;
+        public List<BGUnitRail.RailPoint> GetSelected(CourseAreaEditContext ctx) => rail.Points.Where(ctx.IsSelected).ToList();
 
         public bool mouseDown = false;
         public bool transformStart = false;
@@ -41,131 +23,120 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
         private Vector3 mouseDownPos;
 
-        public CourseUnit CourseUnit;
+        public CourseUnit CourseUnit = unit;
 
-        public BGUnitRailSceneObj(CourseUnit unit, CourseUnit.Rail rail)
+        public void Update(ISceneUpdateContext ctx, bool isSelected)
         {
-            CourseUnit = unit;
+            Dictionary<BGUnitRail.RailPoint, RailPoint> railPoints = [];
 
-            Points.Clear();
-
-            foreach (var pt in rail.mPoints)
+            if (isSelected)
             {
-                var railPoint = new RailPoint(pt.Value);
-                railPoint.Transform.Update += unit.GenerateTileSubUnits;
-                Points.Add(railPoint);
+                foreach (var pt in rail.Points)
+                {
+                    var railPointObj = ctx.UpdateOrCreateObjFor(pt, () =>
+                    {
+                        var railPoint = new RailPoint(pt);
+                        railPoint.Transform.Update += unit.GenerateTileSubUnits;
+                        return railPoint;
+                    });
 
+                    railPoints[pt] = (RailPoint)railPointObj;
+                }
             }
+            rail.mCourseUnit.GenerateTileSubUnits();
 
-            IsClosed = rail.IsClosed;
-            IsInternal = rail.IsInternal;
+            ChildPoints = railPoints;
         }
 
-        public void Reverse()
-        {
-            Points.Reverse();
-        }
+        private bool IsSelected(CourseAreaEditContext ctx) => ctx.IsSelected(rail);
 
-        public CourseUnit.Rail Save()
+        private void DeselectAll(CourseAreaEditContext ctx)
         {
-            CourseUnit.Rail rail = new CourseUnit.Rail()
+            ctx.WithSuspendUpdateDo(() =>
             {
-                IsClosed = IsClosed,
-                IsInternal = IsInternal,
-                mPoints = new List<Vector3?>(),
-            };
-
-            rail.mPoints = new List<Vector3?>();
-            foreach (var pt in Points)
-                rail.mPoints.Add(pt.Position);
-
-            return rail;
-        }
-
-        public void DeselectAll(CourseAreaEditContext ctx)
-        {
-            foreach (var point in Points)
-                if (ctx.IsSelected(point))
+                foreach (var point in rail.Points)
                     ctx.Deselect(point);
+            });
+
         }
 
         public void SelectAll(CourseAreaEditContext ctx)
         {
-            foreach (var point in Points)
-                ctx.Select(point);
+            ctx.WithSuspendUpdateDo(() =>
+            {
+                foreach (var point in rail.Points)
+                    ctx.Select(point);
+            });
         }
 
-        public void InsertPoint(LevelViewport viewport, RailPoint point, int index)
+        public void InsertPoint(CourseAreaEditContext ctx, BGUnitRail.RailPoint point, int index)
         {
-            Points.Insert(index, point);
-            viewport.mEditContext.CommitAction(new UnitRailPointAddUndo(this, point, index));
-            viewport.mEditContext.Select(point);
+            var revertible = rail.Points.RevertableInsert(point, index,
+                $"{IconUtil.ICON_PLUS_CIRCLE} Rail Point Add");
+
+            ctx.CommitAction(revertible);
+            ctx.Select(point);
             CourseUnit.GenerateTileSubUnits();
         }
 
-        public void AddPoint(LevelViewport viewport, RailPoint point)
+        public void AddPoint(CourseAreaEditContext ctx, BGUnitRail.RailPoint point)
         {
-            Points.Add(point);
-            viewport.mEditContext.CommitAction(new UnitRailPointAddUndo(this, point));
-            viewport.mEditContext.Select(point);
+            var revertible = rail.Points.RevertableAdd(point,
+                $"{IconUtil.ICON_PLUS_CIRCLE} Rail Point Add");
+
+            ctx.CommitAction(revertible);
+            ctx.Select(point);
             CourseUnit.GenerateTileSubUnits();
         }
 
-        public void RemoveSelected(LevelViewport viewport)
+        public void RemoveSelected(CourseAreaEditContext ctx, LevelViewport viewport)
         {
-            var selected = GetSelected(viewport.mEditContext);
+            var selected = GetSelected(ctx);
             if (selected.Count == 0)
                 return;
 
-            var batchAction = viewport.mEditContext.BeginBatchAction();
+            var batchAction = ctx.BeginBatchAction();
 
             foreach (var point in selected)
-                viewport.mEditContext.CommitAction(new UnitRailPointDeleteUndo(this, point));
+            {
+                var revertible = rail.Points.RevertableRemove(point);
+                ctx.CommitAction(revertible);
+            }
 
-            batchAction.Commit("Delete Rail Points");
-
-            foreach (var point in selected)
-                Points.Remove(point);
+            batchAction.Commit($"{IconUtil.ICON_TRASH} Delete Rail Points");
 
             CourseUnit.GenerateTileSubUnits();
         }
 
-        public void OnKeyDown(LevelViewport viewport)
+        public void OnKeyDown(CourseAreaEditContext ctx, LevelViewport viewport)
         {
+            //TODO move the delete logic over to CourseAreaEditContext and remove this
             if (ImGui.IsKeyPressed(ImGuiKey.Delete))
-                RemoveSelected(viewport);
-            if (viewport.mEditContext.IsSelected(this) && ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGuiKey.A))
-                SelectAll(viewport.mEditContext);
+                RemoveSelected(ctx, viewport);
+            if (IsSelected(ctx) && ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGuiKey.A))
+                SelectAll(ctx);
         }
 
-        public bool HitTest(LevelViewport viewport)
+        private bool HitTest(LevelViewport viewport)
         {
             return LevelViewport.HitTestLineLoopPoint(GetPoints(viewport), 10f,
                     ImGui.GetMousePos());
         }
 
-        public void OnMouseDown(LevelViewport viewport)
+        public void OnMouseDown(CourseAreaEditContext ctx, LevelViewport viewport)
         {
-            var ctx = viewport.mEditContext;
-            bool isSelected = ctx.IsSelected(this);
-
-            //Line hit test
-            if (!isSelected && viewport.HoveredObject == this)
-            {
-                viewport.SelectBGUnit(this);
-                isSelected = true;
-            }
+            bool isSelected = IsSelected(ctx);
 
             if (!isSelected)
                 return;
 
             mouseDownPos = viewport.ScreenToWorld(ImGui.GetMousePos());
 
-            var selected = GetSelected(viewport.mEditContext);
+            var selected = GetSelected(ctx);
 
             if (ImGui.GetIO().KeyAlt && selected.Count == 1)
             {
-                var index = Points.IndexOf(selected[0]);
+                var index = rail.Points.IndexOf(selected[0]);
                 //Insert and add
                 Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
                 Vector3 pos = new(
@@ -173,12 +144,10 @@ namespace Fushigi.ui.SceneObjects.bgunit
                      MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
                      selected[0].Position.Z);
 
-                DeselectAll(viewport.mEditContext);
-
-                if (Points.Count - 1 == index) //is last point
-                    AddPoint(viewport, new RailPoint(pos));
+                if (rail.Points.Count - 1 == index) //is last point
+                    AddPoint(ctx, new BGUnitRail.RailPoint(rail, pos));
                 else
-                    InsertPoint(viewport, new RailPoint(pos), index + 1);
+                    InsertPoint(ctx, new BGUnitRail.RailPoint(rail, pos), index + 1);
             }
             else if (ImGui.GetIO().KeyAlt && selected.Count == 0) //Add new point from last 
             {
@@ -189,52 +158,46 @@ namespace Fushigi.ui.SceneObjects.bgunit
                      MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
                      2);
 
-                DeselectAll(viewport.mEditContext);
-                AddPoint(viewport, new RailPoint(pos));
+                DeselectAll(ctx);
+                AddPoint(ctx, new BGUnitRail.RailPoint(rail, pos));
             }
             else
             {
                 if (!ImGui.GetIO().KeyCtrl && !ImGui.GetIO().KeyShift)
-                    DeselectAll(viewport.mEditContext);
+                    DeselectAll(ctx);
             }
 
-            for (int i = 0; i < Points.Count; i++)
+            for (int i = 0; i < rail.Points.Count; i++)
             {
-                Vector3 point = Points[i].Position;
+                Vector3 point = rail.Points[i].Position;
 
-                var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
-                Vector2 pnt = new(pos2D.X, pos2D.Y);
-                bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
-
-                if (isHovered)
-                    ctx.Select(Points[i]);
-
-                Points[i].PreviousPosition = point;
+                if (ChildPoints.TryGetValue(rail.Points[i], out RailPoint? childPoint))
+                    childPoint.PreviousPosition = point;
             }
             mouseDown = true;
         }
 
         private Vector2[] GetPoints(LevelViewport viewport)
         {
-            Vector2[] points = new Vector2[Points.Count];
-            for (int i = 0; i < Points.Count; i++)
+            Vector2[] points = new Vector2[rail.Points.Count];
+            for (int i = 0; i < rail.Points.Count; i++)
             {
-                Vector3 p = Points[i].Position;
+                Vector3 p = rail.Points[i].Position;
                 points[i] = viewport.WorldToScreen(new(p.X, p.Y, p.Z));
             }
             return points;
         }
 
-        public void OnMouseUp(LevelViewport viewport)
+        public void OnMouseUp(CourseAreaEditContext ctx, LevelViewport viewport)
         {
             mouseDown = false;
 
             if (transformStart)
             {
-                var batchAction = viewport.mEditContext.BeginBatchAction();
+                var batchAction = ctx.BeginBatchAction();
 
                 foreach (var item in mTransformUndos)
-                    viewport.mEditContext.CommitAction(item);
+                    ctx.CommitAction(item);
 
                 batchAction.Commit($"{IconUtil.ICON_ARROWS_ALT} Move Rail Points");
 
@@ -244,12 +207,10 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
         private List<TransformUndo> mTransformUndos = [];
 
-        public void OnSelecting(LevelViewport viewport)
+        public void OnSelecting(CourseAreaEditContext ctx, LevelViewport viewport)
         {
             if (!mouseDown)
                 return;
-
-            var ctx = viewport.mEditContext;
 
             Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
             Vector3 diff = posVec - mouseDownPos;
@@ -258,16 +219,28 @@ namespace Fushigi.ui.SceneObjects.bgunit
                 transformStart = true;
                 //Store each selected point for undoing
                 mTransformUndos.Clear();
-                foreach (var point in GetSelected(viewport.mEditContext))
-                    mTransformUndos.Add(new TransformUndo(point.Transform));
+                foreach (var point in GetSelected(ctx))
+                {
+                    if (!ChildPoints.TryGetValue(point, out RailPoint? childPoint))
+                        continue;
+
+                    mTransformUndos.Add(new TransformUndo(childPoint.Transform));
+                }
             }
 
             bool anyTransformed = false;
 
-            for (int i = 0; i < Points.Count; i++)
+            for (int i = 0; i < rail.Points.Count; i++)
             {
-                if (transformStart && ctx.IsSelected(Points[i]))
+                if (transformStart && ctx.IsSelected(rail.Points[i]))
                 {
+                    if (!ChildPoints.TryGetValue(rail.Points[i], out RailPoint? childPoint))
+                        continue;
+
+                    diff.X = MathF.Round(diff.X, MidpointRounding.AwayFromZero);
+                    diff.Y = MathF.Round(diff.Y, MidpointRounding.AwayFromZero);
+                    posVec.Z = rail.Points[i].Position.Z;
+                    rail.Points[i].Position = childPoint.PreviousPosition + diff;
                     anyTransformed = true;
                 }
             }
@@ -276,46 +249,48 @@ namespace Fushigi.ui.SceneObjects.bgunit
                 CourseUnit.GenerateTileSubUnits();
         }
 
-        public void Render(LevelViewport viewport, ImDrawListPtr mDrawList)
+        void IViewportDrawable.Draw2D(CourseAreaEditContext ctx, LevelViewport viewport, ImDrawListPtr dl, ref bool isNewHoveredObj)
         {
             if (!Visible)
                 return;
 
-            var ctx = viewport.mEditContext;
-            bool isSelected = viewport.mEditContext.IsSelected(this);
+            if (HitTest(viewport))
+                isNewHoveredObj = true;
+
+            bool isSelected = IsSelected(ctx);
 
             if (ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(ImGuiMouseButton.Left))
-                OnMouseDown(viewport);
+                OnMouseDown(ctx, viewport);
             if (ImGui.IsMouseReleased(0))
-                OnMouseUp(viewport);
+                OnMouseUp(ctx, viewport);
 
             if (viewport.mEditorState == LevelViewport.EditorState.Selecting)
-                OnSelecting(viewport);
+                OnSelecting(ctx, viewport);
 
-            OnKeyDown(viewport);
+            OnKeyDown(ctx, viewport);
 
-            var lineThickness = viewport.HoveredObject == this ? 3.5f : 2.5f;
+            var lineThickness = viewport.IsHovered(this) ? 3.5f : 2.5f;
 
-            for (int i = 0; i < Points.Count; i++)
+            for (int i = 0; i < rail.Points.Count; i++)
             {
-                Vector3 point = Points[i].Position;
+                Vector3 point = rail.Points[i].Position;
                 var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
 
                 //Next pos 2D
                 Vector2 nextPos2D = Vector2.Zero;
-                if (i < Points.Count - 1) //is not last point
+                if (i < rail.Points.Count - 1) //is not last point
                 {
                     nextPos2D = viewport.WorldToScreen(new(
-                        Points[i + 1].Position.X,
-                        Points[i + 1].Position.Y,
-                        Points[i + 1].Position.Z));
+                        rail.Points[i + 1].Position.X,
+                        rail.Points[i + 1].Position.Y,
+                        rail.Points[i + 1].Position.Z));
                 }
-                else if (IsClosed) //last point to first if closed
+                else if (rail.IsClosed) //last point to first if closed
                 {
                     nextPos2D = viewport.WorldToScreen(new(
-                       Points[0].Position.X,
-                       Points[0].Position.Y,
-                       Points[0].Position.Z));
+                       rail.Points[0].Position.X,
+                       rail.Points[0].Position.Y,
+                       rail.Points[0].Position.Z));
                 }
                 else //last point but not closed, draw no line
                     continue;
@@ -324,13 +299,13 @@ namespace Fushigi.ui.SceneObjects.bgunit
                 if (isSelected && line_color != Color_SlopeError)
                     line_color = Color_SelectionEdit;
 
-                mDrawList.AddLine(pos2D, nextPos2D, line_color, lineThickness);
+                dl.AddLine(pos2D, nextPos2D, line_color, lineThickness);
 
                 if (isSelected)
                 {
                     //Arrow display
-                    Vector3 next = i < Points.Count - 1 ? Points[i + 1].Position : Points[0].Position;
-                    Vector3 dist = next - Points[i].Position;
+                    Vector3 next = i < rail.Points.Count - 1 ? rail.Points[i + 1].Position : rail.Points[0].Position;
+                    Vector3 dist = next - rail.Points[i].Position;
                     var angleInRadian = MathF.Atan2(dist.Y, dist.X); //angle in radian
                     var rotation = Matrix4x4.CreateRotationZ(angleInRadian);
 
@@ -338,35 +313,14 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
                     var line = Vector3.TransformNormal(new Vector3(0, width, 0), rotation);
 
-                    Vector2[] arrow = new Vector2[2];
-                    arrow[0] = viewport.WorldToScreen(Points[i].Position + dist / 2f);
-                    arrow[1] = viewport.WorldToScreen(Points[i].Position + dist / 2f + line);
-
+                    Vector2[] arrow =
+                    [
+                        viewport.WorldToScreen(rail.Points[i].Position + dist / 2f),
+                        viewport.WorldToScreen(rail.Points[i].Position + dist / 2f + line),
+                    ];
                     float alpha = 0.5f;
 
-                    mDrawList.AddLine(arrow[0], arrow[1], ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, alpha)), lineThickness);
-                }
-            }
-
-            if (isSelected)
-            {
-                for (int i = 0; i < Points.Count; i++)
-                {
-                    Vector3 point = Points[i].Position;
-                    var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
-                    Vector2 pnt = new(pos2D.X, pos2D.Y);
-
-                    //Display point color
-                    uint color = 0xFFFFFFFF;
-                    if (Points[i].IsHovered || ctx.IsSelected(Points[i]))
-                        color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
-
-                    mDrawList.AddCircleFilled(pos2D, 6.0f, color);
-
-                    bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
-                    Points[i].IsHovered = isHovered;
-                    if (isHovered)
-                        viewport.HoveredObject = Points[i];
+                    dl.AddLine(arrow[0], arrow[1], ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, alpha)), lineThickness);
                 }
             }
         }
@@ -395,33 +349,64 @@ namespace Fushigi.ui.SceneObjects.bgunit
             return validAngles.Contains(MathF.Round(angle));
         }
 
-        public class RailPoint
+        void IViewportSelectable.OnSelect(CourseAreaEditContext editContext)
         {
-            public Transform Transform = new Transform();
+            IViewportSelectable.DefaultSelect(editContext, rail);
+        }
 
-            public Vector3 Position
+        public class RailPoint : ISceneObject, IViewportSelectable, IViewportDrawable
+        {
+            public RailPoint(BGUnitRail.RailPoint point)
             {
-                get { return Transform.Position; }
-                set { Transform.Position = value; }
+                this.point = point;
+                //TODO remove this as soon as we have an ITransformable interface with a SetTransform
+                Transform.Update += () =>
+                {
+                    point.Position = Transform.Position;
+                };
             }
 
-            public bool IsHovered { get; set; }
+            private readonly BGUnitRail.RailPoint point;
+
+            public Transform Transform = new Transform();
 
             //For transforming
             public Vector3 PreviousPosition { get; set; }
 
-            public RailPoint(Vector3 pos)
+            private bool HitTest(LevelViewport viewport)
             {
-                Position = pos;
-            }
-
-            public bool HitTest(LevelViewport viewport)
-            {
-                Vector3 point = Position;
-
-                var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
+                var pos2D = viewport.WorldToScreen(point.Position);
                 Vector2 pnt = new(pos2D.X, pos2D.Y);
                 return (ImGui.GetMousePos() - pnt).Length() < 6.0f;
+            }
+
+            void ISceneObject.Update(ISceneUpdateContext ctx, bool isSelected)
+            {
+
+            }
+
+            void IViewportSelectable.OnSelect(CourseAreaEditContext ctx)
+            {
+                ctx.WithSuspendUpdateDo(() =>
+                {
+                    IViewportSelectable.DefaultSelect(ctx, point);
+                    ctx.Select(point.mRail);
+                });
+            }
+
+            void IViewportDrawable.Draw2D(CourseAreaEditContext ctx, LevelViewport viewport, ImDrawListPtr dl, ref bool isNewHoveredObj)
+            {
+                var pos2D = viewport.WorldToScreen(point.Position);
+
+                //Display point color
+                uint color = 0xFFFFFFFF;
+                if (ctx.IsSelected(point))
+                    color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+
+                dl.AddCircleFilled(pos2D, viewport.IsHovered(this) ? 6.0f : 4.0f, color);
+
+                if (HitTest(viewport))
+                    isNewHoveredObj = true;
             }
         }
     }

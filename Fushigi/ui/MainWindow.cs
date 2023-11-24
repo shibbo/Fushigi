@@ -1,17 +1,12 @@
-using Fushigi.util;
-using Fushigi.windowing;
-using Silk.NET.OpenGL;
-using Silk.NET.Windowing;
 using Fushigi.param;
 using Fushigi.ui.widgets;
+using Fushigi.util;
+using Fushigi.windowing;
 using ImGuiNET;
-using System.Runtime.CompilerServices;
+using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
 using System.Numerics;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using static System.Net.Mime.MediaTypeNames;
-using System.Reflection;
-using System.Diagnostics;
 
 namespace Fushigi.ui
 {
@@ -23,8 +18,9 @@ namespace Fushigi.ui
 
         public MainWindow()
         {
-            WindowManager.CreateWindow(out mWindow, 
-                onConfigureIO: () => { 
+            WindowManager.CreateWindow(out mWindow,
+                onConfigureIO: () =>
+                {
                     unsafe
                     {
                         var io = ImGui.GetIO();
@@ -96,7 +92,7 @@ namespace Fushigi.ui
                 }
             }
 
-            if(mSelectedCourseScene is not null &&
+            if (mSelectedCourseScene is not null &&
                 mSelectedCourseScene.HasUnsavedChanges())
             {
                 mCloseCourseRequest = (onSuccessRetryAction, success: false);
@@ -122,8 +118,23 @@ namespace Fushigi.ui
             string romFSPath = UserSettings.GetRomFSPath();
             if (RomFS.IsValidRoot(romFSPath))
             {
-                RomFS.SetRoot(romFSPath);
+                RomFS.SetRoot(romFSPath, gl);
                 ChildActorParam.Load();
+
+                if (!ParamDB.sIsInit)
+                {
+                    Console.WriteLine("Parameter database needs to be initialized...");
+                    mIsGeneratingParamDB = true;
+                }
+
+                string? latestCourse = UserSettings.GetLatestCourse();
+                if (latestCourse != null && ParamDB.sIsInit)
+                {
+                    mCurrentCourseName = latestCourse;
+                    mSelectedCourseScene = new(new(mCurrentCourseName), gl);
+                    mIsChoosingPreferences = false;
+                    mIsWelcome = false;
+                }
             }
 
             ActorIconLoader.Init();
@@ -135,21 +146,7 @@ namespace Fushigi.ui
                 mIsWelcome = false;
             }
 
-            if (!ParamDB.sIsInit && !string.IsNullOrEmpty(RomFS.GetRoot()))
-            {
-                Console.WriteLine("Parameter database needs to be initialized...");
-                mIsGeneratingParamDB = true;
-            }
-
-            string? latestCourse = UserSettings.GetLatestCourse();
-            if (latestCourse != null && ParamDB.sIsInit)
-            {
-                mCurrentCourseName = latestCourse;
-                mSelectedCourseScene = new(new(mCurrentCourseName), gl);
-                mIsChoosingCourse = false;
-                mIsChoosingPreferences = false;
-                mIsWelcome = false;
-            }
+             
         }
 
         void DrawMainMenu(GL gl)
@@ -158,13 +155,32 @@ namespace Fushigi.ui
             if (ImGui.BeginMainMenuBar())
             {
                 if (ImGui.BeginMenu("File"))
-                {                   
-                    if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
+                {
+                    if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
                         !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                     {
                         if (ImGui.MenuItem("Open Course"))
                         {
-                            mIsChoosingCourse = true;
+                            void SwitchCourse(string courseLocation)
+                            {
+                                if (mCurrentCourseName == courseLocation)
+                                {
+                                    mCourseSelect = null;
+                                    return;
+                                }
+
+                                if (!TryCloseCourse(onSuccessRetryAction: () => SwitchCourse(courseLocation)))
+                                    return;
+
+                                Console.WriteLine($"Selected course {courseLocation}!");
+
+                                mCurrentCourseName = courseLocation;
+                                mSelectedCourseScene = new(new(mCurrentCourseName), gl);
+                                mCourseSelect = null;
+                                UserSettings.AppendRecentCourse(courseLocation);
+                            }
+
+                            mCourseSelect = new(gl, SwitchCourse, mCurrentCourseName);
                         }
                     }
 
@@ -201,6 +217,20 @@ namespace Fushigi.ui
                             mSelectedCourseScene.Save();
                         }
                     }
+                    if (ImGui.MenuItem("Blank out baked collision [EXPERIMENTAL]") && mSelectedCourseScene != null)
+                    {
+                        string directory = Path.Combine(UserSettings.GetModRomFSPath(), "Phive", "StaticCompoundBody");
+
+                        if (!Directory.Exists(directory))
+                            Directory.CreateDirectory(directory);
+
+                        foreach (var area in mSelectedCourseScene.GetCourse().GetAreas())
+                        {
+                            var filePath = Path.Combine(directory, $"{area.GetName()}.Nin_NX_NVN.bphsc.zs");
+                            File.Copy(Path.Combine(AppContext.BaseDirectory, "res", "BlankStaticCompoundBody.bphsc.zs"),
+                                filePath, overwrite: true);
+                        }
+                    }
 
                     ImGui.PopStyleColor();
 
@@ -221,18 +251,19 @@ namespace Fushigi.ui
                         mIsChoosingPreferences = true;
                     }
 
-                    if (ImGui.MenuItem("Regenerate Parameter Database", ParamDB.sIsInit)) {
+                    if (ImGui.MenuItem("Regenerate Parameter Database", ParamDB.sIsInit))
+                    {
                         mIsGeneratingParamDB = true;
                     }
 
                     if (ImGui.MenuItem("Undo"))
                     {
-                        mSelectedCourseScene?.activeViewport.mEditContext.Undo();
+                        mSelectedCourseScene?.Undo();
                     }
 
                     if (ImGui.MenuItem("Redo"))
                     {
-                        mSelectedCourseScene?.activeViewport.mEditContext.Redo();
+                        mSelectedCourseScene?.Redo();
                     }
 
                     /* end Edit menu */
@@ -241,56 +272,6 @@ namespace Fushigi.ui
 
                 /* end entire menu bar */
                 ImGui.EndMenuBar();
-            }
-        }
-
-        void DrawCourseList(GL gl)
-        {
-            bool status = ImGui.Begin("Select Course");
-
-            mCurrentCourseName = mSelectedCourseScene?.GetCourse().GetName();
-
-            foreach (KeyValuePair<string, string[]> worldCourses in RomFS.GetCourseEntries())
-            {
-                if (ImGui.TreeNode(worldCourses.Key))
-                {
-                    foreach (var courseLocation in worldCourses.Value)
-                    {
-                        if (ImGui.RadioButton(
-                                courseLocation,
-                                mCurrentCourseName == null ? false : courseLocation == mCurrentCourseName
-                            )
-                        )
-                        {
-                            // Only change the course if it is different from current
-                            if (mCurrentCourseName != null && mCurrentCourseName == courseLocation)
-                                mIsChoosingCourse = false;
-                            else
-                            {
-                                void SwitchCourse()
-                                {
-                                    if (!TryCloseCourse(onSuccessRetryAction: SwitchCourse))
-                                        return;
-
-                                    Console.WriteLine($"Selected course {courseLocation}!");
-
-                                    mSelectedCourseScene = new(new(courseLocation), gl);
-                                    UserSettings.AppendRecentCourse(courseLocation);
-
-                                    mIsChoosingCourse = false;
-                                }
-
-                                SwitchCourse();
-                            }
-                        }
-                    }
-                    ImGui.TreePop();
-                }
-            }
-
-            if (status)
-            {
-                ImGui.End();
             }
         }
 
@@ -335,12 +316,12 @@ namespace Fushigi.ui
             // ImGui settings are available frame 3
             if (ImGui.GetFrameCount() > 2)
             {
-                if (!string.IsNullOrEmpty(RomFS.GetRoot()) && 
+                if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
                     !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                 {
-                    if (mIsChoosingCourse)
+                    if (mCourseSelect != null)
                     {
-                        DrawCourseList(gl);
+                        mCourseSelect.Draw();
                     }
 
                     mSelectedCourseScene?.DrawUI(gl, delta);
@@ -348,7 +329,7 @@ namespace Fushigi.ui
 
                 if (mIsChoosingPreferences)
                 {
-                    Preferences.Draw(ref mIsChoosingPreferences);
+                    Preferences.Draw(ref mIsChoosingPreferences, gl);
                 }
 
                 if (mIsWelcome)
@@ -372,7 +353,7 @@ namespace Fushigi.ui
                         mCloseCourseRequest = request with { success = true };
                         request.onSuccessRetryAction.Invoke();
                     }
-                    else if(result == CloseConfirmationDialog.Result.No)
+                    else if (result == CloseConfirmationDialog.Result.No)
                     {
                         mCloseCourseRequest = null;
                     }
@@ -389,7 +370,7 @@ namespace Fushigi.ui
         readonly IWindow mWindow;
         string? mCurrentCourseName;
         CourseScene? mSelectedCourseScene;
-        bool mIsChoosingCourse = true;
+        CourseSelect? mCourseSelect = null;
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
         bool mIsGeneratingParamDB = false;

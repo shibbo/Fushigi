@@ -1,14 +1,7 @@
 ﻿using Fushigi.course;
 using Fushigi.ui.undo;
-using Fushigi.ui.widgets;
 using Fushigi.util;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Fushigi.ui
 {
@@ -23,9 +16,67 @@ namespace Fushigi.ui
 
         private readonly UndoHandler mUndoHandler = new();
 
+        private bool mIsSuspendUpdate = false;
+        private bool mIsRequireUpdate = false;
+        private bool mIsRequireSelectionCheck = false;
+
         public event Action? Update;
 
         public ulong SelectionVersion { get; private set; } = 0;
+
+        private void SelectionChanged()
+        {
+            if (mIsSuspendUpdate)
+            {
+                mIsRequireSelectionCheck = true;
+                return;
+            }
+            SelectionVersion++;
+            Update?.Invoke();
+        }
+
+        private void DoUpdate()
+        {
+            if (mIsSuspendUpdate)
+            {
+                mIsRequireUpdate = true;
+                return;
+            }
+            Update?.Invoke();
+        }
+
+        public void WithSuspendUpdateDo(Action action)
+        {
+            if (mIsSuspendUpdate)
+            {
+                action.Invoke();
+                return;
+            }
+
+            List<object> prevSelection = mSelectedObjects.ToList();
+
+            mIsSuspendUpdate = true;
+            action.Invoke();
+            mIsSuspendUpdate = false;
+
+            if (mIsRequireSelectionCheck)
+            {
+                if (prevSelection.Count != mSelectedObjects.Count ||
+                    !mSelectedObjects.SetEquals(prevSelection))
+                {
+                    SelectionChanged();
+                    mIsRequireUpdate = true;
+                }
+
+                mIsRequireSelectionCheck = false;
+            }
+
+            if (mIsRequireUpdate)
+            {
+                Update?.Invoke();
+                mIsRequireUpdate = false;
+            }
+        }
 
         private bool mHasDialog = false;
 
@@ -87,7 +138,7 @@ namespace Fushigi.ui
 
         public void CommitAction(IRevertable action)
         {
-            if(mCurrentActionBatch is not null)
+            if (mCurrentActionBatch is not null)
             {
                 mCurrentActionBatch.Add(action);
                 return;
@@ -100,7 +151,7 @@ namespace Fushigi.ui
         public void DeselectAll()
         {
             if (mSelectedObjects.Count > 0)
-                SelectionVersion++;
+                SelectionChanged();
 
             mSelectedObjects.Clear();
         }
@@ -109,10 +160,10 @@ namespace Fushigi.ui
             where T : class
         {
             int countBefore = mSelectedObjects.Count;
-            mSelectedObjects.RemoveWhere(x=>x is T);
+            mSelectedObjects.RemoveWhere(x => x is T);
 
             if (mSelectedObjects.Count != countBefore)
-                SelectionVersion++;
+                SelectionChanged();
         }
 
         public void Select(ICollection<object> objects)
@@ -121,7 +172,7 @@ namespace Fushigi.ui
             mSelectedObjects.UnionWith(objects);
 
             if (mSelectedObjects.Count != countBefore)
-                SelectionVersion++;
+                SelectionChanged();
         }
 
         public void Select(object obj)
@@ -130,7 +181,7 @@ namespace Fushigi.ui
             mSelectedObjects.Add(obj);
 
             if (mSelectedObjects.Count != countBefore)
-                SelectionVersion++;
+                SelectionChanged();
         }
 
         public void Deselect(object obj)
@@ -139,7 +190,7 @@ namespace Fushigi.ui
             mSelectedObjects.Remove(obj);
 
             if (mSelectedObjects.Count != countBefore)
-                SelectionVersion++;
+                SelectionChanged();
         }
 
         public bool IsSelected(object obj) =>
@@ -156,7 +207,7 @@ namespace Fushigi.ui
                 return false;
 
             var _obj = mSelectedObjects.First();
-            if(_obj is not T casted) return false;
+            if (_obj is not T casted) return false;
             obj = casted;
             return true;
         }
@@ -236,7 +287,7 @@ namespace Fushigi.ui
                         group.GetActors().RevertableRemoveAt(index,
                         $"Remove actor {hash} from group")
                     );
-            }     
+            }
         }
 
         private void DeleteLinksWithDestHash(ulong hash)
@@ -274,9 +325,37 @@ namespace Fushigi.ui
         {
             Console.WriteLine($"Adding Link: Source: {link.GetSrcHash()} -- Dest: {link.GetDestHash()}");
             CommitAction(
-                area.mLinkHolder.GetLinks().RevertableAdd(link, 
+                area.mLinkHolder.GetLinks().RevertableAdd(link,
                     $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.GetLinkName()} Link")
             );
+        }
+
+        public void AddBgUnit(CourseUnit unit)
+        {
+            Console.WriteLine("Adding Course Unit");
+            CommitAction(area.mUnitHolder.mUnits.RevertableAdd(unit,
+                    $"{IconUtil.ICON_PLUS_CIRCLE} Add Tile Unit"));
+        }
+
+        public void DeleteBgUnit(CourseUnit unit)
+        {
+            Console.WriteLine("Deleting Course Unit");
+            CommitAction(area.mUnitHolder.mUnits.RevertableRemove(unit,
+                    $"{IconUtil.ICON_PLUS_CIRCLE} Delete Tile Unit"));
+        }
+
+        public void AddWall(CourseUnit unit, Wall wall)
+        {
+            Console.WriteLine("Adding Wall");
+            CommitAction(unit.Walls.RevertableAdd(wall,
+                    $"{IconUtil.ICON_PLUS_CIRCLE} Add Wall"));
+        }
+
+        public void DeleteWall(CourseUnit unit, Wall wall)
+        {
+            Console.WriteLine("Deleting Wall");
+            CommitAction(unit.Walls.RevertableRemove(wall,
+                    $"{IconUtil.ICON_PLUS_CIRCLE} Delete Wall"));
         }
 
         public CourseActorHolder GetActorHolder()

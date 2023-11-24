@@ -2,6 +2,7 @@
 using Fushigi.ui.widgets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -16,13 +17,13 @@ namespace Fushigi.ui
 
     interface ISceneObject
     {
-        void Update(ISceneUpdateContext ctx);
+        void Update(ISceneUpdateContext ctx, bool isSelected);
     }
 
     interface ISceneUpdateContext
     {
-        void UpdateOrCreateObjFor(object courseObject, Func<ISceneObject> createFunc);
-        void AddOrUpdateChildObject(ISceneObject sceneObject);
+        ISceneObject UpdateOrCreateObjFor(object courseObject, Func<ISceneObject> createFunc);
+        void AddOrUpdateSceneObject(ISceneObject sceneObject);
     }
 
     internal class CourseAreaScene : ISceneUpdateContext
@@ -34,6 +35,7 @@ namespace Fushigi.ui
             EditContext = new(area);
             EditContext.Update += Update;
             this.mSceneRoot = sceneRoot;
+            Update();
         }
 
         bool mIsUpdating = false;
@@ -60,7 +62,14 @@ namespace Fushigi.ui
             mIsUpdating = false;
         }
 
-        void ISceneUpdateContext.AddOrUpdateChildObject(ISceneObject sceneObject)
+        public bool TryGetObjFor(object courseObject, [NotNullWhen(true)] out ISceneObject? sceneObject)
+        {
+            bool success = mCourseSceneObjects.TryGetValue(courseObject, out var entry);
+            sceneObject = entry.obj;
+            return success;
+        }
+
+        void ISceneUpdateContext.AddOrUpdateSceneObject(ISceneObject sceneObject)
         {
             if (!mIsUpdating)
                 throw new InvalidOperationException("Cannot call this function outside of Update");
@@ -75,12 +84,16 @@ namespace Fushigi.ui
 
             mOrderedSceneObjects.Add(entry.obj);
 
-            entry.obj.Update(this);
+            entry.obj.Update(this, false);
 
             mCourseSceneObjects[sceneObject] = entry with { isDirty = false };
         }
 
-        void ISceneUpdateContext.UpdateOrCreateObjFor(object courseObject, Func<ISceneObject> createFunc)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>The created/updated scene object</returns>
+        ISceneObject ISceneUpdateContext.UpdateOrCreateObjFor(object courseObject, Func<ISceneObject> createFunc)
         {
             if (!mIsUpdating)
                 throw new InvalidOperationException("Cannot call this function outside of Update");
@@ -92,13 +105,14 @@ namespace Fushigi.ui
             }
 
             if (!entry.isDirty)
-                return;
+                return entry.obj;
 
             mOrderedSceneObjects.Add(entry.obj);
 
-            entry.obj.Update(this);
+            entry.obj.Update(this, EditContext.IsSelected(courseObject));
 
             mCourseSceneObjects[courseObject] = entry with { isDirty = false };
+            return entry.obj;
         }
 
         private void MarkAllDirty()
@@ -125,7 +139,7 @@ namespace Fushigi.ui
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="action"></param>
-        public void ForEach<T>(Action<ISceneObject> action) 
+        public void ForEach<T>(Action<T> action) 
             where T : class
         {
             mUpdateBlockers++;
@@ -135,8 +149,8 @@ namespace Fushigi.ui
             for (int i = 0; i < span.Length; i++)
             {
                 var obj = span[i];
-                if(obj is T)
-                    action.Invoke(obj);
+                if(obj is T casted)
+                    action.Invoke(casted);
             }
 
             mUpdateBlockers--;

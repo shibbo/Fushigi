@@ -1,16 +1,7 @@
 ﻿using Fushigi.Byml;
 using Fushigi.course.terrain_processing;
-using Fushigi.ui.SceneObjects.bgunit;
 using Fushigi.util;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using static Fushigi.course.CourseUnit;
 using Vector3 = System.Numerics.Vector3;
 
 namespace Fushigi.course
@@ -36,10 +27,8 @@ namespace Fushigi.course
 
         public CourseUnit()
         {
-            this.Walls = new List<Wall>();
-            this.mBeltRails = new List<BGUnitRailSceneObj>();
-            this.mModelType = 0;
-            this.mSkinDivision = 0;
+            this.mModelType = ModelType.Solid;
+            this.mSkinDivision = SkinDivision.FieldA;
         }
 
         public CourseUnit(BymlHashTable tbl)
@@ -49,45 +38,18 @@ namespace Fushigi.course
 
             if (tbl.ContainsKey("BeltRails"))
             {
-                BymlArrayNode belts = tbl["BeltRails"] as BymlArrayNode;
+                BymlArrayNode belts = (BymlArrayNode)tbl["BeltRails"];
 
                 foreach (BymlHashTable beltsTbl in belts.Array)
                 {
-                    Rail belt = new Rail();
-                    belt.IsClosed = BymlUtil.GetNodeData<bool>(beltsTbl["IsClosed"]);
-                    belt.mPoints = new();
-
-                    BymlArrayNode beltsArr = beltsTbl["Points"] as BymlArrayNode;
-
-                    foreach (BymlHashTable pointsTbl in beltsArr.Array)
-                    {
-                        belt.mPoints.Add(BymlUtil.GetVector3FromArray((BymlArrayNode)pointsTbl["Translate"]));
-                    }
-                    this.mBeltRails.Add(new BGUnitRailSceneObj(this, belt));
+                    mBeltRails.Add(LoadRailNode(beltsTbl));
                 }
             }
 
             if (tbl.ContainsKey("Walls"))
             {
-                BymlArrayNode wallsNode = tbl["Walls"] as BymlArrayNode;
+                BymlArrayNode wallsNode = (BymlArrayNode)tbl["Walls"];
                 this.Walls = new List<Wall>();
-
-                BGUnitRailSceneObj LoadRail(BymlHashTable railDict, bool isInternal = false)
-                {
-                    BymlArrayNode pointsArr = railDict["Points"] as BymlArrayNode;
-
-                    Rail rail = new();
-                    rail.IsClosed = BymlUtil.GetNodeData<bool>(railDict["IsClosed"]);
-                    rail.mPoints = new List<System.Numerics.Vector3?>();
-                    rail.IsInternal = isInternal;
-
-                    foreach (BymlHashTable pointsTbl in pointsArr.Array)
-                    {
-                        rail.mPoints.Add(BymlUtil.GetVector3FromArray((BymlArrayNode)pointsTbl["Translate"]));
-                    }
-
-                    return new BGUnitRailSceneObj(this, rail);
-                }
 
                 foreach (BymlHashTable wallsTbl in wallsNode.Array)
                 {
@@ -95,12 +57,12 @@ namespace Fushigi.course
                     this.Walls.Add(wall);
 
                     if (wallsTbl.ContainsKey("ExternalRail"))
-                        wall.ExternalRail = LoadRail(wallsTbl["ExternalRail"] as BymlHashTable);
+                        wall.ExternalRail = LoadRailNode((BymlHashTable)wallsTbl["ExternalRail"]);
                     if (wallsTbl.ContainsKey("InternalRails"))
                     {
-                        var railList = wallsTbl["InternalRails"] as BymlArrayNode;
+                        var railList = (BymlArrayNode)wallsTbl["InternalRails"];
                         foreach (BymlHashTable rail in railList.Array)
-                            wall.InternalRails.Add(LoadRail(rail, true));
+                            wall.InternalRails.Add(LoadRailNode(rail, true));
                     }
                 }
             }
@@ -108,38 +70,61 @@ namespace Fushigi.course
             GenerateTileSubUnits();
         }
 
+        private BGUnitRail LoadRailNode(BymlHashTable railDict, bool isInternal = false)
+        {
+            BymlArrayNode pointsArr = (BymlArrayNode)railDict["Points"];
+
+            BGUnitRail rail = new(this)
+            {
+                IsClosed = BymlUtil.GetNodeData<bool>(railDict["IsClosed"]),
+                IsInternal = isInternal
+            };
+
+            foreach (BymlHashTable pointsTbl in pointsArr.Array)
+            {
+                var position = BymlUtil.GetVector3FromArray((BymlArrayNode)pointsTbl["Translate"]);
+                rail.Points.Add(new BGUnitRail.RailPoint(rail, position));
+            }
+
+            return rail;
+        }
+
+        private BymlHashTable BuildRailNode(BGUnitRail rail)
+        {
+            BymlHashTable railNode = new();
+            railNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(rail.IsClosed), "IsClosed");
+
+            BymlArrayNode pointsArrayNode = new();
+
+            foreach (BGUnitRail.RailPoint point in rail.Points)
+            {
+                var position = point.Position;
+                BymlHashTable pointDict = new();
+                BymlArrayNode translateNode = new(3);
+                translateNode.AddNodeToArray(BymlUtil.CreateNode<float>(position.X));
+                translateNode.AddNodeToArray(BymlUtil.CreateNode<float>(position.Y));
+                translateNode.AddNodeToArray(BymlUtil.CreateNode<float>(position.Z));
+
+                pointDict.AddNode(BymlNodeId.Array, translateNode, "Translate");
+                pointsArrayNode.AddNodeToArray(pointDict);
+            }
+
+            railNode.AddNode(BymlNodeId.Array, pointsArrayNode, "Points");
+
+            return railNode;
+        }
+
         public BymlHashTable BuildNode()
         {
             BymlHashTable table = new();
-            table.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>("ModelType", (int)mModelType), "ModelType");
-            table.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>("SkinDivision", (int)mSkinDivision), "SkinDivision");
+            table.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>((int)mModelType), "ModelType");
+            table.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>((int)mSkinDivision), "SkinDivision");
 
             BymlArrayNode beltsArray = new((uint)mBeltRails.Count);
 
-            foreach(var belt in mBeltRails)
+            foreach (var belt in mBeltRails)
             {
-                var rail = belt.Save();
-
-                BymlHashTable beltNode = new();
-                beltNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>("IsClosed", belt.IsClosed), "IsClosed");
-
-                BymlArrayNode pointsArr = new((uint)rail.mPoints.Count);
-
-                foreach (System.Numerics.Vector3 point in rail.mPoints)
-                {
-                    BymlHashTable pointTbl = new();
-                    BymlArrayNode translateNode = new(3);
-                    translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", point.X));
-                    translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", point.Y));
-                    translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", point.Z));
-
-                    //beltNode.AddNode(BymlNodeId.Array, translateNode, "Translate");
-                    pointTbl.AddNode(BymlNodeId.Array, translateNode, "Translate");
-                    pointsArr.AddNodeToArray(pointTbl);
-                }
-
-                beltNode.AddNode(BymlNodeId.Array, pointsArr, "Points");
-                beltsArray.AddNodeToArray(beltNode);
+                beltsArray.AddNodeToArray(BuildRailNode(belt));
             }
 
             table.AddNode(BymlNodeId.Array, beltsArray, "BeltRails");
@@ -148,40 +133,16 @@ namespace Fushigi.course
 
             foreach (Wall wall in this.Walls)
             {
-                BymlHashTable SaveRail(Rail rail)
-                {
-                    BymlHashTable railNode = new();
-                    railNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>("IsClosed", rail.IsClosed), "IsClosed");
-
-                    BymlArrayNode pointsArrayNode = new();
-
-                    foreach (System.Numerics.Vector3 point in rail.mPoints)
-                    {
-                        BymlHashTable pointDict = new();
-                        BymlArrayNode translateNode = new(3);
-                        translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", point.X));
-                        translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", point.Y));
-                        translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", point.Z));
-
-                        pointDict.AddNode(BymlNodeId.Array, translateNode, "Translate");
-                        pointsArrayNode.AddNodeToArray(pointDict);
-                    }
-
-                    railNode.AddNode(BymlNodeId.Array, pointsArrayNode, "Points");
-
-                    return railNode;
-                }
-
                 BymlHashTable wallNode = new();
                 if (wall.InternalRails.Count > 0)
                 {
-                    BymlArrayNode internaiRailListNode = new BymlArrayNode();
-                    wallNode.AddNode(BymlNodeId.Array, internaiRailListNode, "InternalRails");
+                    BymlArrayNode internalRailListNode = new BymlArrayNode();
+                    wallNode.AddNode(BymlNodeId.Array, internalRailListNode, "InternalRails");
 
                     foreach (var rail in wall.InternalRails)
-                        internaiRailListNode.AddNodeToArray(SaveRail(rail.Save()));
+                        internalRailListNode.AddNodeToArray(BuildRailNode(rail));
                 }
-                wallNode.AddNode(BymlNodeId.Hash, SaveRail(wall.ExternalRail.Save()), "ExternalRail");
+                wallNode.AddNode(BymlNodeId.Hash, BuildRailNode(wall.ExternalRail), "ExternalRail");
                 wallsArray.AddNodeToArray(wallNode);
             }
 
@@ -194,11 +155,11 @@ namespace Fushigi.course
         {
             mTileSubUnits.Clear();
 
-            if(mModelType == ModelType.Bridge)
+            if (mModelType == ModelType.Bridge)
             {
                 foreach (var rail in mBeltRails)
                 {
-                    mTileSubUnits.Add(TileSubUnits.CreateFromRails(rail, Array.Empty<BGUnitRailSceneObj>(), 
+                    mTileSubUnits.Add(TileSubUnits.CreateFromRails(rail, Array.Empty<BGUnitRail>(),
                         isBridgeModel: true));
                 }
             }
@@ -212,28 +173,13 @@ namespace Fushigi.course
             }
         }
 
-        public struct Rail
-        {
-            public bool IsClosed;
-            public List<Vector3?> mPoints;
-            public bool IsInternal;
-
-            public Rail()
-            {
-                IsInternal = false;
-                IsClosed = true;
-                mPoints = new List<Vector3?>();
-            }
-        }
-
         public ModelType mModelType;
         public SkinDivision mSkinDivision;
 
-        //Editor render objects
-        internal List<Wall> Walls = new List<Wall>();
-        internal List<BGUnitRailSceneObj> mBeltRails = new List<BGUnitRailSceneObj>();
+        internal List<Wall> Walls = [];
+        internal List<BGUnitRail> mBeltRails = [];
 
-        internal List<TileSubUnits> mTileSubUnits = new List<TileSubUnits>();
+        internal List<TileSubUnits> mTileSubUnits = [];
 
         //Editor toggle
         public bool Visible = true;
@@ -241,13 +187,32 @@ namespace Fushigi.course
 
     public class Wall
     {
-        internal BGUnitRailSceneObj ExternalRail;
-        internal List<BGUnitRailSceneObj> InternalRails = new List<BGUnitRailSceneObj>();
+        internal BGUnitRail ExternalRail;
+        internal List<BGUnitRail> InternalRails = [];
 
         internal Wall(CourseUnit unit)
         {
-            ExternalRail = new BGUnitRailSceneObj(unit, new CourseUnit.Rail());
+            ExternalRail = new BGUnitRail(unit);
         }
+    }
+
+    public class BGUnitRail(CourseUnit unit)
+    {
+        public readonly CourseUnit mCourseUnit = unit;
+
+        public List<RailPoint> Points = [];
+
+        public bool IsClosed = false;
+
+        public bool IsInternal = false;
+
+        public class RailPoint(BGUnitRail rail, Vector3 position)
+        {
+            public readonly BGUnitRail mRail = rail;
+            public Vector3 Position = position;
+        }
+
+
     }
 
     public class TileSubUnits
@@ -264,7 +229,7 @@ namespace Fushigi.course
         public readonly InfiniteTileMap mTileMap = new();
         public readonly List<(int x, int y, int width, int height, SlopeType type)> mSlopes = [];
 
-        internal static TileSubUnits CreateFromRails(BGUnitRailSceneObj mainRail, IReadOnlyList<BGUnitRailSceneObj> internalRails, bool isBridgeModel)
+        internal static TileSubUnits CreateFromRails(BGUnitRail mainRail, IReadOnlyList<BGUnitRail> internalRails, bool isBridgeModel)
         {
             TileSubUnits component = new();
 
@@ -357,22 +322,22 @@ namespace Fushigi.course
                     int tileX = Math.Min((int)triP0.X, (int)triP1.X);
                     int tileY = Math.Min((int)triP0.Y, (int)triP1.Y);
 
-                    
 
-                    if(slope == 0.0f)
+
+                    if (slope == 0.0f)
                     {
                         bridgeTiles.Add((tileX, tileY - 1));
                         continue;
                     }
 
-                    blockedTiles.Add((tileX, tileY)); 
-                    if(isBridgeModel) 
+                    blockedTiles.Add((tileX, tileY));
+                    if (isBridgeModel)
                         bridgeTiles.Add((tileX, tileY - 1));
 
                     if (slopeWidth == 2)
                     {
                         blockedTiles.Add((tileX + 1, tileY));
-                        if (isBridgeModel) 
+                        if (isBridgeModel)
                             bridgeTiles.Add((tileX + 1, tileY - 1));
                     }
 
@@ -437,7 +402,7 @@ namespace Fushigi.course
                 return component;
             }
 
-            foreach (var (x,y) in bridgeTiles)
+            foreach (var (x, y) in bridgeTiles)
             {
                 component.mTileMap.AddTile(x, y);
             }

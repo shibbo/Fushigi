@@ -195,6 +195,8 @@ namespace Fushigi.gl.Bfres
             {
                 Bind();
 
+                // TODO - useSrgb argument is a temporary solution for the CourseSelect thumbnails
+                //        should find a more permanent solution for this
                 var format = useSrgb && IsSrgb ? SurfaceFormat.R8_G8_B8_A8_SRGB : SurfaceFormat.R8_G8_B8_A8_UNORM;
 
                 var formatInfo = GLFormatHelper.ConvertPixelFormat(format);
