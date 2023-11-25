@@ -238,6 +238,14 @@ namespace Fushigi.ui.widgets
                     ), division);
                 render.Load(this.mArea.mUnitHolder, this.Camera);
 
+                foreach (var courseUnit in this.mArea.mUnitHolder.mUnits.Where(x=>x.mSkinDivision == division))
+                {
+                    courseUnit.TilesUpdated += delegate
+                    {
+                        render.Load(this.mArea.mUnitHolder, this.Camera);
+                    };
+                }
+
                 this.Camera.OnCameraChanged += delegate
                 {
                     //  render.Load(this.mArea.mUnitHolder, this.Camera);
