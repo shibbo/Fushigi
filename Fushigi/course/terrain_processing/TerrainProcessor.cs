@@ -146,6 +146,9 @@ namespace Fushigi.course.terrain_processing
                         // slope/bridge angle is not supported by the game
                         continue;
 
+                    if (slope == 0 && !isBridgeModel)
+                        continue;
+
                     SlopePositioning slopeType = default;
                     if (p0.X < p1.X && p0.Y < p1.Y)
                         slopeType = SlopePositioning.CornerBR;
@@ -171,9 +174,6 @@ namespace Fushigi.course.terrain_processing
 
                         if (isBridgeModel)
                             mTileUnit.mTileMap.AddTile(tileX, tileY - 1, 0);
-
-                        if (slope == 0.0f)
-                            continue;
 
                         mBlockedTiles.Add((tileX, tileY));
 

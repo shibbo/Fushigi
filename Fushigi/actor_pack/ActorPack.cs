@@ -33,6 +33,7 @@ namespace Fushigi
         public ModelInfo DrawArrayModelInfoRef;
         public ModelInfo ModelInfoRef;
         public ModelExpandParam ModelExpandParamRef;
+        public BgUnitInfo BgUnitInfo;
 
         public string Category = "";
 
@@ -109,6 +110,9 @@ namespace Fushigi
                         break;
                     case "ModelExpandRef":
                         this.ModelExpandParamRef = BymlSerialize.Deserialize<ModelExpandParam>(data);
+                        break;
+                    case "BgUnitInfo":
+                        this.BgUnitInfo = BymlSerialize.Deserialize<BgUnitInfo>(data);
                         break;
                 }
             }

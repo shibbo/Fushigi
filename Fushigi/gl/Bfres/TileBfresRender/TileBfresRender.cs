@@ -1,17 +1,11 @@
-﻿using Fushigi.Bfres;
+﻿using Fushigi.actor_pack.components;
+using Fushigi.Bfres;
 using Fushigi.course;
-using Fushigi.ui;
 using Fushigi.util;
-using ImGuiNET;
 using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Numerics;
-using System.Threading.Tasks;
 using static Fushigi.course.CourseUnit;
-using static Fushigi.gl.Bfres.TileBfresRender;
-using static Fushigi.gl.Bfres.WonderGameShader;
 
 namespace Fushigi.gl.Bfres
 {
@@ -22,42 +16,86 @@ namespace Fushigi.gl.Bfres
         private BfresRender BfresRender;
         private Matrix4x4 Transform = Matrix4x4.Identity;
 
-        private List<Model> Models = new List<Model>();
+        public record struct MaterialNames(string? Edge, string? Wall, string? Ground);
+
+        private Model SolidModel;
+        private Model SemisolidModel;
+        private Model NoCollisionModel;
+        private Model BridgeModel;
 
         public TileBfresRender(GL gl)
         {
             Load(gl);
         }
 
-        private void Load(GL gl, string name = "UnitHajimariSougen")
+        private void Load(GL gl,
+            string fullHitName = "UnitHajimariSougenAZen",
+            string halfHitName = "UnitHajimariSougenAHan",
+            string noHitName = "UnitHajimariSougenANashi",
+            string bridgeName = "UnitHashiKiA"
+            )
         {
-            var file_path = FileUtil.FindContentPath(Path.Combine("Model", $"{name}.bfres.zs"));
-            if (!File.Exists(file_path))
+            BgUnitInfo? fullHitInfo = ActorPackCache.Load(fullHitName)?.BgUnitInfo;
+            BgUnitInfo? halfHitInfo = ActorPackCache.Load(halfHitName)?.BgUnitInfo;
+            BgUnitInfo? noHitInfo = ActorPackCache.Load(noHitName)?.BgUnitInfo;
+            BgUnitInfo? bridgeInfo = ActorPackCache.Load(bridgeName)?.BgUnitInfo;
+
+            if (fullHitInfo is null ||
+                halfHitInfo is null ||
+                noHitInfo is null ||
+                bridgeInfo is null)
+            {
+                Debug.Fail("BgUnit Packs could not be loaded");
                 return;
+            }
 
-            BfresRender?.Dispose();
-            BfresRender = new BfresRender(gl, FileUtil.DecompressAsStream(file_path));
 
-            Models.Clear();
-            foreach (var model in BfresRender.Models.Values)
-                Models.Add(new Model(gl, BfresRender, model));
+            SolidModel?.Dispose();
+            SolidModel = CreateModel(gl, fullHitInfo);
+
+            SemisolidModel?.Dispose();
+            SemisolidModel = CreateModel(gl, halfHitInfo);
+
+            NoCollisionModel?.Dispose();
+            NoCollisionModel = CreateModel(gl, noHitInfo);
+
+            BridgeModel?.Dispose();
+            BridgeModel = CreateModel(gl, bridgeInfo);
+        }
+
+        private static Model CreateModel(GL gl, BgUnitInfo bgUnitInfo)
+        {
+            var modelInfo = bgUnitInfo.GetModelInfo();
+            var materialNames = bgUnitInfo.GetMaterialNames();
+
+            var render = new BfresRender(BfresCache.Load(gl, modelInfo.bfresName));
+            var model = render.Models[modelInfo.modelName];
+
+            return new Model(gl, render, model, new MaterialNames(
+                    Edge: materialNames.GetValueOrDefault("Edge"),
+                    Wall: materialNames.GetValueOrDefault("Wall"),
+                    Ground: materialNames.GetValueOrDefault("Belt")
+                ));
         }
 
         public void Load(CourseUnitHolder mUnitHolder, Camera camera)
         {
+            SolidModel.TileManager.Clear();
+            SemisolidModel.TileManager.Clear();
+            NoCollisionModel.TileManager.Clear();
+            BridgeModel.TileManager.Clear();
+
             foreach (var unit in mUnitHolder.mUnits)
             {
                 if (!unit.Visible)
                     continue;
 
-                //var model = this.Models[0];
-                //model.TileManager.Clear();
-
                 var model = unit.mModelType switch
                 {
-                    ModelType.Solid => this.Models[0],
-                    ModelType.SemiSolid => this.Models[2],
-                    ModelType.NoCollision => this.Models[1],
+                    ModelType.Solid => this.SolidModel,
+                    ModelType.SemiSolid => this.SemisolidModel,
+                    ModelType.NoCollision => this.NoCollisionModel,
+                    ModelType.Bridge => this.BridgeModel,
                     _ => null
                 };
 
@@ -79,7 +117,7 @@ namespace Fushigi.gl.Bfres
                         foreach (var (tileIDEdge, tileIDGround, position) in subUnit.GetTiles(clipMin - origin2D, clipMax - origin2D))
                         {
                             var pos = subUnit.mOrigin + new Vector3(position, subUnit.mOrigin.Z);
-                            if(tileIDEdge == 0)
+                            if (tileIDEdge == 0)
                             {
                                 model.TileManager.AddWallTile(pos, 0);
                             }
@@ -87,7 +125,7 @@ namespace Fushigi.gl.Bfres
                             {
                                 model.TileManager.AddEdgeTile(pos, tileIDEdge.GetValueOrDefault());
 
-                                if(tileIDGround.TryGetValue(out int tileIDGroundValue))
+                                if (tileIDGround.TryGetValue(out int tileIDGroundValue))
                                     model.TileManager.AddGroundTile(pos, tileIDGroundValue);
                             }
 
@@ -113,10 +151,10 @@ namespace Fushigi.gl.Bfres
 
         public void Render(GL gl, Camera camera)
         {
-            //zen, nashi, han skin models
-            Models[0].Render(gl, camera);
-            Models[1].Render(gl, camera);
-            Models[2].Render(gl, camera);
+            SolidModel.Render(gl, camera);
+            SemisolidModel.Render(gl, camera);
+            NoCollisionModel.Render(gl, camera);
+            BridgeModel.Render(gl, camera);
         }
 
 
@@ -182,9 +220,9 @@ namespace Fushigi.gl.Bfres
 
             private void UpdateIndices()
             {
-               // List<int> wall_indices = this.WallTiles.Select(x => TileParams.TileBuffer.IndexOf(x)).ToList();
-               // List<int> ground_indices = this.GroundTiles.Select(x => TileParams.TileBuffer.IndexOf(x)).ToList();
-               // List<int> edge_indices = this.EdgeTiles.Select(x => TileParams.TileBuffer.IndexOf(x)).ToList();
+                // List<int> wall_indices = this.WallTiles.Select(x => TileParams.TileBuffer.IndexOf(x)).ToList();
+                // List<int> ground_indices = this.GroundTiles.Select(x => TileParams.TileBuffer.IndexOf(x)).ToList();
+                // List<int> edge_indices = this.EdgeTiles.Select(x => TileParams.TileBuffer.IndexOf(x)).ToList();
             }
 
             public void UpdateTileParameters()
@@ -199,7 +237,7 @@ namespace Fushigi.gl.Bfres
                 UpdateMesh(GroundMesh, this.GroundTiles);
                 UpdateMesh(EdgeMesh, this.EdgeTiles);
 
-               // UpdateIndices();
+                // UpdateIndices();
             }
 
             private void UpdateMesh(RenderMesh<Vertex> mesh, List<TileParamBlock.Tile> tile_ind_params)
@@ -209,7 +247,7 @@ namespace Fushigi.gl.Bfres
                 int[] quad_indices = new int[6] { 0, 1, 2, 2, 3, 0 };
 
                 var offset = new Vector3(0.5f, 0.5f, 0);
-              //  Vector2 offset = new Vector2(0, 0);
+                //  Vector2 offset = new Vector2(0, 0);
 
                 int index = 0;
                 for (int i = 0; i < tile_ind_params.Count; i++)
@@ -238,7 +276,7 @@ namespace Fushigi.gl.Bfres
             }
         }
 
-        public class Model
+        public sealed class Model : IDisposable
         {
             public BfresMaterialRender Wall;
             public BfresMaterialRender Ground;
@@ -248,19 +286,20 @@ namespace Fushigi.gl.Bfres
 
             private BfresRender BfresRender;
             private BfresRender.BfresModel BfresModelRender;
+            private bool isDisposed;
 
-            public Model(GL gl, BfresRender render, BfresRender.BfresModel model)
+            public Model(GL gl, BfresRender render, BfresRender.BfresModel model, MaterialNames materialNames)
             {
                 BfresRender = render;
                 BfresModelRender = model;
 
                 foreach (var mesh in model.Meshes)
                 {
-                    if (mesh.MaterialRender.Name.EndsWith("KabeMat"))
+                    if (mesh.MaterialRender.Name == materialNames.Wall)
                         Wall = mesh.MaterialRender;
-                    if (mesh.MaterialRender.Name.EndsWith("ObiMat"))
+                    if (mesh.MaterialRender.Name == materialNames.Ground)
                         Ground = mesh.MaterialRender;
-                    if (mesh.MaterialRender.Name.EndsWith("FuchiMat"))
+                    if (mesh.MaterialRender.Name == materialNames.Edge)
                         Edge = mesh.MaterialRender;
                 }
 
@@ -287,8 +326,10 @@ namespace Fushigi.gl.Bfres
 
             private void DrawWall(GL gl, Camera camera)
             {
+                if (Wall == null) return;
+
                 Wall.RenderGameShaders(gl, BfresRender, BfresModelRender, Matrix4x4.Identity, camera);
-                TileManager.DrawWall(); 
+                TileManager.DrawWall();
             }
 
             private void DrawGround(GL gl, Camera camera)
@@ -302,8 +343,19 @@ namespace Fushigi.gl.Bfres
 
             private void DrawEdge(GL gl, Camera camera)
             {
+                if (Edge == null) return;
+
                 Edge.RenderGameShaders(gl, BfresRender, BfresModelRender, Matrix4x4.Identity, camera);
                 TileManager.DrawEdge();
+            }
+            public void Dispose()
+            {
+                if (isDisposed)
+                    return;
+
+                foreach (var model in BfresRender.Models.Values) model.Dispose();
+                    
+                isDisposed = true;
             }
         }
 
@@ -338,7 +390,7 @@ namespace Fushigi.gl.Bfres
                     Position = new Vector3(0, 0, 2), //We tranform per quad atm
                     CameraDistance = 0,
                     TileTextureID = i, //Unique texture id per quad
-                }); 
+                });
             }
             Update();
         }
