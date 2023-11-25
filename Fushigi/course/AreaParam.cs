@@ -42,8 +42,8 @@ namespace Fushigi.course
         public string BadgeMedleyEquipBadgeId { get; set; }
         public string ExternalRhythmPatternSet { get; set; }
 
-        public AreaSkinParam SkinParam { get; set; }
-        public AreaEnvPaletteSetting EnvPaletteSetting { get; set; }
+        public AreaSkinParam SkinParam { get; set; } = new AreaSkinParam();
+        public AreaEnvPaletteSetting EnvPaletteSetting { get; set; } = new AreaEnvPaletteSetting();
 
         public AreaParam(Byml.Byml byml)
         {
@@ -88,9 +88,9 @@ namespace Fushigi.course
         public class AreaSkinParam
         {
             public bool DisableBgUnitDecoA { get; set; }
-            public string FieldA { get; set; }
-            public string FieldB { get; set; }
-            public string Object { get; set; }
+            public string FieldA { get; set; } = "";
+            public string FieldB { get; set; } = "";
+            public string Object { get; set; } = "";
         }
     }
 }
