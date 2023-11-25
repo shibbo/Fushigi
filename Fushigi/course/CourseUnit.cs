@@ -159,7 +159,7 @@ namespace Fushigi.course
             {
                 foreach (var rail in mBeltRails)
                 {
-                    mTileSubUnits.Add(TileSubUnits.CreateFromRails(rail, Array.Empty<BGUnitRail>(),
+                    mTileSubUnits.Add(TileSubUnit.CreateFromRails(rail, Array.Empty<BGUnitRail>(),
                         isBridgeModel: true));
                 }
             }
@@ -167,7 +167,7 @@ namespace Fushigi.course
             {
                 foreach (var wall in Walls)
                 {
-                    mTileSubUnits.Add(TileSubUnits.CreateFromRails(wall.ExternalRail, wall.InternalRails,
+                    mTileSubUnits.Add(TileSubUnit.CreateFromRails(wall.ExternalRail, wall.InternalRails,
                         isBridgeModel: false));
                 }
             }
@@ -179,7 +179,7 @@ namespace Fushigi.course
         internal List<Wall> Walls = [];
         internal List<BGUnitRail> mBeltRails = [];
 
-        internal List<TileSubUnits> mTileSubUnits = [];
+        internal List<TileSubUnit> mTileSubUnits = [];
 
         //Editor toggle
         public bool Visible = true;
@@ -215,23 +215,23 @@ namespace Fushigi.course
 
     }
 
-    public class TileSubUnits
+    public class TileSubUnit
     {
-        public enum SlopeType
+        public enum SlopePositioning
         {
-            UpperLeft,
-            UpperRight,
-            LowerLeft,
-            LowerRight,
+            CornerTL,
+            CornerTR,
+            CornerBL,
+            CornerBR,
         }
 
         public Vector3 mOrigin;
         public readonly InfiniteTileMap mTileMap = new();
-        public readonly List<(int x, int y, int width, int height, SlopeType type)> mSlopes = [];
+        public readonly List<(int x, int y, int width, int height, SlopePositioning type)> mSlopes = [];
 
-        internal static TileSubUnits CreateFromRails(BGUnitRail mainRail, IReadOnlyList<BGUnitRail> internalRails, bool isBridgeModel)
+        internal static TileSubUnit CreateFromRails(BGUnitRail mainRail, IReadOnlyList<BGUnitRail> internalRails, bool isBridgeModel)
         {
-            TileSubUnits component = new();
+            TileSubUnit component = new();
 
             HashSet<(int x, int y)> blockedTiles = [];
             List<(int x, int y)> bridgeTiles = [];
@@ -299,15 +299,15 @@ namespace Fushigi.course
                     // slope/bridge angle is not supported by the game
                     continue;
 
-                SlopeType slopeType = default;
+                SlopePositioning slopeType = default;
                 if (p0.X < p1.X && p0.Y < p1.Y)
-                    slopeType = SlopeType.LowerRight;
+                    slopeType = SlopePositioning.CornerBR;
                 else if (p0.X < p1.X && p0.Y > p1.Y)
-                    slopeType = SlopeType.LowerLeft;
+                    slopeType = SlopePositioning.CornerBL;
                 else if (p0.X > p1.X && p0.Y < p1.Y)
-                    slopeType = SlopeType.UpperRight;
+                    slopeType = SlopePositioning.CornerTR;
                 else if (p0.X > p1.X && p0.Y > p1.Y)
-                    slopeType = SlopeType.UpperLeft;
+                    slopeType = SlopePositioning.CornerTL;
 
                 int slopeWidth = slope == 0 ? 1 : (int)Math.Max(1f / slope, 1);
                 int slopeHeight = (int)Math.Max(slope, 1);
@@ -387,17 +387,7 @@ namespace Fushigi.course
             {
                 component.mTileMap.FillTiles(IsInside, Vector2.Zero, size2D);
 
-                component.mTileMap.ConnectTiles(
-                    ((int x, int y) tilePos, TileNeighborPattern neighbors) =>
-                    {
-                        var tileInfo = new TileInfo
-                        {
-                            Neighbors = neighbors
-                        };
-
-                        return TileIDLookup.GetTileFor(tileInfo);
-                    }
-                );
+                AutoTilingAlgorithm.Execute(component);
 
                 return component;
             }

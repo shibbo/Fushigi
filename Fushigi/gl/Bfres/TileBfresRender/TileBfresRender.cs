@@ -72,7 +72,7 @@ namespace Fushigi.gl.Bfres
                     var nearZ = unit.mTileSubUnits.Min(x => x.mOrigin.Z);
                     var farZ = unit.mTileSubUnits.Max(x => x.mOrigin.Z);
 
-                    foreach (TileSubUnits subUnit in unit.mTileSubUnits)
+                    foreach (TileSubUnit subUnit in unit.mTileSubUnits)
                     {
                         var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
 
