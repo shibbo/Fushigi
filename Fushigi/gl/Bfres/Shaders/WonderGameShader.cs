@@ -42,6 +42,12 @@ namespace Fushigi.gl.Bfres
             scene.Update(GsysResources.SceneMaterialBlock);
         }
 
+        public static void UpdateSystem()
+        {
+            if (GsysResources.UserBlock0 != null)
+                ((SystemParamBlock)GsysResources.UserBlock0).UpdateTime();
+        }
+
         public override void SetShapeBlock(UniformBlock block, Matrix4x4 mat)
         {
             ShpBlock.Update(block, mat);
@@ -224,6 +230,18 @@ namespace Fushigi.gl.Bfres
                 this.LocalPlayerPos[1] = new Vector4(-1.5f, 2f, 0, 1f);
                 this.LocalPlayerPos[2] = new Vector4(-1.5f, 2f, 0, 1f);
                 this.LocalPlayerPos[3] = new Vector4(-1.5f, 2f, 0, 1f);
+            }
+
+            static float Time;
+
+            public void UpdateTime()
+            {
+                Time += 1f / 60f;
+                if (Time >= 1000) Time = 0;
+
+                TimeParam = new Vector4(Time, Time, 0, 0);
+
+                this.SetSubData(TimeParam, 2240);
             }
 
             public void Update()

@@ -268,6 +268,11 @@ namespace Fushigi.ui.widgets
 
             RenderStats.Reset();
 
+            //Update the gsys viewport uniforms once per frame
+            GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
+            //Wonder shader system params
+            WonderGameShader.UpdateSystem();
+
             TileBfresRenderFieldA?.Render(gl, this.Camera);
             TileBfresRenderFieldB?.Render(gl, this.Camera);
 
