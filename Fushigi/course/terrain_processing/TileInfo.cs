@@ -4,7 +4,7 @@ using static Fushigi.course.terrain_processing.TileNeighborPatternHelper;
 
 namespace Fushigi.course.terrain_processing
 {
-    public struct TileInfo
+    public struct TileInfo : IEquatable<TileInfo>
     {
         public TileNeighborPattern Neighbors;
         public byte SlopeCornersRaw;
@@ -67,6 +67,32 @@ namespace Fushigi.course.terrain_processing
         {
             Neighbors |= other.Neighbors;
             SlopeCornersRaw |= other.SlopeCornersRaw; //this should be fine (unless a Slope45 and Slope30BigPiece overlap)
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is TileInfo info && Equals(info);
+        }
+
+        public bool Equals(TileInfo other)
+        {
+            return Neighbors == other.Neighbors &&
+                   SlopeCornersRaw == other.SlopeCornersRaw;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Neighbors, SlopeCornersRaw);
+        }
+
+        public static bool operator ==(TileInfo left, TileInfo right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(TileInfo left, TileInfo right)
+        {
+            return !(left == right);
         }
     }
 }
