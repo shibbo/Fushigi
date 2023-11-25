@@ -167,6 +167,11 @@ namespace Fushigi.course
                 foreach (var tileUnit in mTileSubUnits)
                     AutoTilingAlgorithm.Execute(tileUnit);
             }
+            else
+            {
+                foreach (var tileUnit in mTileSubUnits)
+                    AutoTilingAlgorithm.ExecuteForBridges(tileUnit);
+            }
         }
 
         public ModelType mModelType;

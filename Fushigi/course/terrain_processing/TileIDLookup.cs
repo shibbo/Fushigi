@@ -245,5 +245,21 @@ namespace Fushigi.course.terrain_processing
         public static readonly int TILE_Slope30TR_2 = CombinedTileID(38, SEMISOLID_EMPTY);
         public static readonly int TILE_Slope30TL_1 = CombinedTileID(40, SEMISOLID_EMPTY);
         public static readonly int TILE_Slope30TL_2 = CombinedTileID(39, SEMISOLID_EMPTY);
+
+        public static readonly int BRIDGE_TILE_Middle = 0;
+        public static readonly int BRIDGE_TILE_CornerLeft = 1;
+        public static readonly int BRIDGE_TILE_CornerRight = 2;
+        public static readonly int BRIDGE_TILE_Slope45BR_T = 3;
+        public static readonly int BRIDGE_TILE_Slope45BL_T = 4;
+        public static readonly int BRIDGE_TILE_Slope45BR_B = 5;
+        public static readonly int BRIDGE_TILE_Slope45BL_B = 6;
+        public static readonly int BRIDGE_TILE_Slope30BR_T1 = 7;
+        public static readonly int BRIDGE_TILE_Slope30BR_T2 = 8;
+        public static readonly int BRIDGE_TILE_Slope30BL_T1 = 10;
+        public static readonly int BRIDGE_TILE_Slope30BL_T2 = 9;
+        public static readonly int BRIDGE_TILE_Slope30BR_B1 = 11;
+        public static readonly int BRIDGE_TILE_Slope30BR_B2 = 12;
+        public static readonly int BRIDGE_TILE_Slope30BL_B1 = 14;
+        public static readonly int BRIDGE_TILE_Slope30BL_B2 = 13;
     }
 }
