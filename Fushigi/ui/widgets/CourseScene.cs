@@ -1010,7 +1010,7 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        private static void AreaParameters(CourseArea.AreaParam area)
+        private static void AreaParameters(AreaParam area)
         {
             ParamHolder areaParams = ParamLoader.GetHolder("AreaParam");
             var pos = ImGui.GetCursorScreenPos();
