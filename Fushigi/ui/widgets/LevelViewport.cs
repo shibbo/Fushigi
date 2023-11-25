@@ -1,7 +1,10 @@
 using Fushigi.actor_pack.components;
+using Fushigi.Byml;
+using Fushigi.Byml.Serializer;
 using Fushigi.course;
 using Fushigi.gl;
 using Fushigi.gl.Bfres;
+using Fushigi.param;
 using Fushigi.util;
 using ImGuiNET;
 using Silk.NET.OpenGL;
@@ -75,7 +78,8 @@ namespace Fushigi.ui.widgets
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
         public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
         public VRSkybox VRSkybox;
-        public TileBfresRender TileBfresRender;
+        public TileBfresRender TileBfresRenderFieldA;
+        public TileBfresRender TileBfresRenderFieldB;
 
         //TODO make this an ISceneObject? as soon as there's a SceneObj class for each course object
         private object? mHoveredObject;
@@ -213,16 +217,42 @@ namespace Fushigi.ui.widgets
 
             if (VRSkybox == null)
                 VRSkybox = new VRSkybox(gl);
-            if (TileBfresRender == null)
+
+
+            //TODO put this somewhere else and maybe cache this
+            TileBfresRender CreateTileRendererForSkin(SkinDivision division, string skinName)
             {
-                TileBfresRender = new TileBfresRender(gl);
-                TileBfresRender.Load(this.mArea.mUnitHolder, this.Camera);
+                var bootupPack = RomFS.GetOrLoadBootUpPack();
+
+                var bytes = bootupPack.OpenFile(
+                    "System/CombinationDataTableData/DefaultBgUnitSkinConfigTable.pp__CombinationDataTableData.bgyml");
+                var table = BymlSerialize.Deserialize<DefaultBgUnitSkinConfigTable>(bytes);
+
+
+                var render = new TileBfresRender(gl,
+                    new TileBfresRender.UnitPackNames(
+                        FullHit: table.GetPackName(skinName, "FullHit"),
+                        HalfHit: table.GetPackName(skinName, "HalfHit"),
+                        NoHit: table.GetPackName(skinName, "NoHit"),
+                        Bridge: table.GetPackName(skinName, "Bridge")
+                    ), division);
+                render.Load(this.mArea.mUnitHolder, this.Camera);
 
                 this.Camera.OnCameraChanged += delegate
                 {
-                  //  TileBfresRender.Load(this.mArea.mUnitHolder, this.Camera);
+                    //  render.Load(this.mArea.mUnitHolder, this.Camera);
                 };
+
+                return render;
             }
+            string fieldASkin = mArea.mAreaParams.SkinParam.FieldA;
+            string fieldBSkin = mArea.mAreaParams.SkinParam.FieldB;
+
+            if (TileBfresRenderFieldA == null && !string.IsNullOrEmpty(fieldASkin))
+                TileBfresRenderFieldA = CreateTileRendererForSkin(SkinDivision.FieldA, fieldASkin);
+
+            if (TileBfresRenderFieldB == null && !string.IsNullOrEmpty(fieldBSkin))
+                TileBfresRenderFieldB = CreateTileRendererForSkin(SkinDivision.FieldB, fieldBSkin);
 
             //Resize if needed
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
@@ -238,7 +268,8 @@ namespace Fushigi.ui.widgets
 
             RenderStats.Reset();
 
-            TileBfresRender.Render(gl, this.Camera);
+            TileBfresRenderFieldA?.Render(gl, this.Camera);
+            TileBfresRenderFieldB?.Render(gl, this.Camera);
 
             foreach (var actor in this.mArea.GetActors())
             {

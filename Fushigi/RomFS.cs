@@ -15,7 +15,7 @@ namespace Fushigi
     {
         public static void SetRoot(string root, GL gl)
         {           
-            if (!IsValidRoot(root))
+            if (root == sRomFSRoot || !IsValidRoot(root))
             {
                 return;
             }
@@ -23,11 +23,25 @@ namespace Fushigi
             sRomFSRoot = root;
             CacheCourseFiles();
             CacheCourseThumbnails(gl);
+            mBootUpPack = null; //invalidate loaded 
         }
 
         public static string GetRoot()
         {
             return sRomFSRoot;
+        }
+
+        private static SARC.SARC? mBootUpPack = null;
+
+        public static SARC.SARC GetOrLoadBootUpPack()
+        {
+            if(mBootUpPack != null)
+                return mBootUpPack;
+
+            byte[] packbytes = FileUtil.DecompressData(GetFileBytes("Pack/Bootup.Nin_NX_NVN.pack.zs"));
+            SARC.SARC packSarc = new SARC.SARC(new MemoryStream(packbytes));
+
+            return mBootUpPack = packSarc;
         }
 
         public static bool IsValidRoot(string root)
