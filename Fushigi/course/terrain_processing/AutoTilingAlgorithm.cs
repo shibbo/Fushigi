@@ -147,8 +147,46 @@ namespace Fushigi.course.terrain_processing
 
         public static void ExecuteForBridges(TileSubUnit unit)
         {
-            //TODO
-            throw new NotImplementedException();
+            foreach (var (x, y, width, height, slopePositioning) in unit.mSlopes)
+            {
+                int slope30_T1, slope30_T2, slope30_B1, slope30_B2, slope45_T, slope45_B;
+
+                if (slopePositioning == SlopePositioning.CornerBL)
+                {
+                    slope30_T1 = BRIDGE_TILE_Slope30BL_T1;
+                    slope30_T2 = BRIDGE_TILE_Slope30BL_T2;
+                    slope30_B1 = BRIDGE_TILE_Slope30BL_B1;
+                    slope30_B2 = BRIDGE_TILE_Slope30BL_B2;
+                    slope45_T  = BRIDGE_TILE_Slope45BL_T;
+                    slope45_B  = BRIDGE_TILE_Slope45BL_B;
+                }
+                else if(slopePositioning == SlopePositioning.CornerBR)
+                {
+                    slope30_T1 = BRIDGE_TILE_Slope30BR_T1;
+                    slope30_T2 = BRIDGE_TILE_Slope30BR_T2;
+                    slope30_B1 = BRIDGE_TILE_Slope30BR_B1;
+                    slope30_B2 = BRIDGE_TILE_Slope30BR_B2;
+                    slope45_T  = BRIDGE_TILE_Slope45BR_T;
+                    slope45_B  = BRIDGE_TILE_Slope45BR_B;
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (width == 2 && height == 1)
+                {
+                    unit.mTileMap.AddTile(x, y, slope30_T1);
+                    unit.mTileMap.AddTile(x + 1, y, slope30_T2);
+                    unit.mTileMap.AddTile(x, y - 1, slope30_B1);
+                    unit.mTileMap.AddTile(x + 1, y - 1, slope30_B2);
+                }
+                else if (width == 1 && height == 1)
+                {
+                    unit.mTileMap.AddTile(x, y, slope45_T);
+                    unit.mTileMap.AddTile(x, y - 1, slope45_B);
+                }
+            }
         }
     }
 }
