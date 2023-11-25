@@ -229,9 +229,27 @@ namespace Fushigi.course
         public readonly InfiniteTileMap mTileMap = new();
         public readonly List<(int x, int y, int width, int height, SlopePositioning type)> mSlopes = [];
 
+        public IEnumerable<(int? tileIdEdge, int? tileIdGround, Vector2 pos)> GetTiles(Vector2 clipRectMin, Vector2 clipRectMax)
+            => mTileMap.GetTiles(clipRectMin, clipRectMax).Select(x =>
+            {
+                (int tileIdDefault, int tileIdSemiSolidGround) = TileIDLookup.SplitCombinedTileId(x.tileID);
+                var (tileIdEdge, tileIdGround) = mCourseUnit.mModelType switch
+                {
+                    CourseUnit.ModelType.Solid => ((int?)tileIdDefault, (int?)tileIdDefault),
+                    CourseUnit.ModelType.SemiSolid =>   (tileIdDefault,       tileIdSemiSolidGround!=TileIDLookup.SEMISOLID_EMPTY?
+                                                                              tileIdSemiSolidGround : null),
+                    CourseUnit.ModelType.NoCollision => (tileIdDefault,       null),
+                    CourseUnit.ModelType.Bridge =>      (null,                tileIdDefault),
+                    _ => throw new Exception()
+                };
+
+                return (tileIdEdge, tileIdGround, x.position);
+            });
+
         internal static TileSubUnit CreateFromRails(BGUnitRail mainRail, IReadOnlyList<BGUnitRail> internalRails, bool isBridgeModel)
         {
             TileSubUnit component = new();
+            component.mCourseUnit = mainRail.mCourseUnit;
 
             HashSet<(int x, int y)> blockedTiles = [];
             List<(int x, int y)> bridgeTiles = [];
@@ -399,6 +417,8 @@ namespace Fushigi.course
 
             return component;
         }
+
+        private CourseUnit mCourseUnit;
     }
 
     public class CourseUnitHolder

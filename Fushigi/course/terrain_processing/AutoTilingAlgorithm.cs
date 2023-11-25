@@ -118,7 +118,7 @@ namespace Fushigi.course.terrain_processing
                     var tileInfo = mSetTileInfos.GetValueOrDefault(tilePos);
                     tileInfo.Neighbors |= neighbors;
 
-                    return TileIDLookup.GetTileFor(tileInfo);
+                    return TileIDLookup.GetCombinedTileIDFor(tileInfo);
                 }
             );
 

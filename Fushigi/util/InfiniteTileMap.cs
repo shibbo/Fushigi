@@ -46,7 +46,7 @@ namespace Fushigi.util
             {
                 Debug.Assert(0 <= x && x < ChunkSize);
                 Debug.Assert(0 <= y && y < ChunkSize);
-                mTiles[x + y * ChunkSize] = (byte)(tileID.GetValueOrDefault() + 1);
+                mTiles[x + y * ChunkSize] = (ushort)(tileID.GetValueOrDefault() + 1);
                 if (!tileID.HasValue)
                     mTiles[x + y * ChunkSize] = 0;
             }

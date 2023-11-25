@@ -1,4 +1,7 @@
 ﻿using Fushigi.util;
+using Silk.NET.Input;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using static Fushigi.course.terrain_processing.TileInfo;
 using static Fushigi.course.terrain_processing.TileNeighborPatternHelper;
 
@@ -6,20 +9,31 @@ namespace Fushigi.course.terrain_processing
 {
     internal class TileIDLookup
     {
+        public const int SEMISOLID_EMPTY = 0xFF;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (int tileIdDefault, int tileIdSemiSolidGround) SplitCombinedTileId(int tileID) 
+            => (tileID & 0xFF, (tileID >> 8) & 0xFF);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int CombinedTileID(int tileIdDefault, int tileIdSemiSolidGround = SEMISOLID_EMPTY) 
+            => tileIdDefault | (tileIdSemiSolidGround << 8);
+
         private static readonly Dictionary<TileInfo, int> mTileLookup = [];
-        public static int GetTileFor(TileInfo tileInfo) => mTileLookup.GetValueOrDefault(tileInfo);
+        public static int GetCombinedTileIDFor(TileInfo tileInfo) => mTileLookup.GetValueOrDefault(tileInfo, CombinedTileID(0));
 
         static TileIDLookup()
         {
-            static void AddTile(int tileID, TileNeighborPattern connectors, int corners = default)
+            static void AddTile(int tileID, TileNeighborPattern connectors, int corners = default, bool isForSemiSolidGround = false)
             {
+                int _tileID = isForSemiSolidGround ? tileID << 8 : tileID;
                 var key = new TileInfo
                 {
                     Neighbors = connectors,
                     SlopeCornersRaw = (byte)corners
                 };
 
-                mTileLookup[key] = tileID;
+                CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, key, out _) |= _tileID;
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -31,11 +45,11 @@ namespace Fushigi.course.terrain_processing
 
                         //using the gray code pattern
                         _key.Neighbors ^= RotateRight(TileNeighborPattern.TL, i);
-                        mTileLookup[_key] = tileID;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
                         _key.Neighbors ^= RotateRight(TileNeighborPattern.TR, i);
-                        mTileLookup[_key] = tileID;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
                         _key.Neighbors ^= RotateRight(TileNeighborPattern.TL, i);
-                        mTileLookup[_key] = tileID;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
                         break;
                     }
                 }
@@ -49,20 +63,24 @@ namespace Fushigi.course.terrain_processing
                         //allow diagonal neighbors by saving every possible combinations of BL, TL, TR
 
                         //using the gray code pattern
-                        _key.Neighbors ^= RotateRight(TileNeighborPattern.BL, i);
-                        mTileLookup[_key] = tileID;
-                        _key.Neighbors ^= RotateRight(TileNeighborPattern.TL, i);
-                        mTileLookup[_key] = tileID;
-                        _key.Neighbors ^= RotateRight(TileNeighborPattern.BL, i);
-                        mTileLookup[_key] = tileID;
-                        _key.Neighbors ^= RotateRight(TileNeighborPattern.TR, i);
-                        mTileLookup[_key] = tileID;
-                        _key.Neighbors ^= RotateRight(TileNeighborPattern.BL, i);
-                        mTileLookup[_key] = tileID;
-                        _key.Neighbors ^= RotateRight(TileNeighborPattern.TL, i);
-                        mTileLookup[_key] = tileID;
-                        _key.Neighbors ^= RotateRight(TileNeighborPattern.BL, i);
-                        mTileLookup[_key] = tileID;
+                        TileNeighborPattern _001 = RotateRight(TileNeighborPattern.BL, i);
+                        TileNeighborPattern _010 = RotateRight(TileNeighborPattern.TL, i);
+                        TileNeighborPattern _100 = RotateRight(TileNeighborPattern.TR, i);
+
+                        _key.Neighbors ^= _001;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
+                        _key.Neighbors ^= _010;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
+                        _key.Neighbors ^= _001;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
+                        _key.Neighbors ^= _100;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
+                        _key.Neighbors ^= _001;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
+                        _key.Neighbors ^= _010;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
+                        _key.Neighbors ^= _001;
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
                         break;
                     }
                 }
@@ -80,7 +98,29 @@ namespace Fushigi.course.terrain_processing
                     if ((i & 0b1000) * (corners & BR_SlopeMask) > 0)
                         _key.Neighbors ^= TileNeighborPattern.BR;
 
-                    mTileLookup[_key] = tileID;
+                    CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
+                }
+
+                if (isForSemiSolidGround)
+                {
+                    //ignore everything on the bottom by saving every possible combination
+                    for (int i = 0; i < (1 << 7); i++)
+                    {
+                        int neighbors = i >> 4;
+                        int slopeCorners = (i & 0xF);
+                        var _key = key;
+                        if ((neighbors & 0b001) > 0)
+                            _key.Neighbors ^= TileNeighborPattern.BL;
+                        if ((neighbors & 0b010) > 0)
+                            _key.Neighbors ^= TileNeighborPattern.B;
+                        if ((neighbors & 0b100) > 0)
+                            _key.Neighbors ^= TileNeighborPattern.BR;
+
+                        _key.SlopeCornerBL = (SlopeCornerType)(slopeCorners&0b11);
+                        _key.SlopeCornerBR = (SlopeCornerType)((slopeCorners>>2)&0b11);
+
+                        CollectionsMarshal.GetValueRefOrAddDefault(mTileLookup, _key, out _) |= _tileID;
+                    }
                 }
             }
 
@@ -154,22 +194,56 @@ namespace Fushigi.course.terrain_processing
             AddTile(66, InnerFull, TL_Slope30SmallPiece | BR_Slope30BigPiece);
             AddTile(67, InnerFull, TR_Slope30BigPiece | BL_Slope30SmallPiece);
             AddTile(68, InnerFull, TR_Slope30SmallPiece | BL_Slope30BigPiece);
-            //69-72 Slopes
+            //69-72 Slope Duplicates
             //73-104 Long parts
+
+            void AddSemisolid(int tileID, TileNeighborPattern connectors, int corners = default) =>
+                AddTile(tileID, connectors, corners, isForSemiSolidGround: true);
+
+            const int _0 = 0xFE; //we have to escape 0 because 0 means not set
+
+            AddSemisolid(_0, Floor);
+            AddSemisolid(1, OuterCornerTL);
+            AddSemisolid(2, OuterCornerTR);
+            AddSemisolid(3, InnerCornerTL);
+            AddSemisolid(4, InnerCornerTR);
+            // 5,6 Slopes
+            AddSemisolid(7, InnerFull, TL_Slope45);
+            AddSemisolid(8, InnerFull, TR_Slope45);
+            AddSemisolid(9, WallLeft, TL_Slope45);
+            AddSemisolid(10, WallRight, TR_Slope45);
+            // 11-14 Slopes
+            AddSemisolid(15, InnerFull, TL_Slope30BigPiece);
+            AddSemisolid(16, InnerFull, TL_Slope30SmallPiece);
+            AddSemisolid(17, InnerFull, TR_Slope30BigPiece);
+            AddSemisolid(18, InnerFull, TR_Slope30SmallPiece);
+            AddSemisolid(19, WallLeft, TL_Slope30BigPiece);
+            AddSemisolid(20, WallRight, TR_Slope30BigPiece);
+            // 21-24 Slope Duplicates
+            // 25-32 Long parts
+
+            foreach (var key in mTileLookup.Keys)
+            {
+                ref int value = ref CollectionsMarshal.GetValueRefOrNullRef(mTileLookup, key);
+                if ((value & 0xFF00) == 0)
+                    value |= SEMISOLID_EMPTY << 8;
+                else if ((value & 0xFF00) == (_0 << 8))
+                    value &= 0x00FF; //make an escaped 0 into a true 0
+            }
         }
 
-        public const int TILE_Slope45BR = 13;
-        public const int TILE_Slope45BL = 14;
-        public const int TILE_Slope45TR = 15;
-        public const int TILE_Slope45TL = 16;
+        public static readonly int TILE_Slope45BR = CombinedTileID(13, 5);
+        public static readonly int TILE_Slope45BL = CombinedTileID(14, 6);
+        public static readonly int TILE_Slope45TR = CombinedTileID(15, SEMISOLID_EMPTY);
+        public static readonly int TILE_Slope45TL = CombinedTileID(16, SEMISOLID_EMPTY);
 
-        public const int TILE_Slope30BR_1 = 33;
-        public const int TILE_Slope30BR_2 = 34;
-        public const int TILE_Slope30BL_1 = 36;
-        public const int TILE_Slope30BL_2 = 35;
-        public const int TILE_Slope30TR_1 = 37;
-        public const int TILE_Slope30TR_2 = 38;
-        public const int TILE_Slope30TL_1 = 40;
-        public const int TILE_Slope30TL_2 = 39;
+        public static readonly int TILE_Slope30BR_1 = CombinedTileID(33, 11);
+        public static readonly int TILE_Slope30BR_2 = CombinedTileID(34, 12);
+        public static readonly int TILE_Slope30BL_1 = CombinedTileID(36, 14);
+        public static readonly int TILE_Slope30BL_2 = CombinedTileID(35, 13);
+        public static readonly int TILE_Slope30TR_1 = CombinedTileID(37, SEMISOLID_EMPTY);
+        public static readonly int TILE_Slope30TR_2 = CombinedTileID(38, SEMISOLID_EMPTY);
+        public static readonly int TILE_Slope30TL_1 = CombinedTileID(40, SEMISOLID_EMPTY);
+        public static readonly int TILE_Slope30TL_2 = CombinedTileID(39, SEMISOLID_EMPTY);
     }
 }

@@ -76,21 +76,19 @@ namespace Fushigi.gl.Bfres
                     {
                         var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
 
-                        foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
+                        foreach (var (tileIDEdge, tileIDGround, position) in subUnit.GetTiles(clipMin - origin2D, clipMax - origin2D))
                         {
                             var pos = subUnit.mOrigin + new Vector3(position, subUnit.mOrigin.Z);
-                            if(tileID == 0)
+                            if(tileIDEdge == 0)
                             {
-                                model.TileManager.AddWallTile(pos, tileID);
+                                model.TileManager.AddWallTile(pos, 0);
                             }
                             else
                             {
-                                model.TileManager.AddEdgeTile(pos, tileID);
-                                if(unit.mModelType != ModelType.NoCollision)
-                                {
-                                    model.TileManager.AddGroundTile(pos, tileID);
+                                model.TileManager.AddEdgeTile(pos, tileIDEdge.GetValueOrDefault());
 
-                                }
+                                if(tileIDGround.TryGetValue(out int tileIDGroundValue))
+                                    model.TileManager.AddGroundTile(pos, tileIDGroundValue);
                             }
 
                             //     var bb = new BoundingBox(pos - new Vector3(0.5f), pos + new Vector3(0.5f));
