@@ -119,6 +119,9 @@ namespace Fushigi.gl.Bfres
                 writer.Write(Vector4.Zero); //unk
                 writer.Write(Vector4.One); //unk
                 writer.Write(AOColor);
+
+                for (int i = 0; i < 22; i++)
+                    writer.Write(Vector4.One);
             }
         }
 
