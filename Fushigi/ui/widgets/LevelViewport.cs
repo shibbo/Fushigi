@@ -245,12 +245,14 @@ namespace Fushigi.ui.widgets
 
                 return render;
             }
+            string fieldASkin = mArea.mAreaParams.SkinParam.FieldA;
+            string fieldBSkin = mArea.mAreaParams.SkinParam.FieldB;
 
-            if (TileBfresRenderFieldA == null)
-                TileBfresRenderFieldA = CreateTileRendererForSkin(SkinDivision.FieldA, "CommonSora");
+            if (TileBfresRenderFieldA == null && !string.IsNullOrEmpty(fieldASkin))
+                TileBfresRenderFieldA = CreateTileRendererForSkin(SkinDivision.FieldA, fieldASkin);
 
-            if (TileBfresRenderFieldB == null)
-                TileBfresRenderFieldB = CreateTileRendererForSkin(SkinDivision.FieldB, "Savanna");
+            if (TileBfresRenderFieldB == null && !string.IsNullOrEmpty(fieldBSkin))
+                TileBfresRenderFieldB = CreateTileRendererForSkin(SkinDivision.FieldB, fieldBSkin);
 
             //Resize if needed
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
