@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -132,6 +133,21 @@ namespace Fushigi.Byml.Serializer
 
                     SetValue(property, section, dict);
                 }
+                else if (IsByStringDictionaryType(type, out Type? valueType))
+                {
+                    var values = value as BymlHashTable;
+
+                    
+                    var dict = (IDictionary)CreateInstance(type);
+                    foreach (var pair in values.Pairs)
+                    {
+                        var instance = CreateInstance(valueType);
+                        Deserialize(instance, pair.Value);
+                        dict.Add(pair.Name, instance);
+                    }
+
+                    SetValue(property, section, dict);
+                }
                 else
                 {
                     var instance = CreateInstance(type);
@@ -141,6 +157,19 @@ namespace Fushigi.Byml.Serializer
             }
             else
                 SetValue(property, section, value.Data);
+        }
+
+        static bool IsByStringDictionaryType(Type type, [NotNullWhen(true)] out Type? valueType)
+        {
+            valueType = null;
+            if(!type.IsGenericType)
+                return false;
+
+            if(!type.GetGenericTypeDefinition().Equals(typeof(Dictionary<,>)))
+                return false;
+
+            valueType = type.GetGenericArguments()[1];
+            return true;
         }
 
         static void SetValue(object property, object instance, object value)

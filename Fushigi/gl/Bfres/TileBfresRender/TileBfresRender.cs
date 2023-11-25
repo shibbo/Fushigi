@@ -15,30 +15,28 @@ namespace Fushigi.gl.Bfres
 
         private BfresRender BfresRender;
         private Matrix4x4 Transform = Matrix4x4.Identity;
+        private SkinDivision mSkinDivision;
 
         public record struct MaterialNames(string? Edge, string? Wall, string? Ground);
+        public record struct UnitPackNames(string FullHit, string HalfHit, string NoHit, string Bridge);
 
         private Model SolidModel;
         private Model SemisolidModel;
         private Model NoCollisionModel;
         private Model BridgeModel;
 
-        public TileBfresRender(GL gl)
+        public TileBfresRender(GL gl, UnitPackNames packNames, SkinDivision skinDivision)
         {
-            Load(gl);
+            mSkinDivision = skinDivision;
+            Load(gl, packNames);
         }
 
-        private void Load(GL gl,
-            string fullHitName = "UnitHajimariSougenAZen",
-            string halfHitName = "UnitHajimariSougenAHan",
-            string noHitName = "UnitHajimariSougenANashi",
-            string bridgeName = "UnitHashiKiA"
-            )
+        private void Load(GL gl, UnitPackNames packNames)
         {
-            BgUnitInfo? fullHitInfo = ActorPackCache.Load(fullHitName)?.BgUnitInfo;
-            BgUnitInfo? halfHitInfo = ActorPackCache.Load(halfHitName)?.BgUnitInfo;
-            BgUnitInfo? noHitInfo = ActorPackCache.Load(noHitName)?.BgUnitInfo;
-            BgUnitInfo? bridgeInfo = ActorPackCache.Load(bridgeName)?.BgUnitInfo;
+            BgUnitInfo? fullHitInfo = ActorPackCache.Load(packNames.FullHit)?.BgUnitInfo;
+            BgUnitInfo? halfHitInfo = ActorPackCache.Load(packNames.HalfHit)?.BgUnitInfo;
+            BgUnitInfo? noHitInfo   = ActorPackCache.Load(packNames.NoHit)?.BgUnitInfo;
+            BgUnitInfo? bridgeInfo  = ActorPackCache.Load(packNames.Bridge)?.BgUnitInfo;
 
             if (fullHitInfo is null ||
                 halfHitInfo is null ||
@@ -78,16 +76,19 @@ namespace Fushigi.gl.Bfres
                 ));
         }
 
-        public void Load(CourseUnitHolder mUnitHolder, Camera camera)
+        public void Load(CourseUnitHolder unitHolder, Camera camera)
         {
             SolidModel.TileManager.Clear();
             SemisolidModel.TileManager.Clear();
             NoCollisionModel.TileManager.Clear();
             BridgeModel.TileManager.Clear();
 
-            foreach (var unit in mUnitHolder.mUnits)
+            foreach (var unit in unitHolder.mUnits)
             {
                 if (!unit.Visible)
+                    continue;
+
+                if (unit.mSkinDivision != this.mSkinDivision)
                     continue;
 
                 var model = unit.mModelType switch

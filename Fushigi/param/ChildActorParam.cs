@@ -12,8 +12,7 @@ namespace Fushigi.param
     {
         public static void Load()
         {
-            byte[] packbytes = FileUtil.DecompressData(RomFS.GetFileBytes("Pack/Bootup.Nin_NX_NVN.pack.zs"));
-            SARC.SARC packSarc = new SARC.SARC(new MemoryStream(packbytes));
+            SARC.SARC packSarc = RomFS.GetOrLoadBootUpPack();
 
             foreach (string file in packSarc.GetFiles("ChildActorParam"))
             {
