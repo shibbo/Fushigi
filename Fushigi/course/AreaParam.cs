@@ -48,8 +48,6 @@ namespace Fushigi.course
         public AreaParam(Byml.Byml byml)
         {
             this.Load((BymlHashTable)byml.Root);
-
-            Console.WriteLine("SkinParam " + this.SkinParam.FieldA);
         }
 
         public bool ContainsParam(string param)
