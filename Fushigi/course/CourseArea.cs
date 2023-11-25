@@ -22,7 +22,6 @@ namespace Fushigi.course
 
         public void Load()
         {
-            
             string areaParamPath = FileUtil.FindContentPath(
                 Path.Combine("Stage", "AreaParam", $"{mAreaName}.game__stage__AreaParam.bgyml")
                 );

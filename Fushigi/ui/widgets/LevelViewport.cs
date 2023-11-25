@@ -958,12 +958,6 @@ namespace Fushigi.ui.widgets
 
             foreach (CourseActor actor in mEditContext.GetActorHolder().GetActors())
             {
-                if (actor.mActorPack != null)
-                {
-                    if (!string.IsNullOrEmpty(actor.mActorPack.GetModelFileName()))
-                        continue;
-                }
-
                 string layer = actor.mLayer;
 
                 if (mLayersVisibility!.TryGetValue(layer, out bool isVisible) && isVisible)
@@ -981,6 +975,13 @@ namespace Fushigi.ui.widgets
                         ); ;
 
                     uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
+
+                    if (actor.mActorPack != null)
+                    {
+                        //Choose a less distracting box visual for models
+                        if (!string.IsNullOrEmpty(actor.mActorPack.GetModelFileName()))
+                            color = ImGui.ColorConvertFloat4ToU32(new(1, 1, 0, 0.5f));
+                    }
 
                     if (actor.mActorName.Contains("CameraArea") || actor.mActorPack?.Category == "AreaObj")
                     {
