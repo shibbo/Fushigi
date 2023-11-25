@@ -24,6 +24,8 @@ namespace Fushigi.gl.Bfres
                 sysBlock.Update();
                 GsysResources.UserBlock0 = sysBlock;
             }
+            if (GsysResources.EnvironmentParams == null)
+                GsysResources.EnvironmentParams = new EnvironmentBlockExtended();
 
             //Some kind of blur screen effect
             if (GsysResources.UserTexture1 == null)
@@ -68,6 +70,55 @@ namespace Fushigi.gl.Bfres
                     writer.Write(Vector4.One); //global_color
                 }
                 block.SetData(mem.ToArray());
+            }
+        }
+
+        class EnvironmentBlockExtended : GsysEnvironment
+        {
+            public Vector4[] EnvColor = new Vector4[8];
+
+            public Vector4 Unknown1 = new Vector4();
+            public Vector4 Unknown2 = new Vector4();
+
+            public Vector4 RimColor = new Vector4();
+            public Vector4 RimParams = new Vector4(1, 5, 0, 0); //width, intensity, padding
+
+            public Vector4 RimIntensty1 = new Vector4(0.2f, 0.2f, 0.5f, 0.3f);
+            public Vector4 RimIntensty2 = new Vector4(0.1f, 0.4f, 0.5f, 0.2f);
+
+            public Vector4 AOColor = new Vector4(0, 0.048f, 0.133f, 1);
+
+            public EnvironmentBlockExtended()
+            {
+                EnvColor[0] = new Vector4(1, 1, 1, 1);
+                EnvColor[1] = new Vector4(1.3f, 1, 1, 1);
+                EnvColor[2] = new Vector4(0.34375f, 0.65625f, 1, 1);
+                EnvColor[3] = new Vector4(0.12500f, 0.25000f, 0.50000f, 0.72000f);
+                EnvColor[4] = new Vector4(0, 0, 0, 1);
+                EnvColor[5] = new Vector4(0.81250f, 0.90625f, 1, 1);
+                EnvColor[6] = new Vector4(0.40625f, 0.81250f, 0.93750f, 1);
+                EnvColor[7] = new Vector4(0.10000f, 0.21875f, 0.75000f, 1);
+
+                Unknown1 = new Vector4(0, 1, 0.4f, 0.5f);
+                Unknown2 = new Vector4(10, 1.5f, 2f, 20f);
+            }
+
+            public override void WriteExtended(BinaryWriter writer)
+            {
+                for (int i = 0; i < EnvColor.Length; i++)
+                    writer.Write(EnvColor[i]);
+
+                writer.Write(Unknown1);
+                writer.Write(Unknown2);
+                writer.Write(RimColor);
+                writer.Write(RimParams);
+                writer.Write(RimIntensty1); //cloud, enemy, dv, wall
+                writer.Write(RimIntensty2); //field band, deco, object, player
+                writer.Write(Vector4.One); //unk
+                writer.Write(new Vector4(1, 1, 0, 0)); //unk
+                writer.Write(Vector4.Zero); //unk
+                writer.Write(Vector4.One); //unk
+                writer.Write(AOColor);
             }
         }
 

@@ -13,6 +13,8 @@ namespace Fushigi.gl.Bfres
     /// </summary>
     public class GsysResources
     {
+        public GsysEnvironment EnvironmentParams = null;
+
         public UniformBlock ContextBlock;
         public UniformBlock EnvironmentBlock;
         public UniformBlock SceneMaterialBlock;
@@ -61,8 +63,8 @@ namespace Fushigi.gl.Bfres
 
         public void UpdateEnvironment()
         {
-            GsysEnvironment env = new GsysEnvironment();
-            env.Set(EnvironmentBlock);
+            if (EnvironmentBlock != null)
+                EnvironmentParams.Set(EnvironmentBlock);
         }
 
         public void Init(GL gl)
@@ -88,11 +90,11 @@ namespace Fushigi.gl.Bfres
             if (UserBlock2 == null)
                 UserBlock2 = new UniformBlock(gl);
 
-            UpdateEnvironment(); 
+            UpdateEnvironment();
 
-                   //  CubeMap = GLTextureCubeArray.CreateEmpty(gl, 4, 4, 1);
-                   // DiffuseLightmap = GLTextureCube.CreateEmpty(gl, 4);
-                   SpecularLightmap = GLTextureCube.CreateEmpty(gl, 4);
+            //  CubeMap = GLTextureCubeArray.CreateEmpty(gl, 4, 4, 1);
+            // DiffuseLightmap = GLTextureCube.CreateEmpty(gl, 4);
+            SpecularLightmap = GLTextureCube.CreateEmpty(gl, 4);
 
             CubeMap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapHDR.dds"), TextureTarget.TextureCubeMapArray);
             DiffuseLightmap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapLightmapShadow.dds"), TextureTarget.TextureCubeMap);

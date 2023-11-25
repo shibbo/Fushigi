@@ -186,14 +186,6 @@ namespace Fushigi.gl.Bfres
 
             for (int i = 0; i < FogList.Length; i++)
                 FogList[i] = new Fog();
-
-            LightBuffer[0] = new Vector4(0, 1, 0, 0);
-            LightBuffer[1] = new Vector4(1, 1, 1, 1);
-            LightBuffer[2] = new Vector4(1.3f, 1, 1, 1);
-            LightBuffer[3] = new Vector4(0.34375f, 0.65625f, 1, 1);
-            LightBuffer[4] = new Vector4(0.125f, 0.25f, 0.5f, 0.72f);
-            LightBuffer[5] = new Vector4(0, 0, 0, 1);
-            LightBuffer[6] = new Vector4(0.8125f, -0.90625f, 1, 1);
         }
 
         public void Set(UniformBlock block)
@@ -229,38 +221,21 @@ namespace Fushigi.gl.Bfres
                 }
 
                 //vec4[21]
-
                 writer.Write(LightDirection0World);
                 writer.Write(HemiDirectionWorld);
                 writer.Write(LightDirection1World);
 
+                writer.Seek(400, SeekOrigin.Begin);
+
                 //vec4[24]
-
-                writer.Write(LightBuffer[0]);
-                writer.Write(LightBuffer[1]);
-                writer.Write(LightBuffer[2]);
-                writer.Write(LightBuffer[3]);
-
-                writer.Write(LightBuffer[4]);
-                writer.Write(LightBuffer[5]);
-                writer.Write(LightBuffer[6]);
-
-                writer.Write(new Vector4(0));
-                writer.Write(new Vector4(0));
-                writer.Write(new Vector4(0));
-                writer.Write(new Vector4(0));
-
-                writer.Write(new Vector4(0));
-                writer.Write(new Vector4(1));
-                writer.Write(new Vector4(1));
-                writer.Write(new Vector4(1));
-
-                writer.Write(new Vector4(1));
-                writer.Write(new Vector4(1));
-                writer.Write(new Vector4(1));
-                writer.Write(new Vector4(1));
+                WriteExtended(writer);
             }
             block.SetData(mem.ToArray());
+        }
+
+        public virtual void WriteExtended(BinaryWriter writer)
+        {
+
         }
 
         public class Fog
