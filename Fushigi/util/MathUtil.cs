@@ -53,4 +53,56 @@ namespace Fushigi.util
             return wn;
         }
     }
+
+    struct BoundingBox2D(Vector2 min, Vector2 max)
+    {
+        public readonly Vector2 Min => mMin;
+        public readonly Vector2 Max => mMax;
+        public static readonly BoundingBox2D Empty =
+            new(new Vector2(float.PositiveInfinity), new Vector2(float.NegativeInfinity));
+
+        public void Include(Vector2 point)
+        {
+            mMin.X = MathF.Min(point.X, mMin.X);
+            mMin.Y = MathF.Min(point.Y, mMin.Y);
+
+            mMax.X = MathF.Max(point.X, mMax.X);
+            mMax.Y = MathF.Max(point.Y, mMax.Y);
+        }
+
+        public void Include(BoundingBox2D other)
+        {
+            Include(other.Min);
+            Include(other.Max);
+        }
+
+        private Vector2 mMin = min, mMax = max;
+    }
+
+    struct BoundingBox3D(Vector3 min, Vector3 max)
+    {
+        public readonly Vector3 Min => mMin;
+        public readonly Vector3 Max => mMax;
+        public static readonly BoundingBox3D Empty =
+            new(new Vector3(float.PositiveInfinity), new Vector3(float.NegativeInfinity));
+
+        public void Include(Vector3 point)
+        {
+            mMin.X = MathF.Min(point.X, mMin.X);
+            mMin.Y = MathF.Min(point.Y, mMin.Y);
+            mMin.Z = MathF.Min(point.Z, mMin.Z);
+
+            mMax.X = MathF.Max(point.X, mMax.X);
+            mMax.Y = MathF.Max(point.Y, mMax.Y);
+            mMax.Z = MathF.Max(point.Z, mMax.Z);
+        }
+
+        public void Include(BoundingBox3D other)
+        {
+            Include(other.Min);
+            Include(other.Max);
+        }
+
+        private Vector3 mMin = min, mMax = max;
+    }
 }
