@@ -245,8 +245,8 @@ namespace Fushigi.ui.widgets
 
                 return render;
             }
-            string fieldASkin = mArea.mAreaParams.SkinParam.FieldA;
-            string fieldBSkin = mArea.mAreaParams.SkinParam.FieldB;
+            string? fieldASkin = mArea.mAreaParams.SkinParam?.FieldA;
+            string? fieldBSkin = mArea.mAreaParams.SkinParam?.FieldB;
 
             if (TileBfresRenderFieldA == null && !string.IsNullOrEmpty(fieldASkin))
                 TileBfresRenderFieldA = CreateTileRendererForSkin(SkinDivision.FieldA, fieldASkin);
