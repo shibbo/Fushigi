@@ -80,9 +80,12 @@ namespace Fushigi.gl
             gl.GetTexImage(texture.Target, 0, texture.PixelFormat, texture.PixelType, buffer.AsSpan());
 
             //Use srgb if enabled
-            if (texture.InternalFormat == InternalFormat.SrgbAlpha)
+            //We only need to check RGBA and BC6 for ASTC copies
+            if (texture.InternalFormat == InternalFormat.SrgbAlpha ||
+                texture.InternalFormat == InternalFormat.CompressedSrgbAlphaBptcUnorm)
+            {
                 dest_format = InternalFormat.SrgbAlpha;
-
+            }
 
             GLTexture tex = new GLTexture(gl);
             tex.Target = target;

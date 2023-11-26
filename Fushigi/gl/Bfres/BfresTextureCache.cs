@@ -35,6 +35,7 @@ namespace Fushigi.gl.Bfres
                 GLTextureDataLoader.LoadCompressedImage(tex._gl, tex.Target, tex.Width, tex.Height, (uint)depthLevel, internalFormat, surface, mipLevel);
 
                 tex.TextureState = State.Finished;
+                tex.InternalFormat = internalFormat;
 
                 return true;
             }
