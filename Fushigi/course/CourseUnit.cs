@@ -8,6 +8,8 @@ namespace Fushigi.course
 {
     public class CourseUnit
     {
+        public event Action? TilesUpdated;
+
         public readonly static string[] ModelTypeNames = Enum.GetNames(typeof(ModelType));
         public readonly static string[] SkinDivisionNames = Enum.GetNames(typeof(SkinDivision));
 
@@ -172,6 +174,8 @@ namespace Fushigi.course
                 foreach (var tileUnit in mTileSubUnits)
                     AutoTilingAlgorithm.ExecuteForBridges(tileUnit);
             }
+
+            TilesUpdated?.Invoke();
         }
 
         public ModelType mModelType;
