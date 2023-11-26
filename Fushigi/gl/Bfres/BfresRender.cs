@@ -226,12 +226,12 @@ namespace Fushigi.gl.Bfres
                     if (shape.SkinCount == 0)
                     {
                         var bone_index = (int)shape.BoneIndex;
-                        position = Vector3.Transform(position, model.Skeleton.Bones[bone_index].InverseMatrix);
+                        position = Vector3.Transform(position, model.Skeleton.Bones[bone_index].WorldMatrix);
                     }
                     if (shape.SkinCount == 1 && bone_indices.Length > 0)
                     {
                         var bone_index = (int)bone_indices[index].X;
-                        position = Vector3.Transform(position, model.Skeleton.Bones[bone_index].InverseMatrix);
+                        position = Vector3.Transform(position, model.Skeleton.Bones[bone_index].WorldMatrix);
                     }
 
                     min.X = MathF.Min(min.X, position.X);
@@ -240,11 +240,6 @@ namespace Fushigi.gl.Bfres
                     max.X = MathF.Max(max.X, position.X);
                     max.Y = MathF.Max(max.Y, position.Y);
                     max.Z = MathF.Max(max.Z, position.Z);
-                }
-
-                    for (int i = 0; i < positions.Length; i++)
-                {
-
                 }
 
                 LodMeshes.Add(new DetailLevel()
