@@ -7,6 +7,9 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Fushigi.util;
+using Fushigi.env;
+using System.Runtime.Intrinsics.Arm;
+using static Fushigi.gl.Bfres.GsysEnvironment;
 
 namespace Fushigi.gl.Bfres
 {
@@ -76,58 +79,6 @@ namespace Fushigi.gl.Bfres
                     writer.Write(Vector4.One); //global_color
                 }
                 block.SetData(mem.ToArray());
-            }
-        }
-
-        class EnvironmentBlockExtended : GsysEnvironment
-        {
-            public Vector4[] EnvColor = new Vector4[8];
-
-            public Vector4 Unknown1 = new Vector4();
-            public Vector4 Unknown2 = new Vector4();
-
-            public Vector4 RimColor = new Vector4();
-            public Vector4 RimParams = new Vector4(1, 5, 0, 0); //width, intensity, padding
-
-            public Vector4 RimIntensty1 = new Vector4(0.2f, 0.2f, 0.5f, 0.3f);
-            public Vector4 RimIntensty2 = new Vector4(0.1f, 0.4f, 0.5f, 0.2f);
-
-            public Vector4 AOColor = new Vector4(0, 0.048f, 0.133f, 1);
-
-            public EnvironmentBlockExtended()
-            {
-                EnvColor[0] = new Vector4(1, 1, 1, 1);
-                EnvColor[1] = new Vector4(1.3f, 1, 1, 1);
-                EnvColor[2] = new Vector4(0.34375f, 0.65625f, 1, 1);
-                EnvColor[3] = new Vector4(0.12500f, 0.25000f, 0.50000f, 0.72000f);
-                EnvColor[4] = new Vector4(0, 0, 0, 1);
-                EnvColor[5] = new Vector4(0.81250f, 0.90625f, 1, 1);
-                EnvColor[6] = new Vector4(0.40625f, 0.81250f, 0.93750f, 1);
-                EnvColor[7] = new Vector4(0.10000f, 0.21875f, 0.75000f, 1);
-
-                Unknown1 = new Vector4(0, 1, 0.4f, 0.5f);
-                Unknown2 = new Vector4(10, 1.5f, 2f, 20f);
-            }
-
-            public override void WriteExtended(BinaryWriter writer)
-            {
-                for (int i = 0; i < EnvColor.Length; i++)
-                    writer.Write(EnvColor[i]);
-
-                writer.Write(Unknown1);
-                writer.Write(Unknown2);
-                writer.Write(RimColor);
-                writer.Write(RimParams);
-                writer.Write(RimIntensty1); //cloud, enemy, dv, wall
-                writer.Write(RimIntensty2); //field band, deco, object, player
-                writer.Write(Vector4.One); //unk
-                writer.Write(new Vector4(1, 1, 0, 0)); //unk
-                writer.Write(Vector4.Zero); //unk
-                writer.Write(Vector4.One); //unk
-                writer.Write(AOColor);
-
-                for (int i = 0; i < 22; i++)
-                    writer.Write(Vector4.One);
             }
         }
 
@@ -271,6 +222,174 @@ namespace Fushigi.gl.Bfres
                 }
                 this.SetData(mem.ToArray());
             }
+        }
+    }
+
+    public class EnvironmentBlockExtended : GsysEnvironment
+    {
+        public Vector4[] EnvColor = new Vector4[8];
+
+        public Vector4 Unknown1 = new Vector4();
+        public Vector4 Unknown2 = new Vector4();
+
+        public Vector4 RimColor = new Vector4();
+        public Vector4 RimParams = new Vector4(1, 5, 0, 0); //width, intensity, padding
+
+        public Vector4 RimIntensty1 = new Vector4(0.2f, 0.2f, 0.5f, 0.3f);
+        public Vector4 RimIntensty2 = new Vector4(0.1f, 0.4f, 0.5f, 0.2f);
+
+        public Vector4 AOColor = new Vector4(0, 0.048f, 0.133f, 1);
+
+        public EnvironmentBlockExtended()
+        {
+            Reset();
+        }
+
+        public void Reset()
+        {
+            this.Init();
+
+            EnvColor[0] = new Vector4(1, 1, 1, 1);
+            EnvColor[1] = new Vector4(1.3f, 1, 1, 1);
+            EnvColor[2] = new Vector4(0.34375f, 0.65625f, 1, 1);
+            EnvColor[3] = new Vector4(0.12500f, 0.25000f, 0.50000f, 0.72000f);
+            EnvColor[4] = new Vector4(0, 0, 0, 1);
+            EnvColor[5] = new Vector4(0.81250f, 0.90625f, 1, 1);
+            EnvColor[6] = new Vector4(0.40625f, 0.81250f, 0.93750f, 1);
+            EnvColor[7] = new Vector4(0.10000f, 0.21875f, 0.75000f, 1);
+
+            Unknown1 = new Vector4(0, 1, 0.4f, 0.5f);
+            Unknown2 = new Vector4(10, 1.5f, 2f, 20f);
+        }
+
+        public void Setup(EnvPalette envPalette, Kind kind = Kind.Obj)
+        {
+            Reset();
+            if (envPalette.IsApplyFog)
+                SetFog(envPalette.Fog.Main, envPalette.Fog.MainWorld);
+
+            if (envPalette.IsApplyEnvColor)
+                SetEnvColor(envPalette);
+
+            switch (kind)
+            {
+                case Kind.Obj:
+                    SetLights(envPalette.ObjLight);
+                    break;
+                case Kind.Char:
+                    SetLights(envPalette.CharLight);
+                    break;
+                case Kind.Cloud:
+                    SetLights(envPalette.CloudLight);
+                    break;
+                case Kind.Dv:
+                    SetLights(envPalette.DvLight);
+                    break;
+                case Kind.Field:
+                    SetLights(envPalette.FieldLight);
+                    break;
+            }
+
+            this.SetRim(envPalette.Rim);
+            this.SetShadow(envPalette.Shadow);
+        }
+
+        public void SetShadow(EnvPalette.EnvShadow shadow)
+        {
+            if (shadow == null) return;
+
+            this.AOColor = shadow.AOColor.ToVector4();
+        }
+
+        public void SetLights(EnvPalette.EnvLightList lightList)
+        {
+            if (lightList == null) return;
+
+            this.HemiSkyColor = lightList.Hemi.Sky.ToVector4() * lightList.Hemi.Intensity;
+            this.HemiGroundColor = lightList.Hemi.Ground.ToVector4() * lightList.Hemi.Intensity;
+            this.HemiDirection = new Vector4(0, 1, 0, 0);
+
+            this.LightColor = lightList.Main.Color.ToVector4() * lightList.Main.Intensity;
+            LightSpecColor = new Vector4(lightList.Main.Intensity);
+        }
+
+        public void SetFog(EnvPalette.EnvFog fog, EnvPalette.EnvFog fogWorld)
+        {
+            if (fog == null) return;
+
+            this.FogList[0].Start = fog.Start;
+            this.FogList[0].End = fog.End;
+            this.FogList[0].Damp = fog.Damp;
+            this.FogList[0].Direciton = new Vector3(0, 0, -1f);
+
+            this.FogList[1].Start = fogWorld.Start;
+            this.FogList[1].End = fogWorld.End;
+            this.FogList[1].Damp = fogWorld.Damp;
+            this.FogList[1].Direciton = new Vector3(0, -1f, 0);
+        }
+
+        public void SetEnvColor(EnvPalette envPalette)
+        {
+            if (envPalette.EnvColor == null) return;
+
+            EnvColor[0] = envPalette.EnvColor.Color0.ToVector4();
+            EnvColor[1] = envPalette.EnvColor.Color1.ToVector4();
+            EnvColor[2] = envPalette.EnvColor.Color2.ToVector4();
+            EnvColor[3] = envPalette.EnvColor.Color3.ToVector4();
+            EnvColor[4] = envPalette.EnvColor.Color4.ToVector4();
+            EnvColor[5] = envPalette.EnvColor.Color5.ToVector4();
+            EnvColor[6] = envPalette.EnvColor.Color6.ToVector4();
+            EnvColor[7] = envPalette.EnvColor.Color7.ToVector4();
+        }
+
+        public void SetRim(EnvPalette.EnvRim rim)
+        {
+            if (rim == null) return;
+
+            this.RimColor = rim.Color.ToVector4();
+            this.RimParams = new Vector4(rim.Width, rim.Power, 0, 0);
+            this.RimIntensty1 = new Vector4(
+                rim.IntensityCloud,
+                rim.IntensityEnemy,
+                rim.IntensityDV,
+                rim.IntensityFieldWall); //cloud, enemy, dv, wall
+
+            this.RimIntensty2 = new Vector4(
+                rim.IntensityFieldBand,
+                rim.IntensityFieldDeco,
+                rim.IntensityObject,
+                rim.IntensityPlayer); //field band, deco, object, player
+        }
+
+        public override void WriteExtended(BinaryWriter writer)
+        {
+            for (int i = 0; i < EnvColor.Length; i++)
+                writer.Write(EnvColor[i]);
+
+            writer.Write(Unknown1);
+            writer.Write(Unknown2);
+            writer.Write(RimColor);
+            writer.Write(RimParams);
+            writer.Write(RimIntensty1); //cloud, enemy, dv, wall
+            writer.Write(RimIntensty2); //field band, deco, object, player
+
+            writer.Write(Vector4.One); //unk
+            writer.Write(new Vector4(1, 1, 0, 0)); //unk
+            writer.Write(Vector4.Zero); //unk
+            writer.Write(Vector4.One); //unk
+            writer.Write(AOColor);
+
+            for (int i = 0; i < 22; i++)
+                writer.Write(Vector4.One);
+        }
+
+        public enum Kind
+        {
+            Cloud,
+            Char,
+            Dv,
+            Obj,
+            Field,
         }
     }
 }

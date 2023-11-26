@@ -165,6 +165,11 @@ namespace Fushigi.gl.Bfres
 
         public GsysEnvironment()
         {
+            Init();
+        }
+
+        public void Init()
+        {
             AmbientColor = new Vector4(0, 0, 0, 1);
             HemiSkyColor = new Vector4(0.75f, 0.5625f, 1.125f, 1.5f);
             HemiGroundColor = new Vector4(1.1895f, 0.951f, 0.519f, 1.5f);
@@ -214,7 +219,7 @@ namespace Fushigi.gl.Bfres
                     writer.Write(FogList[i].Direciton.Z);
                     writer.Write(FogList[i].StartC);
                     writer.Write(FogList[i].EndC);
-                    writer.Write(1f);
+                    writer.Write(FogList[i].Damp);
                     writer.Write(0);
                     writer.Write(0);
                 }
@@ -241,6 +246,7 @@ namespace Fushigi.gl.Bfres
         {
             public float End = 100000;
             public float Start = 1000;
+            public float Damp = 1;
 
             public float StartC => -Start / (End - Start);
             public float EndC => 1.0f / (End - Start);
