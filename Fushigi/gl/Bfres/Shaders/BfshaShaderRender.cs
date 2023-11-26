@@ -146,7 +146,7 @@ namespace Fushigi.gl.Bfres
         {
             var variation = ShaderModel.GetShaderVariation(program);
             if (variation == null)
-                throw new Exception();
+                throw new Exception($"Failed to load shader variation!");
 
             ShaderInfo = TegraShaderDecoder.LoadShaderProgram(gl, variation);
 
@@ -165,7 +165,7 @@ namespace Fushigi.gl.Bfres
         }
 
         public virtual void Render(GL gl, BfresRender renderer, BfresRender.BfresModel model, Matrix4x4 transform, Camera camera)
-        {
+        {          
             if (ShaderProgram == null)
                 return;
 
@@ -176,12 +176,14 @@ namespace Fushigi.gl.Bfres
 
             if (ShaderInfo == null)
                 CompileShader(gl, ShaderProgram);
-            else
-            {
-                ShaderInfo.Shader.Use();
-                BindUniformBlocks(gl);
-                BindSamplers(gl, renderer);
-            }
+
+            //Shader failed, skip
+            if (ShaderInfo == null)
+                return;
+
+            ShaderInfo.Shader.Use();
+            BindUniformBlocks(gl);
+            BindSamplers(gl, renderer);
         }
 
         //Bind uniform block data
@@ -379,9 +381,9 @@ namespace Fushigi.gl.Bfres
                     Console.WriteLine(texture.Name);
                 }
             }
-            else
-                throw new Exception();
-            //return null;
+          //  else
+             //   throw new Exception();
+            ////return null;
             return GLImageCache.GetDefaultTexture(gl);
         }
 
