@@ -1,4 +1,5 @@
 using Fushigi.course;
+using Fushigi.gl;
 using Fushigi.gl.Bfres;
 using Fushigi.param;
 using Fushigi.ui.SceneObjects;
@@ -21,6 +22,7 @@ namespace Fushigi.ui.widgets
         Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
         public LevelViewport activeViewport;
         UndoWindow undoWindow;
+        Vector3 camSave;
 
         readonly Course course;
         CourseArea selectedArea;
@@ -166,6 +168,8 @@ namespace Fushigi.ui.widgets
 
             BGUnitPanel();
 
+            CourseMiniView();
+
             if (mShowAddActor)
             {
                 SelectActorToAdd();
@@ -222,7 +226,7 @@ namespace Fushigi.ui.widgets
                         ImGui.OpenPopup("AreaParams");
 
                     //Display Mouse Position  
-                    if (new RectangleF((PointF)topLeft, (SizeF)size).Contains((PointF)ImGui.GetMousePos()))
+                    if (ImGui.IsMouseHoveringRect(topLeft, topLeft + size))
                     {
                         var _mousePos = activeViewport.ScreenToWorld(ImGui.GetMousePos());
                         ImGui.Text("X: " + Math.Round(_mousePos.X, 3) + "\nY: " + Math.Round(_mousePos.Y, 3));
@@ -256,6 +260,8 @@ namespace Fushigi.ui.widgets
 
                 lastCreatedViewports = viewports;
             }
+
+            //minimap.Draw(selectedArea, areaScenes[selectedArea].EditContext, viewports[selectedArea]);
 
             if (status)
                 ImGui.End();
@@ -1501,6 +1507,92 @@ namespace Fushigi.ui.widgets
             ImGui.PopClipRect();
 
             ImGui.EndChild();
+        }
+
+        private void CourseMiniView()
+        {
+            var area = selectedArea;
+            var editContext = areaScenes[area].EditContext;
+            var view = viewports[area];
+            bool status = ImGui.Begin("Minimap", ImGuiWindowFlags.NoNav);
+
+            var topLeft = ImGui.GetCursorScreenPos();
+
+            ImGui.SetNextItemAllowOverlap();
+            ImGui.SetCursorScreenPos(topLeft);
+
+                    //ImGui.SetNextItemAllowOverlap();
+            var size = ImGui.GetContentRegionAvail();
+
+            ImGui.SetNextItemAllowOverlap();
+            ImGui.SetCursorScreenPos(topLeft);
+
+            var cam = view.Camera;
+
+            Vector4 bounds = Vector4.Zero;
+            foreach(var actor in area.GetActors())
+            {
+                bounds = new(Math.Min(bounds.X, actor.mTranslation.X),
+                Math.Min(bounds.Y, actor.mTranslation.Y),
+                Math.Max(bounds.Z, actor.mTranslation.X),
+                Math.Max(bounds.W, actor.mTranslation.Y));
+            }
+            var levelRect = new Vector2(bounds.Z-bounds.X, bounds.W - bounds.Y);
+
+            float tanFOV = MathF.Tan(cam.Fov / 2);
+
+            var ratio = size.X/levelRect.X < size.Y/levelRect.Y ? size.X/levelRect.X : size.Y/levelRect.Y;
+            var miniRect = levelRect*ratio;
+            var miniCam = new Vector2(cam.Target.X, -cam.Target.Y)*ratio;
+            var miniCamSize = view.GetCameraSizeIn2DWorldSpace()*ratio;
+            var miniSaveCam = new Vector2(camSave.X, -camSave.Y)*ratio;
+            var center = new Vector2((size.X - miniRect.X)/2, (size.Y - miniRect.Y)/2);
+
+            var col = ImGuiCol.ButtonActive;
+
+            //ImGui.SetNextItemAllowOverlap();
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left) 
+            && ImGui.IsWindowHovered())
+            {
+                camSave = cam.Target;
+            }
+
+            if ((ImGui.IsMouseDown(ImGuiMouseButton.Left) || ImGui.IsMouseDown(ImGuiMouseButton.Right))
+            && ImGui.IsWindowFocused() &&
+            ((!ImGui.IsMouseClicked(ImGuiMouseButton.Right) && !ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            || ImGui.IsWindowHovered()))
+            {
+                if (camSave != default)
+                {
+                    col = ImGuiCol.TextDisabled;
+                    ImGui.GetWindowDrawList().AddRect(topLeft + miniSaveCam - miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
+                    topLeft + miniSaveCam + miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
+                    ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Button]),6,0,3);
+                }
+
+                var pos = ImGui.GetMousePos();
+                cam.Target = new((pos.X - (topLeft.X + center.X))/ratio,
+                (-pos.Y + topLeft.Y + center.Y + miniRect.Y)/ratio, cam.Target.Z);
+            }
+
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left)
+            && camSave != default)
+            {
+                cam.Target = camSave;
+                camSave = default;
+            }
+
+            ImGui.GetWindowDrawList().AddRect(topLeft + center, 
+            topLeft + miniRect + center, 
+            ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Text]),6,0,3);
+
+            ImGui.GetWindowDrawList().AddRect(topLeft + miniCam - miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
+            topLeft + miniCam + miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
+            ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)col]),6,0,3);
+
+            if (status)
+                ImGui.End();
+            
         }
 
         private static void PlacementNode(CourseActor actor)

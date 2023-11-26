@@ -33,6 +33,7 @@ namespace Fushigi
 
     public class ActorPack
     {
+        Dictionary<string, ActorParam> paramTree = [];
         public ModelInfo DrawArrayModelInfoRef;
         public ModelInfo ModelInfoRef;
         public ModelExpandParam ModelExpandParamRef;
@@ -84,11 +85,35 @@ namespace Fushigi
             {
                 var paramInfo = BymlSerialize.Deserialize<ActorParam>(sarc.OpenFile(file));
 
-                LoadComponents(sarc, paramInfo);
-
-                if (!string.IsNullOrEmpty(paramInfo.Category))
-                    this.Category = paramInfo.Category;
+                paramInfo.path = file;
+                if(paramInfo.Components != null)
+                    paramTree.Add(GetPathGyml(paramInfo.parent ?? "root"), paramInfo);
             }
+
+            foreach (var param in paramTree)
+            {     
+                if(param.Key == "root")
+                {
+                    LoadComponents(sarc, param.Value);
+
+                    if (!string.IsNullOrEmpty(param.Value.Category))
+                        this.Category = param.Value.Category;
+
+                    var parFile = param.Value.path;
+                    while(paramTree.ContainsKey(parFile))
+                    {
+                        var parent = paramTree[parFile];
+
+                        LoadComponents(sarc, parent);
+
+                        if (!string.IsNullOrEmpty(parent.Category))
+                            this.Category = parent.Category;
+
+                        parFile = parent.path;
+                    }
+                }
+            }
+            
             stream.Dispose();
         }
 
@@ -109,10 +134,29 @@ namespace Fushigi
                 switch (component.Key)
                 {
                     case "DrawArrayModelInfoRef":
-                        this.DrawArrayModelInfoRef = BymlSerialize.Deserialize<ModelInfo>(data);
+                        if(DrawArrayModelInfoRef == null)
+                            this.DrawArrayModelInfoRef = BymlSerialize.Deserialize<ModelInfo>(data);
+                        else{
+                            var child = BymlSerialize.Deserialize<ModelInfo>(data);
+                            foreach(var v in DrawArrayModelInfoRef.GetType().GetProperties())
+                            {
+                                if (v.GetValue(child) != null && v.GetValue(child) != default)
+                                    v.SetValue(DrawArrayModelInfoRef, v.GetValue(child));
+                            }
+                        }
                         break;
                     case "ModelInfoRef":
-                        this.ModelInfoRef = BymlSerialize.Deserialize<ModelInfo>(data);
+                        if(ModelInfoRef == null)
+                            this.ModelInfoRef = BymlSerialize.Deserialize<ModelInfo>(data);
+                        else{
+                            var child = BymlSerialize.Deserialize<ModelInfo>(data);
+                            foreach(var v in ModelInfoRef.GetType().GetProperties())
+                            {
+                                
+                                if (v.GetValue(child) != null && v.GetValue(child) != default)
+                                    v.SetValue(ModelInfoRef, v.GetValue(child));
+                            }
+                        }
                         break;
                     case "ModelExpandRef":
                         this.ModelExpandParamRef = BymlSerialize.Deserialize<ModelExpandParam>(data);
@@ -123,14 +167,13 @@ namespace Fushigi
                     case "GamePhysicsRef":
                         this.GamePhysicsRef = BymlSerialize.Deserialize<GamePhysics>(data);
                         if(!string.IsNullOrEmpty(GamePhysicsRef.mPath))
-                            GetActorShape(sarc, data, filePath);
-
+                            ShapeParams = GetActorShape(sarc, data, filePath);
                         break;
                 }
             }
         }
 
-        private void GetActorShape(SARC.SARC sarc, byte[] data, string filePath)
+        private ShapeParamList GetActorShape(SARC.SARC sarc, byte[] data, string filePath)
         {
             filePath = GetPathGyml(GamePhysicsRef.mPath);
             data = sarc.OpenFile(filePath);
@@ -138,13 +181,14 @@ namespace Fushigi
             if(ControllerPath.ShapeNamePathAry != null)
             {
                 var shapes = ControllerPath.ShapeNamePathAry;
-                if (!string.IsNullOrEmpty(ControllerPath.parent))
+                while (!string.IsNullOrEmpty(ControllerPath.parent) &&
+                ControllerPath.mRigids == null && ControllerPath.mEntity == null)
                 {
                     filePath = GetPathGyml(ControllerPath.parent);
                     data = sarc.OpenFile(filePath);
                     ControllerPath = BymlSerialize.Deserialize<ControllerSetParam>(data);
                 }
-                var rigidBodies = ControllerPath.mRigids != null && ControllerPath.mRigids.Count > 0 ? ControllerPath.mRigids : ControllerPath.mEntity;
+                var rigidBodies = (ControllerPath.mRigids ?? new()).Concat(ControllerPath.mEntity ?? new());
 
                 foreach(var rigid in rigidBodies)
                 {
@@ -160,7 +204,7 @@ namespace Fushigi
                             {
                                 filePath = GetPathGyml(shape.FilePath);
                                 data = sarc.OpenFile(filePath);
-                                ShapeParams = BymlSerialize.Deserialize<ShapeParamList>(data);
+                                return BymlSerialize.Deserialize<ShapeParamList>(data);
                             }
                         }
                         else if(body.ShapeNames != null)
@@ -169,12 +213,13 @@ namespace Fushigi
                             {
                                 filePath = GetPathGyml(shape.FilePath);
                                 data = sarc.OpenFile(filePath);
-                                ShapeParams = BymlSerialize.Deserialize<ShapeParamList>(data);
+                                return BymlSerialize.Deserialize<ShapeParamList>(data);
                             }
                         }
                     }
                 }
             }
+            return null;
         }
 
         private string GetPathGyml(string path)
@@ -185,6 +230,11 @@ namespace Fushigi
 
         class ActorParam
         {
+            public string path;
+
+            [BymlProperty("$parent")]
+            public string parent { get; set; }
+
             public string Category { get; set; }
             public Dictionary<string, object> Components { get; set; } 
         }

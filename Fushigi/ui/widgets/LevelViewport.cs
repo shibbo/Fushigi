@@ -4,6 +4,7 @@ using Fushigi.gl;
 using Fushigi.gl.Bfres;
 using Fushigi.util;
 using ImGuiNET;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using System.Drawing;
 using System.Numerics;
@@ -108,6 +109,12 @@ namespace Fushigi.ui.widgets
 
         public Matrix4x4 GetCameraMatrix() => Camera.ViewProjectionMatrix;
 
+        public Vector2 GetCameraSizeIn2DWorldSpace() 
+        {
+            var cameraBoundsSize = ScreenToWorld(mSize) - ScreenToWorld(new Vector2(0));
+            return new Vector2(cameraBoundsSize.X, Math.Abs(cameraBoundsSize.Y));
+        }
+
         public Vector2 WorldToScreen(Vector3 pos) => WorldToScreen(pos, out _);
         public Vector2 WorldToScreen(Vector3 pos, out float ndcDepth)
         {
@@ -164,7 +171,7 @@ namespace Fushigi.ui.widgets
 
         public void HandleCameraControls(double deltaSeconds)
         {
-            bool isPanGesture = (ImGui.IsMouseDragging(ImGuiMouseButton.Middle)) ||
+            bool isPanGesture = ImGui.IsMouseDragging(ImGuiMouseButton.Middle) ||
                 (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyShift && !mEditContext.IsAnySelected<CourseActor>());
 
             if (IsViewportActive && isPanGesture)
@@ -272,35 +279,35 @@ namespace Fushigi.ui.widgets
             var rotMat = Matrix4x4.CreateRotationX(actor.mRotation.X) *
                      Matrix4x4.CreateRotationY(actor.mRotation.Y) *
                     Matrix4x4.CreateRotationZ(actor.mRotation.Z);
+                    
+            var debugSMat = Matrix4x4.CreateScale(modelInfo.mModelScale != default ? modelInfo.mModelScale:Vector3.One);
 
-            var mat = scaleMat * rotMat * transMat;
+            var mat = debugSMat * scaleMat * rotMat * transMat;
 
             var model = render.Models[modelName];
             //switch for drawing models with different methods easier
-            switch (modelName){
-                case "DokanJunction":
-                case "DokanTop":
-                    var drainRef = actor.mActorPack.DrainPipeRef;
+            if(actor.mActorPack.DrainPipeRef != null){
+                var drainRef = actor.mActorPack.DrainPipeRef;
+                var calc = actor.mActorPack.ShapeParams.mCalc;
+                var KeyMats = new Dictionary<string, Matrix4x4>{
+                    {drainRef.ModelKeyTop ?? "Top", debugSMat *
+                        Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.X, actor.mScale.Z) * 
+                        Matrix4x4.CreateTranslation(0, (actor.mScale.Y-actor.mScale.X)*(calc.mMax.Y-calc.mMin.Y), 0) *
+                        rotMat *
+                        transMat},
 
-                    var KeyMats = new Dictionary<string, Matrix4x4>{
-                        {drainRef.ModelKeyTop,
-                            Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.X, actor.mScale.Z) * 
-                            Matrix4x4.CreateTranslation(0, (actor.mScale.Y-actor.mScale.X)*2, 0) *
-                            rotMat *
-                            transMat},
+                    {drainRef.ModelKeyMiddle ?? "Middle", debugSMat *
+                        Matrix4x4.CreateScale(actor.mScale.X, (actor.mScale.Y-1)*2, actor.mScale.Z) * 
+                        rotMat *
+                        transMat}};
 
-                        {drainRef.ModelKeyMiddle,
-                            Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.Y*2, actor.mScale.Z) * 
-                            rotMat *
-                            transMat}};
-
-                    render.Models[modelName].Render(gl, render, KeyMats[modelInfo.SearchModelKey], this.Camera);
-                    if(modelInfo.SubModels.Any())
-                        render.Models[modelInfo.SubModels[0].FmdbName].Render(gl, render, KeyMats[modelInfo.SubModels[0].SearchModelKey], this.Camera);
-                    break;
-                default:
-                    model.Render(gl, render, mat, this.Camera);
-                    break;
+                render.Models[modelName].Render(gl, render, KeyMats[modelInfo.SearchModelKey], this.Camera);
+                if(modelInfo.SubModels?.Any() ?? false)
+                    render.Models[modelInfo.SubModels[0].FmdbName].Render(gl, render, KeyMats[modelInfo.SubModels[0].SearchModelKey], this.Camera);
+            }
+            else
+            {
+                model.Render(gl, render, mat, this.Camera);
             }
         }
 
@@ -464,7 +471,7 @@ namespace Fushigi.ui.widgets
                     }
                 }
 
-                if(mHoveredObject != null &&
+                if(mHoveredObject != null && mHoveredObject is CourseActor &&
                 ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                 {
                     if (ImGui.GetIO().MouseDragMaxDistanceSqr[0] <= ImGui.GetIO().MouseDragThreshold)
@@ -982,15 +989,12 @@ namespace Fushigi.ui.widgets
                 {
                     var calc = actor.mActorPack.ShapeParams.mCalc;
 
-                    if(actor.mActorPack.ShapeParams.mSphere != null)
+                    if(((actor.mActorPack.ShapeParams.mSphere?.Count ??  0) > 0) ||
+                        ((actor.mActorPack.ShapeParams.mCapsule?.Count?? 0) > 0))
                     { 
                         drawing = "sphere";
                     }
-                    if(actor.mActorPack.ShapeParams.mCapsule != null)
-                    { 
-                        drawing = "sphere";
-                    }
-                    if(actor.mActorPack.ShapeParams.mPoly != null && actor.mActorPack.ShapeParams.mPoly.Count > 0)
+                    else if((actor.mActorPack.ShapeParams.mPoly?.Count ??  0) > 0)
                     { 
                         calc = actor.mActorPack.ShapeParams.mPoly[0].mCalc;
                     }
@@ -1057,6 +1061,7 @@ namespace Fushigi.ui.widgets
                             var scale = Matrix4x4.CreateScale(actor.mScale);
                             Vector2 rad = (WorldToScreen(Vector3.Transform(max, scale))-WorldToScreen(Vector3.Transform(min, scale)))/2;
                             mDrawList.AddEllipse(pos, Math.Abs(rad.X), Math.Abs(rad.Y), color, -actor.mRotation.Z, 0, isHovered ? 2.5f : 1.5f);
+                            
                             break;
                     }
                     if (mEditContext.IsSelected(actor))
