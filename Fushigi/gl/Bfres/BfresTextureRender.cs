@@ -1,5 +1,6 @@
 ﻿using Fushigi.Bfres;
 using Fushigi.Bfres.Texture;
+using Fushigi.Byml.Serializer;
 using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using Silk.NET.SDL;
@@ -21,7 +22,7 @@ namespace Fushigi.gl.Bfres
 
         private Task<byte[]> Decoder;
 
-        private bool IsSrgb = false;
+        public bool IsSrgb = false;
 
         private uint ArrayCount = 1;
 
@@ -103,45 +104,42 @@ namespace Fushigi.gl.Bfres
                 {
                     if (texture.IsAstc)
                     {
-                        Decoder = Task.Run(() =>
+                        //Full data to hash check cache
+                        var data = texture.TextureData.SelectMany(x => 
+                                    x.ToArray()
+                                    ).ToArray();
+
+                        if (!BfresTextureCache.LoadCache(this, data, ArrayCount, 0))
                         {
-                            List<byte> levels = new List<byte>();
-                            for (int j = 0; j < texture.ArrayCount; j++)
+                            Decoder = Task.Run(() =>
                             {
-                                var surface = texture.DeswizzleSurface(j, 0);
-                                levels.AddRange(texture.DecodeAstc(surface));
-                            }
-                            var decodedBuffer = levels.ToArray();
+                                List<byte> levels = new List<byte>();
+                                for (int j = 0; j < texture.ArrayCount; j++)
+                                {
+                                    var surface = texture.DeswizzleSurface(j, 0);
+                                    var dec = texture.DecodeAstc(surface);
 
-                            TextureState = State.Decoded;
+                                    //BC7 re encode for texture cache
+                                    if (BfresTextureCache.Enable)
+                                        dec = BCEncoder.Encode(dec.ToArray(), (int)this.Width, (int)this.Height);
 
-                            //This clears any resources.
-                            GC.Collect();
-                            GC.WaitForPendingFinalizers();
-                            GC.Collect();
+                                    levels.AddRange(dec);
+                                }
+                                var decodedBuffer = levels.ToArray();
 
-                            return decodedBuffer;
-                        });
-                        /*
-                             List<byte> levels = new List<byte>();
-                             for (int j = 0; j < texture.ArrayCount; j++)
-                             {
-                                 var surface = texture.DeswizzleSurface(j, 0);
-                                 levels.AddRange(texture.DecodeAstc(surface));
-                             }
-                             var decodedBuffer = levels.ToArray();
+                                if (BfresTextureCache.Enable)
+                                    BfresTextureCache.SaveCache(this, data, decodedBuffer);
 
-                             var format = IsSrgb ? SurfaceFormat.R8_G8_B8_A8_SRGB : SurfaceFormat.R8_G8_B8_A8_UNORM;
-                            // var format =  SurfaceFormat.R8_G8_B8_A8_UNORM;
+                                TextureState = State.Decoded;
 
-                             var formatInfo = GLFormatHelper.ConvertPixelFormat(format);
-                             GLTextureDataLoader.LoadImage(_gl, this.Target, Width, Height, ArrayCount, formatInfo, decodedBuffer, 0);
+                                //This clears any resources.
+                                GC.Collect();
+                                GC.WaitForPendingFinalizers();
+                                GC.Collect();
 
-                             this.InternalFormat = formatInfo.InternalFormat;
-                             this.PixelType = formatInfo.Type;
-                             this.PixelFormat = formatInfo.Format;
-
-                             TextureState = State.Finished;*/
+                                return decodedBuffer;
+                            });
+                        }
                     }
                     else
                     {
@@ -197,14 +195,25 @@ namespace Fushigi.gl.Bfres
 
                 // TODO - useSrgb argument is a temporary solution for the CourseSelect thumbnails
                 //        should find a more permanent solution for this
-                var format = useSrgb && IsSrgb ? SurfaceFormat.R8_G8_B8_A8_SRGB : SurfaceFormat.R8_G8_B8_A8_UNORM;
 
-                var formatInfo = GLFormatHelper.ConvertPixelFormat(format);
-                GLTextureDataLoader.LoadImage(_gl, this.Target, Width, Height, ArrayCount, formatInfo, Decoder.Result, 0);
+                if (BfresTextureCache.Enable) //cache uses BC7
+                {
+                    var format = useSrgb && IsSrgb ? SurfaceFormat.BC7_SRGB : SurfaceFormat.BC7_UNORM;
+                    var formatInfo = GLFormatHelper.ConvertCompressedFormat(format, true);
+                    GLTextureDataLoader.LoadCompressedImage(_gl, this.Target, Width, Height, ArrayCount, formatInfo, Decoder.Result, 0);
+                    this.InternalFormat = formatInfo;
+                }
+                else
+                {
+                    var format = useSrgb && IsSrgb ? SurfaceFormat.R8_G8_B8_A8_SRGB : SurfaceFormat.R8_G8_B8_A8_UNORM;
 
-                this.InternalFormat = formatInfo.InternalFormat;
-                this.PixelType = formatInfo.Type;
-                this.PixelFormat = formatInfo.Format;
+                    var formatInfo = GLFormatHelper.ConvertPixelFormat(format);
+                    GLTextureDataLoader.LoadImage(_gl, this.Target, Width, Height, ArrayCount, formatInfo, Decoder.Result, 0);
+
+                    this.InternalFormat = formatInfo.InternalFormat;
+                    this.PixelType = formatInfo.Type;
+                    this.PixelFormat = formatInfo.Format;
+                }
 
                 Unbind();
 
