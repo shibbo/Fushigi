@@ -93,8 +93,6 @@ namespace Fushigi.gl.Bfres
             {
                 UpdateSkeleton(transform);
 
-                GsysShaderRender.GsysResources.UpdateViewport(camera);
-
                 foreach (var mesh in Meshes)
                     BoundingBox.Include(mesh.LodMeshes[0].BoundingBox);
 
@@ -216,15 +214,37 @@ namespace Fushigi.gl.Bfres
                 Vector3 max = new Vector3(float.MinValue);
 
                 var positions = shape.VertexBuffer.GetPositions();
-                for (int i = 0; i < positions.Length; i++)
+                var bone_indices = shape.VertexBuffer.GetBoneIndices();
+
+                var indices = shape.Meshes[0].GetIndices();
+
+                for (int i = 0; i < indices.Length; i++)
                 {
-                    var position = new Vector3(positions[i].X, positions[i].Y, positions[i].Z);
+                    var index = indices[i];
+                    var position = new Vector3(positions[index].X, positions[index].Y, positions[index].Z);
+
+                    if (shape.SkinCount == 0)
+                    {
+                        var bone_index = (int)shape.BoneIndex;
+                        position = Vector3.Transform(position, model.Skeleton.Bones[bone_index].InverseMatrix);
+                    }
+                    if (shape.SkinCount == 1 && bone_indices.Length > 0)
+                    {
+                        var bone_index = (int)bone_indices[index].X;
+                        position = Vector3.Transform(position, model.Skeleton.Bones[bone_index].InverseMatrix);
+                    }
+
                     min.X = MathF.Min(min.X, position.X);
                     min.Y = MathF.Min(min.Y, position.Y);
                     min.Z = MathF.Min(min.Z, position.Z);
                     max.X = MathF.Max(max.X, position.X);
                     max.Y = MathF.Max(max.Y, position.Y);
                     max.Z = MathF.Max(max.Z, position.Z);
+                }
+
+                    for (int i = 0; i < positions.Length; i++)
+                {
+
                 }
 
                 LodMeshes.Add(new DetailLevel()
