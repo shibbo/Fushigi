@@ -230,7 +230,7 @@ namespace Fushigi.gl.Bfres
                     }
                     if (shape.SkinCount == 1 && bone_indices.Length > 0)
                     {
-                        var bone_index = (int)bone_indices[index].X;
+                        var bone_index = (int)model.Skeleton.MatrixToBoneList[(int)bone_indices[index].X];
                         position = Vector3.Transform(position, model.Skeleton.Bones[bone_index].WorldMatrix);
                     }
 

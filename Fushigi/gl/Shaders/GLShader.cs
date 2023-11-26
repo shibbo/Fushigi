@@ -14,6 +14,7 @@ namespace Fushigi.gl
         public GLShader(GL gl) : base(gl.CreateProgram())
         {
             _gl = gl;
+            RenderStats.NumShaders++;
         }
 
         public static GLShader FromFilePath(GL gl, string vertexPath, string fragmentPath)
@@ -138,6 +139,7 @@ namespace Fushigi.gl
         public void Dispose()
         {
             _gl.DeleteProgram(ID);
+            RenderStats.NumShaders--;
         }
 
         private uint LoadShader(ShaderType type, string src)
@@ -148,7 +150,7 @@ namespace Fushigi.gl
             string infoLog = _gl.GetShaderInfoLog(handle);
             if (!string.IsNullOrWhiteSpace(infoLog))
             {
-                throw new Exception($"Error compiling shader of type {type}, failed with error {infoLog}");
+                Console.WriteLine($"Error compiling shader of type {type}, failed with error {infoLog}");
             }
 
             return handle;

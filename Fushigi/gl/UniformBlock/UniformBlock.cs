@@ -15,6 +15,7 @@ namespace Fushigi.gl
         public UniformBlock(GL gl) : base(gl, BufferTargetARB.UniformBuffer)
         {
             _gl = gl;
+            RenderStats.NumUniformBlocks++;
         }
 
         public void Render(uint programID, string name, int binding = -1)
@@ -32,6 +33,12 @@ namespace Fushigi.gl
 
             _gl.UniformBlockBinding(programID, index, (uint)binding);
             _gl.BindBufferBase(BufferTargetARB.UniformBuffer, (uint)binding, ID);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            RenderStats.NumUniformBlocks--;
         }
     }
 }

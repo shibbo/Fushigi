@@ -36,6 +36,7 @@ namespace Fushigi.gl
         public GLTexture(GL gl) : base(gl.GenTexture())
         {
             _gl = gl;
+            RenderStats.NumTextures++;
 
             Target = TextureTarget.Texture2D;
             InternalFormat = InternalFormat.Rgba;
@@ -127,6 +128,7 @@ namespace Fushigi.gl
         {
             IsDisposed = true;
             _gl.DeleteTexture(ID);
+            RenderStats.NumTextures--;
         }
 
         internal static uint CalculateMipDimension(uint baseLevelDimension, uint mipLevel)

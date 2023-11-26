@@ -111,7 +111,7 @@ namespace Fushigi.gl
             _gl.BindBuffer(Target, 0);
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             _gl.DeleteBuffer(ID);
         }
