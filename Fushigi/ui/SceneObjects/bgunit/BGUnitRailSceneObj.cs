@@ -224,6 +224,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
                     if (!ChildPoints.TryGetValue(point, out RailPoint? childPoint))
                         continue;
 
+                    childPoint.Transform.Position = childPoint.PreviousPosition;
                     mTransformUndos.Add(new TransformUndo(childPoint.Transform));
                 }
             }
