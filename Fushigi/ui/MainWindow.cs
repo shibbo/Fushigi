@@ -28,12 +28,16 @@ namespace Fushigi.ui
 
                         var nativeConfig = ImGuiNative.ImFontConfig_ImFontConfig();
                         var iconConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+                        var nativeConfigJP = ImGuiNative.ImFontConfig_ImFontConfig();
 
                         //Add a higher horizontal/vertical sample rate for global scaling.
                         nativeConfig->OversampleH = 8;
                         nativeConfig->OversampleV = 8;
                         nativeConfig->RasterizerMultiply = 1f;
                         nativeConfig->GlyphOffset = new Vector2(0);
+
+                        nativeConfigJP->MergeMode = 1;
+                        nativeConfigJP->PixelSnapH = 1;
 
                         iconConfig->MergeMode = 1;
                         iconConfig->OversampleH = 2;
@@ -46,10 +50,13 @@ namespace Fushigi.ui
                         {
                             mDefaultFont = io.Fonts.AddFontFromFileTTF(
                                 Path.Combine("res", "Font.ttf"),
-                                size, nativeConfig, io.Fonts.GetGlyphRangesJapanese());
+                                size, nativeConfig, io.Fonts.GetGlyphRangesDefault());
+
+                             io.Fonts.AddFontFromFileTTF(
+                                Path.Combine("res", "NotoSansCJKjp-Medium.otf"),
+                                    size, nativeConfigJP, io.Fonts.GetGlyphRangesJapanese());
 
                             //other fonts go here and follow the same schema
-
                             GCHandle rangeHandle = GCHandle.Alloc(new ushort[] { IconUtil.MIN_GLYPH_RANGE, IconUtil.MAX_GLYPH_RANGE, 0 }, GCHandleType.Pinned);
                             try
                             {

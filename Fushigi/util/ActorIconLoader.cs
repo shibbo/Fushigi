@@ -49,7 +49,9 @@ namespace Fushigi.util
                 //Load the needed icon
                 var tex = GLTexture2D.Load(gl, icon_path);
                 Icons.Add(icon_path, (int)tex.ID);
+                return (int)tex.ID;
             }
+
             return -1;
         }
     }
