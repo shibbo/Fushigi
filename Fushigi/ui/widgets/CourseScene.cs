@@ -166,6 +166,8 @@ namespace Fushigi.ui.widgets
 
             GlobalLinksPanel();
 
+            LocalLinksPanel();
+
             BGUnitPanel();
 
             CourseMiniView();
@@ -224,6 +226,7 @@ namespace Fushigi.ui.widgets
                     //Load popup when button is pressed
                     if (ImGui.Button("Area Parameters"))
                         ImGui.OpenPopup("AreaParams");
+                    ImGui.SameLine();
 
                     //Display Mouse Position  
                     if (ImGui.IsMouseHoveringRect(topLeft, topLeft + size))
@@ -546,6 +549,19 @@ namespace Fushigi.ui.widgets
             ImGui.Separator();
 
             CourseGlobalLinksView(course.GetGlobalLinks());
+
+            ImGui.End();
+        }
+
+        private void LocalLinksPanel()
+        {
+            ImGui.Begin("Local Links");
+
+            ImGui.Checkbox("Wonder View", ref activeViewport.IsWonderView);
+
+            ImGui.Separator();
+
+            AreaLocalLinksView(selectedArea);
 
             ImGui.End();
         }
@@ -1333,6 +1349,112 @@ namespace Fushigi.ui.widgets
                 }
             }
         }
+        
+        //VERY ROUGH BASE
+        //Still need to implement recursion on getting links, currently just displays the top most links
+        private void AreaLocalLinksView(CourseArea area)
+        {
+            var links = area.mLinkHolder;
+            var editContext = areaScenes[selectedArea].EditContext;
+
+            float em = ImGui.GetFrameHeight();
+            var wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
+            var wcMax = wcMin + ImGui.GetContentRegionAvail();
+
+            RecursiveLinkFind(area, links, editContext, em);
+
+            ImGui.PopClipRect();
+
+            ImGui.EndChild();
+        }
+
+        private void RecursiveLinkFind(CourseArea area, CourseLinkHolder links, CourseAreaEditContext editContext, float em)
+        {
+            foreach (CourseActor actor in area.GetActors().Where(x => !links.GetSrcHashesFromDest(x.mActorHash).Any() && links.GetDestHashesFromSrc(x.mActorHash).Any()))
+            {
+                ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.OpenOnArrow;
+                ImGui.PushID(actor.mActorHash.ToString());
+                bool expanded = false;
+                bool isVisible = true;
+                float margin = 1.5f * em;
+                float headerHeight = 1.4f * em;
+                Vector2 cp = ImGui.GetCursorScreenPos();
+                expanded = ImGui.TreeNodeEx(actor.mActorHash.ToString(), node_flags, actor.mActorName);
+
+                if (ImGui.IsItemFocused())
+                {
+                    activeViewport.SelectedActor(actor);
+                }
+
+                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                {
+                    activeViewport.FrameSelectedActor(actor);
+                }
+
+                if (!isVisible)
+                    ImGui.BeginDisabled();
+
+                if (expanded)
+                {
+                    foreach (var link in links.GetDestHashesFromSrc(actor.mActorHash))
+                    {
+                        if(ImGui.TreeNodeEx(actor.mActorHash.ToString() + link.Key, ImGuiTreeNodeFlags.FramePadding, link.Key))
+                        {
+                            foreach (CourseActor linkActor in area.GetActors().Where(x => link.Value.Contains(x.mActorHash)))
+                            {
+                                var act = linkActor;
+                                string actorName = act.mActorName;
+                                string name = act.mName;
+                                ulong actorHash = act.mActorHash;
+                                string actorLink = link.Key;
+                                //Check if the node is within the necessary search filter requirements if search is used
+                                bool HasText = act.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                            act.mActorName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                            act.ToString().Equals(mActorSearchText);
+
+                                if (!HasText)
+                                    continue;
+
+                                bool isSelected = editContext.IsSelected(act);
+
+                                ImGui.PushID(actorHash.ToString());
+                                ImGui.Columns(2);
+                                
+                                if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                                {
+                                    activeViewport.SelectedActor(act);
+                                }
+                                else if (ImGui.IsItemFocused())
+                                {
+                                    activeViewport.SelectedActor(act);
+                                }
+
+                                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                                {
+                                    activeViewport.FrameSelectedActor(act);
+                                }
+
+
+                                ImGui.NextColumn();
+                                ImGui.BeginDisabled();
+                                ImGui.Text(name);
+                                ImGui.EndDisabled();
+                                ImGui.Columns(1);
+
+                                ImGui.PopID();
+                                ImGui.TreePop();
+                            }
+                        }
+                    }
+                    ImGui.TreePop();
+                }
+            
+                if (!isVisible)
+                    ImGui.EndDisabled();
+
+                ImGui.PopID();
+            }
+        }
 
         private void UpdateAllLayerVisiblity()
         {
@@ -1528,6 +1650,7 @@ namespace Fushigi.ui.widgets
             ImGui.SetCursorScreenPos(topLeft);
 
             var cam = view.Camera;
+            var camSize = view.GetCameraSizeIn2DWorldSpace();
 
             Vector4 bounds = Vector4.Zero;
             foreach(var actor in area.GetActors())
@@ -1544,7 +1667,7 @@ namespace Fushigi.ui.widgets
             var ratio = size.X/levelRect.X < size.Y/levelRect.Y ? size.X/levelRect.X : size.Y/levelRect.Y;
             var miniRect = levelRect*ratio;
             var miniCam = new Vector2(cam.Target.X, -cam.Target.Y)*ratio;
-            var miniCamSize = view.GetCameraSizeIn2DWorldSpace()*ratio;
+            var miniCamSize = camSize*ratio;
             var miniSaveCam = new Vector2(camSave.X, -camSave.Y)*ratio;
             var center = new Vector2((size.X - miniRect.X)/2, (size.Y - miniRect.Y)/2);
 

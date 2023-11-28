@@ -61,6 +61,7 @@ namespace Fushigi.ui.widgets
 
         public bool IsViewportHovered;
         public bool IsViewportActive;
+        public bool IsWonderView;
 
         Vector2 mSize = Vector2.Zero;
 
