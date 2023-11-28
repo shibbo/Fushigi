@@ -214,18 +214,11 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
             Vector3 diff = posVec - mouseDownPos;
+
             if (diff.X != 0 && diff.Y != 0 && !transformStart)
             {
                 transformStart = true;
-                //Store each selected point for undoing
                 mTransformUndos.Clear();
-                foreach (var point in GetSelected(ctx))
-                {
-                    if (!ChildPoints.TryGetValue(point, out RailPoint? childPoint))
-                        continue;
-
-                    mTransformUndos.Add(new TransformUndo(childPoint.Transform));
-                }
             }
 
             bool anyTransformed = false;
@@ -240,7 +233,19 @@ namespace Fushigi.ui.SceneObjects.bgunit
                     diff.X = MathF.Round(diff.X, MidpointRounding.AwayFromZero);
                     diff.Y = MathF.Round(diff.Y, MidpointRounding.AwayFromZero);
                     posVec.Z = rail.Points[i].Position.Z;
-                    rail.Points[i].Position = childPoint.PreviousPosition + diff;
+
+                    var newPos = childPoint.PreviousPosition + diff;
+
+                    if (!ImGui.GetIO().KeyCtrl || IsValidPosition(newPos, i))
+                    {
+                        mTransformUndos.Add(new TransformUndo(
+                            childPoint.Transform, 
+                            childPoint.PreviousPosition, 
+                            newPos));
+
+                        rail.Points[i].Position = newPos;
+                    }
+
                     anyTransformed = true;
                 }
             }
@@ -347,6 +352,35 @@ namespace Fushigi.ui.SceneObjects.bgunit
             };
 
             return validAngles.Contains(MathF.Round(angle));
+        }
+
+        /// <summary>
+        /// Check if the proposed position is valid within the rail
+        /// </summary>
+        /// <param name="pos">new proposed position</param>
+        /// <param name="index">index of the point to set to the new position</param>
+        /// <returns>true if the point is valid there, false otherwise</returns>
+        private bool IsValidPosition(Vector3 pos, int index)
+        {
+            Vector2 newPos = new(pos.X, pos.Y);
+
+            // Check if the point has valid angles with the points coming before and after it
+            int[] offsets = [-1, 1];
+            foreach (var offset in offsets)
+            {
+                var neighborIndex = (index + offset) % rail.Points.Count;
+
+                if (neighborIndex < 0)
+                    neighborIndex += rail.Points.Count;
+
+                Vector2 neighborPos = new(rail.Points[neighborIndex].Position.X,
+                    rail.Points[neighborIndex].Position.Y);
+
+                if (!IsValidAngle(newPos, neighborPos))
+                    return false;
+            }
+
+            return true;
         }
 
         void IViewportSelectable.OnSelect(CourseAreaEditContext editContext)
