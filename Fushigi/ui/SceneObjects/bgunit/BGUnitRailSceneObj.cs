@@ -218,15 +218,20 @@ namespace Fushigi.ui.SceneObjects.bgunit
             if (diff.X != 0 && diff.Y != 0 && !transformStart)
             {
                 transformStart = true;
-                mTransformUndos.Clear();
             }
 
             bool anyTransformed = false;
-
-            for (int i = 0; i < rail.Points.Count; i++)
+            if (transformStart)
             {
-                if (transformStart && ctx.IsSelected(rail.Points[i]))
+                //this will repeatedly add new undos so we have to clear first
+                //not exactly efficient but a lot less error prone then doing preparation separately from update
+                //atleast until we have a proper "ongoing action"-system
+                mTransformUndos.Clear();
+                for (int i = 0; i < rail.Points.Count; i++)
                 {
+                    if (!ctx.IsSelected(rail.Points[i]))
+                        continue;
+
                     if (!ChildPoints.TryGetValue(rail.Points[i], out RailPoint? childPoint))
                         continue;
 
