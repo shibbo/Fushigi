@@ -151,15 +151,42 @@ namespace Fushigi.ui.SceneObjects.bgunit
             }
             else if (ImGui.GetIO().KeyAlt && selected.Count == 0) //Add new point from last 
             {
-                //Insert and add
                 Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
                 Vector3 pos = new(
                      MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
                      MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
                      2);
 
+                //find best index to insert at (minimizing circumference)
+
+                var min = (delta: float.PositiveInfinity, index: 0);
+
+                int segmentCount = rail.Points.Count;
+
+                if (!rail.IsClosed)
+                {
+                    segmentCount--;
+                    var delta = Vector3.Distance(rail.Points[0].Position, pos);
+                    if (delta < min.delta)
+                        min = (delta, 1);
+                }
+
+                for (int i = 0; i < segmentCount; i++)
+                {
+                    var pointA = rail.Points[i];
+                    var pointB = rail.Points[(i+1)%rail.Points.Count];
+
+                    var distance = Vector3.Distance(pointA.Position, pointB.Position);
+                    var newDistanceSum = Vector3.Distance(pointA.Position, pos) +
+                        Vector3.Distance(pointB.Position, pos);
+
+                    var delta = newDistanceSum-distance;
+                    if (delta < min.delta)
+                        min = (delta, i+1);
+                }
+
                 DeselectAll(ctx);
-                AddPoint(ctx, new BGUnitRail.RailPoint(rail, pos));
+                InsertPoint(ctx, new BGUnitRail.RailPoint(rail, pos), min.index);
             }
             else
             {
@@ -264,7 +291,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
             if (!Visible)
                 return;
 
-            if (HitTest(viewport))
+            if ((ImGui.GetIO().KeyAlt && ctx.IsSelected(rail)) || HitTest(viewport))
                 isNewHoveredObj = true;
 
             bool isSelected = IsSelected(ctx);
