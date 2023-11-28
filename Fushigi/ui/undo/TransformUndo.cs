@@ -15,19 +15,24 @@ namespace Fushigi.ui
         public string Name { get; set; }
 
         Transform Transform;
+        Vector3 OldPos;
+        Vector3 NewPos;
 
-        public TransformUndo(Transform transform, string name = $"{IconUtil.ICON_ARROWS_ALT} Transform")
+        public TransformUndo(Transform transform, Vector3 oldPos, Vector3 newPos, string name = $"{IconUtil.ICON_ARROWS_ALT} Transform")
         {
             //Undo display name
             Name = name;
             Transform = transform;
+            OldPos = oldPos;
+            NewPos = newPos;
         }
 
         public IRevertable Revert()
         {
             //Revert transform instance
-            var redo = new TransformUndo(Transform);
+            var redo = new TransformUndo(Transform, NewPos, OldPos);
 
+            Transform.Position = OldPos;
             Transform.OnUpdate();
 
             //Create revert stack

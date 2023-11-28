@@ -214,19 +214,11 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
             Vector3 diff = posVec - mouseDownPos;
+
             if (diff.X != 0 && diff.Y != 0 && !transformStart)
             {
                 transformStart = true;
-                //Store each selected point for undoing
                 mTransformUndos.Clear();
-                foreach (var point in GetSelected(ctx))
-                {
-                    if (!ChildPoints.TryGetValue(point, out RailPoint? childPoint))
-                        continue;
-
-                    childPoint.Transform.Position = childPoint.PreviousPosition;
-                    mTransformUndos.Add(new TransformUndo(childPoint.Transform));
-                }
             }
 
             bool anyTransformed = false;
@@ -246,6 +238,11 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
                     if (!ImGui.GetIO().KeyCtrl || IsValidPosition(newPos, i))
                     {
+                        mTransformUndos.Add(new TransformUndo(
+                            childPoint.Transform, 
+                            childPoint.PreviousPosition, 
+                            newPos));
+
                         rail.Points[i].Position = newPos;
                     }
 
