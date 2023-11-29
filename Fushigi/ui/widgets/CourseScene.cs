@@ -200,6 +200,7 @@ namespace Fushigi.ui.widgets
                     {
                         selectedArea = area;
                         activeViewport = viewport;
+                        mHasFilledLayers = false;
                     }
 
                     var topLeft = ImGui.GetCursorScreenPos();
@@ -1091,6 +1092,7 @@ namespace Fushigi.ui.widgets
 
         private void FillLayers(CourseActorHolder actorArray)
         {
+            mLayersVisibility.Clear();
             foreach (CourseActor actor in actorArray.GetActors())
             {
                 string actorLayer = actor.mLayer;
