@@ -365,7 +365,7 @@ namespace Fushigi.course
 
     public class CourseActorToRailLinks
     {
-        struct Link
+        public struct Link
         {
             public ulong Source;
             public ulong Dest;
@@ -432,6 +432,6 @@ namespace Fushigi.course
             return node;
         }
 
-        List<Link> mLinks = new();
+        public List<Link> mLinks = new();
     }
 }

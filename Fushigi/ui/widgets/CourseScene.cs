@@ -162,6 +162,7 @@ namespace Fushigi.ui.widgets
             RailsPanel();
 
             GlobalLinksPanel();
+            RailLinksPanel();
 
             BGUnitPanel();
 
@@ -540,6 +541,103 @@ namespace Fushigi.ui.widgets
             ImGui.Separator();
 
             CourseGlobalLinksView(course.GetGlobalLinks());
+
+            ImGui.End();
+        }
+
+        private void RailLinksPanel()
+        {
+            ImGui.Begin("Actor to Rail Links");
+
+            ImGui.Columns(4);
+            ImGui.Text("Actor-Hash");
+            ImGui.NextColumn();
+            ImGui.Text("Rail");
+            ImGui.NextColumn();
+            ImGui.Text("Point");
+            ImGui.NextColumn();
+            ImGui.NextColumn();
+
+            var ctx = areaScenes[selectedArea].EditContext;
+            var rails = selectedArea.mRailHolder.mRails;
+            var actors = selectedArea.mActorHolder.GetActors();
+            var railLinks = selectedArea.mRailLinks.mLinks;
+
+            for (int i = 0; i < railLinks.Count; i++)
+            {
+                ImGui.PushID(i);
+                CourseActorToRailLinks.Link link = railLinks[i];
+
+                string hash = link.Source.ToString();
+                int actorIndex = actors.FindIndex(x => x.GetHash() == link.Source);
+                if (ImGui.InputText("##actor", ref hash, 100) &&
+                    ulong.TryParse(hash, out ulong hashInt))
+                    link.Source = hashInt;
+                if(actorIndex == -1)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextDisabled("Invalid");
+                }
+
+                ImGui.NextColumn();
+                int railIndex = rails.FindIndex(x => x.mHash == link.Dest);
+                if (ImGui.BeginCombo("##rail", railIndex >= 0 ? ("rail " + railIndex) : "None"))
+                {
+                    for (int iRail = 0; iRail < rails.Count; iRail++)
+                    {
+                        if (ImGui.Selectable("Rail " + iRail, railIndex == iRail))
+                            link.Dest = rails[iRail].mHash;
+                    }
+                    ImGui.EndCombo();
+                }
+                if (railIndex == -1)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextDisabled("Invalid");
+                }
+                ImGui.NextColumn();
+                if (railIndex >= 0)
+                {
+                    int pointIndex = rails[railIndex].mPoints.FindIndex(x => x.mHash == link.Point);
+
+                    if (pointIndex == -1)
+                        pointIndex = 0;
+
+                    if (ImGui.InputInt("##railpoint", ref pointIndex))
+                        pointIndex = Math.Clamp(pointIndex, 0, rails[railIndex].mPoints.Count - 1);
+
+                    link.Point = rails[railIndex].mPoints[pointIndex].GetHash();
+                }
+
+                railLinks[i] = link;
+
+                ImGui.NextColumn();
+                if (ImGui.Button("Delete", new Vector2(ImGui.GetContentRegionAvail().X * 0.65f, 0)))
+                {
+                    railLinks.RemoveAt(i);
+                    i--;
+                }
+
+
+                ImGui.NextColumn();
+                ImGui.PopID();
+            }
+
+            float width = ImGui.GetItemRectMax().X - ImGui.GetCursorScreenPos().X;
+
+            ImGui.Columns(1);
+            ImGui.Dummy(new Vector2(0, ImGui.GetFrameHeight() * 0.5f));
+
+            if (ImGui.Button("Add", new Vector2(width, ImGui.GetFrameHeight() * 1.5f)))
+            {
+                railLinks.Add(new CourseActorToRailLinks.Link
+                {
+                    Name = "Reference",
+                    Source = 0,
+                    Dest = 0,
+                    Point = 0
+                });
+            }
 
             ImGui.End();
         }
