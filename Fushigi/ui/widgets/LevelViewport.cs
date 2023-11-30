@@ -2,6 +2,7 @@ using Fushigi.actor_pack.components;
 using Fushigi.Byml;
 using Fushigi.Byml.Serializer;
 using Fushigi.course;
+using Fushigi.course.distance_view;
 using Fushigi.gl;
 using Fushigi.gl.Bfres;
 using Fushigi.param;
@@ -80,6 +81,8 @@ namespace Fushigi.ui.widgets
         public VRSkybox VRSkybox;
         public TileBfresRender TileBfresRenderFieldA;
         public TileBfresRender TileBfresRenderFieldB;
+
+        DistantViewManager DistantViewScrollManager = new DistantViewManager(area);
 
         //TODO make this an ISceneObject? as soon as there's a SceneObj class for each course object
         private object? mHoveredObject;
@@ -281,6 +284,9 @@ namespace Fushigi.ui.widgets
             //Wonder shader system params
             WonderGameShader.UpdateSystem();
 
+            //Distance view calculations
+            DistantViewScrollManager.Calc(this.Camera.Target);
+
             TileBfresRenderFieldA?.Render(gl, this.Camera);
             TileBfresRenderFieldB?.Render(gl, this.Camera);
 
@@ -334,6 +340,8 @@ namespace Fushigi.ui.widgets
                     Matrix4x4.CreateRotationZ(actor.mRotation.Z);
 
             var mat = scaleMat * rotMat * transMat;
+
+            DistantViewScrollManager.UpdateMatrix(actor.mLayer, ref mat);
 
             var model = render.Models[modelName];
             //switch for drawing models with different methods easier
