@@ -75,9 +75,9 @@ namespace Fushigi.course.distance_view
 
                 float posX = 0, posY = 0;
 
-                if (scroll_config.X != 1 && ScrollSpeedX != 0)
+                if (scroll_config.X != 1 && scroll_time_rate.X != 0)
                     posX = distance.X * movement_ratio.X * scroll_time_rate.X;
-                if (scroll_config.X != 1 && ScrollSpeedX != 0)
+                if (scroll_config.X != 1 && scroll_time_rate.Y != 0)
                     posY = distance.Y * movement_ratio.Y * scroll_time_rate.Y;
 
                 LayerMatrices[layer] = Matrix4x4.CreateTranslation(posX, posY, 0);
