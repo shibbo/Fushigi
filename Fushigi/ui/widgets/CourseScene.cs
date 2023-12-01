@@ -3,12 +3,15 @@ using Fushigi.gl.Bfres;
 using Fushigi.param;
 using Fushigi.ui.SceneObjects;
 using Fushigi.ui.SceneObjects.bgunit;
+using Fushigi.ui.undo;
 using Fushigi.util;
 using ImGuiNET;
 using Silk.NET.OpenGL;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Fushigi.ui.widgets
 {
@@ -20,6 +23,11 @@ namespace Fushigi.ui.widgets
         Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
         public LevelViewport activeViewport;
         UndoWindow undoWindow;
+
+        (object? courseObj, PropertyFieldsCapture placementPropCapture, PropertyDictCapture dynamicPropCapture)
+           propertyCapture = (null, 
+            PropertyFieldsCapture.Empty, 
+            PropertyDictCapture.Empty);
 
         readonly Course course;
         CourseArea selectedArea;
@@ -650,6 +658,14 @@ namespace Fushigi.ui.widgets
 
             if (editContext.IsSingleObjectSelected(out CourseActor? mSelectedActor))
             {
+                //invalidate current action if there has been external changes
+                if((propertyCapture.placementPropCapture.HasChangesSinceLastCheckpoint() ||
+                    propertyCapture.dynamicPropCapture.HasChangesSinceLastCheckpoint()))
+                {
+                    propertyCapture = (null, PropertyFieldsCapture.Empty, PropertyDictCapture.Empty);
+                }
+
+                #region Actor UI
                 string actorName = mSelectedActor.mActorName;
                 string name = mSelectedActor.mName;
 
@@ -845,7 +861,36 @@ namespace Fushigi.ui.widgets
                     ImGui.Separator();
 
                 }
+                #endregion
 
+                bool needsRecapture = false;
+
+                if (!ImGui.IsAnyItemActive())
+                {
+                    if (propertyCapture.placementPropCapture.TryGetRevertable(out var revertable, out var names))
+                    {
+                        editContext.CommitAction(revertable);
+                        needsRecapture = true;
+                    }
+
+                    if (propertyCapture.dynamicPropCapture.TryGetRevertable(out revertable, out names))
+                    {
+                        editContext.CommitAction(revertable);
+                        needsRecapture = true;
+                    }
+                }
+                if(needsRecapture || propertyCapture.courseObj != mSelectedActor)
+                {
+                    Console.WriteLine("Capturing");
+                    propertyCapture = (
+                        mSelectedActor,
+                        new PropertyFieldsCapture(mSelectedActor),
+                        new PropertyDictCapture(mSelectedActor.mActorParameters)
+                    );
+                }
+
+                propertyCapture.placementPropCapture.MakeCheckpoint();
+                propertyCapture.dynamicPropCapture.MakeCheckpoint();
             }
             else if (editContext.IsSingleObjectSelected(out CourseUnit? mSelectedUnit))
             {
