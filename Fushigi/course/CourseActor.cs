@@ -6,6 +6,7 @@ using Silk.NET.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,23 +19,23 @@ namespace Fushigi.course
         {
             mActorParameters = new Dictionary<string, object>();
 
-            mActorName = BymlUtil.GetNodeData<string>(actorNode["Gyaml"]);
+            mPackName = BymlUtil.GetNodeData<string>(actorNode["Gyaml"]);
             mLayer = BymlUtil.GetNodeData<string>(actorNode["Layer"]);
 
             mTranslation = BymlUtil.GetVector3FromArray(actorNode["Translate"] as BymlArrayNode);
             mRotation = BymlUtil.GetVector3FromArray(actorNode["Rotate"] as BymlArrayNode);
             mScale = BymlUtil.GetVector3FromArray(actorNode["Scale"] as BymlArrayNode);
             mAreaHash = BymlUtil.GetNodeData<uint>(actorNode["AreaHash"]);
-            mActorHash = BymlUtil.GetNodeData<ulong>(actorNode["Hash"]);
+            mHash = BymlUtil.GetNodeData<ulong>(actorNode["Hash"]);
             mName = BymlUtil.GetNodeData<string>(actorNode["Name"]);
-            mActorPack = ActorPackCache.Load(mActorName);
+            mActorPack = ActorPackCache.Load(mPackName);
 
 
             if (actorNode.ContainsKey("Dynamic"))
             {
-                if (ParamDB.HasActorComponents(mActorName))
+                if (ParamDB.HasActorComponents(mPackName))
                 {
-                    List<string> paramList = ParamDB.GetActorComponents(mActorName);
+                    List<string> paramList = ParamDB.GetActorComponents(mPackName);
 
                     foreach (string p in paramList)
                     {
@@ -112,19 +113,17 @@ namespace Fushigi.course
             }
         }
 
-        public CourseActor(string actorName, uint areaHash, string actorLayer)
+        public CourseActor(string packName, uint areaHash, string actorLayer)
         {
-            mActorName = actorName;
+            mPackName = packName;
             mAreaHash = areaHash;
             mLayer = actorLayer;
             mName = "";
             mTranslation = new System.Numerics.Vector3(0.0f);
             mRotation = new System.Numerics.Vector3(0.0f);
             mScale = new System.Numerics.Vector3(1.0f);
-            mActorHash = RandomUtil.GetRandom();
-            mActorParameters = new();
-            mSystemParameters = new();
-            mActorPack = ActorPackCache.Load(mActorName);
+            mHash = RandomUtil.GetRandom();
+            mActorPack = ActorPackCache.Load(mPackName);
 
             InitializeDefaultDynamicParams();
         }
@@ -133,9 +132,9 @@ namespace Fushigi.course
         {
             mActorParameters.Clear();
 
-            if (ParamDB.HasActorComponents(mActorName))
+            if (ParamDB.HasActorComponents(mPackName))
             {
-                List<string> paramList = ParamDB.GetActorComponents(mActorName);
+                List<string> paramList = ParamDB.GetActorComponents(mPackName);
 
                 foreach (string p in paramList)
                 {
@@ -173,17 +172,12 @@ namespace Fushigi.course
             }
         }
 
-        public ulong GetHash()
-        {
-            return mActorHash;
-        }
-
         public BymlHashTable BuildNode(CourseLinkHolder linkHolder)
         {
             BymlHashTable table = new();
             table.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(mAreaHash), "AreaHash");
-            table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mActorName), "Gyaml");
-            table.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mActorHash), "Hash");
+            table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mPackName), "Gyaml");
+            table.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mHash), "Hash");
             table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mLayer), "Layer");
             table.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mName), "Name");
 
@@ -217,11 +211,11 @@ namespace Fushigi.course
                 table.AddNode(BymlNodeId.Hash, sysNode, "System");
             }
 
-            if (linkHolder.GetSrcHashesFromDest(mActorHash).Values.Count > 0)
+            if (linkHolder.GetSrcHashesFromDest(mHash).Values.Count > 0)
             {
                 BymlHashTable inLinksNode = new();
 
-                foreach (var (linkName, links) in linkHolder.GetSrcHashesFromDest(mActorHash))
+                foreach (var (linkName, links) in linkHolder.GetSrcHashesFromDest(mHash))
                 {
                     inLinksNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(links.Count), linkName);
                 }
@@ -253,15 +247,15 @@ namespace Fushigi.course
             return table;
         }
 
-        public string  mActorName;
+        public string mPackName;
         public string mName;
         public string mLayer;
         public System.Numerics.Vector3 mTranslation;
         public System.Numerics.Vector3 mRotation;
         public System.Numerics.Vector3 mScale;
         public uint mAreaHash;
-        public ulong mActorHash;
-        public Dictionary<string, object> mActorParameters;
+        public ulong mHash;
+        public Dictionary<string, object> mActorParameters = new();
         public Dictionary<string, object> mSystemParameters = new();
 
         public ActorPack mActorPack;
@@ -269,51 +263,40 @@ namespace Fushigi.course
 
     public class CourseActorHolder
     {
+        public CourseActorHolder()
+        {
+
+        }
+
         public CourseActorHolder(BymlArrayNode actorArray)
         {
             foreach (BymlHashTable actor in actorArray.Array)
             {
-                mCourseActors.Add(new CourseActor(actor));
+                mActors.Add(new CourseActor(actor));
             }
         }
 
-        public CourseActorHolder()
+        public bool TryGetActor(ulong hash, [NotNullWhen(true)] out CourseActor? actor)
         {
-        }
-
-        CourseActor GetActor(ulong hash)
-        {
-            foreach (var actor in mCourseActors)
-            {
-                if (actor.GetHash() == hash)
-                {
-                    return actor;
-                }
-            }
-
-            return null;
-        }
-
-        public bool HasHash(ulong hash)
-        {
-            return mCourseActors.Any(x => x.GetHash() == hash);
+            actor = mActors.Find(x => x.mHash == hash);
+            return actor is not null;
         }
 
         public CourseActor this[ulong hash]
         {
-            get => GetActor(hash);
-        }
-
-        public List<CourseActor> GetActors()
-        {
-            return mCourseActors;
+            get
+            {
+                bool exists = TryGetActor(hash, out CourseActor? actor);
+                Debug.Assert(exists);
+                return actor!;
+            }
         }
 
         public BymlArrayNode SerializeToArray(CourseLinkHolder linkHolder)
         {
-            BymlArrayNode node = new((uint)mCourseActors.Count);
+            BymlArrayNode node = new((uint)mActors.Count);
 
-            foreach (CourseActor actor in mCourseActors)
+            foreach (CourseActor actor in mActors)
             {
                 node.AddNodeToArray(actor.BuildNode(linkHolder));
             }
@@ -321,7 +304,7 @@ namespace Fushigi.course
             return node;
         }
 
-        List<CourseActor> mCourseActors = new List<CourseActor>();
+        public List<CourseActor> mActors = new List<CourseActor>();
     }
 
     public class CourseActorRender //This can be overridden per actor for individual behavior

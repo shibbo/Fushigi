@@ -339,7 +339,7 @@ namespace Fushigi.ui.widgets
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 if (hoveredActor != null)
-                    ImGui.SetTooltip($"{hoveredActor.mActorName}");
+                    ImGui.SetTooltip($"{hoveredActor.mPackName}");
 
                 if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeySuper)
                 {
@@ -353,7 +353,7 @@ namespace Fushigi.ui.widgets
             else
             {
                 if (hoveredActor != null)
-                    ImGui.SetTooltip($"{hoveredActor.mActorName}");
+                    ImGui.SetTooltip($"{hoveredActor.mPackName}");
 
                 if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
                 {
@@ -507,7 +507,7 @@ namespace Fushigi.ui.widgets
                 {
                     if (hoveredActor != null)
                         ImGui.SetTooltip($"""
-                            Click to delete {hoveredActor.mActorName}.
+                            Click to delete {hoveredActor.mPackName}.
                             Hold SHIFT to delete multiple actors, ESCAPE to cancel.
                             """);
                     else
@@ -552,7 +552,7 @@ namespace Fushigi.ui.widgets
                 {
                     if (hoveredActor != null)
                     {
-                        ImGui.SetTooltip($"Select the source actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
+                        ImGui.SetTooltip($"Select the source actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mPackName}");
                     }
                     else
                     {
@@ -564,7 +564,7 @@ namespace Fushigi.ui.widgets
                 {
                     if (hoveredActor != null)
                     {
-                        ImGui.SetTooltip($"Select the destination actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
+                        ImGui.SetTooltip($"Select the destination actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mPackName}");
                     }
                     else
                     {
@@ -577,7 +577,7 @@ namespace Fushigi.ui.widgets
                 {
                     CurCourseLink = new(mNewLinkType);
                     CourseActor selActor = mEditContext.GetSelectedObjects<CourseActor>().ElementAt(0);
-                    CurCourseLink.mSource = selActor.GetHash();
+                    CurCourseLink.mSource = selActor.mHash;
                     mIsLinkNew = false;
                 }
 
@@ -588,8 +588,8 @@ namespace Fushigi.ui.widgets
                         if (hoveredActor != null)
                         {
                             /* new links have a destination of 0 because there is no hash associated with a null actor */
-                            bool isNewLink = CurCourseLink.GetDestHash() == 0;
-                            ulong hash = hoveredActor.GetHash();
+                            bool isNewLink = CurCourseLink.mDest == 0;
+                            ulong hash = hoveredActor.mHash;
                             CurCourseLink.mDest = hash;
 
                             if (isNewLink)
@@ -936,7 +936,7 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            foreach (CourseActor actor in mEditContext.GetActorHolder().GetActors())
+            foreach (CourseActor actor in mArea.GetActors())
             {
                 string layer = actor.mLayer;
 
@@ -956,9 +956,9 @@ namespace Fushigi.ui.widgets
 
                     uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
 
-                    if (actor.mActorName.Contains("CameraArea") || actor.mActorPack?.Category == "AreaObj")
+                    if (actor.mPackName.Contains("CameraArea") || actor.mActorPack?.Category == "AreaObj")
                     {
-                        if (actor.mActorName.Contains("CameraArea"))
+                        if (actor.mPackName.Contains("CameraArea"))
                             color = ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1));
 
                         //topLeft
@@ -1002,7 +1002,7 @@ namespace Fushigi.ui.widgets
                             color, isHovered ? 2.5f : 1.5f);
                     }
 
-                    string name = actor.mActorName;
+                    string name = actor.mPackName;
 
                     isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
 

@@ -98,12 +98,12 @@ namespace Fushigi.course
         public void AddGlobalLink()
         {
             CourseLink link = new("Reference");
-            mGlobalLinks.GetLinks().Add(link);
+            mGlobalLinks.mLinks.Add(link);
         }
 
         public void RemoveGlobalLink(CourseLink link)
         {
-            mGlobalLinks.GetLinks().Remove(link);
+            mGlobalLinks.mLinks.Remove(link);
         }
 
         public CourseLinkHolder GetGlobalLinks()

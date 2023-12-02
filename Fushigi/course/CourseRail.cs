@@ -5,6 +5,8 @@ using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection.Metadata.Ecma335;
@@ -20,14 +22,14 @@ namespace Fushigi.course
         {
             mHash = RandomUtil.GetRandom();
             mAreaHash = areaHash;
-            mGyml = "Work/Gyml/Rail/RailParam/Default.game__rail__RailParam.gyml";
+            mRailParam = "Work/Gyml/Rail/RailParam/Default.game__rail__RailParam.gyml";
             mIsClosed = false;
         }
 
         public CourseRail(BymlHashTable node)
         {
             mAreaHash = BymlUtil.GetNodeData<uint>(node["AreaHash"]);
-            mGyml = BymlUtil.GetNodeData<string>(node["Gyaml"]);
+            mRailParam = BymlUtil.GetNodeData<string>(node["Gyaml"]);
             mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);
             mIsClosed = BymlUtil.GetNodeData<bool>(node["IsClosed"]);
 
@@ -108,7 +110,7 @@ namespace Fushigi.course
             BymlHashTable node = new();
 
             node.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(mAreaHash), "AreaHash");
-            node.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mGyml), "Gyaml");
+            node.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mRailParam), "Gyaml");
             node.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mHash), "Hash");
             node.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(mIsClosed), "IsClosed");
 
@@ -135,34 +137,24 @@ namespace Fushigi.course
             return node;
         }
 
-        public ulong GetHash()
+        public bool TryGetPoint(ulong hash, [NotNullWhen(true)] out CourseRailPoint? point)
         {
-            return mHash;
-        }
-
-        CourseRailPoint GetPoint(ulong hash)
-        {
-            foreach (CourseRailPoint pnt in mPoints)
-            {
-                if (pnt.GetHash() == hash)
-                {
-                    return pnt;
-                }
-            }
-
-            return null;
+            point = mPoints.Find(x => x.mHash == hash);
+            return point is not null;
         }
 
         public CourseRailPoint this[ulong hash]
         {
             get
             {
-                return GetPoint(hash);
+                bool exists = TryGetPoint(hash, out CourseRailPoint? point);
+                Debug.Assert(exists);
+                return point!;
             }
         }
 
         public uint mAreaHash;
-        string mGyml;
+        public string mRailParam;
         public ulong mHash;
         public bool mIsClosed;
         public List<CourseRailPoint> mPoints = new();
@@ -264,11 +256,6 @@ namespace Fushigi.course
                 }
             }
 
-            public ulong GetHash()
-            {
-                return mHash;
-            }
-
             public BymlHashTable BuildNode()
             {
                 BymlHashTable tbl = new();
@@ -327,24 +314,19 @@ namespace Fushigi.course
             }
         }
 
-        CourseRail GetRail(ulong hash)
+        public bool TryGetRail(ulong hash, [NotNullWhen(true)] out CourseRail? rail)
         {
-            foreach(CourseRail rail in mRails) 
-            {
-                if (rail.GetHash() == hash)
-                {
-                    return rail;
-                }
-            }
-
-            return null;
+            rail = mRails.Find(x => x.mHash == hash);
+            return rail is not null;
         }
 
         public CourseRail this[ulong hash]
         {
             get
             {
-                return GetRail(hash);
+                bool exists = TryGetRail(hash, out CourseRail? rail);
+                Debug.Assert(exists);
+                return rail!;
             }
         }
 
@@ -363,75 +345,89 @@ namespace Fushigi.course
         public List<CourseRail> mRails = new();
     }
 
-    public class CourseActorToRailLinks
+    public class CourseActorToRailLink
     {
-        public struct Link
+        public CourseActorToRailLink(string linkName)
         {
-            public ulong Source;
-            public ulong Dest;
-            public ulong Point;
-            public string Name;
+            mSourceActor = 0;
+            mDestRail = 0;
+            mDestPoint = 0;
+            mLinkName = linkName;
         }
 
-        public CourseActorToRailLinks(BymlArrayNode array, CourseActorHolder actorHolder, CourseRailHolder railHolder)
+        public CourseActorToRailLink(BymlHashTable table)
         {
-            foreach(BymlHashTable railLink in array.Array)
+            mSourceActor = BymlUtil.GetNodeData<ulong>(table["Src"]);
+            mDestRail = BymlUtil.GetNodeData<ulong>(table["Dst"]);
+            mLinkName = BymlUtil.GetNodeData<string>(table["Name"]);
+        }
+
+        public BymlHashTable BuildNode()
+        {
+            BymlHashTable tbl = new();
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mDestRail), "Dst");
+            tbl.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mLinkName), "Name");
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mSourceActor), "Point");
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mSourceActor), "Src");
+            return tbl;
+        }
+
+        public ulong mSourceActor;
+        public ulong mDestRail;
+        public ulong mDestPoint;
+        public string mLinkName;
+    }
+
+    public class CourseActorToRailLinksHolder
+    {
+        public CourseActorToRailLinksHolder()
+        {
+        }
+
+        public CourseActorToRailLinksHolder(BymlArrayNode array, CourseActorHolder actorHolder, CourseRailHolder railHolder)
+        {
+            foreach (BymlHashTable railLink in array.Array)
             {
-                ulong sourceHash = BymlUtil.GetNodeData<ulong>(railLink["Src"]);
-                ulong destHash = BymlUtil.GetNodeData<ulong>(railLink["Dst"]);
-                ulong pointHash = BymlUtil.GetNodeData<ulong>(railLink["Point"]);
-                string name = BymlUtil.GetNodeData<string>(railLink["Name"]);
-
-                Link link = new();
-                link.Source = sourceHash;
-                link.Dest = destHash;
-                link.Point = pointHash;
-                link.Name = name;
-
-                mLinks.Add(link);
+                mLinks.Add(new CourseActorToRailLink(railLink));
             }
         }
 
-        public CourseActorToRailLinks()
+        public bool TryGetLinkWithSrcActor(ulong hash, 
+            [NotNullWhen(true)] out CourseActorToRailLink? link)
         {
+            link = mLinks.Find(x => x.mSourceActor == hash);
 
+            return link is not null;
         }
 
-        public void RemoveLinkFromSrc(ulong hash)
+        public bool TryGetLinkWithDestRail(ulong hash,
+            [NotNullWhen(true)] out CourseActorToRailLink? link)
         {
-            int idx = -1;
-            foreach (Link link in mLinks)
-            {
-                if (link.Source == hash)
-                {
-                    idx = mLinks.IndexOf(link);
-                    break;
-                }
-            }
+            link = mLinks.Find(x => x.mDestRail == hash);
 
-            if (idx != -1)
-            {
-                mLinks.RemoveAt(idx);
-            }
+            return link is not null;
+        }
+
+        public bool TryGetLinkWithDestRailAndPoint(ulong railHash, ulong pointHash,
+            [NotNullWhen(true)] out CourseActorToRailLink? link)
+        {
+            link = mLinks.Find(x => x.mDestRail == railHash && x.mDestPoint == pointHash);
+
+            return link is not null;
         }
 
         public BymlArrayNode SerializeToArray()
         {
             BymlArrayNode node = new((uint)mLinks.Count);
 
-            foreach (Link link in mLinks)
+            foreach (var link in mLinks)
             {
-                BymlHashTable tbl = new();
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Dst", link.Dest), "Dst");
-                tbl.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Name", link.Name), "Name");
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Point", link.Point), "Point");
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Src", link.Source), "Src");
-                node.AddNodeToArray(tbl);
+                node.AddNodeToArray(link.BuildNode());
             }
 
             return node;
         }
 
-        public List<Link> mLinks = new();
+        public List<CourseActorToRailLink> mLinks = new();
     }
 }
