@@ -1508,16 +1508,16 @@ namespace Fushigi.ui.widgets
 
         private void RecursiveLinkFind(CourseArea area, CourseLinkHolder links, CourseAreaEditContext editContext, float em)
         {
-            foreach (CourseActor actor in area.GetActors().Where(x => !links.GetSrcHashesFromDest(x.mActorHash).Any() && links.GetDestHashesFromSrc(x.mActorHash).Any()))
+            foreach (CourseActor actor in area.GetActors().Where(x => !links.GetSrcHashesFromDest(x.mHash).Any() && links.GetDestHashesFromSrc(x.mHash).Any()))
             {
                 ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.OpenOnArrow;
-                ImGui.PushID(actor.mActorHash.ToString());
+                ImGui.PushID(actor.mHash.ToString());
                 bool expanded = false;
                 bool isVisible = true;
                 float margin = 1.5f * em;
                 float headerHeight = 1.4f * em;
                 Vector2 cp = ImGui.GetCursorScreenPos();
-                expanded = ImGui.TreeNodeEx(actor.mActorHash.ToString(), node_flags, actor.mActorName);
+                expanded = ImGui.TreeNodeEx(actor.mHash.ToString(), node_flags, actor.mPackName);
 
                 if (ImGui.IsItemFocused())
                 {
@@ -1534,20 +1534,20 @@ namespace Fushigi.ui.widgets
 
                 if (expanded)
                 {
-                    foreach (var link in links.GetDestHashesFromSrc(actor.mActorHash))
+                    foreach (var link in links.GetDestHashesFromSrc(actor.mHash))
                     {
-                        if(ImGui.TreeNodeEx(actor.mActorHash.ToString() + link.Key, ImGuiTreeNodeFlags.FramePadding, link.Key))
+                        if(ImGui.TreeNodeEx(actor.mHash.ToString() + link.Key, ImGuiTreeNodeFlags.FramePadding, link.Key))
                         {
-                            foreach (CourseActor linkActor in area.GetActors().Where(x => link.Value.Contains(x.mActorHash)))
+                            foreach (CourseActor linkActor in area.GetActors().Where(x => link.Value.Contains(x.mHash)))
                             {
                                 var act = linkActor;
-                                string actorName = act.mActorName;
+                                string actorName = act.mPackName;
                                 string name = act.mName;
-                                ulong actorHash = act.mActorHash;
+                                ulong actorHash = act.mHash;
                                 string actorLink = link.Key;
                                 //Check if the node is within the necessary search filter requirements if search is used
                                 bool HasText = act.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                            act.mActorName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                            act.mPackName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
                                             act.ToString().Equals(mActorSearchText);
 
                                 if (!HasText)
