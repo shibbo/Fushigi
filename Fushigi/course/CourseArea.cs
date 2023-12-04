@@ -63,11 +63,11 @@ namespace Fushigi.course
             if (root.ContainsKey("ActorToRailLinks"))
             {
                 BymlArrayNode? actorLinksArray = root["ActorToRailLinks"] as BymlArrayNode;
-                mRailLinks = new CourseActorToRailLinks(actorLinksArray, mActorHolder, mRailHolder);
+                mRailLinksHolder = new CourseActorToRailLinksHolder(actorLinksArray, mActorHolder, mRailHolder);
             }
             else
             {
-                mRailLinks = new();
+                mRailLinksHolder = new();
             }
 
             if (root.ContainsKey("Links"))
@@ -83,11 +83,11 @@ namespace Fushigi.course
             if (root.ContainsKey("SimultaneousGroups"))
             {
                 BymlArrayNode? groupsArray = root["SimultaneousGroups"] as BymlArrayNode;
-                mGroups = new CourseGroupHolder(groupsArray);
+                mGroupsHolder = new CourseGroupHolder(groupsArray);
             }
             else
             {
-                mGroups = new();
+                mGroupsHolder = new();
             }
 
             if (root.ContainsKey("BgUnits"))
@@ -113,9 +113,9 @@ namespace Fushigi.course
                 Directory.CreateDirectory(folder);
 
             BymlHashTable root = new();
-            root.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>("RootAreaHash", mRootHash), "RootAreaHash");
-            root.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("StageParam", mStageParams), "StageParam");
-            root.AddNode(BymlNodeId.Array, mRailLinks.SerializeToArray(), "ActorToRailLinks");
+            root.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(mRootHash), "RootAreaHash");
+            root.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mStageParams), "StageParam");
+            root.AddNode(BymlNodeId.Array, mRailLinksHolder.SerializeToArray(), "ActorToRailLinks");
             root.AddNode(BymlNodeId.Array, mActorHolder.SerializeToArray(mLinkHolder), "Actors");
 
             if (mUnitHolder != null)
@@ -125,7 +125,7 @@ namespace Fushigi.course
 
             root.AddNode(BymlNodeId.Array, mLinkHolder.SerializeToArray(), "Links");
             root.AddNode(BymlNodeId.Array, mRailHolder.SerializeToArray(), "Rails");
-            root.AddNode(BymlNodeId.Array, mGroups.SerializeToArray(), "SimultaneousGroups");
+            root.AddNode(BymlNodeId.Array, mGroupsHolder.SerializeToArray(), "SimultaneousGroups");
 
             var byml = new Byml.Byml(root);
             var mem = new MemoryStream();
@@ -147,20 +147,20 @@ namespace Fushigi.course
             return mAreaName;
         }
 
-        public List<CourseActor> GetActors()
+        public IReadOnlyList<CourseActor> GetActors()
         {
-            return mActorHolder.GetActors();
+            return mActorHolder.mActors;
         }
 
-        string mAreaName;
+        public string mAreaName;
         public uint mRootHash;
         string mStageParams;
         public AreaParam mAreaParams;
         public CourseActorHolder mActorHolder;
         public CourseRailHolder mRailHolder;
-        public CourseActorToRailLinks mRailLinks;
+        public CourseActorToRailLinksHolder mRailLinksHolder;
         public CourseLinkHolder mLinkHolder;
-        public CourseGroupHolder mGroups;
+        public CourseGroupHolder mGroupsHolder;
         public CourseUnitHolder mUnitHolder;
 
         public class AreaParam

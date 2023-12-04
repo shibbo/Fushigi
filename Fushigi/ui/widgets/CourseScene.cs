@@ -4,13 +4,16 @@ using Fushigi.gl.Bfres;
 using Fushigi.param;
 using Fushigi.ui.SceneObjects;
 using Fushigi.ui.SceneObjects.bgunit;
+using Fushigi.ui.undo;
 using Fushigi.util;
 using ImGuiNET;
 using Silk.NET.OpenGL;
 using System.Collections.Immutable;
 using System.Drawing;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Fushigi.ui.widgets
 {
@@ -23,6 +26,11 @@ namespace Fushigi.ui.widgets
         public LevelViewport activeViewport;
         UndoWindow undoWindow;
         Vector3 camSave;
+
+        (object? courseObj, PropertyFieldsCapture placementPropCapture, PropertyDictCapture dynamicPropCapture)
+           propertyCapture = (null, 
+            PropertyFieldsCapture.Empty, 
+            PropertyDictCapture.Empty);
 
         readonly Course course;
         CourseArea selectedArea;
@@ -165,6 +173,7 @@ namespace Fushigi.ui.widgets
             RailsPanel();
 
             GlobalLinksPanel();
+            RailLinksPanel();
 
             LocalLinksPanel();
 
@@ -207,6 +216,7 @@ namespace Fushigi.ui.widgets
                     {
                         selectedArea = area;
                         activeViewport = viewport;
+                        mHasFilledLayers = false;
                     }
 
                     var topLeft = ImGui.GetCursorScreenPos();
@@ -253,7 +263,7 @@ namespace Fushigi.ui.widgets
                 for (int i = 0; i < course.GetAreaCount(); i++)
                 {
                     var area = course.GetArea(i);
-                    if (area.mActorHolder.GetActors().Any(x => x.mActorName == "PlayerLocator"))
+                    if (area.mActorHolder.mActors.Any(x => x.mPackName == "PlayerLocator"))
                     {
                         ImGui.SetWindowFocus(area.GetName());
                         break;
@@ -392,9 +402,9 @@ namespace Fushigi.ui.widgets
 
             foreach (var actor in actors)
             {
-                if (editContext.IsActorDestForLink(actor))
+                if (selectedArea.mLinkHolder.HasLinksWithDest(actor.mHash))
                 {
-                    var links = selectedArea.mLinkHolder.GetSrcHashesFromDest(actor.GetHash());
+                    var links = selectedArea.mLinkHolder.GetSrcHashesFromDest(actor.mHash);
 
                     foreach (KeyValuePair<string, List<ulong>> kvp in links)
                     {
@@ -403,14 +413,14 @@ namespace Fushigi.ui.widgets
                         foreach (var hash in hashes)
                         {
                             /* only delete actors that the hash exists for...this may be caused by a user already deleting the source actor */
-                            if (selectedArea.mActorHolder.HasHash(hash))
+                            if (selectedArea.mActorHolder.TryGetActor(hash, out _))
                             {
-                                dstMsgStrs.Add($"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n");
+                                dstMsgStrs.Add($"{selectedArea.mActorHolder[hash].mPackName} [{selectedArea.mActorHolder[hash].mName}]\n");
                             }
                         }
                     }
 
-                    var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(actor.GetHash());
+                    var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(actor.mHash);
 
                     foreach (KeyValuePair<string, List<ulong>> kvp in destHashes)
                     {
@@ -418,9 +428,9 @@ namespace Fushigi.ui.widgets
 
                         foreach (var hash in hashes)
                         {
-                            if (selectedArea.mActorHolder.HasHash(hash))
+                            if (selectedArea.mActorHolder.TryGetActor(hash, out _))
                             {
-                                srcMsgStr.Add($"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n");
+                                srcMsgStr.Add($"{selectedArea.mActorHolder[hash].mPackName} [{selectedArea.mActorHolder[hash].mName}]\n");
                             }
                         }
                     }
@@ -562,6 +572,95 @@ namespace Fushigi.ui.widgets
             ImGui.Separator();
 
             AreaLocalLinksView(selectedArea);
+            
+            ImGui.End();
+        }
+        
+        private void RailLinksPanel()
+        {
+            ImGui.Begin("Actor to Rail Links");
+
+            ImGui.Columns(4);
+            ImGui.Text("Actor-Hash");
+            ImGui.NextColumn();
+            ImGui.Text("Rail");
+            ImGui.NextColumn();
+            ImGui.Text("Point");
+            ImGui.NextColumn();
+            ImGui.NextColumn();
+
+            var ctx = areaScenes[selectedArea].EditContext;
+            var rails = selectedArea.mRailHolder.mRails;
+            var actors = selectedArea.mActorHolder.mActors;
+            var railLinks = selectedArea.mRailLinksHolder.mLinks;
+
+            for (int i = 0; i < railLinks.Count; i++)
+            {
+                ImGui.PushID(i);
+                CourseActorToRailLink link = railLinks[i];
+
+                string hash = link.mSourceActor.ToString();
+                int actorIndex = actors.FindIndex(x => x.mHash == link.mSourceActor);
+                if (ImGui.InputText("##actor", ref hash, 100) &&
+                    ulong.TryParse(hash, out ulong hashInt))
+                    link.mSourceActor = hashInt;
+                if(actorIndex == -1)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextDisabled("Invalid");
+                }
+
+                ImGui.NextColumn();
+                int railIndex = rails.FindIndex(x => x.mHash == link.mDestRail);
+                if (ImGui.BeginCombo("##rail", railIndex >= 0 ? ("rail " + railIndex) : "None"))
+                {
+                    for (int iRail = 0; iRail < rails.Count; iRail++)
+                    {
+                        if (ImGui.Selectable("Rail " + iRail, railIndex == iRail))
+                            link.mDestRail = rails[iRail].mHash;
+                    }
+                    ImGui.EndCombo();
+                }
+                if (railIndex == -1)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextDisabled("Invalid");
+                }
+                ImGui.NextColumn();
+                if (railIndex >= 0)
+                {
+                    int pointIndex = rails[railIndex].mPoints.FindIndex(x => x.mHash == link.mDestPoint);
+
+                    if (pointIndex == -1)
+                        pointIndex = 0;
+
+                    if (ImGui.InputInt("##railpoint", ref pointIndex))
+                        pointIndex = Math.Clamp(pointIndex, 0, rails[railIndex].mPoints.Count - 1);
+
+                    link.mDestPoint = rails[railIndex].mPoints[pointIndex].mHash;
+                }
+
+                ImGui.NextColumn();
+                if (ImGui.Button("Delete", new Vector2(ImGui.GetContentRegionAvail().X * 0.65f, 0)))
+                {
+                    ctx.DeleteRailLink(link);
+                    i--;
+                }
+
+
+                ImGui.NextColumn();
+                ImGui.PopID();
+            }
+
+            float width = ImGui.GetItemRectMax().X - ImGui.GetCursorScreenPos().X;
+
+            ImGui.Columns(1);
+            ImGui.Dummy(new Vector2(0, ImGui.GetFrameHeight() * 0.5f));
+
+            if (ImGui.Button("Add", new Vector2(width, ImGui.GetFrameHeight() * 1.5f)))
+            {
+                ctx.AddRailLink(new CourseActorToRailLink("Reference"));
+            }
 
             ImGui.End();
         }
@@ -574,21 +673,29 @@ namespace Fushigi.ui.widgets
 
             if (editContext.IsSingleObjectSelected(out CourseActor? mSelectedActor))
             {
-                string actorName = mSelectedActor.mActorName;
+                //invalidate current action if there has been external changes
+                if((propertyCapture.placementPropCapture.HasChangesSinceLastCheckpoint() ||
+                    propertyCapture.dynamicPropCapture.HasChangesSinceLastCheckpoint()))
+                {
+                    propertyCapture = (null, PropertyFieldsCapture.Empty, PropertyDictCapture.Empty);
+                }
+
+                #region Actor UI
+                string actorName = mSelectedActor.mPackName;
                 string name = mSelectedActor.mName;
 
                 ImGui.Columns(2);
                 ImGui.AlignTextToFramePadding();
-                string tempName = mSelectedActor.mActorName;
+                string packName = mSelectedActor.mPackName;
 
                 ImGui.Text("Actor Name");
                 ImGui.NextColumn();
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
-                if (ImGui.InputText("##Actor Name", ref tempName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
+                if (ImGui.InputText("##Actor Name", ref packName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
-                    if (ParamDB.GetActors().Contains(tempName))
+                    if (ParamDB.GetActors().Contains(packName))
                     {
-                        editContext.SetActorName(mSelectedActor, tempName);
+                        mSelectedActor.mPackName = packName;
                         mSelectedActor.InitializeDefaultDynamicParams();
                     }
                 }
@@ -597,7 +704,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.Text("Actor Hash");
                 ImGui.NextColumn();
-                string hash = mSelectedActor.mActorHash.ToString();
+                string hash = mSelectedActor.mHash.ToString();
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
                 ImGui.InputText("##Actor Hash", ref hash, 256, ImGuiInputTextFlags.ReadOnly);
                 ImGui.PopItemWidth();
@@ -614,7 +721,7 @@ namespace Fushigi.ui.widgets
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
                 if (ImGui.InputText($"##{name}", ref name, 512, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
-                    editContext.SetObjectName(mSelectedActor, name);
+                    mSelectedActor.mName = name;
                 }
 
                 ImGui.PopItemWidth();
@@ -679,7 +786,7 @@ namespace Fushigi.ui.widgets
                     ImGui.EndCombo();
                 }
 
-                var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.GetHash());
+                var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.mHash);
 
                 foreach ((string linkName, List<ulong> hashArray) in destHashes)
                 {
@@ -759,7 +866,7 @@ namespace Fushigi.ui.widgets
                             ImGui.SetTooltip("Delete Link");
 
                         if (clicked)
-                            editContext.DeleteLink(linkName, mSelectedActor.mActorHash, hashArray[i]);
+                            editContext.DeleteLink(linkName, mSelectedActor.mHash, hashArray[i]);
 
                         ImGui.NextColumn();
 
@@ -769,7 +876,36 @@ namespace Fushigi.ui.widgets
                     ImGui.Separator();
 
                 }
+                #endregion
 
+                bool needsRecapture = false;
+
+                if (!ImGui.IsAnyItemActive())
+                {
+                    if (propertyCapture.placementPropCapture.TryGetRevertable(out var revertable, out var names))
+                    {
+                        editContext.CommitAction(revertable);
+                        needsRecapture = true;
+                    }
+
+                    if (propertyCapture.dynamicPropCapture.TryGetRevertable(out revertable, out names))
+                    {
+                        editContext.CommitAction(revertable);
+                        needsRecapture = true;
+                    }
+                }
+                if(needsRecapture || propertyCapture.courseObj != mSelectedActor)
+                {
+                    Console.WriteLine("Capturing");
+                    propertyCapture = (
+                        mSelectedActor,
+                        new PropertyFieldsCapture(mSelectedActor),
+                        new PropertyDictCapture(mSelectedActor.mActorParameters)
+                    );
+                }
+
+                propertyCapture.placementPropCapture.MakeCheckpoint();
+                propertyCapture.dynamicPropCapture.MakeCheckpoint();
             }
             else if (editContext.IsSingleObjectSelected(out CourseUnit? mSelectedUnit))
             {
@@ -865,7 +1001,7 @@ namespace Fushigi.ui.widgets
                     ImGui.Text("Link Type"); ImGui.NextColumn();
 
                     List<string> types = linkTypes.ToList();
-                    int idx = types.IndexOf(mSelectedGlobalLink.GetLinkName());
+                    int idx = types.IndexOf(mSelectedGlobalLink.mLinkName);
                     ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
                     if (ImGui.Combo("##Link Type", ref idx, linkTypes, linkTypes.Length))
                     {
@@ -1114,7 +1250,8 @@ namespace Fushigi.ui.widgets
 
         private void FillLayers(CourseActorHolder actorArray)
         {
-            foreach (CourseActor actor in actorArray.GetActors())
+            mLayersVisibility.Clear();
+            foreach (CourseActor actor in actorArray.mActors)
             {
                 string actorLayer = actor.mLayer;
                 mLayersVisibility[actorLayer] = true;
@@ -1341,9 +1478,10 @@ namespace Fushigi.ui.widgets
 
         private void CourseGlobalLinksView(CourseLinkHolder linkHolder)
         {
-            foreach (CourseLink link in linkHolder.GetLinks())
+            for (int i = 0; i < linkHolder.mLinks.Count; i++)
             {
-                if (ImGui.Selectable($"Link {linkHolder.GetLinks().IndexOf(link)}"))
+                CourseLink link = linkHolder.mLinks[i];
+                if (ImGui.Selectable($"Link {i}"))
                 {
                     mSelectedGlobalLink = link;
                 }
@@ -1568,16 +1706,16 @@ namespace Fushigi.ui.widgets
 
                 if (expanded || isSearch)
                 {
-                    foreach (CourseActor actor in actorArray.GetActors())
+                    foreach (CourseActor actor in actorArray.mActors)
                     {
-                        string actorName = actor.mActorName;
+                        string actorName = actor.mPackName;
                         string name = actor.mName;
-                        ulong actorHash = actor.mActorHash;
+                        ulong actorHash = actor.mHash;
                         string actorLayer = actor.mLayer;
 
                         //Check if the node is within the necessary search filter requirements if search is used
                         bool HasText = actor.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                       actor.mActorName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                       actor.mPackName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
                                        actorHash.ToString().Equals(mActorSearchText);
 
                         if (isSearch && !HasText)
@@ -1796,7 +1934,7 @@ namespace Fushigi.ui.widgets
         {
             if (ImGui.CollapsingHeader("Dynamic", ImGuiTreeNodeFlags.DefaultOpen))
             {
-                List<string> actorParams = ParamDB.GetActorComponents(actor.mActorName);
+                List<string> actorParams = ParamDB.GetActorComponents(actor.mPackName);
 
                 foreach (string param in actorParams)
                 {
@@ -1816,10 +1954,10 @@ namespace Fushigi.ui.widgets
 
                     ImGui.Columns(2);
 
-                    if (param == "ChildActorSelectName" && ChildActorParam.ActorHasChildParam(actor.mActorName))
+                    if (param == "ChildActorSelectName" && ChildActorParam.ActorHasChildParam(actor.mPackName))
                     {
                         string id = $"##{param}";
-                        List<string> list = ChildActorParam.GetActorParams(actor.mActorName);
+                        List<string> list = ChildActorParam.GetActorParams(actor.mPackName);
                         int selected = list.IndexOf(actor.mActorParameters["ChildActorSelectName"].ToString());
                         ImGui.Text("ChildParameters");
                         ImGui.NextColumn();

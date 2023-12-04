@@ -1,58 +1,42 @@
-﻿using ImGuiNET;
+﻿using Fushigi.ui.modal;
+using Fushigi.util;
+using ImGuiNET;
 using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Fushigi.ui.widgets
 {
-    internal class CourseSelect
+    internal class CourseSelect : IPopupModal<string>
     {
-        string? selectedWorld;
-        string? selectedCourseName;
-        Vector2 thumbnailSize = new(200f, 112.5f);
-        float worldNameSize = 12f;
-        GL gl;
-        Action<string> selectCourseCallback;
-        bool isOpen = true;
-
-        public CourseSelect(GL gl, Action<string> selectCourseCallback, string? selectedCourseName = null)
+        public static async Task<string?> ShowDialog(IPopupModalHost modalHost, 
+            string? selectedCourseName = null)
         {
-            this.gl = gl;
-            this.selectedCourseName = selectedCourseName;
-            this.selectCourseCallback = selectCourseCallback;
+            var result = await modalHost.ShowPopUp( 
+                new CourseSelect(selectedCourseName),
+                "Select Course",
+                minWindowSize: thumbnailSize * 1.25f);
+
+            if(result.wasClosed)
+                return null;
+
+            return result.result;
         }
 
-        public void Draw()
+        string? selectedWorld;
+        string? selectedCourseName;
+        private static readonly Vector2 thumbnailSize = new(200f, 112.5f);
+        float worldNameSize = 12f;
+
+        public CourseSelect(string? selectedCourseName = null)
         {
-            Vector2 center = ImGui.GetMainViewport().GetCenter();
-            ImGui.SetNextWindowPos(center, ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
+            this.selectedCourseName = selectedCourseName;
+        }
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, thumbnailSize * 1.25f);
-
-            if (isOpen && !ImGui.IsPopupOpen("Select Course"))
-            {
-                ImGui.OpenPopup("Select Course");
-            }
-
-            if (!ImGui.BeginPopupModal("Select Course", ref isOpen))
-            {
-                return;
-            }
-
-            ImGui.PopStyleVar();
-
+        public void DrawModalContent(Promise<string> promise)
+        {
             DrawTabs();
 
-            DrawCourses();
-
-            ImGui.EndPopup();
+            DrawCourses(promise);
         }
 
         void DrawTabs()
@@ -78,7 +62,7 @@ namespace Fushigi.ui.widgets
             ImGui.EndTabBar();
         }
 
-        void DrawCourses()
+        void DrawCourses(Promise<string> promise)
         {
             var fontSize = ImGui.GetFontSize();
             var font = ImGui.GetFont();
@@ -117,7 +101,7 @@ namespace Fushigi.ui.widgets
 
                 if (clicked)
                 {
-                    selectCourseCallback(course.Key);
+                    promise.SetResult(course.Key);
                 }
 
                 var min = ImGui.GetItemRectMin();

@@ -1,261 +1,38 @@
-﻿using Fushigi.course;
+﻿using Fasterflect;
+using Fushigi.course;
 using Fushigi.ui.undo;
 using Fushigi.util;
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using static Fushigi.course.CourseActorToRailLinksHolder;
 
 namespace Fushigi.ui
 {
-    interface ICommittable
+    class CourseAreaEditContext(CourseArea area) : EditContextBase
     {
-        void Commit(string name);
-    }
-
-    class CourseAreaEditContext(CourseArea area)
-    {
-        private readonly HashSet<object> mSelectedObjects = [];
-
-        private readonly UndoHandler mUndoHandler = new();
-
-        private bool mIsSuspendUpdate = false;
-        private bool mIsRequireUpdate = false;
-        private bool mIsRequireSelectionCheck = false;
-
-        public event Action? Update;
-
-        public ulong SelectionVersion { get; private set; } = 0;
-
-        private void SelectionChanged()
-        {
-            if (mIsSuspendUpdate)
-            {
-                mIsRequireSelectionCheck = true;
-                return;
-            }
-            SelectionVersion++;
-            Update?.Invoke();
-        }
-
-        private void DoUpdate()
-        {
-            if (mIsSuspendUpdate)
-            {
-                mIsRequireUpdate = true;
-                return;
-            }
-            Update?.Invoke();
-        }
-
-        public void WithSuspendUpdateDo(Action action)
-        {
-            if (mIsSuspendUpdate)
-            {
-                action.Invoke();
-                return;
-            }
-
-            List<object> prevSelection = mSelectedObjects.ToList();
-
-            mIsSuspendUpdate = true;
-            action.Invoke();
-            mIsSuspendUpdate = false;
-
-            if (mIsRequireSelectionCheck)
-            {
-                if (prevSelection.Count != mSelectedObjects.Count ||
-                    !mSelectedObjects.SetEquals(prevSelection))
-                {
-                    SelectionChanged();
-                    mIsRequireUpdate = true;
-                }
-
-                mIsRequireSelectionCheck = false;
-            }
-
-            if (mIsRequireUpdate)
-            {
-                Update?.Invoke();
-                mIsRequireUpdate = false;
-            }
-        }
-
-        private bool mHasDialog = false;
-
-        //For Undo Window
-        public IEnumerable<IRevertable> GetUndoStack() => mUndoHandler.GetUndoStack();
-        public IEnumerable<IRevertable> GetRedoUndoStack() => mUndoHandler.GetRedoUndoStack();
-
-
-        public object? GetLastAction() => mUndoHandler.GetLastAction();
-
-        public void Undo()
-        {
-            mUndoHandler.Undo();
-            Update?.Invoke();
-        }
-
-        public void Redo()
-        {
-            mUndoHandler.Redo();
-            Update?.Invoke();
-        }
-
-        private class BatchAction(CourseAreaEditContext context) : ICommittable
-        {
-            public string Name { get; private set; }
-            public void Commit(string name)
-            {
-                Name = name;
-                context.EndBatchAction(this);
-            }
-        }
-
-        private List<IRevertable>? mCurrentActionBatch;
-        private readonly Stack<BatchAction> mNestedBatchActions = [];
-
-        public ICommittable BeginBatchAction()
-        {
-            mCurrentActionBatch = [];
-            var batchAction = new BatchAction(this);
-            mNestedBatchActions.Push(batchAction);
-            return batchAction;
-        }
-        private void EndBatchAction(BatchAction action)
-        {
-            if (action != mNestedBatchActions.Pop())
-                throw new InvalidOperationException($"Nested batch action {action.Name} committed in incorrect order");
-
-            if (mNestedBatchActions.Count > 0)
-                //we're still nested
-                return;
-
-            if (mCurrentActionBatch is null || mCurrentActionBatch.Count == 0)
-                return;
-
-            mUndoHandler.AddToUndo(mCurrentActionBatch, action.Name);
-            mCurrentActionBatch = null;
-            Update?.Invoke();
-        }
-
-        public void CommitAction(IRevertable action)
-        {
-            if (mCurrentActionBatch is not null)
-            {
-                mCurrentActionBatch.Add(action);
-                return;
-            }
-
-            mUndoHandler.AddToUndo(action);
-            Update?.Invoke();
-        }
-
-        public void DeselectAll()
-        {
-            if (mSelectedObjects.Count > 0)
-                SelectionChanged();
-
-            mSelectedObjects.Clear();
-        }
-
-        public void DeselectAllOfType<T>()
-            where T : class
-        {
-            int countBefore = mSelectedObjects.Count;
-            mSelectedObjects.RemoveWhere(x => x is T);
-
-            if (mSelectedObjects.Count != countBefore)
-                SelectionChanged();
-        }
-
-        public void Select(ICollection<object> objects)
-        {
-            int countBefore = mSelectedObjects.Count;
-            mSelectedObjects.UnionWith(objects);
-
-            if (mSelectedObjects.Count != countBefore)
-                SelectionChanged();
-        }
-
-        public void Select(object obj)
-        {
-            int countBefore = mSelectedObjects.Count;
-            mSelectedObjects.Add(obj);
-
-            if (mSelectedObjects.Count != countBefore)
-                SelectionChanged();
-        }
-
-        public void Deselect(object obj)
-        {
-            int countBefore = mSelectedObjects.Count;
-            mSelectedObjects.Remove(obj);
-
-            if (mSelectedObjects.Count != countBefore)
-                SelectionChanged();
-        }
-
-        public bool IsSelected(object obj) =>
-            mSelectedObjects.Contains(obj);
-
-        public bool IsSingleObjectSelected(object obj) =>
-            mSelectedObjects.Count == 1 && mSelectedObjects.Contains(obj);
-
-        public bool IsSingleObjectSelected<T>([NotNullWhen(true)] out T? obj)
-            where T : class
-        {
-            obj = null;
-            if (mSelectedObjects.Count != 1)
-                return false;
-
-            var _obj = mSelectedObjects.First();
-            if (_obj is not T casted) return false;
-            obj = casted;
-            return true;
-        }
-
-        public IEnumerable<T> GetSelectedObjects<T>()
-            where T : class
-            => mSelectedObjects.OfType<T>();
-
-        public bool IsAnySelected<T>()
-            where T : class
-        {
-            return mSelectedObjects.Any(x => x is T);
-        }
-
-        public List<CourseLink> GetLinks()
-        {
-            return area.mLinkHolder.GetLinks();
-        }
-
         public void AddActor(CourseActor actor)
         {
-            CommitAction(area.mActorHolder.GetActors()
-                .RevertableAdd(actor, $"{IconUtil.ICON_PLUS_CIRCLE} Add {actor.mActorName}"));
+            LogAdding<CourseActor>($"{actor.mPackName}[{actor.mHash}]");
+
+            CommitAction(area.mActorHolder.mActors
+                .RevertableAdd(actor, $"{IconUtil.ICON_PLUS_CIRCLE} Add {actor.mPackName}"));
         }
 
-        public void SetActorName(CourseActor actor, string newName)
-        {
-            actor.mActorName = newName;
-        }
-
-        public void SetObjectName(CourseActor actor, string newName)
-        {
-            actor.mName = newName;
-        }
         public void DeleteActor(CourseActor actor)
         {
-            var batchAction = BeginBatchAction();
+            LogDeleting<CourseActor>($"{actor.mPackName}[{actor.mHash}]");
 
-            Console.WriteLine($"Deleting actor {actor.mActorName} [{actor.GetHash()}]");
+            var batchAction = BeginBatchAction();
             Deselect(actor);
-            DeleteActorFromAllGroups(actor.GetHash());
-            DeleteLinksWithSrcHash(actor.GetHash());
-            DeleteLinksWithDestHash(actor.GetHash());
-            DeleteRail(actor.GetHash());
-            CommitAction(area.mActorHolder.GetActors()
+            RemoveActorFromAllGroups(actor);
+            DeleteLinksWithSource(actor.mHash);
+            DeleteLinksWithDest(actor.mHash);
+            DeleteRailLinkWithSrcActor(actor.mHash);
+            CommitAction(area.mActorHolder.mActors
                 .RevertableRemove(actor));
 
-            batchAction.Commit($"{IconUtil.ICON_TRASH} Delete {actor.mActorName}");
+            batchAction.Commit($"{IconUtil.ICON_TRASH} Delete {actor.mPackName}");
         }
 
         public void DeleteSelectedActors()
@@ -272,101 +49,187 @@ namespace Fushigi.ui
             batchAction.Commit($"{IconUtil.ICON_TRASH} Delete selected");
         }
 
-        private void DeleteActorFromAllGroups(ulong hash)
+        public void AddActorToGroup(CourseGroup group, CourseActor actor)
         {
-            Console.WriteLine($"Deleting actor with {hash} from groups.");
-            foreach (var group in area.mGroups.GetGroupsContaining(hash))
-                DeleteActorFromGroup(group, hash);
+            Console.WriteLine($"Adding actor {actor.mPackName}[{actor.mHash}] to group [{group.mHash}].");
+            CommitAction(
+                group.mActors.RevertableAdd(actor.mHash,
+                $"Add {actor.mPackName} to simultaneous group")
+            );
         }
 
-        public void DeleteActorFromGroup(CourseGroup group, ulong hash)
+        private void RemoveActorFromAllGroups(CourseActor actor)
         {
-            if (group.TryGetIndexOfActor(hash, out int index))
+            foreach (var group in area.mGroupsHolder.GetGroupsContaining(actor.mHash))
+                RemoveActorFromGroup(group, actor);
+        }
+
+        public void RemoveActorFromGroup(CourseGroup group, CourseActor actor)
+        {
+            Console.WriteLine($"Removing actor {actor.mPackName}[{actor.mHash}] from group [{group.mHash}].");
+            if (group.TryGetIndexOfActor(actor.mHash, out int index))
             {
                 CommitAction(
-                        group.GetActors().RevertableRemoveAt(index,
-                        $"Remove actor {hash} from group")
+                        group.mActors.RevertableRemoveAt(index,
+                        $"Remove {actor.mPackName} from simultaneous group")
                     );
             }
         }
 
-        private void DeleteLinksWithDestHash(ulong hash)
+        public void AddLink(CourseLink link)
+        {
+            LogAdding<CourseLink>($": {link.mSource} -{link.mLinkName}-> {link.mDest}");
+            CommitAction(
+                area.mLinkHolder.mLinks.RevertableAdd(link,
+                    $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.mLinkName} Link")
+            );
+        }
+
+        private void DeleteLinksWithDest(ulong hash)
         {
             foreach (var index in area.mLinkHolder.GetIndicesOfLinksWithDest_ForDelete(hash))
                 DeleteLinkByIndex(index);
         }
 
-        private void DeleteLinksWithSrcHash(ulong hash)
+        private void DeleteLinksWithSource(ulong hash)
         {
             foreach (var index in area.mLinkHolder.GetIndicesOfLinksWithSrc_ForDelete(hash))
                 DeleteLinkByIndex(index);
         }
 
+        //I don't like this method but there is one instance where we need it
         public void DeleteLink(string name, ulong src, ulong dest)
         {
-            if (area.mLinkHolder.TryGetIndexOfLink(name, src, dest, out int index))
-                DeleteLinkByIndex(index);
+            int index = area.mLinkHolder.mLinks.FindIndex(
+                x => x.mSource == src && 
+                x.mLinkName == name && 
+                x.mDest == dest);
+            DeleteLinkByIndex(index);
+        }
+
+        public void DeleteLink(CourseLink link)
+        {
+            int index = area.mLinkHolder.mLinks.IndexOf(link);
+            DeleteLinkByIndex(index);
         }
 
         private void DeleteLinkByIndex(int index)
         {
-            var name = area.mLinkHolder.GetLinks()[index].GetLinkName();
+            var link = area.mLinkHolder.mLinks[index];
+            LogDeleting<CourseLink>($": {link.mSource} -{link.mLinkName}-> {link.mDest}");
             CommitAction(
-                area.mLinkHolder.GetLinks().RevertableRemoveAt(index, $"{IconUtil.ICON_TRASH} Delete {name} Link")
+                area.mLinkHolder.mLinks.RevertableRemoveAt(index, 
+                $"{IconUtil.ICON_TRASH} Delete {link.mLinkName} Link")
             );
         }
 
-        public bool IsActorDestForLink(CourseActor actor)
+        public void AddRail(CourseRail rail)
         {
-            return area.mLinkHolder.GetLinkWithDestHash(actor.GetHash()) != null;
+            LogAdding<CourseRail>(rail.mHash);
+            CommitAction(area.mRailHolder.mRails.RevertableAdd(rail,
+                $"{IconUtil.ICON_PLUS_CIRCLE} Add Rail"));
         }
 
-        public void AddLink(CourseLink link)
+        public void DeleteRail(CourseRail rail)
         {
-            Console.WriteLine($"Adding Link: Source: {link.GetSrcHash()} -- Dest: {link.GetDestHash()}");
-            CommitAction(
-                area.mLinkHolder.GetLinks().RevertableAdd(link,
-                    $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.GetLinkName()} Link")
-            );
+            LogDeleting<CourseRail>(rail.mHash);
+
+            var batchAction = BeginBatchAction();
+            DeleteRailLinkWithDestRail(rail.mHash);
+            CommitAction(area.mRailHolder.mRails.RevertableRemove(rail));
+
+            batchAction.Commit($"{IconUtil.ICON_TRASH} Delete Rail");
         }
+
+        public void AddRailLink(CourseActorToRailLink link)
+        {
+            LogAdding<CourseActorToRailLink>(
+                $": {link.mSourceActor} -{link.mLinkName}-> {link.mDestRail}[{link.mDestPoint}]");
+            CommitAction(area.mRailLinksHolder.mLinks.RevertableAdd(link,
+                $"{IconUtil.ICON_PLUS_CIRCLE} Add Actor to Rail Link"));
+        }
+
+        private void DeleteRailLinkWithSrcActor(ulong hash)
+        {
+            if (area.mRailLinksHolder.TryGetLinkWithSrcActor(hash, out var link))
+            {
+                DeleteRailLink(link);
+            }
+        }
+
+        private void DeleteRailLinkWithDestRail(ulong hash)
+        {
+            if (area.mRailLinksHolder.TryGetLinkWithDestRail(hash, out var link))
+            {
+                DeleteRailLink(link);
+            }
+        }
+
+        public void DeleteRailLinkWithDestPoint(CourseRail rail, CourseRail.CourseRailPoint point)
+        {
+            if (area.mRailLinksHolder.TryGetLinkWithDestRailAndPoint(rail.mHash, point.mHash, out var link))
+            {
+                DeleteRailLink(link);
+            }
+        }
+
+        public void DeleteRailLink(CourseActorToRailLink link)
+        {
+            LogDeleting<CourseActorToRailLink>(
+                $": {link.mSourceActor} -{link.mLinkName}-> {link.mDestRail}[{link.mDestPoint}]");
+            CommitAction(area.mRailLinksHolder.mLinks.RevertableRemove(link,
+                $"{IconUtil.ICON_TRASH} Delete Actor to Rail Link"));
+        }
+
 
         public void AddBgUnit(CourseUnit unit)
         {
-            Console.WriteLine("Adding Course Unit");
+            LogAdding<CourseUnit>();
             CommitAction(area.mUnitHolder.mUnits.RevertableAdd(unit,
                     $"{IconUtil.ICON_PLUS_CIRCLE} Add Tile Unit"));
         }
 
         public void DeleteBgUnit(CourseUnit unit)
         {
-            Console.WriteLine("Deleting Course Unit");
+            LogDeleting<CourseUnit>();
             CommitAction(area.mUnitHolder.mUnits.RevertableRemove(unit,
-                    $"{IconUtil.ICON_PLUS_CIRCLE} Delete Tile Unit"));
+                    $"{IconUtil.ICON_TRASH} Delete Tile Unit"));
         }
 
         public void AddWall(CourseUnit unit, Wall wall)
         {
-            Console.WriteLine("Adding Wall");
+            LogAdding<Wall>();
             CommitAction(unit.Walls.RevertableAdd(wall,
                     $"{IconUtil.ICON_PLUS_CIRCLE} Add Wall"));
         }
 
         public void DeleteWall(CourseUnit unit, Wall wall)
         {
-            Console.WriteLine("Deleting Wall");
+            LogDeleting<Wall>();
             CommitAction(unit.Walls.RevertableRemove(wall,
-                    $"{IconUtil.ICON_PLUS_CIRCLE} Delete Wall"));
+                    $"{IconUtil.ICON_TRASH} Delete Wall"));
         }
 
-        public CourseActorHolder GetActorHolder()
+        private void LogAdding<T>(ulong hash) => 
+            LogAdding<T>($"[{hash}]");
+
+        private void LogAdding<T>(string? extraText = null)
         {
-            return area.mActorHolder;
+            string text = $"Adding {typeof(T).Name()}";
+            if (extraText != null)
+                text += $" {extraText}";
+            Console.WriteLine(text);
         }
 
-        public void DeleteRail(ulong hash)
+        private void LogDeleting<T>(ulong hash) => 
+            LogDeleting<T>($"[{hash}]");
+
+        private void LogDeleting<T>(string? extraText = null)
         {
-            Console.WriteLine($"Removing Rail attached to {hash}");
-            area.mRailLinks.RemoveLinkFromSrc(hash);
+            string text = $"Deleting {typeof(T).Name()}";
+            if (extraText != null)
+                text += $" {extraText}";
+            Console.WriteLine(text);
         }
     }
 }

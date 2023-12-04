@@ -2,6 +2,8 @@
 using Fushigi.util;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,49 +20,39 @@ namespace Fushigi.course
 
             foreach (BymlBigDataNode<ulong> node in groups.Array)
             {
-                mActorHashes.Add(node.Data);
+                mActors.Add(node.Data);
             }
         }
 
-        public ulong GetHash()
+        public bool ContainsActor(ulong hash)
         {
-            return mHash;
-        }
-
-        public bool IsActorValid(ulong hash)
-        {
-            return mActorHashes.Any(a => a == hash);
+            return mActors.Any(a => a == hash);
         }
 
         public bool TryGetIndexOfActor(ulong hash, out int index)
         {
-            index = mActorHashes.FindIndex(a => a == hash);
+            index = mActors.FindIndex(a => a == hash);
             return index != -1;
         }
 
         public BymlHashTable BuildNode()
         {
             BymlHashTable tableNode = new();
-            tableNode.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Hash", mHash), "Hash");
+            tableNode.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mHash), "Hash");
 
-            BymlArrayNode actorsArray = new((uint)mActorHashes.Count);
+            BymlArrayNode actorsArray = new((uint)mActors.Count);
 
-            foreach (ulong actor in mActorHashes)
+            foreach (ulong actor in mActors)
             {
-                actorsArray.AddNodeToArray(BymlUtil.CreateNode<ulong>("", actor));
+                actorsArray.AddNodeToArray(BymlUtil.CreateNode<ulong>(actor));
             }
 
             tableNode.AddNode(BymlNodeId.Array, actorsArray, "Actors");
             return tableNode;
         }
 
-        public List<ulong> GetActors()
-        {
-            return mActorHashes;
-        }
-
-        ulong mHash;
-        List<ulong> mActorHashes = new();
+        public ulong mHash;
+        public List<ulong> mActors = new();
     }
 
     public class CourseGroupHolder
@@ -79,24 +71,19 @@ namespace Fushigi.course
 
         }
 
-        CourseGroup GetGroup(ulong hash)
+        public bool TryGetGroup(ulong hash, [NotNullWhen(true)] out CourseGroup? rail)
         {
-            foreach (CourseGroup grp in mGroups)
-            {
-                if (grp.GetHash() == hash)
-                {
-                    return grp;
-                }
-            }
-
-            return null;
+            rail = mGroups.Find(x => x.mHash == hash);
+            return rail is not null;
         }
 
         public CourseGroup this[ulong hash]
         {
             get
             {
-                return GetGroup(hash);
+                bool exists = TryGetGroup(hash, out CourseGroup? group);
+                Debug.Assert(exists);
+                return group!;
             }
         }
 
@@ -104,7 +91,7 @@ namespace Fushigi.course
         {
             foreach (CourseGroup group in mGroups)
             {
-                if (group.IsActorValid(hash))
+                if (group.ContainsActor(hash))
                     yield return group;
             }
         }
@@ -121,6 +108,6 @@ namespace Fushigi.course
             return arrayNode;
         }
 
-        List<CourseGroup> mGroups = new();
+        public List<CourseGroup> mGroups = new();
     }
 }

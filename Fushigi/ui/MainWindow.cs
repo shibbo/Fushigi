@@ -1,4 +1,5 @@
 using Fushigi.param;
+using Fushigi.ui.modal;
 using Fushigi.ui.widgets;
 using Fushigi.util;
 using Fushigi.windowing;
@@ -10,8 +11,10 @@ using System.Runtime.InteropServices;
 
 namespace Fushigi.ui
 {
-    public class MainWindow
+    public class MainWindow : IPopupModalHost
     {
+
+        private PopupModalHost mModalHost = new();
 
         private ImFontPtr mDefaultFont;
         private ImFontPtr mIconFont;
@@ -88,36 +91,48 @@ namespace Fushigi.ui
             mWindow.Dispose();
         }
 
-        public bool TryCloseCourse(Action onSuccessRetryAction)
+        public async Task<bool> TryCloseCourse()
         {
-            if (mCloseCourseRequest.TryGetValue(out var request))
-            {
-                if (request.success)
-                {
-                    mCloseCourseRequest = null;
-                    return true;
-                }
-            }
-
             if (mSelectedCourseScene is not null &&
                 mSelectedCourseScene.HasUnsavedChanges())
             {
-                mCloseCourseRequest = (onSuccessRetryAction, success: false);
-                return false;
+                var result = await CloseConfirmationDialog.ShowDialog(this);
+
+                if (result == CloseConfirmationDialog.DialogResult.Yes)
+                {
+                    mSelectedCourseScene = null;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             return true;
         }
 
+        bool mSkipCloseTest = false;
         public void Close()
         {
-            if (!TryCloseCourse(onSuccessRetryAction: mWindow.Close))
+            //prevent infinite loop
+            if (mSkipCloseTest)
             {
-                mWindow.IsClosing = false;
+                UserSettings.Save();
                 return;
             }
 
-            UserSettings.Save();
+            mWindow.IsClosing = false;
+
+            Task.Run(async () =>
+            {
+                if(await TryCloseCourse())
+                {
+                    mSkipCloseTest = true;
+                    mWindow.Close();
+                }
+
+            }).ConfigureAwait(false); //fire and forget
         }
 
         void LoadFromSettings(GL gl)
@@ -168,26 +183,21 @@ namespace Fushigi.ui
                     {
                         if (ImGui.MenuItem("Open Course"))
                         {
-                            void SwitchCourse(string courseLocation)
+                            Task.Run(async () =>
                             {
-                                if (mCurrentCourseName == courseLocation)
+                                string? selectedCourse = await CourseSelect.ShowDialog(this, mCurrentCourseName);
+
+                                if (selectedCourse is null || mCurrentCourseName == selectedCourse)
+                                    return;
+
+                                if (await TryCloseCourse())
                                 {
-                                    mCourseSelect = null;
-                                    return;
+                                    mCurrentCourseName = selectedCourse;
+                                    Console.WriteLine($"Selected course {mCurrentCourseName}!");
+                                    mSelectedCourseScene = new(new(mCurrentCourseName), gl);
+                                    UserSettings.AppendRecentCourse(mCurrentCourseName);
                                 }
-
-                                if (!TryCloseCourse(onSuccessRetryAction: () => SwitchCourse(courseLocation)))
-                                    return;
-
-                                Console.WriteLine($"Selected course {courseLocation}!");
-
-                                mCurrentCourseName = courseLocation;
-                                mSelectedCourseScene = new(new(mCurrentCourseName), gl);
-                                mCourseSelect = null;
-                                UserSettings.AppendRecentCourse(courseLocation);
-                            }
-
-                            mCourseSelect = new(gl, SwitchCourse, mCurrentCourseName);
+                            }).ConfigureAwait(false); //fire and forget
                         }
                     }
 
@@ -326,11 +336,6 @@ namespace Fushigi.ui
                 if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
                     !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
                 {
-                    if (mCourseSelect != null)
-                    {
-                        mCourseSelect.Draw();
-                    }
-
                     mSelectedCourseScene?.DrawUI(gl, delta);
                 }
 
@@ -348,24 +353,9 @@ namespace Fushigi.ui
                 {
                     ParamDBDialog.Draw(ref mIsGeneratingParamDB);
                 }
-
-                bool hasRequest = mCloseCourseRequest.TryGetValue(out var request);
-                bool hasResult = CloseConfirmationDialog.Draw(hasRequest, out var result);
-
-                if (hasRequest && hasResult) //just to make sure
-                {
-                    if (result == CloseConfirmationDialog.Result.Yes)
-                    {
-                        mSelectedCourseScene = null;
-                        mCloseCourseRequest = request with { success = true };
-                        request.onSuccessRetryAction.Invoke();
-                    }
-                    else if (result == CloseConfirmationDialog.Result.No)
-                    {
-                        mCloseCourseRequest = null;
-                    }
-                }
             }
+
+            mModalHost.DrawHostedModals();
 
             //Update viewport from any framebuffers being used
             gl.Viewport(mWindow.FramebufferSize);
@@ -374,13 +364,19 @@ namespace Fushigi.ui
             controller.Render();
         }
 
+        public Task<(bool wasClosed, TResult result)> ShowPopUp<TResult>(IPopupModal<TResult> modal,
+            string title,
+            ImGuiWindowFlags windowFlags = ImGuiWindowFlags.None,
+            Vector2? minWindowSize = null)
+        {
+            return mModalHost.ShowPopUp(modal, title, windowFlags, minWindowSize);
+        }
+
         readonly IWindow mWindow;
         string? mCurrentCourseName;
         CourseScene? mSelectedCourseScene;
-        CourseSelect? mCourseSelect = null;
         bool mIsChoosingPreferences = true;
         bool mIsWelcome = true;
         bool mIsGeneratingParamDB = false;
-        (Action onSuccessRetryAction, bool success)? mCloseCourseRequest = null;
     }
 }

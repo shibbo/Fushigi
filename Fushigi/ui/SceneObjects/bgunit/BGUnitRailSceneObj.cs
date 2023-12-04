@@ -151,15 +151,42 @@ namespace Fushigi.ui.SceneObjects.bgunit
             }
             else if (ImGui.GetIO().KeyAlt && selected.Count == 0) //Add new point from last 
             {
-                //Insert and add
                 Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
                 Vector3 pos = new(
                      MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
                      MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
                      2);
 
+                //find best index to insert at (minimizing circumference)
+
+                var min = (delta: float.PositiveInfinity, index: 0);
+
+                int segmentCount = rail.Points.Count;
+
+                if (!rail.IsClosed)
+                {
+                    segmentCount--;
+                    var delta = Vector3.Distance(rail.Points[0].Position, pos);
+                    if (delta < min.delta)
+                        min = (delta, 1);
+                }
+
+                for (int i = 0; i < segmentCount; i++)
+                {
+                    var pointA = rail.Points[i];
+                    var pointB = rail.Points[(i+1)%rail.Points.Count];
+
+                    var distance = Vector3.Distance(pointA.Position, pointB.Position);
+                    var newDistanceSum = Vector3.Distance(pointA.Position, pos) +
+                        Vector3.Distance(pointB.Position, pos);
+
+                    var delta = newDistanceSum-distance;
+                    if (delta < min.delta)
+                        min = (delta, i+1);
+                }
+
                 DeselectAll(ctx);
-                AddPoint(ctx, new BGUnitRail.RailPoint(rail, pos));
+                InsertPoint(ctx, new BGUnitRail.RailPoint(rail, pos), min.index);
             }
             else
             {
@@ -214,33 +241,43 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
             Vector3 diff = posVec - mouseDownPos;
+
             if (diff.X != 0 && diff.Y != 0 && !transformStart)
             {
                 transformStart = true;
-                //Store each selected point for undoing
-                mTransformUndos.Clear();
-                foreach (var point in GetSelected(ctx))
-                {
-                    if (!ChildPoints.TryGetValue(point, out RailPoint? childPoint))
-                        continue;
-
-                    mTransformUndos.Add(new TransformUndo(childPoint.Transform));
-                }
             }
 
             bool anyTransformed = false;
-
-            for (int i = 0; i < rail.Points.Count; i++)
+            if (transformStart)
             {
-                if (transformStart && ctx.IsSelected(rail.Points[i]))
+                //this will repeatedly add new undos so we have to clear first
+                //not exactly efficient but a lot less error prone then doing preparation separately from update
+                //atleast until we have a proper "ongoing action"-system
+                mTransformUndos.Clear();
+                for (int i = 0; i < rail.Points.Count; i++)
                 {
+                    if (!ctx.IsSelected(rail.Points[i]))
+                        continue;
+
                     if (!ChildPoints.TryGetValue(rail.Points[i], out RailPoint? childPoint))
                         continue;
 
                     diff.X = MathF.Round(diff.X, MidpointRounding.AwayFromZero);
                     diff.Y = MathF.Round(diff.Y, MidpointRounding.AwayFromZero);
                     posVec.Z = rail.Points[i].Position.Z;
-                    rail.Points[i].Position = childPoint.PreviousPosition + diff;
+
+                    var newPos = childPoint.PreviousPosition + diff;
+
+                    if (!ImGui.GetIO().KeyCtrl || IsValidPosition(newPos, i))
+                    {
+                        mTransformUndos.Add(new TransformUndo(
+                            childPoint.Transform, 
+                            childPoint.PreviousPosition, 
+                            newPos));
+
+                        rail.Points[i].Position = newPos;
+                    }
+
                     anyTransformed = true;
                 }
             }
@@ -254,7 +291,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
             if (!Visible)
                 return;
 
-            if (HitTest(viewport))
+            if ((ImGui.GetIO().KeyAlt && ctx.IsSelected(rail)) || HitTest(viewport))
                 isNewHoveredObj = true;
 
             bool isSelected = IsSelected(ctx);
@@ -347,6 +384,35 @@ namespace Fushigi.ui.SceneObjects.bgunit
             };
 
             return validAngles.Contains(MathF.Round(angle));
+        }
+
+        /// <summary>
+        /// Check if the proposed position is valid within the rail
+        /// </summary>
+        /// <param name="pos">new proposed position</param>
+        /// <param name="index">index of the point to set to the new position</param>
+        /// <returns>true if the point is valid there, false otherwise</returns>
+        private bool IsValidPosition(Vector3 pos, int index)
+        {
+            Vector2 newPos = new(pos.X, pos.Y);
+
+            // Check if the point has valid angles with the points coming before and after it
+            int[] offsets = [-1, 1];
+            foreach (var offset in offsets)
+            {
+                var neighborIndex = (index + offset) % rail.Points.Count;
+
+                if (neighborIndex < 0)
+                    neighborIndex += rail.Points.Count;
+
+                Vector2 neighborPos = new(rail.Points[neighborIndex].Position.X,
+                    rail.Points[neighborIndex].Position.Y);
+
+                if (!IsValidAngle(newPos, neighborPos))
+                    return false;
+            }
+
+            return true;
         }
 
         void IViewportSelectable.OnSelect(CourseAreaEditContext editContext)
