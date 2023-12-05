@@ -153,7 +153,7 @@ namespace Fushigi.ui
                 if (latestCourse != null && ParamDB.sIsInit)
                 {
                     mCurrentCourseName = latestCourse;
-                    mSelectedCourseScene = new(new(mCurrentCourseName), gl);
+                    mSelectedCourseScene = new(new(mCurrentCourseName), gl, this);
                     mIsChoosingPreferences = false;
                     mIsWelcome = false;
                 }
@@ -194,7 +194,7 @@ namespace Fushigi.ui
                                 {
                                     mCurrentCourseName = selectedCourse;
                                     Console.WriteLine($"Selected course {mCurrentCourseName}!");
-                                    mSelectedCourseScene = new(new(mCurrentCourseName), gl);
+                                    mSelectedCourseScene = new(new(mCurrentCourseName), gl, this);
                                     UserSettings.AppendRecentCourse(mCurrentCourseName);
                                 }
                             }).ConfigureAwait(false); //fire and forget

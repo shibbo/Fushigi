@@ -2,6 +2,7 @@ using Fushigi.course;
 using Fushigi.gl;
 using Fushigi.gl.Bfres;
 using Fushigi.param;
+using Fushigi.ui.modal;
 using Fushigi.ui.SceneObjects;
 using Fushigi.ui.SceneObjects.bgunit;
 using Fushigi.ui.undo;
@@ -33,19 +34,17 @@ namespace Fushigi.ui.widgets
             PropertyDictCapture.Empty);
 
         readonly Course course;
+        readonly IPopupModalHost mPopupModalHost;
         CourseArea selectedArea;
 
         readonly Dictionary<string, bool> mLayersVisibility = [];
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
-        bool mShowAddActor = false;
-        bool mShowSelectActorLayer = false;
+        readonly List<IToolWindow> mOpenToolWindows = [];
 
         string mActorSearchText = "";
 
         CourseLink? mSelectedGlobalLink = null;
-        string mAddActorSearchQuery = "";
-        string mAddLayerSearchQuery = "";
 
         string[] linkTypes = [
             "BasicSignal",
@@ -76,9 +75,10 @@ namespace Fushigi.ui.widgets
             "EventGuest_11",
         ];
 
-        public CourseScene(Course course, GL gl)
+        public CourseScene(Course course, GL gl, IPopupModalHost popupModalHost)
         {
             this.course = course;
+            this.mPopupModalHost = popupModalHost;
             selectedArea = course.GetArea(0);
             undoWindow = new UndoWindow();
 
@@ -86,8 +86,17 @@ namespace Fushigi.ui.widgets
             {
                 var areaScene = new CourseAreaScene(area, new CourseAreaSceneRoot(area));
                 areaScenes[area] = areaScene;
-                viewports[area] = new LevelViewport(area, gl, areaScene);
+                var viewport = new LevelViewport(area, gl, areaScene);
+                viewports[area] = viewport;
                 lastSavedAction[area] = null;
+
+                //might not be the best approach but better than what we had before
+                viewport.ObjectDeletionRequested += (objs) =>
+                {
+                    if (objs.Count > 0)
+                        _ = DeleteObjectsWithWarningPrompt(objs, 
+                            areaScene.EditContext, "Delete objects");
+                };
             }
 
             activeViewport = viewports[selectedArea];
@@ -180,20 +189,18 @@ namespace Fushigi.ui.widgets
             BGUnitPanel();
 
             CourseMiniView();
-
-            if (mShowAddActor)
+          
+            for (int i = 0; i < mOpenToolWindows.Count; i++)
             {
-                SelectActorToAdd();
-            }
+                var window = mOpenToolWindows[i];
+                bool windowOpen = true;
+                window.Draw(ref windowOpen);
 
-            if (mShowSelectActorLayer)
-            {
-                SelectActorToAddLayer();
-            }
-
-            if (activeViewport.mEditorState == LevelViewport.EditorState.DeleteActorLinkCheck)
-            {
-                LinkDeletionCheck();
+                if (!windowOpen)
+                {
+                    mOpenToolWindows.RemoveAt(i);
+                    i--;
+                }
             }
 
 
@@ -285,231 +292,25 @@ namespace Fushigi.ui.widgets
             undoWindow.Render(areaScenes[selectedArea].EditContext);
         }
 
-        private void SelectActorToAdd()
-        {
-            bool button = true;
-            bool status = ImGui.Begin("Add Actor", ref button);
-
-            ImGui.InputText("Search", ref mAddActorSearchQuery, 256);
-
-            var filteredActors = ParamDB.GetActors().ToImmutableList();
-
-            if (mAddActorSearchQuery != "")
-            {
-                filteredActors = FuzzySharp.Process.ExtractAll(mAddActorSearchQuery, ParamDB.GetActors(), cutoff: 65)
-                    .OrderByDescending(result => result.Score)
-                    .Select(result => result.Value)
-                    .ToImmutableList();
-            }
-
-            if (ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail()))
-            {
-                foreach (string actor in filteredActors)
-                {
-                    ImGui.Selectable(actor);
-
-                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                    {
-                        Console.WriteLine("Switching state to EditorState.SelectingActorLayer");
-                        activeViewport.mEditorState = LevelViewport.EditorState.SelectingActorLayer;
-                        activeViewport.mActorToAdd = actor;
-                        mShowAddActor = false;
-                        mShowSelectActorLayer = true;
-                    }
-                }
-
-                ImGui.EndListBox();
-            }
-
-            if (ImGui.IsKeyDown(ImGuiKey.Escape))
-            {
-                button = false;
-            }
-
-            if (!button)
-            {
-                Console.WriteLine("Switching state to EditorState.Selecting");
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-                mShowAddActor = false;
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
-        private void SelectActorToAddLayer()
-        {
-            bool button = true;
-            bool status = ImGui.Begin("Select Layer", ref button);
-
-            ImGui.InputText("Search", ref mAddLayerSearchQuery, 256);
-
-            var fileteredLayers = mLayersVisibility.Keys.ToArray().ToImmutableList();
-
-            if (mAddLayerSearchQuery != "")
-            {
-                fileteredLayers = FuzzySharp.Process.ExtractAll(mAddLayerSearchQuery, mLayersVisibility.Keys.ToArray(), cutoff: 65)
-                    .OrderByDescending(result => result.Score)
-                    .Select(result => result.Value)
-                    .ToImmutableList();
-            }
-
-            if (ImGui.BeginListBox("Select the layer you want to add the actor to.", ImGui.GetContentRegionAvail()))
-            {
-                foreach (string layer in fileteredLayers)
-                {
-                    ImGui.Selectable(layer);
-
-                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                    {
-                        Console.WriteLine("Switching state to EditorState.AddingActor");
-                        activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
-                        activeViewport.mLayerToAdd = layer;
-                        mShowSelectActorLayer = false;
-                    }
-                }
-
-                ImGui.EndListBox();
-            }
-
-            if (ImGui.IsKeyDown(ImGuiKey.Escape))
-            {
-                button = false;
-            }
-
-            if (!button)
-            {
-                Console.WriteLine("Switching state to EditorState.Selecting");
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-                mShowAddActor = false;
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
-        private void LinkDeletionCheck()
-        {
-            var editContext = areaScenes[selectedArea].EditContext;
-
-            var actors = editContext.GetSelectedObjects<CourseActor>();
-            List<string> dstMsgStrs = new();
-            List<string> srcMsgStr = new();
-
-            foreach (var actor in actors)
-            {
-                if (selectedArea.mLinkHolder.HasLinksWithDest(actor.mHash))
-                {
-                    var links = selectedArea.mLinkHolder.GetSrcHashesFromDest(actor.mHash);
-
-                    foreach (KeyValuePair<string, List<ulong>> kvp in links)
-                    {
-                        var hashes = kvp.Value;
-
-                        foreach (var hash in hashes)
-                        {
-                            /* only delete actors that the hash exists for...this may be caused by a user already deleting the source actor */
-                            if (selectedArea.mActorHolder.TryGetActor(hash, out _))
-                            {
-                                dstMsgStrs.Add($"{selectedArea.mActorHolder[hash].mPackName} [{selectedArea.mActorHolder[hash].mName}]\n");
-                            }
-                        }
-                    }
-
-                    var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(actor.mHash);
-
-                    foreach (KeyValuePair<string, List<ulong>> kvp in destHashes)
-                    {
-                        var hashes = kvp.Value;
-
-                        foreach (var hash in hashes)
-                        {
-                            if (selectedArea.mActorHolder.TryGetActor(hash, out _))
-                            {
-                                srcMsgStr.Add($"{selectedArea.mActorHolder[hash].mPackName} [{selectedArea.mActorHolder[hash].mName}]\n");
-                            }
-                        }
-                    }
-                }
-            }
-
-            /* nothing to worry about here */
-            if (dstMsgStrs.Count == 0 && srcMsgStr.Count == 0)
-            {
-                var ctx = areaScenes[selectedArea].EditContext;
-
-                if (ctx.IsAnySelected<CourseActor>())
-                {
-                    ctx.DeleteSelectedActors();
-                }
-                Console.WriteLine("Switching state to EditorState.Selecting");
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-                return;
-            }
-
-            bool status = ImGui.Begin("Link Warning");
-
-            if (srcMsgStr.Count > 0)
-            {
-                ImGui.Text("The actor you are about to delete is a source link for the following actors:");
-
-                foreach (string s in srcMsgStr)
-                {
-                    ImGui.Text(s);
-                }
-            }
-
-            if (dstMsgStrs.Count > 0)
-            {
-                ImGui.Text("The actor you are about to delete is a destination link for the following actors:");
-
-                foreach (string s in dstMsgStrs)
-                {
-                    ImGui.Text(s);
-                }
-            }
-
-            ImGui.Text(" Do you wish to continue?");
-
-            if (ImGui.Button("Yes"))
-            {
-                Console.WriteLine("Switching state to EditorState.Selecting");
-                editContext.DeleteSelectedActors();
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-            }
-
-            ImGui.SameLine();
-
-            if (ImGui.Button("No"))
-            {
-                Console.WriteLine("Switching state to EditorState.Selecting");
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
         private void ActorsPanel()
         {
             ImGui.Begin("Actors");
 
             if (ImGui.Button("Add Actor"))
             {
-                mShowAddActor = true;
+                _ = AddActorsWithSelectActorAndLayerWindow();
             }
 
             ImGui.SameLine();
 
             if (ImGui.Button("Delete Actor"))
             {
-                activeViewport.mEditorState = LevelViewport.EditorState.DeleteActorLinkCheck;
+                var ctx = areaScenes[selectedArea].EditContext;
+                var actors = ctx.GetSelectedObjects<CourseActor>().ToList();
+
+                if (actors.Count > 0)
+                    _ = DeleteObjectsWithWarningPrompt(actors, 
+                        ctx, "Delete actors");
             }
 
             ImGui.AlignTextToFramePadding();
@@ -776,10 +577,20 @@ namespace Fushigi.ui.widgets
 
                         if (ImGui.Selectable(linkType))
                         {
-                            activeViewport.mNewLinkType = linkType;
-                            activeViewport.mIsLinkNew = true;
-                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
                             ImGui.SetWindowFocus(selectedArea.GetName());
+                            Task.Run(async () =>
+                            {
+                                var pickedDest = await PickLinkDestInViewportFor(mSelectedActor);
+                                if (pickedDest is null)
+                                    return;
+
+                                var link = new CourseLink(linkType)
+                                {
+                                    mSource = mSelectedActor.mHash,
+                                    mDest = pickedDest.mHash
+                                };
+                                editContext.AddLink(link);
+                            });
                         }
                     }
 
@@ -847,9 +658,21 @@ namespace Fushigi.ui.widgets
                         ImGui.SetCursorPos(cursor);
                         if (ImGui.Button(IconUtil.ICON_EYE_DROPPER))
                         {
-                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLinkDest;
-                            activeViewport.CurCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
                             ImGui.SetWindowFocus(selectedArea.GetName());
+                            Task.Run(async () =>
+                            {
+                                var pickedDest = await PickLinkDestInViewportFor(mSelectedActor);
+                                if (pickedDest is null)
+                                    return;
+
+                                //TODO rework GetDestHashesFromSrc to return the actual link objects or do it in another way
+                                var link = selectedArea.mLinkHolder.mLinks.Find(
+                                    x => x.mSource == mSelectedActor.mHash &&
+                                    x.mLinkName == linkName &&
+                                    x.mDest == destActor!.mHash);
+
+                                link.mDest = pickedDest.mHash;
+                            });
                         }
 
                         ImGui.PopClipRect();
@@ -896,7 +719,6 @@ namespace Fushigi.ui.widgets
                 }
                 if(needsRecapture || propertyCapture.courseObj != mSelectedActor)
                 {
-                    Console.WriteLine("Capturing");
                     propertyCapture = (
                         mSelectedActor,
                         new PropertyFieldsCapture(mSelectedActor),
@@ -2044,6 +1866,234 @@ namespace Fushigi.ui.widgets
         public Course GetCourse()
         {
             return course;
+        }
+
+        private async Task<CourseActor?> PickLinkDestInViewportFor(CourseActor source)
+        {
+            var (picked, _) = await activeViewport.PickObject(
+                            "Select the destination actor you wish to link to.",
+                            x => x is CourseActor && x != source);
+            return picked as CourseActor;
+        }
+
+        private async Task DeleteObjectsWithWarningPrompt(IReadOnlyList<object> objectsToDelete,
+            CourseAreaEditContext ctx, string actionName)
+        {
+            var actors = objectsToDelete.OfType<CourseActor>();
+            List<string> dstMsgStrs = [];
+            List<string> srcMsgStrs = [];
+
+            foreach (var actor in actors)
+            {
+                if (selectedArea.mLinkHolder.HasLinksWithDest(actor.mHash))
+                {
+                    var links = selectedArea.mLinkHolder.GetSrcHashesFromDest(actor.mHash);
+
+                    foreach (KeyValuePair<string, List<ulong>> kvp in links)
+                    {
+                        var hashes = kvp.Value;
+
+                        foreach (var hash in hashes)
+                        {
+                            /* only delete actors that the hash exists for...this may be caused by a user already deleting the source actor */
+                            if (selectedArea.mActorHolder.TryGetActor(hash, out _))
+                            {
+                                dstMsgStrs.Add($"{selectedArea.mActorHolder[hash].mPackName} [{selectedArea.mActorHolder[hash].mName}]\n");
+                            }
+                        }
+                    }
+
+                    var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(actor.mHash);
+
+                    foreach (KeyValuePair<string, List<ulong>> kvp in destHashes)
+                    {
+                        var hashes = kvp.Value;
+
+                        foreach (var hash in hashes)
+                        {
+                            if (selectedArea.mActorHolder.TryGetActor(hash, out _))
+                            {
+                                srcMsgStrs.Add($"{selectedArea.mActorHolder[hash].mPackName} [{selectedArea.mActorHolder[hash].mName}]\n");
+                            }
+                        }
+                    }
+                }
+            }
+
+            bool noWarnings = (dstMsgStrs.Count == 0 && srcMsgStrs.Count == 0);
+
+            if (!noWarnings)
+            {
+                var result = await OperationWarningDialog.ShowDialog(mPopupModalHost,
+                "Deletion warning",
+                "The object(s) you are about to delete " +
+                "are being used in other places",
+                ("As link source for", srcMsgStrs),
+                ("As link destination for", dstMsgStrs));
+
+                if (result == OperationWarningDialog.DialogResult.Cancel)
+                    return;
+            }
+
+            var batchAction = ctx.BeginBatchAction();
+
+            foreach (var actor in actors)
+            {
+                ctx.DeleteActor(actor);
+            }
+
+            batchAction.Commit($"{IconUtil.ICON_TRASH} {actionName}");
+        }
+
+        private async Task AddActorsWithSelectActorAndLayerWindow()
+        {
+            var viewport = activeViewport;
+            var area = selectedArea;
+            var ctx = areaScenes[selectedArea].EditContext;
+
+            if(mOpenToolWindows.Any(x=>x is SelectActorAndLayerWindow))
+                return;
+
+            var window = new SelectActorAndLayerWindow(mLayersVisibility);
+            mOpenToolWindows.Add(window);
+
+            var result = await window.Result();
+            if (!result.TryGetValue(out var resultVal))
+                return;
+
+            var (actorPack, layer) = resultVal;
+
+            Vector3? pos;
+            KeyboardModifier modifier;
+            do
+            {
+                ImGui.SetWindowFocus(area.mAreaName);
+                (pos, modifier) = await viewport.PickPosition(
+                    $"Placing actor {actorPack} -- Hold SHIFT to place multiple", layer);
+                if (!pos.TryGetValue(out var posVec))
+                    return;
+
+                var actor = new CourseActor(actorPack, area.mRootHash, layer);
+
+                posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                posVec.Z = 0.0f;
+                actor.mTranslation = posVec;
+
+                ctx.AddActor(actor);
+
+            } while ((modifier & KeyboardModifier.Shift) > 0);
+        }
+
+
+
+        interface IToolWindow
+        {
+            void Draw(ref bool windowOpen);
+        }
+
+        class SelectActorAndLayerWindow(IReadOnlyDictionary<string, bool> mLayersVisibility) : IToolWindow
+        {
+            public void Draw(ref bool windowOpen)
+            {
+                bool status;
+                if (mSelectedActor == null)
+                {
+                    status = ImGui.Begin("Add Actor###SelectActorLayer", ref windowOpen);
+                    SelectActorToAdd();
+                }
+                else if(mSelectedLayer == null)
+                {
+                    status = ImGui.Begin("Select Layer###SelectActorLayer", ref windowOpen);
+                    SelectActorToAddLayer();
+                }
+                else
+                {
+                    mPromise.TrySetResult((mSelectedActor, mSelectedLayer));
+                    windowOpen = false;
+                    return;
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                {
+                    windowOpen = false;
+                }
+
+                if (!windowOpen)
+                {
+                    mPromise.TrySetResult(null);
+                }
+
+                if (status)
+                {
+                    ImGui.End();
+                }
+
+            }
+
+            private void SelectActorToAdd()
+            {
+                ImGui.InputText("Search", ref mAddActorSearchQuery, 256);
+
+                var filteredActors = ParamDB.GetActors().ToImmutableList();
+
+                if (mAddActorSearchQuery != "")
+                {
+                    filteredActors = FuzzySharp.Process.ExtractAll(mAddActorSearchQuery, ParamDB.GetActors(), cutoff: 65)
+                        .OrderByDescending(result => result.Score)
+                        .Select(result => result.Value)
+                        .ToImmutableList();
+                }
+
+                if (ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail()))
+                {
+                    foreach (string actor in filteredActors)
+                    {
+                        ImGui.Selectable(actor);
+
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                            mSelectedActor = actor;
+                    }
+
+                    ImGui.EndListBox();
+                }
+            }
+
+            private void SelectActorToAddLayer()
+            {
+                ImGui.InputText("Search", ref mAddLayerSearchQuery, 256);
+
+                var fileteredLayers = mLayersVisibility.Keys.ToArray().ToImmutableList();
+
+                if (mAddLayerSearchQuery != "")
+                {
+                    fileteredLayers = FuzzySharp.Process.ExtractAll(mAddLayerSearchQuery, mLayersVisibility.Keys.ToArray(), cutoff: 65)
+                        .OrderByDescending(result => result.Score)
+                        .Select(result => result.Value)
+                        .ToImmutableList();
+                }
+
+                if (ImGui.BeginListBox("Select the layer you want to add the actor to.", ImGui.GetContentRegionAvail()))
+                {
+                    foreach (string layer in fileteredLayers)
+                    {
+                        ImGui.Selectable(layer);
+
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                            mSelectedLayer = layer;
+                    }
+
+                    ImGui.EndListBox();
+                }
+            }
+
+            public Task<(string actor, string layer)?> Result() => mPromise.Task;
+
+            private string? mSelectedActor;
+            private string? mSelectedLayer;
+            private TaskCompletionSource<(string actor, string layer)?> mPromise = new();
+            private string mAddActorSearchQuery = "";
+            private string mAddLayerSearchQuery = "";
         }
     }
 }
