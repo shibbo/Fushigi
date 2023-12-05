@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Fushigi.rstb;
 
 namespace Fushigi.ui.widgets
 {
@@ -280,7 +281,7 @@ namespace Fushigi.ui.widgets
           undoWindow.Render(areaScenes[selectedArea].EditContext);
         }
         
-        void Save()
+        public void Save()
         {
             RSTB resource_table = new RSTB();
             resource_table.Load();
