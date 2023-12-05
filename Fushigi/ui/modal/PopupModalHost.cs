@@ -101,7 +101,7 @@ namespace Fushigi.ui.modal
                 Vector2 center = ImGui.GetMainViewport().GetCenter();
                 ImGui.SetNextWindowPos(center, ImGuiCond.Always, new Vector2(0.5f, 0.5f));
                 if(info.MinWindowSize.TryGetValue(out Vector2 minWindowSize))
-                    ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, minWindowSize);
+                    ImGui.SetNextWindowSizeConstraints(minWindowSize, ImGui.GetWindowViewport().Size);
 
                 if(!shouldClose && !ImGui.IsPopupOpen(info.Id))
                     ImGui.OpenPopup(info.Id);
@@ -110,11 +110,8 @@ namespace Fushigi.ui.modal
                 if (!ImGui.BeginPopupModal(info.Id, ref open, info.WindowFlags))
                 {
                     methods.Cancel();
-                    if (info.MinWindowSize is not null)
-                        ImGui.PopStyleVar();
                     continue;
                 }
-                ImGui.PopStyleVar();
 
                 methods.Execute();
                     
