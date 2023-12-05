@@ -41,7 +41,6 @@ namespace Fushigi.ui.widgets
         readonly Dictionary<string, bool> mLayersVisibility = [];
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
-        bool mShowSaveFailureAlert = false;
         readonly List<IToolWindow> mOpenToolWindows = [];
 
         string mActorSearchText = "";
@@ -188,11 +187,6 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            if (mShowSaveFailureAlert)
-            {
-                SaveFailureAlert();
-            }
-
             ulong selectionVersionBefore = areaScenes[selectedArea].EditContext.SelectionVersion;
 
             bool status = ImGui.Begin("Viewports", ImGuiWindowFlags.NoNav);
@@ -296,7 +290,7 @@ namespace Fushigi.ui.widgets
             if (!pathsToWriteTo.All(EnsureFileIsWritable))
             {
                 //one or more of the files are locked, due to being open externally. abandon save and show popup informing user
-                mShowSaveFailureAlert = true;
+                _ = SaveFailureAlert.ShowDialog(mPopupModalHost);
                 return;
             }
 
@@ -398,23 +392,6 @@ namespace Fushigi.ui.widgets
             CourseGlobalLinksView(course.GetGlobalLinks());
 
             ImGui.End();
-        }
-
-        private void SaveFailureAlert()
-        {
-            bool status = ImGui.Begin("Save Failed");
-
-            ImGui.Text("The course files may be open in an external app, or Super Mario Wonder may currently be running in an emulator. Close the emulator or external app and try again.");
-
-            if (ImGui.Button("Okay"))
-            {
-                mShowSaveFailureAlert = false;
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
         }
       
         private void LocalLinksPanel()
@@ -2147,6 +2124,29 @@ namespace Fushigi.ui.widgets
             private TaskCompletionSource<(string actor, string layer)?> mPromise = new();
             private string mAddActorSearchQuery = "";
             private string mAddLayerSearchQuery = "";
+        }
+
+        class SaveFailureAlert : IPopupModal<SaveFailureAlert.Void>
+        {
+            private struct Void { }
+
+            public static async Task ShowDialog(IPopupModalHost modalHost)
+            {
+
+                await modalHost.ShowPopUp(new SaveFailureAlert(), "Saving failed",
+                    ImGuiWindowFlags.AlwaysAutoResize);
+            }
+
+            void IPopupModal<Void>.DrawModalContent(Promise<Void> promise)
+            {
+                ImGui.Text("The course files may be open in an external app, or Super Mario Wonder may currently be running in an emulator. \n" +
+                    "Close the emulator or external app and try again.");
+
+                if (ImGui.Button("Okay"))
+                {
+                    promise.SetResult(new Void());
+                }
+            }
         }
     }
 }
