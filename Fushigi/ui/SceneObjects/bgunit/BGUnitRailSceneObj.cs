@@ -163,12 +163,10 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
                 int segmentCount = rail.Points.Count;
 
-                if (!rail.IsClosed)
+                if (!rail.IsClosed && rail.Points.Any())
                 {
                     segmentCount--;
-                    var delta = rail.Points.Any() ?
-                      Vector3.Distance(rail.Points[0].Position, pos):
-                      0;
+                    var delta = Vector3.Distance(rail.Points[0].Position, pos);
                     if (delta < min.delta)
                         min = (delta, 1);
                 }
@@ -188,7 +186,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
                 }
 
                 DeselectAll(ctx);
-                InsertPoint(ctx, new BGUnitRail.RailPoint(rail, pos), rail.Points.Count);
+                InsertPoint(ctx, new BGUnitRail.RailPoint(rail, pos), min.index);
             }
             else
             {
