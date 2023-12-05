@@ -4,6 +4,16 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Ryujinx.Common">
+      <HintPath>ExternalLibraries\Ryujinx.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Ryujinx.Graphics.Texture">
+      <HintPath>ExternalLibraries\Ryujinx.Graphics.Texture.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
 </Project>

@@ -4,6 +4,9 @@ using Fushigi.util;
 using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection.Metadata.Ecma335;
@@ -15,15 +18,23 @@ namespace Fushigi.course
 {
     public class CourseRail
     {
+        public CourseRail(uint areaHash)
+        {
+            mHash = RandomUtil.GetRandom();
+            mAreaHash = areaHash;
+            mRailParam = "Work/Gyml/Rail/RailParam/Default.game__rail__RailParam.gyml";
+            mIsClosed = false;
+        }
+
         public CourseRail(BymlHashTable node)
         {
             mAreaHash = BymlUtil.GetNodeData<uint>(node["AreaHash"]);
-            mGyml = BymlUtil.GetNodeData<string>(node["Gyaml"]);
+            mRailParam = BymlUtil.GetNodeData<string>(node["Gyaml"]);
             mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);
             mIsClosed = BymlUtil.GetNodeData<bool>(node["IsClosed"]);
 
             string pointParam = Path.GetFileNameWithoutExtension(BymlUtil.GetNodeData<string>(node["Gyaml"])).Split(".game")[0];
-            var railParams = ParamDB.GetRailComponents(pointParam)[0];
+            var railParams = ParamDB.GetRailComponent(pointParam);
             var comp = ParamDB.GetRailComponentParams(railParams);
 
             if (!node.ContainsKey("Dynamic"))
@@ -98,38 +109,18 @@ namespace Fushigi.course
         {
             BymlHashTable node = new();
 
-            node.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>("AreaHash", mAreaHash), "AreaHash");
-            node.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Gyaml", mGyml), "Gyaml");
-            node.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Hash", mHash), "Hash");
-            node.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>("IsClosed", mIsClosed), "IsClosed");
+            node.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(mAreaHash), "AreaHash");
+            node.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mRailParam), "Gyaml");
+            node.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mHash), "Hash");
+            node.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(mIsClosed), "IsClosed");
 
             BymlHashTable dynamicNode = new();
 
             foreach (KeyValuePair<string, object> dynParam in mParameters)
             {
                 object param = mParameters[dynParam.Key];
-                string shit = param.GetType().ToString();
-
-                switch (param.GetType().ToString())
-                {
-                    case "System.UInt32":
-                        dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
-                        break;
-                    case "System.Int32":
-                        dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
-                        break;
-                    case "System.Boolean":
-                        dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
-                        break;
-                    case "System.String":
-                        dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
-                        break;
-                    case "System.Single":
-                        dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
-                        break;
-                    default:
-                        break;
-                }
+                var valueNode = BymlUtil.CreateNode(param);
+                dynamicNode.AddNode(valueNode.Id, valueNode, dynParam.Key);
             }
 
             node.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
@@ -146,48 +137,57 @@ namespace Fushigi.course
             return node;
         }
 
-        public ulong GetHash()
+        public bool TryGetPoint(ulong hash, [NotNullWhen(true)] out CourseRailPoint? point)
         {
-            return mHash;
-        }
-
-        CourseRailPoint GetPoint(ulong hash)
-        {
-            foreach (CourseRailPoint pnt in mPoints)
-            {
-                if (pnt.GetHash() == hash)
-                {
-                    return pnt;
-                }
-            }
-
-            return null;
+            point = mPoints.Find(x => x.mHash == hash);
+            return point is not null;
         }
 
         public CourseRailPoint this[ulong hash]
         {
             get
             {
-                return GetPoint(hash);
+                bool exists = TryGetPoint(hash, out CourseRailPoint? point);
+                Debug.Assert(exists);
+                return point!;
             }
         }
 
-        uint mAreaHash;
-        string mGyml;
-        ulong mHash;
+        public uint mAreaHash;
+        public string mRailParam;
+        public ulong mHash;
         public bool mIsClosed;
         public List<CourseRailPoint> mPoints = new();
-        Dictionary<string, object> mParameters = new();
+        public Dictionary<string, object> mParameters = new();
 
         public class CourseRailPoint
         {
+            public CourseRailPoint()
+            {
+                this.mHash = RandomUtil.GetRandom();
+                this.mTranslate = new System.Numerics.Vector3();
+            }
+
+
+            public CourseRailPoint(CourseRailPoint point)
+            {
+                this.mHash = RandomUtil.GetRandom();
+                this.mTranslate = point.mTranslate;
+                this.mControl = point.mControl;
+                foreach (var param in point.mParameters)
+                    this.mParameters.Add(param.Key, param.Value);
+            }
+
             public CourseRailPoint(BymlHashTable node, string pointParam)
             {
                 mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);
                 mTranslate = BymlUtil.GetVector3FromArray(node["Translate"] as BymlArrayNode);
-                // we will always use the second entry in the components, since the first one is only used by the rail itself
-                var pointParams = ParamDB.GetRailComponents(pointParam)[1];
-                var comp = ParamDB.GetRailComponentParams(pointParams);
+
+                IDictionary<string, ParamDB.ComponentParam> comp;
+                if (ParamDB.TryGetRailPointComponent(pointParam, out var componentName))
+                    comp = ParamDB.GetRailComponentParams(componentName);
+                else
+                    comp = ImmutableDictionary.Create<string, ParamDB.ComponentParam>();
 
                 if (!node.ContainsKey("Dynamic"))
                 {
@@ -256,43 +256,18 @@ namespace Fushigi.course
                 }
             }
 
-            public ulong GetHash()
-            {
-                return mHash;
-            }
-
             public BymlHashTable BuildNode()
             {
                 BymlHashTable tbl = new();
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Hash", mHash), "Hash");
+                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mHash), "Hash");
 
                 BymlHashTable dynamicNode = new();
 
                 foreach (KeyValuePair<string, object> dynParam in mParameters)
                 {
                     object param = mParameters[dynParam.Key];
-                    string shit = param.GetType().ToString();
-
-                    switch (param.GetType().ToString())
-                    {
-                        case "System.UInt32":
-                            dynamicNode.AddNode(BymlNodeId.UInt, BymlUtil.CreateNode<uint>(dynParam.Key, (uint)param), dynParam.Key);
-                            break;
-                        case "System.Int32":
-                            dynamicNode.AddNode(BymlNodeId.Int, BymlUtil.CreateNode<int>(dynParam.Key, (int)param), dynParam.Key);
-                            break;
-                        case "System.Boolean":
-                            dynamicNode.AddNode(BymlNodeId.Bool, BymlUtil.CreateNode<bool>(dynParam.Key, (bool)param), dynParam.Key);
-                            break;
-                        case "System.String":
-                            dynamicNode.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(dynParam.Key, (string)param), dynParam.Key);
-                            break;
-                        case "System.Single":
-                            dynamicNode.AddNode(BymlNodeId.Float, BymlUtil.CreateNode<float>(dynParam.Key, (float)param), dynParam.Key);
-                            break;
-                        default:
-                            break;
-                    }
+                    var valueNode = BymlUtil.CreateNode(param);
+                    dynamicNode.AddNode(valueNode.Id, valueNode, dynParam.Key);
                 }
 
                 tbl.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
@@ -317,8 +292,8 @@ namespace Fushigi.course
                 return tbl;
             }
 
-            ulong mHash;
-            Dictionary<string, object> mParameters = new();
+            public ulong mHash;
+            public Dictionary<string, object> mParameters = new();
             public System.Numerics.Vector3 mTranslate;
             public System.Numerics.Vector3? mControl = null;
         }
@@ -339,24 +314,19 @@ namespace Fushigi.course
             }
         }
 
-        CourseRail GetRail(ulong hash)
+        public bool TryGetRail(ulong hash, [NotNullWhen(true)] out CourseRail? rail)
         {
-            foreach(CourseRail rail in mRails) 
-            {
-                if (rail.GetHash() == hash)
-                {
-                    return rail;
-                }
-            }
-
-            return null;
+            rail = mRails.Find(x => x.mHash == hash);
+            return rail is not null;
         }
 
         public CourseRail this[ulong hash]
         {
             get
             {
-                return GetRail(hash);
+                bool exists = TryGetRail(hash, out CourseRail? rail);
+                Debug.Assert(exists);
+                return rail!;
             }
         }
 
@@ -375,57 +345,89 @@ namespace Fushigi.course
         public List<CourseRail> mRails = new();
     }
 
-    public class CourseActorToRailLinks
+    public class CourseActorToRailLink
     {
-        struct Link
+        public CourseActorToRailLink(string linkName)
         {
-            public CourseActor? Source;
-            public CourseRail? Dest;
-            public CourseRail.CourseRailPoint? Point;
-            public string Name;
+            mSourceActor = 0;
+            mDestRail = 0;
+            mDestPoint = 0;
+            mLinkName = linkName;
         }
 
-        public CourseActorToRailLinks(BymlArrayNode array, CourseActorHolder actorHolder, CourseRailHolder railHolder)
+        public CourseActorToRailLink(BymlHashTable table)
         {
-            foreach(BymlHashTable railLink in array.Array)
+            mSourceActor = BymlUtil.GetNodeData<ulong>(table["Src"]);
+            mDestRail = BymlUtil.GetNodeData<ulong>(table["Dst"]);
+            mLinkName = BymlUtil.GetNodeData<string>(table["Name"]);
+        }
+
+        public BymlHashTable BuildNode()
+        {
+            BymlHashTable tbl = new();
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mDestRail), "Dst");
+            tbl.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mLinkName), "Name");
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mSourceActor), "Point");
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mSourceActor), "Src");
+            return tbl;
+        }
+
+        public ulong mSourceActor;
+        public ulong mDestRail;
+        public ulong mDestPoint;
+        public string mLinkName;
+    }
+
+    public class CourseActorToRailLinksHolder
+    {
+        public CourseActorToRailLinksHolder()
+        {
+        }
+
+        public CourseActorToRailLinksHolder(BymlArrayNode array, CourseActorHolder actorHolder, CourseRailHolder railHolder)
+        {
+            foreach (BymlHashTable railLink in array.Array)
             {
-                ulong sourceHash = BymlUtil.GetNodeData<ulong>(railLink["Src"]);
-                ulong destHash = BymlUtil.GetNodeData<ulong>(railLink["Dst"]);
-                ulong pointHash = BymlUtil.GetNodeData<ulong>(railLink["Point"]);
-                string name = BymlUtil.GetNodeData<string>(railLink["Name"]);
-
-                Link link = new();
-                link.Source = actorHolder[sourceHash];
-                link.Dest = railHolder[destHash];
-                link.Point = link.Dest[pointHash];
-                link.Name = name;
-
-                mLinks.Add(link);
+                mLinks.Add(new CourseActorToRailLink(railLink));
             }
         }
 
-        public CourseActorToRailLinks()
+        public bool TryGetLinkWithSrcActor(ulong hash, 
+            [NotNullWhen(true)] out CourseActorToRailLink? link)
         {
+            link = mLinks.Find(x => x.mSourceActor == hash);
 
+            return link is not null;
+        }
+
+        public bool TryGetLinkWithDestRail(ulong hash,
+            [NotNullWhen(true)] out CourseActorToRailLink? link)
+        {
+            link = mLinks.Find(x => x.mDestRail == hash);
+
+            return link is not null;
+        }
+
+        public bool TryGetLinkWithDestRailAndPoint(ulong railHash, ulong pointHash,
+            [NotNullWhen(true)] out CourseActorToRailLink? link)
+        {
+            link = mLinks.Find(x => x.mDestRail == railHash && x.mDestPoint == pointHash);
+
+            return link is not null;
         }
 
         public BymlArrayNode SerializeToArray()
         {
             BymlArrayNode node = new((uint)mLinks.Count);
 
-            foreach (Link link in mLinks)
+            foreach (var link in mLinks)
             {
-                BymlHashTable tbl = new();
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Dst", link.Dest.GetHash()), "Dst");
-                tbl.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>("Name", link.Name), "Name");
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Point", link.Point.GetHash()), "Point");
-                tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Src", link.Source.GetHash()), "Src");
-                node.AddNodeToArray(tbl);
+                node.AddNodeToArray(link.BuildNode());
             }
 
             return node;
         }
 
-        List<Link> mLinks = new();
+        public List<CourseActorToRailLink> mLinks = new();
     }
 }

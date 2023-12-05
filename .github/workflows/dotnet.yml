@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -25,20 +25,32 @@ jobs:
     - name: Install Newtonsoft.Json
       run: dotnet add Fushigi/Fushigi.csproj package Newtonsoft.Json 
     - name: Install Silk.NET.Core
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
     - name: Install Silk.NET.Input
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Input  --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Input
     - name: Install Silk.NET.Core
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core  --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
     - name: Install Silk.NET.GLFW
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.GLFW  --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.GLFW
     - name: Install Silk.NET.OpenGL.Extensions.ImGui
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui  --version 2.17.1 
+      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui
     - name: Install StbImageSharp
       run: dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
-    - name: Install ZstdNet
-      run: dotnet add Fushigi/Fushigi.csproj package ZstdNet 
+    - name: Install ZstdSharp
+      run: dotnet add Fushigi/Fushigi.csproj package ZstdSharp.Port
     - name: Restore dependencies
       run: dotnet restore Fushigi/Fushigi.sln
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln --no-restore 
+    - name: Restore dependancies for MacOS Silicon
+      run: dotnet restore -r osx-arm64 Fushigi/Fushigi.sln
+    - name: Publish Mac Silicon
+      run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
+    - name: Restore dependancies for MacOS x64
+      run: dotnet restore -r osx-x64 Fushigi/Fushigi.sln
+    - name: Publish Mac x64
+      run: dotnet publish Fushigi/Fushigi.sln -r osx-x64 --no-restore
+    - name: Restore dependancies for Linux
+      run: dotnet restore -r linux-x64 Fushigi/Fushigi.sln
+    - name: Publish Linux x64
+      run: dotnet publish Fushigi/Fushigi.sln -r linux-x64 --no-restore

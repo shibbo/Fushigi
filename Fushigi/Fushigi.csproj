@@ -9,24 +9,43 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="fasterflect" Version="3.0.0" />
+    <PackageReference Include="FuzzySharp" Version="2.0.2" />
+    <PackageReference Include="ImGui.NET" Version="1.90.0.1" />
     <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Silk.NET.Core" Version="2.17.1" />
-    <PackageReference Include="Silk.NET.GLFW" Version="2.17.1" />
-    <PackageReference Include="Silk.NET.Input" Version="2.17.1" />
-    <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.17.1" />
+    <PackageReference Include="Silk.NET.Core" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.GLFW" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.Input.Extensions" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.19.0" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
-    <PackageReference Include="ZstdNet" Version="1.4.5" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.7.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Fushigi.Bfres\Fushigi.Bfres.csproj" />
     <ProjectReference Include="..\Fushigi.Byml\Fushigi.Byml.csproj" />
+    <ProjectReference Include="..\Fushigi.Msbt\Fushigi.Msbt.csproj" />
     <ProjectReference Include="..\SARC\Fushigi.SARC.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Ryujinx.Graphics.Shader">
+      <HintPath>..\Fushigi.Bfres\ExternalLibraries\Ryujinx.Graphics.Shader.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <None Update="res\AreaParam.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="res\BlankStaticCompoundBody.bphsc.zs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\DefaultTexture.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="res\Font.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -41,6 +60,30 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="res\la-solid-900.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\NotoSansCJKjp-Medium.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\shaders\screen.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\shaders\screen.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\shaders\Basic.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\shaders\Basic.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\shaders\Bfres.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\shaders\Bfres.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\imgui-default.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

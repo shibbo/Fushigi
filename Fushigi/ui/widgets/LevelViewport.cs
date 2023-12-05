@@ -1,69 +1,99 @@
-using Fushigi.Byml;
+using Fushigi.actor_pack.components;
 using Fushigi.course;
-using ImGuiNET;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Security.Cryptography;
-using Vector3 = System.Numerics.Vector3;
-using static Fushigi.course.CourseUnit;
-using System.Xml.Linq;
-using System.Reflection;
-using Microsoft.VisualBasic;
-using System.Runtime.CompilerServices;
-using Silk.NET.OpenGL;
 using Fushigi.gl;
+using Fushigi.gl.Bfres;
 using Fushigi.util;
-using System.Reflection.PortableExecutable;
-using static Fushigi.util.MessageBox;
+using ImGuiNET;
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using System.Drawing;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using static Fushigi.course.CourseUnit;
+using Vector3 = System.Numerics.Vector3;
 
 namespace Fushigi.ui.widgets
 {
-    internal class LevelViewport(CourseArea area, GL gl, CourseAreaEditContext editContext)
+    interface IViewportDrawable
     {
-        readonly CourseArea mArea = area;
-        public readonly CourseAreaEditContext mEditContext = editContext;
+        void Draw2D(CourseAreaEditContext editContext, LevelViewport viewport, ImDrawListPtr dl, ref bool isNewHoveredObj);
+    }
 
-        Matrix4x4 mViewProjectionMatrix;
-        Matrix4x4 mViewProjectionMatrixInverse;
+    interface IViewportSelectable
+    {
+        void OnSelect(CourseAreaEditContext editContext);
+        public static void DefaultSelect(CourseAreaEditContext ctx, object selectable)
+        {
+            if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+            {
+                ctx.Select(selectable);
+            }
+            else  if(!ctx.IsSelected(selectable))
+            {
+                ctx.WithSuspendUpdateDo(() =>
+                {
+                    ctx.DeselectAll();
+                    ctx.Select(selectable);
+                });
+            }
+            foreach(CourseActor act in ctx.GetSelectedObjects<CourseActor>())
+            {
+                act.mStartingTrans = act.mTranslation;
+            }
+        }
+    }
+
+    interface ITransformableObject
+    {
+        Transform Transform { get; }
+    }
+
+    [Flags]
+    enum KeyboardModifier
+    {
+        None = 0,
+        Shift = 1,
+        CtrlCmd = 2,
+        Alt = 4
+    }
+
+    internal class LevelViewport(CourseArea area, GL gl, CourseAreaScene areaScene)
+    {
+        public event Action<IReadOnlyList<object>>? ObjectDeletionRequested;
+
+        readonly CourseArea mArea = area;
+
+        //this is only so BgUnitRail works, TODO make private
+        private readonly CourseAreaEditContext mEditContext = areaScene.EditContext;
+
         ImDrawListPtr mDrawList;
         public EditorMode mEditorMode = EditorMode.Actors;
-        public EditorState mEditorState = EditorState.Selecting;
+
+        public bool IsViewportHovered;
+        public bool IsViewportActive;
+        public bool IsWonderView;
 
         Vector2 mSize = Vector2.Zero;
-
-        private Vector3? mSelectedPoint;
-        private int mWallIdx = -1;
-        private int mUnitIdx = -1;
-        private int mPointIdx = -1;
+      
+        public ulong prevSelectVersion { get; private set; } = 0;
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
-        public string mActorToAdd = "";
 
-        public float FOV = MathF.PI / 2;
+        public Camera Camera = new Camera();
+        public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
+        public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
 
-        public (Quaternion rotation, Vector3 target, float distance) Camera = 
-            (Quaternion.Identity, Vector3.Zero, 10);
+        //TODO make this an ISceneObject? as soon as there's a SceneObj class for each course object
+        private object? mHoveredObject;
 
-        public object? HoveredObject;
-        public CourseLink? SrcCourseLink = null;
-        public Vector3? HoveredPoint;
+        public static uint GridColor = 0x77_FF_FF_FF;
+        public static float GridLineThickness = 1.5f;
 
-        public uint GridColor = 0x77_FF_FF_FF;
-        public float GridLineThickness = 1.5f;
-
-        public enum EditorState
-        {
-            Selecting,
-            AddingActor,
-            DeleteActorLinkCheck,
-            DeletingActor,
-            SelectingLink
-        }
+        private (string message, Predicate<object?> predicate,
+            TaskCompletionSource<(object? picked, KeyboardModifier modifiers)> promise)? 
+            mObjectPickingRequest = null;
+        private (string message, string layer, TaskCompletionSource<(Vector3? picked, KeyboardModifier modifiers)> promise)? 
+            mPositionPickingRequest = null;
 
         public enum EditorMode
         {
@@ -71,10 +101,51 @@ namespace Fushigi.ui.widgets
             Units
         }
 
+        public Task<(object? picked, KeyboardModifier modifiers)> PickObject(string tooltipMessage, 
+            Predicate<object?> predicate)
+        {
+            CancelOngoingPickingRequests();
+            var promise = new TaskCompletionSource<(object? picked, KeyboardModifier modifiers)>();
+            mObjectPickingRequest = (tooltipMessage, predicate, promise);
+            return promise.Task;
+        }
+
+        public Task<(Vector3? picked, KeyboardModifier modifiers)> PickPosition(string tooltipMessage, string layer)
+        {
+            CancelOngoingPickingRequests();
+            var promise = new TaskCompletionSource<(Vector3? picked, KeyboardModifier modifiers)>();
+            mPositionPickingRequest = (tooltipMessage, layer, promise);
+            return promise.Task;
+        }
+
+        private void CancelOngoingPickingRequests()
+        {
+            if (mObjectPickingRequest.TryGetValue(out var objectPickingRequest))
+            {
+                objectPickingRequest.promise.SetCanceled();
+                mObjectPickingRequest = null;
+            }
+            if (mPositionPickingRequest.TryGetValue(out var positionPickingRequest))
+            {
+                positionPickingRequest.promise.SetCanceled();
+                mPositionPickingRequest = null;
+            }
+        }
+
+        public bool IsHovered(ISceneObject obj) => mHoveredObject == obj;
+
+        public Matrix4x4 GetCameraMatrix() => Camera.ViewProjectionMatrix;
+
+        public Vector2 GetCameraSizeIn2DWorldSpace() 
+        {
+            var cameraBoundsSize = ScreenToWorld(mSize) - ScreenToWorld(new Vector2(0));
+            return new Vector2(cameraBoundsSize.X, Math.Abs(cameraBoundsSize.Y));
+        }
+
         public Vector2 WorldToScreen(Vector3 pos) => WorldToScreen(pos, out _);
         public Vector2 WorldToScreen(Vector3 pos, out float ndcDepth)
         {
-            var ndc = Vector4.Transform(pos, mViewProjectionMatrix);
+            var ndc = Vector4.Transform(pos, Camera.ViewProjectionMatrix);
             ndc /= ndc.W;
 
             ndcDepth = ndc.Z;
@@ -95,15 +166,15 @@ namespace Fushigi.ui.widgets
                 ndcDepth
             );
 
-            var world = Vector4.Transform(ndc, mViewProjectionMatrixInverse);
+            var world = Vector4.Transform(ndc, Camera.ViewProjectionMatrixInverse);
             world /= world.W;
 
-            return new (world.X, world.Y, world.Z);
+            return new(world.X, world.Y, world.Z);
         }
 
         public void FrameSelectedActor(CourseActor actor)
         {
-            this.Camera.target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
+            this.Camera.Target = new Vector3(actor.mTranslation.X, actor.mTranslation.Y, 0);
         }
 
         public void SelectBGUnit(BGUnitRail rail)
@@ -125,108 +196,274 @@ namespace Fushigi.ui.widgets
             }
         }
 
-        public void HandleCameraControls(bool mouseHover, bool mouseActive)
+        public void HandleCameraControls(double deltaSeconds)
         {
-            bool isPanGesture = (ImGui.IsMouseDragging(ImGuiMouseButton.Middle)) ||
-                (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyAlt);
+            bool isPanGesture = ImGui.IsMouseDragging(ImGuiMouseButton.Middle) ||
+                (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && ImGui.GetIO().KeyShift && !mEditContext.IsAnySelected<CourseActor>());
 
-            if (mouseActive && isPanGesture)
+            if (IsViewportActive && isPanGesture)
             {
-                Camera.target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
+                Camera.Target += ScreenToWorld(ImGui.GetMousePos() - ImGui.GetIO().MouseDelta) -
                     ScreenToWorld(ImGui.GetMousePos());
             }
 
-            if (mouseHover)
+            if (IsViewportHovered)
             {
-                Camera.distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
+                Camera.Distance *= MathF.Pow(2, -ImGui.GetIO().MouseWheel / 10);
 
-                if (ImGui.IsKeyDown(ImGuiKey.LeftArrow))
+                // Default camera distance is 10, so speed is constant until 0.5 at 20
+                const float baseCameraSpeed = 0.25f * 60;
+                const float scalingRate = 10.0f;
+                var zoomSpeedFactor = Math.Max(Camera.Distance / scalingRate, 1);
+                var zoomedCameraSpeed = MathF.Floor(zoomSpeedFactor) * baseCameraSpeed;
+                var dt = (float)deltaSeconds;
+
+                if (ImGui.IsKeyDown(ImGuiKey.LeftArrow) || ImGui.IsKeyDown(ImGuiKey.A))
                 {
-                    Camera.target.X -= 0.25f;
+                    Camera.Target.X -= zoomedCameraSpeed * dt;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.RightArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.RightArrow) || ImGui.IsKeyDown(ImGuiKey.D))
                 {
-                    Camera.target.X += 0.25f;
+                    Camera.Target.X += zoomedCameraSpeed * dt;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.UpArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.UpArrow) || ImGui.IsKeyDown(ImGuiKey.W))
                 {
-                    Camera.target.Y += 0.25f;
+                    Camera.Target.Y += zoomedCameraSpeed * dt;
                 }
 
-                if (ImGui.IsKeyDown(ImGuiKey.DownArrow))
+                if (ImGui.IsKeyDown(ImGuiKey.DownArrow) || ImGui.IsKeyDown(ImGuiKey.S))
                 {
-                    Camera.target.Y -= 0.25f;
+                    Camera.Target.Y -= zoomedCameraSpeed * dt;
                 }
             }
         }
 
-        public void Draw(Vector2 size, IDictionary<string, bool> layersVisibility)
+        public void DrawScene3D(Vector2 size, IDictionary<string, bool> layersVisibility)
         {
+            mLayersVisibility = layersVisibility;
+
+            if (Framebuffer == null)
+                Framebuffer = new GLFramebuffer(gl, FramebufferTarget.Framebuffer, (uint)size.X, (uint)size.Y);
+
+            //Resize if needed
+            if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
+                Framebuffer.Resize((uint)size.X, (uint)size.Y);
+
+            Framebuffer.Bind();
+
+            gl.ClearColor(0, 0, 0, 0);
+            gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            gl.Viewport(0, 0, Framebuffer.Width, Framebuffer.Height);
+
+            gl.Enable(EnableCap.DepthTest);
+
+            RenderStats.Reset();
+
+            foreach (var actor in this.mArea.GetActors())
+            {
+                if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
+                    continue;
+
+                RenderActor(actor, actor.mActorPack.ModelInfoRef);
+                RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
+            }
+            Framebuffer.Unbind();
+
+            ImGui.SetCursorScreenPos(mTopLeft);
+
+            //Draw final output in post buffer
+            HDRScreenBuffer.Render(gl, (int)size.X, (int)size.Y, (GLTexture2D)Framebuffer.Attachments[0]);
+
+            Framebuffer.Unbind();
+
+            //Draw framebuffer
+            ImGui.Image((IntPtr)HDRScreenBuffer.GetOutput().ID, new Vector2(size.X, size.Y));
+
+            ImGui.SetNextItemAllowOverlap();
+
+            //Temp quick fix, add canvas below for handling 2d pick later
+            ImGui.SetCursorScreenPos(mTopLeft);
+            ImGui.InvisibleButton("canvas", size,
+                  ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
+        }
+
+        private void RenderActor(CourseActor actor, ModelInfo modelInfo)
+        {
+            if (modelInfo == null || modelInfo.mFilePath == null)
+                return;
+
+            var resourceName = modelInfo.mFilePath;
+            var modelName = modelInfo.mModelName;
+
+            var render = BfresCache.Load(gl, resourceName);
+            if (render == null || !render.Models.ContainsKey(modelName))
+                return;
+
+            var transMat = Matrix4x4.CreateTranslation(actor.mTranslation);
+            var scaleMat = Matrix4x4.CreateScale(actor.mScale);
+            var rotMat = Matrix4x4.CreateRotationX(actor.mRotation.X) *
+                     Matrix4x4.CreateRotationY(actor.mRotation.Y) *
+                    Matrix4x4.CreateRotationZ(actor.mRotation.Z);
+                    
+            var debugSMat = Matrix4x4.CreateScale(modelInfo.mModelScale != default ? modelInfo.mModelScale:Vector3.One);
+
+            var mat = debugSMat * scaleMat * rotMat * transMat;
+
+            var model = render.Models[modelName];
+            //switch for drawing models with different methods easier
+            if(actor.mActorPack.DrainPipeRef != null && actor.mActorPack.DrainPipeRef.ModelKeyTop != null &&
+             actor.mActorPack.DrainPipeRef.ModelKeyMiddle != null){
+                var drainRef = actor.mActorPack.DrainPipeRef;
+                var calc = actor.mActorPack.ShapeParams.mCalc;
+                var KeyMats = new Dictionary<string, Matrix4x4>{
+                    {drainRef.ModelKeyTop ?? "Top", debugSMat *
+                        Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.X, actor.mScale.Z) * 
+                        Matrix4x4.CreateTranslation(0, (actor.mScale.Y-actor.mScale.X)*(calc.mMax.Y-calc.mMin.Y), 0) *
+                        rotMat *
+                        transMat},
+
+                    {drainRef.ModelKeyMiddle ?? "Middle", debugSMat *
+                        Matrix4x4.CreateScale(actor.mScale.X, (actor.mScale.Y-1)*2, actor.mScale.Z) * 
+                        rotMat *
+                        transMat}};
+
+                render.Models[modelName].Render(gl, render, KeyMats[modelInfo.SearchModelKey], this.Camera);
+                if(modelInfo.SubModels?.Any() ?? false)
+                    render.Models[modelInfo.SubModels[0].FmdbName].Render(gl, render, KeyMats[modelInfo.SubModels[0].SearchModelKey], this.Camera);
+            }
+            else
+            {
+                model.Render(gl, render, mat, this.Camera);
+            }
+        }
+
+        public void Draw(Vector2 size, double deltaSeconds, IDictionary<string, bool> layersVisibility)
+        {
+            if (size.X * size.Y == 0)
+                return;
+
             mLayersVisibility = layersVisibility;
             mTopLeft = ImGui.GetCursorScreenPos();
 
-            ImGui.InvisibleButton("canvas", size, 
+            ImGui.InvisibleButton("canvas", size,
                 ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
 
-            bool mouseHover = ImGui.IsItemHovered();
-            bool mouseActive = ImGui.IsItemActive();
+            IsViewportHovered = ImGui.IsItemHovered();
+            IsViewportActive = ImGui.IsItemActive();
 
-            if (size.X*size.Y == 0) 
-                return;
+            KeyboardModifier modifiers = KeyboardModifier.None;
+
+            if(ImGui.GetIO().KeyShift)
+                modifiers |= KeyboardModifier.Shift;
+            if(ImGui.GetIO().KeyAlt)
+                modifiers |= KeyboardModifier.Alt;
+            if (OperatingSystem.IsMacOS() ? ImGui.GetIO().KeySuper : ImGui.GetIO().KeyCtrl)
+                modifiers |= KeyboardModifier.CtrlCmd;
 
             mSize = size;
             mDrawList = ImGui.GetWindowDrawList();
 
             ImGui.PushClipRect(mTopLeft, mTopLeft + size, true);
 
-            HandleCameraControls(mouseHover, mouseActive);
+            HandleCameraControls(deltaSeconds);
 
-            float ratio = mSize.X / mSize.Y;
+            if (Camera.Width != mSize.X || Camera.Height != mSize.Y)
             {
-                float tanFOV = MathF.Tan(FOV / 2);
-                mViewProjectionMatrix =
-                    Matrix4x4.CreateTranslation(-Camera.target) *
-                    Matrix4x4.CreateOrthographic(ratio * tanFOV * Camera.distance, tanFOV * Camera.distance,
-                    -1000, 1000);
+                Camera.Width = mSize.X;
+                Camera.Height = mSize.Y;
             }
 
-            if (!Matrix4x4.Invert(mViewProjectionMatrix, out var inv))
+            if (!Camera.UpdateMatrices())
                 return;
 
-            mViewProjectionMatrixInverse = inv;
+            this.DrawScene3D(size, mLayersVisibility);
 
             DrawGrid();
-
             DrawAreaContent();
 
-            if (!mouseHover)
-                HoveredObject = null;
+            if (!IsViewportHovered)
+                mHoveredObject = null;
 
-            CourseActor? hoveredActor = HoveredObject as CourseActor;
+            CourseActor? hoveredActor = mHoveredObject as CourseActor;
 
-            if(hoveredActor != null)
-                ImGui.SetTooltip($"{hoveredActor.mActorName}");
+            if (hoveredActor != null && 
+                mObjectPickingRequest == null && mPositionPickingRequest == null) //prevents tooltip flickering
+                ImGui.SetTooltip($"{hoveredActor.mPackName}");
 
-            if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
+            if (ImGui.IsKeyPressed(ImGuiKey.Z) && modifiers == KeyboardModifier.CtrlCmd)
             {
                 mEditContext.Undo();
             }
-            if (ImGui.IsKeyPressed(ImGuiKey.R) && ImGui.GetIO().KeyCtrl)
+            if ((ImGui.IsKeyPressed(ImGuiKey.Y) && modifiers == KeyboardModifier.CtrlCmd) ||
+                (ImGui.IsKeyPressed(ImGuiKey.Z) && modifiers == (KeyboardModifier.Shift | KeyboardModifier.CtrlCmd)))
             {
                 mEditContext.Redo();
             }
 
-            bool isFocused = ImGui.IsWindowFocused();
 
-            if (isFocused && mEditorState == EditorState.Selecting)
+
+            if (ImGui.IsWindowFocused())
+                InteractionWithFocus(modifiers);
+
+            ImGui.PopClipRect();
+        }
+
+        void InteractionWithFocus(KeyboardModifier modifiers)
+        {
+            if (IsViewportHovered &&
+                mObjectPickingRequest.TryGetValue(out var objectPickingRequest))
             {
-                if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                bool isValid = objectPickingRequest.predicate(mHoveredObject);
+
+                string currentlyHoveredObjText = "";
+                if (isValid && mHoveredObject is CourseActor hoveredActor)
+                    currentlyHoveredObjText = $"\n\nCurrently Hovered: {hoveredActor.mPackName}";
+
+                ImGui.SetTooltip(objectPickingRequest.message + "\nPress Escape to cancel" + 
+                    currentlyHoveredObjText);
+                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
                 {
-                    if (mEditContext.IsSingleObjectSelected(out CourseActor? actor))
+                    mObjectPickingRequest = null;
+                    objectPickingRequest.promise.SetResult((null, modifiers));
+                }
+                else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) &&
+                    isValid)
+                {
+                    mObjectPickingRequest = null;
+                    objectPickingRequest.promise.SetResult((mHoveredObject, modifiers));
+                }
+
+                return;
+            }
+            if (IsViewportHovered && 
+                mPositionPickingRequest.TryGetValue(out var positionPickingRequest))
+            {
+                ImGui.SetTooltip(positionPickingRequest.message + "\nPress Escape to cancel");
+                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+                {
+                    mPositionPickingRequest = null;
+                    positionPickingRequest.promise.SetResult((null, modifiers));
+                }
+                else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                {
+                    //TODO use positionPickingRequest.layer
+                    mPositionPickingRequest = null;
+                    positionPickingRequest.promise.SetResult((ScreenToWorld(ImGui.GetMousePos()), modifiers));
+                }
+
+                return;
+            }
+          
+            if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+            {
+                if (mEditContext.IsAnySelected<CourseActor>())
+                {
+                    foreach(CourseActor actor in mEditContext.GetSelectedObjects<CourseActor>())
                     {
                         Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+                        posVec -= ScreenToWorld(ImGui.GetIO().MouseClickedPos[0]) - actor.mStartingTrans;
 
                         if (ImGui.GetIO().KeyShift)
                         {
@@ -241,173 +478,70 @@ namespace Fushigi.ui.widgets
                         }
                     }
                 }
-
-                if (ImGui.IsItemClicked())
+                if (mEditContext.IsSingleObjectSelected(out CourseRail.CourseRailPoint? rail))
                 {
-                    bool isModeActor = HoveredObject != null;
-                    bool isModeUnit = HoveredPoint != null;
+                    Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
 
-                    if (isModeActor && !isModeUnit)
+                    if (ImGui.GetIO().KeyShift)
                     {
-                        mEditorMode = EditorMode.Actors;
+                        rail.mTranslate = posVec;
                     }
-
-                    if (isModeUnit && !isModeActor)
+                    else
                     {
-                        mEditorMode = EditorMode.Units;
+                        posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                        posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                        posVec.Z = rail.mTranslate.Z;
+                        rail.mTranslate = posVec;
                     }
+                }
+            }
 
-                    /* if the user clicked somewhere and it was not hovered over an element, 
-                        * we clear our selected actors array */
-                    if (HoveredObject == null)
+
+            if (ImGui.IsItemClicked())
+            {
+                /* if the user clicked somewhere and it was not hovered over an element, 
+                    * we clear our selected actors array */
+                if (mHoveredObject == null)
+                {
+                    if(!ImGui.IsKeyDown(ImGuiKey.LeftShift))
+                        mEditContext.DeselectAll();
+                }
+                else if (mHoveredObject is IViewportSelectable obj)
+                {
+                    prevSelectVersion = mEditContext.SelectionVersion;
+                    obj.OnSelect(mEditContext);
+                }
+                else
+                {
+                    //TODO remove this once all course objects have IViewportSelectable SceneObjs
+                    prevSelectVersion = mEditContext.SelectionVersion;
+                    IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
+                }
+            }
+
+            if(mHoveredObject != null && mHoveredObject is CourseActor &&
+            ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+            {
+                if (ImGui.GetIO().MouseDragMaxDistanceSqr[0] <= ImGui.GetIO().MouseDragThreshold)
+                {
+                    if(ImGui.IsKeyDown(ImGuiKey.LeftShift)
+                    && prevSelectVersion == mEditContext.SelectionVersion)
+                    {
+                        mEditContext.Deselect(mHoveredObject!);
+                    }
+                    else if(!ImGui.IsKeyDown(ImGuiKey.LeftShift))
                     {
                         mEditContext.DeselectAll();
-                    }
-                    else if(HoveredObject is not BGUnitRail &&
-                        HoveredObject is not BGUnitRail.RailPoint) 
-                    {
-                        if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
-                        {
-                            mEditContext.Select(HoveredObject!);
-                        }
-                        else
-                        {
-                            mEditContext.DeselectAll();
-                            mEditContext.Select(HoveredObject!);
-                        }
-                    }
-
-                    if (HoveredPoint == null)
-                    {
-                        mSelectedPoint = null;
-                    }
-                    else
-                    {
-                        mSelectedPoint = HoveredPoint;
-                    }
-                }
-
-                if (ImGui.IsKeyDown(ImGuiKey.Delete))
-                {
-                    mEditorState = EditorState.DeleteActorLinkCheck;
-                }
-
-                if (ImGui.IsKeyDown(ImGuiKey.Escape))
-                {
-                    mEditContext.DeselectAll();
-                    mSelectedPoint = null;
-                }
-            }
-            else if (isFocused && mEditorState == EditorState.AddingActor)
-            {
-                ImGui.SetTooltip($"Placing actor {mActorToAdd} -- Hold SHIFT to place multiple, ESCAPE to cancel.");
-
-                if (ImGui.IsKeyDown(ImGuiKey.Escape))
-                {
-                    mEditorState = EditorState.Selecting;
-                }
-
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                {
-                    CourseActor actor = new CourseActor(mActorToAdd, mArea.mRootHash);
-
-                    Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
-                    posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
-                    posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
-                    posVec.Z = 0.0f;
-                    actor.mTranslation = posVec;
-
-                    mArea.mActorHolder.AddActor(actor);
-
-                    if (!ImGui.GetIO().KeyShift)
-                    {
-                        mActorToAdd = "";
-                        mEditorState = EditorState.Selecting;
-                    }
-                }
-            }
-            else if (isFocused && mEditorState == EditorState.DeleteActorLinkCheck)
-            {
-                
-            }
-            else if (isFocused && mEditorState == EditorState.DeletingActor)
-            {
-                if (!isFocused)
-                {
-                    ImGui.SetWindowFocus();
-                }
-
-                if (mEditContext.IsAnySelected<CourseActor>())
-                {
-                    mEditContext.DeleteSelectedActors();
-                    mEditorState = EditorState.Selecting;
-                }
-                else
-                {
-                    if(hoveredActor != null)
-                        ImGui.SetTooltip($"""
-                            Click to delete {hoveredActor.mActorName}.
-                            Hold SHIFT to delete multiple actors, ESCAPE to cancel.
-                            """);
-                    else
-                        ImGui.SetTooltip("""
-                            Click on any actor to delete it.
-                            Hold SHIFT to delete multiple actors, ESCAPE to cancel.
-                            """);
-
-                    if (ImGui.IsKeyDown(ImGuiKey.Escape))
-                    {
-                        mEditorState = EditorState.Selecting;
-                    }
-
-                    if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                    {
-                        if (hoveredActor != null)
-                        {
-                            mArea.mActorHolder.DeleteActor(hoveredActor);
-
-                            if (!ImGui.GetIO().KeyShift)
-                            {
-                                mEditorState = EditorState.Selecting;
-                            }
-                        }
-                    }
-                }
-            }
-            else if (mEditorState == EditorState.SelectingLink)
-            {
-                /* when we are begining to select a link, we will not always be immediately focused */
-                if (!isFocused)
-                {
-                    ImGui.SetWindowFocus();
-                }
-
-                if (ImGui.IsKeyDown(ImGuiKey.Escape))
-                {
-                    mEditorState = EditorState.Selecting;
-                }
-
-                if (hoveredActor != null)
-                {
-                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mActorName}");
-                }
-                else
-                {
-                    ImGui.SetTooltip($"Select the actor you wish to link to. Press ESCAPE to cancel.");
-                }
-
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                {
-                    if (hoveredActor != null)
-                    {
-                        ulong hash = hoveredActor.GetHash();
-                        SrcCourseLink.SetDestHash(hash, mArea.mActorHolder);
-                        mEditorState = EditorState.Selecting;
+                        IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
                     }
                 }
             }
 
-            ImGui.PopClipRect();
+            if (ImGui.IsKeyPressed(ImGuiKey.Delete))
+                ObjectDeletionRequested?.Invoke(mEditContext.GetSelectedObjects<CourseActor>().ToList());
+
+            if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+                mEditContext.DeselectAll();
         }
 
         void DrawGrid()
@@ -473,7 +607,7 @@ namespace Fushigi.ui.widgets
             {
                 bool is_major_tick = (i + tick_offset) % major_tick_interval == 0;
 
-                float t = ((min_tick_value + i * tick_interval) - min_value) / (max_value-min_value);
+                float t = ((min_tick_value + i * tick_interval) - min_value) / (max_value - min_value);
 
                 Vector4 colorVec = ImGui.ColorConvertU32ToFloat4(GridColor);
                 colorVec.W *= is_major_tick ? 1f : blend;
@@ -492,26 +626,99 @@ namespace Fushigi.ui.widgets
 
             foreach (var unit in this.mArea.mUnitHolder.mUnits)
             {
-                foreach (var wall in unit.Walls)
+                if (!unit.Visible)
+                    continue;
+
+                if (unit.mTileSubUnits.Count > 0)
                 {
-                    if (wall.ExternalRail != null)
+                    var clipMin = new Vector2(float.NegativeInfinity);
+                    var clipMax = new Vector2(float.PositiveInfinity);
+
+                    var nearZ = unit.mTileSubUnits.Min(x => x.mOrigin.Z);
+                    var farZ = unit.mTileSubUnits.Max(x => x.mOrigin.Z);
+
+                    foreach (TileSubUnits subUnit in unit.mTileSubUnits.OrderBy(x => x.mOrigin.Z))
                     {
-                        wall.ExternalRail.Render(this, mDrawList);
-                        if (wall.ExternalRail.HitTest(this))
-                            newHoveredObject = wall.ExternalRail;
-                    }
-                    foreach (BGUnitRail rail in wall.InternalRails)
-                    {
-                        rail.Render(this, mDrawList);
-                        if(rail.HitTest(this))
-                            newHoveredObject = rail;
+                        float blend = ((subUnit.mOrigin.Z - farZ) / (nearZ - farZ));
+                        if (float.IsNaN(blend)) blend = 0;
+
+                        uint color = ImGui.ColorConvertFloat4ToU32(
+                            (1 - blend) * new Vector4(0f, 0f, 1f, 1f) +
+                            blend * new Vector4(0f, 1f, 1f, 1f)
+                            );
+
+                        var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+
+                        foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
+                        {
+                            mDrawList.AddRectFilled(
+                                WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
+                                new Vector3(0, unit.mModelType == ModelType.Bridge ? .5f : 0, 0)),
+                                WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
+                                new Vector3(1, 1, 0)),
+                                color
+                                );
+                        }
+
+                        foreach (var (x, y, width, height, type) in subUnit.mSlopes)
+                        {
+                            var bbMin = subUnit.mOrigin + new Vector3(x, y, 0);
+                            var bbMax = bbMin + new Vector3(width, height, 0);
+
+                            var bbTL = new Vector3(bbMin.X, bbMax.Y, 0);
+                            var bbTR = new Vector3(bbMax.X, bbMax.Y, 0);
+                            var bbBL = new Vector3(bbMin.X, bbMin.Y, 0);
+                            var bbBR = new Vector3(bbMax.X, bbMin.Y, 0);
+
+                            switch (type)
+                            {
+                                case TileSubUnits.SlopeType.UpperLeft:
+                                    mDrawList.AddTriangleFilled(
+                                        WorldToScreen(bbTL),
+                                        WorldToScreen(bbBL),
+                                        WorldToScreen(bbTR),
+                                        color
+                                    );
+                                    break;
+                                case TileSubUnits.SlopeType.UpperRight:
+                                    mDrawList.AddTriangleFilled(
+                                        WorldToScreen(bbTL),
+                                        WorldToScreen(bbBR),
+                                        WorldToScreen(bbTR),
+                                        color
+                                    );
+                                    break;
+                                case TileSubUnits.SlopeType.LowerLeft:
+                                    mDrawList.AddTriangleFilled(
+                                        WorldToScreen(bbTL),
+                                        WorldToScreen(bbBL),
+                                        WorldToScreen(bbBR),
+                                        color
+                                    );
+                                    break;
+                                case TileSubUnits.SlopeType.LowerRight:
+                                    mDrawList.AddTriangleFilled(
+                                        WorldToScreen(bbTR),
+                                        WorldToScreen(bbBL),
+                                        WorldToScreen(bbBR),
+                                        color
+                                    );
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
                     }
                 }
-
-                //Hide belt for now. TODO how should this be handled?
-                //foreach (var belt in unit.BeltUnitRenders)
-                //    belt.Render(this, mDrawList);
             }
+
+            areaScene.ForEach<IViewportDrawable>(obj =>
+            {
+                bool isNewHoveredObj = false;
+                obj.Draw2D(mEditContext, this, mDrawList, ref isNewHoveredObj);
+                if (isNewHoveredObj)
+                    newHoveredObject = obj;
+            });
 
             if (mArea.mRailHolder.mRails.Count > 0)
             {
@@ -519,14 +726,114 @@ namespace Fushigi.ui.widgets
 
                 foreach (CourseRail rail in mArea.mRailHolder.mRails)
                 {
+                    bool rail_selected = mEditContext.IsSelected(rail);
+
+                    Vector2[] GetPoints()
+                    {
+                        Vector2[] points = new Vector2[rail.mPoints.Count];
+                        for (int i = 0; i < rail.mPoints.Count; i++)
+                        {
+                            Vector3 p = rail.mPoints[i].mTranslate;
+                            points[i] = WorldToScreen(new(p.X, p.Y, p.Z));
+                        }
+                        return points;
+                    }
+
+                    bool isSelected = mEditContext.IsSelected(rail);
+                    bool hovered = LevelViewport.HitTestLineLoopPoint(GetPoints(), 10f, ImGui.GetMousePos());
+
+                    CourseRail.CourseRailPoint selectedPoint = null;
+
+                    foreach (var point in rail.mPoints)
+                    {
+                        var pos2D = this.WorldToScreen(new(point.mTranslate.X, point.mTranslate.Y, point.mTranslate.Z));
+                        Vector2 pnt = new(pos2D.X, pos2D.Y);
+                        bool isHovered = (ImGui.GetMousePos() - pnt).Length() < 6.0f;
+                        if (isHovered)
+                            newHoveredObject = point;
+
+                        bool selected = mEditContext.IsSelected(point);
+                        if (selected)
+                            selectedPoint = point;
+                    }
+
+                    //Delete selected
+                    if (selectedPoint != null && ImGui.IsKeyPressed(ImGuiKey.Delete))
+                    {
+                            rail.mPoints.Remove(selectedPoint);
+                    }
+                    if (selectedPoint != null && ImGui.IsMouseReleased(0))
+                    {
+                        //Check if point matches an existing point, remove if intersected
+                        var matching = rail.mPoints.Where(x => x.mTranslate == selectedPoint.mTranslate).ToList();
+                        if (matching.Count > 1)
+                            rail.mPoints.Remove(selectedPoint);
+                    }
+                
+                    bool add_point = ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt;
+
+                    //Insert point to selected
+                    if (selectedPoint != null && add_point)
+                    {
+                        Vector3 posVec = this.ScreenToWorld(ImGui.GetMousePos());
+
+                        var index = rail.mPoints.IndexOf(selectedPoint);
+                        var newPoint = new CourseRail.CourseRailPoint(selectedPoint);
+                        newPoint.mTranslate = new(
+                            MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                            MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                            selectedPoint.mTranslate.Z);
+
+                        if (rail.mPoints.Count - 1 == index)
+                            rail.mPoints.Add(newPoint);
+                        else
+                            rail.mPoints.Insert(index, newPoint);
+
+                        this.mEditContext.DeselectAll();
+                        this.mEditContext.Select(newPoint);
+                        newHoveredObject = newPoint;
+                    }
+                    else if (rail_selected && add_point)
+                    {
+                        Vector3 posVec = this.ScreenToWorld(ImGui.GetMousePos());
+
+                        var newPoint = new CourseRail.CourseRailPoint();
+                        newPoint.mTranslate = new(
+                            MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                            MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                            0);
+
+                        rail.mPoints.Add(newPoint);
+
+                        this.mEditContext.DeselectAll();
+                        this.mEditContext.Select(newPoint);
+                        newHoveredObject = newPoint;
+                    }
+
+                    //Rail selection disabled for now as it conflicts with point selection
+                    // if (hovered)
+                    //   newHoveredObject = rail;
+                }
+
+                foreach (CourseRail rail in mArea.mRailHolder.mRails)
+                {
+                    if (rail.mPoints.Count == 0)
+                        continue;
+
+                    bool selected = mEditContext.IsSelected(rail);
+                    var rail_color = selected ? ImGui.ColorConvertFloat4ToU32(new(1, 1, 0, 1)) : color;
+
                     List<Vector2> pointsList = [];
                     foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
                     {
+                        bool point_selected = mEditContext.IsSelected(pnt);
+                        var rail_point_color = point_selected ? ImGui.ColorConvertFloat4ToU32(new(1, 1, 0, 1)) : color;
+                        var size = newHoveredObject == pnt ? pointSize * 1.5f : pointSize;
+
                         var pos2D = WorldToScreen(pnt.mTranslate);
-                        mDrawList.AddCircleFilled(pos2D, pointSize, color);
+                        mDrawList.AddCircleFilled(pos2D, size, rail_point_color);
                         pointsList.Add(pos2D);
                     }
-
 
                     var segmentCount = rail.mPoints.Count;
                     if (!rail.mIsClosed)
@@ -549,7 +856,7 @@ namespace Fushigi.ui.widgets
 
                         if (pointB.mControl.TryGetValue(out control))
                             //invert control point
-                            cpInB2D = WorldToScreen(pointB.mTranslate - (control - pointB.mTranslate)); 
+                            cpInB2D = WorldToScreen(pointB.mTranslate - (control - pointB.mTranslate));
 
                         if (cpOutA2D == posA2D && cpInB2D == posB2D)
                         {
@@ -558,15 +865,41 @@ namespace Fushigi.ui.widgets
                         }
 
                         mDrawList.PathBezierCubicCurveTo(cpOutA2D, cpInB2D, posB2D);
-
                     }
 
-                    mDrawList.PathStroke(color, ImDrawFlags.None, 2.5f);
+                    float thickness = newHoveredObject == rail ? 3f : 2.5f;
+
+                    mDrawList.PathStroke(rail_color, ImDrawFlags.None, thickness);
                 }
             }
 
-            foreach (CourseActor actor in mArea.mActorHolder.GetActors())
+            foreach (CourseActor actor in mArea.GetActors())
             {
+                Vector3 min = new(-.5f);
+                Vector3 max = new(.5f);
+                Vector3 off = new(0f);
+                Vector3 center = new(0f);
+                var drawing = "box";
+
+                if (actor.mActorPack.ShapeParams != null)
+                {
+                    var calc = actor.mActorPack.ShapeParams.mCalc;
+
+                    if(((actor.mActorPack.ShapeParams.mSphere?.Count ??  0) > 0) ||
+                        ((actor.mActorPack.ShapeParams.mCapsule?.Count?? 0) > 0))
+                    { 
+                        drawing = "sphere";
+                    }
+                    else if((actor.mActorPack.ShapeParams.mPoly?.Count ??  0) > 0)
+                    { 
+                        calc = actor.mActorPack.ShapeParams.mPoly[0].mCalc;
+                    }
+                    
+                    min = calc.mMin;
+                    max = calc.mMax;
+                    center = calc.mCenter;
+                }
+                    
                 string layer = actor.mLayer;
 
                 if (mLayersVisibility!.TryGetValue(layer, out bool isVisible) && isVisible)
@@ -581,54 +914,84 @@ namespace Fushigi.ui.widgets
                             actor.mTranslation.X,
                             actor.mTranslation.Y,
                             actor.mTranslation.Z
-                        );;
+                        ); ;
 
-                        //topLeft
-                        s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(-0.5f, 0.5f, 0), transform));
-                        //topRight
-                        s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(0.5f, 0.5f, 0), transform));
-                        //bottomRight
-                        s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(0.5f, -0.5f, 0), transform));
-                        //bottomLeft
-                        s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(-0.5f, -0.5f, 0), transform));
+                    uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
 
-                        bool isHovered = HoveredObject == actor;
+                    if (actor.mPackName.Contains("CameraArea") || actor.mActorPack?.Category == "AreaObj")
+                    {
+                        if (actor.mPackName.Contains("CameraArea"))
+                            color = ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1));
+                            
+                        off = new(0, .5f, 0);
+                    }
+                    //topLeft
+                    s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(min.X, off.Y+max.Y, 0), transform));
+                    //topRight
+                    s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(max.X, off.Y+max.Y, 0), transform));
+                    //bottomRight
+                    s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(max.X, off.Y+min.Y, 0), transform));
+                    //bottomLeft
+                    s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(min.X, off.Y+min.Y, 0), transform));
 
-                        uint color = ImGui.ColorConvertFloat4ToU32(new(0.5f, 1, 0, 1));
+                    if (mEditContext.IsSelected(actor))
+                    {
+                        color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
+                    }
 
-                        if (mEditContext.IsSelected(actor))
-                        {
-                            color = ImGui.ColorConvertFloat4ToU32(new(0.84f, .437f, .437f, 1));
-                        }
+                    bool isHovered = mHoveredObject == actor;
 
+                    switch(drawing)
+                    {
+                        default:
+                            for (int i = 0; i < 4; i++)
+                            {
+                                mDrawList.AddLine(
+                                s_actorRectPolygon[i],
+                                s_actorRectPolygon[(i+1) % 4 ],
+                                color, isHovered ? 2.5f : 1.5f);
+                            }
+                            break;
+                        case "sphere": 
+                            var pos = WorldToScreen(Vector3.Transform(center, transform));
+                            var scale = Matrix4x4.CreateScale(actor.mScale);
+                            Vector2 rad = (WorldToScreen(Vector3.Transform(max, scale))-WorldToScreen(Vector3.Transform(min, scale)))/2;
+                            mDrawList.AddEllipse(pos, Math.Abs(rad.X), Math.Abs(rad.Y), color, -actor.mRotation.Z, 0, isHovered ? 2.5f : 1.5f);
+                            
+                            break;
+                    }
+                    if (mEditContext.IsSelected(actor))
+                    {
                         for (int i = 0; i < 4; i++)
                         {
                             mDrawList.AddCircleFilled(s_actorRectPolygon[i],
                                 pointSize, color);
                             mDrawList.AddLine(
-                                s_actorRectPolygon[i],
-                                s_actorRectPolygon[(i + 1) % 4],
-                                color, isHovered ? 2.5f : 1.5f);
+                            s_actorRectPolygon[i],
+                            s_actorRectPolygon[(i+1) % 4 ],
+                            color, isHovered ? 2.5f : 1.5f);
                         }
+                        mDrawList.AddEllipse(WorldToScreen(Vector3.Transform(new(0), transform)), pointSize*3, pointSize*3, color, -actor.mRotation.Z, 4, 2);
+                    }
 
-                        string name = actor.mActorName;
+                    string name = actor.mPackName;
 
-                        isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
+                    isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
 
-                        if (name.Contains("Area"))
-                        {
-                            isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
-                                ImGui.GetMousePos());
-                        }
+                    if (name.Contains("Area"))
+                    {
+                        isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
+                            ImGui.GetMousePos());
+                    }
 
-                        if (isHovered)
-                        {
-                            newHoveredObject = actor;
-                        }
+                    if (isHovered)
+                    {
+                        newHoveredObject = actor;
+                    }
                 }
             }
 
-            HoveredObject = newHoveredObject;
+            mHoveredObject = newHoveredObject;
         }
 
         /// <summary>
@@ -670,7 +1033,7 @@ namespace Fushigi.ui.widgets
             {
                 var p1 = points[i];
                 var p2 = points[(i + 1) % points.Length];
-                if (HitTestPointLine(point, 
+                if (HitTestPointLine(point,
                     p1, p2, thickness))
                     return true;
             }
@@ -680,10 +1043,10 @@ namespace Fushigi.ui.widgets
 
         static bool HitTestPointLine(Vector2 p, Vector2 a, Vector2 b, float thickness)
         {
-            Vector2 pa = p-a, ba = b-a;
-            float h = Math.Clamp( Vector2.Dot(pa,ba)/
-                      Vector2.Dot(ba,ba), 0, 1 );
-            return ( pa - ba*h ).Length() < thickness/2;
+            Vector2 pa = p - a, ba = b - a;
+            float h = Math.Clamp(Vector2.Dot(pa, ba) /
+                      Vector2.Dot(ba, ba), 0, 1);
+            return (pa - ba * h).Length() < thickness / 2;
         }
     }
 

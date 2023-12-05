@@ -12,11 +12,35 @@ using System.Threading.Tasks;
 
 namespace Fushigi.gl
 {
-    internal class GLTexture2D : GLTexture
+    public class GLTexture2D : GLTexture
     {
         public GLTexture2D(GL gl) : base(gl)
         {
             Target = TextureTarget.Texture2D;
+        }
+
+        public static GLTexture2D CreateUncompressedTexture(GL gl, uint width, uint height, InternalFormat format,
+             Silk.NET.OpenGL.PixelFormat pixelFormat = Silk.NET.OpenGL.PixelFormat.Rgba,
+              Silk.NET.OpenGL.PixelType pixelType = Silk.NET.OpenGL.PixelType.UnsignedByte)
+        {
+            GLTexture2D tex = new GLTexture2D(gl);
+            tex.Width = width;
+            tex.Height = height;
+            tex.InternalFormat = format;
+            tex.PixelFormat = pixelFormat;
+            tex.PixelType = pixelType;
+
+            tex.Bind();
+
+            unsafe
+            {
+                gl.TexImage2D(tex.Target, 0, tex.InternalFormat, tex.Width, tex.Height, 0,
+                                  tex.PixelFormat, tex.PixelType, null);
+            }
+
+            tex.Unbind();
+
+            return tex;
         }
 
         public static GLTexture2D Load(GL gl, string filePath)
@@ -77,6 +101,19 @@ namespace Fushigi.gl
             _gl.TextureParameter(ID, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
             _gl.GenerateMipmap(Target);
+
+            Unbind();
+        }
+
+        public unsafe void Resize(uint width, uint height)
+        {
+            Width = width;
+            Height = height;
+
+            Bind();
+
+            _gl.TexImage2D(Target, 0, InternalFormat, Width, Height, 0,
+                         PixelFormat, PixelType, null);
 
             Unbind();
         }

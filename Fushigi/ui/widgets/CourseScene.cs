@@ -1,84 +1,190 @@
-﻿using Fushigi.Byml;
 using Fushigi.course;
+using Fushigi.gl;
+using Fushigi.gl.Bfres;
 using Fushigi.param;
-using Fushigi.rstb;
+using Fushigi.ui.modal;
+using Fushigi.ui.SceneObjects;
+using Fushigi.ui.SceneObjects.bgunit;
+using Fushigi.ui.undo;
 using Fushigi.util;
 using ImGuiNET;
-using Newtonsoft.Json.Linq;
-using Silk.NET.Input;
 using Silk.NET.OpenGL;
-using Silk.NET.SDL;
-using Silk.NET.Windowing;
-using System;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Drawing;
-using System.Net.Http.Headers;
+using System.Diagnostics;
 using System.Numerics;
-using System.Reflection.Emit;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Fushigi.ui.widgets
 {
     class CourseScene
     {
         Dictionary<CourseArea, LevelViewport> viewports = [];
+        Dictionary<CourseArea, object?> lastSavedAction = [];
+        Dictionary<CourseArea, CourseAreaScene> areaScenes = [];
         Dictionary<CourseArea, LevelViewport>? lastCreatedViewports;
-        LevelViewport activeViewport;
+        public LevelViewport activeViewport;
+        UndoWindow undoWindow;
+        Vector3 camSave;
+
+        (object? courseObj, PropertyFieldsCapture placementPropCapture, PropertyDictCapture dynamicPropCapture)
+           propertyCapture = (null, 
+            PropertyFieldsCapture.Empty, 
+            PropertyDictCapture.Empty);
 
         readonly Course course;
+        readonly IPopupModalHost mPopupModalHost;
         CourseArea selectedArea;
 
         readonly Dictionary<string, bool> mLayersVisibility = [];
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
-        bool mShowAddActor = false;
         bool mShowSaveFailureAlert = false;
+        readonly List<IToolWindow> mOpenToolWindows = [];
 
-        CourseActor? mSelectedActor = null;
-        CourseUnit? mSelectedUnit = null;
-        BGUnitRail? mSelectedUnitRail = null;
+        string mActorSearchText = "";
 
-        public CourseScene(Course course, GL gl)
+        CourseLink? mSelectedGlobalLink = null;
+
+        string[] linkTypes = [
+            "BasicSignal",
+            "Create",
+            "CreateRelativePos",
+            "CreateAfterDied",
+            "Delete",
+            "Reference",
+            "NextGoTo",
+            "NextGoToParallel",
+            "Bind",
+            "Bind_NoRot",
+            "Connection",
+            "Follow",
+            "PopUp",
+            "Contents",
+            "NoticeDeath",
+            "Relocation",
+            "ParamRefForChild",
+            "CullingReference",
+            "EventJoinMember",
+            "EventGuest_04",
+            "EventGuest_05",
+            "EventGuest_06",
+            "EventGuest_08",
+            "EventGuest_09",
+            "EventGuest_10",
+            "EventGuest_11",
+        ];
+
+        public CourseScene(Course course, GL gl, IPopupModalHost popupModalHost)
         {
             this.course = course;
+            this.mPopupModalHost = popupModalHost;
             selectedArea = course.GetArea(0);
+            undoWindow = new UndoWindow();
 
             foreach (var area in course.GetAreas())
             {
-                viewports[area] = new LevelViewport(area, gl, new CourseAreaEditContext(area));
+                var areaScene = new CourseAreaScene(area, new CourseAreaSceneRoot(area));
+                areaScenes[area] = areaScene;
+                var viewport = new LevelViewport(area, gl, areaScene);
+                viewports[area] = viewport;
+                lastSavedAction[area] = null;
+
+                //might not be the best approach but better than what we had before
+                viewport.ObjectDeletionRequested += (objs) =>
+                {
+                    if (objs.Count > 0)
+                        _ = DeleteObjectsWithWarningPrompt(objs, 
+                            areaScene.EditContext, "Delete objects");
+                };
             }
 
             activeViewport = viewports[selectedArea];
+            PrepareResourcesLoad(gl);
         }
 
-        public void DeselectAll()
+        public void PrepareResourcesLoad(GL gl)
         {
-            mSelectedActor = null;
-            mSelectedUnit = null;
-            mSelectedUnitRail = null;
+            //Check what files are needed to load/unload by area
+            List<string> resourceFiles = new List<string>();
+            foreach (var area in course.GetAreas())
+            {
+                foreach (var actor in area.GetActors())
+                {
+                    if (actor.mActorPack != null)
+                        resourceFiles.Add(actor.mActorPack.GetModelFileName());
+                }
+            }
+            //All resource files to load
+            resourceFiles = resourceFiles.Distinct().Where(x => !string.IsNullOrEmpty(x)).ToList();
+            //Unload any unused resources in the cache
+
+            List<string> removed = new List<string>();
+            foreach (var bfres in BfresCache.Cache)
+            {
+                //Not currently used by area, dispose
+                if (!resourceFiles.Contains(bfres.Key))
+                {
+                    bfres.Value.Dispose();
+                    removed.Add(bfres.Key);
+
+                    Console.WriteLine($"Disposing resource {bfres.Key}");
+                }
+            }
+
+            foreach (var bfres in removed)
+                BfresCache.Cache.Remove(bfres);
+
+            //Load all used resources
+            foreach (var file in resourceFiles)
+                BfresCache.Load(gl, file);
         }
 
-        public void DrawUI(GL gl)
+        public void Undo() => areaScenes[selectedArea].EditContext.Undo();
+        public void Redo() => areaScenes[selectedArea].EditContext.Redo();
+
+        public bool HasUnsavedChanges()
         {
+            foreach (var area in course.GetAreas())
+            {
+                if (lastSavedAction[area] != areaScenes[area].EditContext.GetLastAction())
+                    return true;
+            }
+
+            return false;
+        }
+
+        public void DrawUI(GL gl, double deltaSeconds)
+        {
+            UndoHistoryPanel();
+
             ActorsPanel();
 
             SelectionParameterPanel();
 
             RailsPanel();
 
+            GlobalLinksPanel();
+            RailLinksPanel();
+
+            LocalLinksPanel();
+
             BGUnitPanel();
 
-            if (mShowAddActor)
+            CourseMiniView();
+          
+            for (int i = 0; i < mOpenToolWindows.Count; i++)
             {
-                SelectActor();
-            }
+                var window = mOpenToolWindows[i];
+                bool windowOpen = true;
+                window.Draw(ref windowOpen);
 
-            if (activeViewport.mEditorState == LevelViewport.EditorState.DeleteActorLinkCheck)
-            {
-                LinkDeletionCheck();
+                if (!windowOpen)
+                {
+                    mOpenToolWindows.RemoveAt(i);
+                    i--;
+                }
             }
 
             if (mShowSaveFailureAlert)
@@ -86,10 +192,9 @@ namespace Fushigi.ui.widgets
                 SaveFailureAlert();
             }
 
-            
-            ulong selectionVersionBefore = activeViewport.mEditContext.SelectionVersion;
+            ulong selectionVersionBefore = areaScenes[selectedArea].EditContext.SelectionVersion;
 
-            bool status = ImGui.Begin("Viewports");
+            bool status = ImGui.Begin("Viewports", ImGuiWindowFlags.NoNav);
 
             ImGui.DockSpace(0x100, ImGui.GetContentRegionAvail());
 
@@ -100,28 +205,42 @@ namespace Fushigi.ui.widgets
 
                 ImGui.SetNextWindowDockID(0x100, ImGuiCond.Once);
 
-                if (ImGui.Begin(area.GetName()))
+                if (ImGui.Begin(area.GetName(), ImGuiWindowFlags.NoNav))
                 {
-                    if(ImGui.IsWindowFocused())
+                    if (ImGui.IsWindowFocused())
                     {
                         selectedArea = area;
                         activeViewport = viewport;
+                        mHasFilledLayers = false;
                     }
 
                     var topLeft = ImGui.GetCursorScreenPos();
                     var size = ImGui.GetContentRegionAvail();
 
-                    viewport.Draw(ImGui.GetContentRegionAvail(), mLayersVisibility);
-                    if(activeViewport != viewport)
+                    ImGui.SetNextItemAllowOverlap();
+                    ImGui.SetCursorScreenPos(topLeft);
+
+                    ImGui.SetNextItemAllowOverlap();
+                    viewport.Draw(ImGui.GetContentRegionAvail(), deltaSeconds, mLayersVisibility);
+                    if (activeViewport != viewport)
                         ImGui.GetWindowDrawList().AddRectFilled(topLeft, topLeft + size, 0x44000000);
 
                     //Allow button press, align to top of the screen
-                    ImGui.SetItemAllowOverlap();
                     ImGui.SetCursorScreenPos(topLeft);
 
                     //Load popup when button is pressed
                     if (ImGui.Button("Area Parameters"))
                         ImGui.OpenPopup("AreaParams");
+                    ImGui.SameLine();
+
+                    //Display Mouse Position  
+                    if (ImGui.IsMouseHoveringRect(topLeft, topLeft + size))
+                    {
+                        var _mousePos = activeViewport.ScreenToWorld(ImGui.GetMousePos());
+                        ImGui.Text("X: " + Math.Round(_mousePos.X, 3) + "\nY: " + Math.Round(_mousePos.Y, 3));
+                    }
+                    else
+                        ImGui.Text("X:\nY:");
 
                     //Fixed popup pos, render popup
                     var pos = ImGui.GetCursorScreenPos();
@@ -139,7 +258,7 @@ namespace Fushigi.ui.widgets
                 for (int i = 0; i < course.GetAreaCount(); i++)
                 {
                     var area = course.GetArea(i);
-                    if(area.mActorHolder.GetActors().Any(x=>x.mActorName=="PlayerLocator"))
+                    if (area.mActorHolder.mActors.Any(x => x.mPackName == "PlayerLocator"))
                     {
                         ImGui.SetWindowFocus(area.GetName());
                         break;
@@ -150,22 +269,18 @@ namespace Fushigi.ui.widgets
                 lastCreatedViewports = viewports;
             }
 
-            if (activeViewport.mEditContext.SelectionVersion != selectionVersionBefore)
-            {
-                DeselectAll();
-                if (activeViewport.mEditContext.IsSingleObjectSelected<CourseActor>(out var actor))
-                    mSelectedActor = actor;
-                if (activeViewport.mEditContext.IsSingleObjectSelected<BGUnitRail>(out var bgUnitRail))
-                {
-                    mSelectedUnitRail = bgUnitRail;
-                }
-            }
+            //minimap.Draw(selectedArea, areaScenes[selectedArea].EditContext, viewports[selectedArea]);
 
             if (status)
                 ImGui.End();
         }
 
-        public void Save()
+        void UndoHistoryPanel()
+        {
+          undoWindow.Render(areaScenes[selectedArea].EditContext);
+        }
+        
+        void Save()
         {
             RSTB resource_table = new RSTB();
             resource_table.Load();
@@ -206,160 +321,6 @@ namespace Fushigi.ui.widgets
             {
                 return false;
             }
-}
-
-        private void SelectActor()
-        {
-            bool button = true;
-            bool status = ImGui.Begin("Add Actor", ref button);
-
-            ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail());
-
-            foreach (string actor in ParamDB.GetActors())
-            {
-                ImGui.Selectable(actor);
-
-                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                {
-                    Console.WriteLine("Switching state to EditorState.AddingActor");
-                    activeViewport.mEditorState = LevelViewport.EditorState.AddingActor;
-                    activeViewport.mActorToAdd = actor;
-                    mShowAddActor = false;
-                }
-            }
-
-            ImGui.EndListBox();
-
-            if (ImGui.IsKeyDown(ImGuiKey.Escape))
-            {
-                button = false;
-            }
-
-            if (!button)
-            {
-                Console.WriteLine("Switching state to EditorState.Selecting");
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-                mShowAddActor = false;
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
-        private void LinkDeletionCheck()
-        {
-            var actors = activeViewport.mEditContext.GetSelectedObjects<CourseActor>();
-            List<string> dstMsgStrs = new();
-            List<string> srcMsgStr = new();
-
-            foreach (var actor in actors)
-            {
-                if (activeViewport.mEditContext.IsActorDestForLink(actor))
-                {
-                    var links = selectedArea.mLinkHolder.GetSrcHashesFromDest(actor.GetHash());
-
-                    foreach (KeyValuePair<string, List<ulong>> kvp in links)
-                    {
-                        var hashes = kvp.Value;
-
-                        foreach (var hash in hashes)
-                        {
-                            /* only delete actors that the hash exists for...this may be caused by a user already deleting the source actor */
-                            if (selectedArea.mActorHolder.HasHash(hash))
-                            {
-                                dstMsgStrs.Add($"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n");
-                            }
-                        }
-                    }
-
-                    var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(actor.GetHash());
-
-                    foreach (KeyValuePair<string, List<ulong>> kvp in destHashes)
-                    {
-                        var hashes = kvp.Value;
-
-                        foreach (var hash in hashes)
-                        {
-                            if (selectedArea.mActorHolder.HasHash(hash))
-                            {
-                                srcMsgStr.Add($"{selectedArea.mActorHolder[hash].mActorName} [{selectedArea.mActorHolder[hash].mName}]\n");
-                            }
-                        }
-                    }
-                }
-            }
-
-            /* nothing to worry about here */
-            if (dstMsgStrs.Count == 0 && srcMsgStr.Count == 0)
-            {
-                Console.WriteLine("Switching state to EditorState.DeletingActor");
-                activeViewport.mEditContext.DeleteSelectedActors();
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-                return;
-            }
-
-            bool status = ImGui.Begin("Link Warning");
-
-            if (srcMsgStr.Count > 0)
-            {
-                ImGui.Text("The actor you are about to delete is a source link for the following actors:");
-
-                foreach (string s in srcMsgStr)
-                {
-                    ImGui.Text(s);
-                }
-            }
-
-            if (dstMsgStrs.Count > 0)
-            {
-                ImGui.Text("The actor you are about to delete is a destination link for the following actors:");
-
-                foreach (string s in dstMsgStrs)
-                {
-                    ImGui.Text(s);
-                }
-            }
-
-            ImGui.Text(" Do you wish to continue?");
-
-            if (ImGui.Button("Yes"))
-            {
-                Console.WriteLine("Switching state to EditorState.Selecting");
-                activeViewport.mEditContext.DeleteSelectedActors();
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-            }
-
-            ImGui.SameLine();
-
-            if (ImGui.Button("No"))
-            {
-                Console.WriteLine("Switching state to EditorState.Selecting");
-                activeViewport.mEditorState = LevelViewport.EditorState.Selecting;
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
-        }
-
-        private void SaveFailureAlert()
-        {
-            bool status = ImGui.Begin("Save Failed");
-
-            ImGui.Text("The course files may be open in an external app, or Super Mario Wonder may currently be running in an emulator. Close the emulator or external app and try again.");
-
-            if (ImGui.Button("Okay"))
-            {
-                mShowSaveFailureAlert = false;
-            }
-
-            if (status)
-            {
-                ImGui.End();
-            }
         }
 
         private void ActorsPanel()
@@ -368,15 +329,26 @@ namespace Fushigi.ui.widgets
 
             if (ImGui.Button("Add Actor"))
             {
-                mShowAddActor = true;
+                _ = AddActorsWithSelectActorAndLayerWindow();
             }
 
             ImGui.SameLine();
 
             if (ImGui.Button("Delete Actor"))
             {
-                activeViewport.mEditorState = LevelViewport.EditorState.DeleteActorLinkCheck;
+                var ctx = areaScenes[selectedArea].EditContext;
+                var actors = ctx.GetSelectedObjects<CourseActor>().ToList();
+
+                if (actors.Count > 0)
+                    _ = DeleteObjectsWithWarningPrompt(actors, 
+                        ctx, "Delete actors");
             }
+
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(IconUtil.ICON_SEARCH.ToString());
+            ImGui.SameLine();
+
+            ImGui.InputText($"##Search", ref mActorSearchText, 0x100);
 
             // actors are in an array
             CourseActorHolder actorArray = selectedArea.mActorHolder;
@@ -407,17 +379,185 @@ namespace Fushigi.ui.widgets
             ImGui.End();
         }
 
+        private void GlobalLinksPanel()
+        {
+            ImGui.Begin("Global Links");
+
+            if (ImGui.Button("Add Link"))
+            {
+                course.AddGlobalLink();
+            }
+
+            ImGui.Separator();
+
+            CourseGlobalLinksView(course.GetGlobalLinks());
+
+            ImGui.End();
+        }
+
+        private void SaveFailureAlert()
+        {
+            bool status = ImGui.Begin("Save Failed");
+
+            ImGui.Text("The course files may be open in an external app, or Super Mario Wonder may currently be running in an emulator. Close the emulator or external app and try again.");
+
+            if (ImGui.Button("Okay"))
+            {
+                mShowSaveFailureAlert = false;
+            }
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+      
+        private void LocalLinksPanel()
+        {
+            ImGui.Begin("Local Links");
+
+            ImGui.Checkbox("Wonder View", ref activeViewport.IsWonderView);
+
+            ImGui.Separator();
+
+            AreaLocalLinksView(selectedArea);
+            
+            ImGui.End();
+        }
+        
+        private void RailLinksPanel()
+        {
+            ImGui.Begin("Actor to Rail Links");
+
+            ImGui.Columns(4);
+            ImGui.Text("Actor-Hash");
+            ImGui.NextColumn();
+            ImGui.Text("Rail");
+            ImGui.NextColumn();
+            ImGui.Text("Point");
+            ImGui.NextColumn();
+            ImGui.NextColumn();
+
+            var ctx = areaScenes[selectedArea].EditContext;
+            var rails = selectedArea.mRailHolder.mRails;
+            var actors = selectedArea.mActorHolder.mActors;
+            var railLinks = selectedArea.mRailLinksHolder.mLinks;
+
+            for (int i = 0; i < railLinks.Count; i++)
+            {
+                ImGui.PushID(i);
+                CourseActorToRailLink link = railLinks[i];
+
+                string hash = link.mSourceActor.ToString();
+                int actorIndex = actors.FindIndex(x => x.mHash == link.mSourceActor);
+                if (ImGui.InputText("##actor", ref hash, 100) &&
+                    ulong.TryParse(hash, out ulong hashInt))
+                    link.mSourceActor = hashInt;
+                if(actorIndex == -1)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextDisabled("Invalid");
+                }
+
+                ImGui.NextColumn();
+                int railIndex = rails.FindIndex(x => x.mHash == link.mDestRail);
+                if (ImGui.BeginCombo("##rail", railIndex >= 0 ? ("rail " + railIndex) : "None"))
+                {
+                    for (int iRail = 0; iRail < rails.Count; iRail++)
+                    {
+                        if (ImGui.Selectable("Rail " + iRail, railIndex == iRail))
+                            link.mDestRail = rails[iRail].mHash;
+                    }
+                    ImGui.EndCombo();
+                }
+                if (railIndex == -1)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextDisabled("Invalid");
+                }
+                ImGui.NextColumn();
+                if (railIndex >= 0)
+                {
+                    int pointIndex = rails[railIndex].mPoints.FindIndex(x => x.mHash == link.mDestPoint);
+
+                    if (pointIndex == -1)
+                        pointIndex = 0;
+
+                    if (ImGui.InputInt("##railpoint", ref pointIndex))
+                        pointIndex = Math.Clamp(pointIndex, 0, rails[railIndex].mPoints.Count - 1);
+
+                    link.mDestPoint = rails[railIndex].mPoints[pointIndex].mHash;
+                }
+
+                ImGui.NextColumn();
+                if (ImGui.Button("Delete", new Vector2(ImGui.GetContentRegionAvail().X * 0.65f, 0)))
+                {
+                    ctx.DeleteRailLink(link);
+                    i--;
+                }
+
+
+                ImGui.NextColumn();
+                ImGui.PopID();
+            }
+
+            float width = ImGui.GetItemRectMax().X - ImGui.GetCursorScreenPos().X;
+
+            ImGui.Columns(1);
+            ImGui.Dummy(new Vector2(0, ImGui.GetFrameHeight() * 0.5f));
+
+            if (ImGui.Button("Add", new Vector2(width, ImGui.GetFrameHeight() * 1.5f)))
+            {
+                ctx.AddRailLink(new CourseActorToRailLink("Reference"));
+            }
+
+            ImGui.End();
+        }
+
         private void SelectionParameterPanel()
         {
+            var editContext = areaScenes[selectedArea].EditContext;
+
             bool status = ImGui.Begin("Selection Parameters", ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
-            if (mSelectedActor != null)
+            if (editContext.IsSingleObjectSelected(out CourseActor? mSelectedActor))
             {
-                string actorName = mSelectedActor.mActorName;
+                //invalidate current action if there has been external changes
+                if((propertyCapture.placementPropCapture.HasChangesSinceLastCheckpoint() ||
+                    propertyCapture.dynamicPropCapture.HasChangesSinceLastCheckpoint()))
+                {
+                    propertyCapture = (null, PropertyFieldsCapture.Empty, PropertyDictCapture.Empty);
+                }
+
+                #region Actor UI
+                string actorName = mSelectedActor.mPackName;
                 string name = mSelectedActor.mName;
 
+                ImGui.Columns(2);
                 ImGui.AlignTextToFramePadding();
-                ImGui.Text(actorName);
+                string packName = mSelectedActor.mPackName;
+
+                ImGui.Text("Actor Name");
+                ImGui.NextColumn();
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+                if (ImGui.InputText("##Actor Name", ref packName, 256, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    if (ParamDB.GetActors().Contains(packName))
+                    {
+                        mSelectedActor.mPackName = packName;
+                        mSelectedActor.InitializeDefaultDynamicParams();
+                    }
+                }
+                ImGui.PopItemWidth();
+                ImGui.NextColumn();
+
+                ImGui.Text("Actor Hash");
+                ImGui.NextColumn();
+                string hash = mSelectedActor.mHash.ToString();
+                ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+                ImGui.InputText("##Actor Hash", ref hash, 256, ImGuiInputTextFlags.ReadOnly);
+                ImGui.PopItemWidth();
+                ImGui.NextColumn();
 
                 ImGui.Separator();
 
@@ -428,7 +568,36 @@ namespace Fushigi.ui.widgets
 
                 ImGui.NextColumn();
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
-                ImGui.InputText($"##{name}", ref name, 512);
+                if (ImGui.InputText($"##{name}", ref name, 512, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    mSelectedActor.mName = name;
+                }
+
+                ImGui.PopItemWidth();
+                ImGui.NextColumn();
+
+                ImGui.Text("Layer");
+
+                ImGui.NextColumn();
+
+                if (ImGui.BeginCombo("##Dropdown", mSelectedActor.mLayer))
+                {
+                    foreach (var layer in mLayersVisibility.Keys.ToArray().ToImmutableList())
+                    {
+                        if (ImGui.Selectable(layer))
+                        {
+                            //item is selected
+                            Console.WriteLine("Changing " + mSelectedActor.mName + "'s layer from " + mSelectedActor.mLayer + " to " + layer + ".");
+                            mSelectedActor.mLayer = layer;
+                        }
+                    }
+
+                    ImGui.EndCombo();
+                }
+
+
+
+
                 ImGui.PopItemWidth();
 
                 ImGui.Columns(1);
@@ -444,57 +613,171 @@ namespace Fushigi.ui.widgets
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Links");
                 ImGui.Separator();
-                
-                if (ImGui.Button("Add Link"))
-                {
 
+
+
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                if (ImGui.BeginCombo("##Add Link", "Add Link"))
+                {
+                    for (int i = 0; i < linkTypes.Length; i++)
+                    {
+                        var linkType = linkTypes[i];
+
+                        if (ImGui.Selectable(linkType))
+                        {
+                            ImGui.SetWindowFocus(selectedArea.GetName());
+                            Task.Run(async () =>
+                            {
+                                var pickedDest = await PickLinkDestInViewportFor(mSelectedActor);
+                                if (pickedDest is null)
+                                    return;
+
+                                var link = new CourseLink(linkType)
+                                {
+                                    mSource = mSelectedActor.mHash,
+                                    mDest = pickedDest.mHash
+                                };
+                                editContext.AddLink(link);
+                            });
+                        }
+                    }
+
+                    ImGui.EndCombo();
                 }
 
-                var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.GetHash());
+                var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(mSelectedActor.mHash);
 
-                foreach (KeyValuePair<string, List<ulong>> kvp in destHashes) {
-                    ImGui.Text(kvp.Key);
-                    var hashArray = kvp.Value;
+                foreach ((string linkName, List<ulong> hashArray) in destHashes)
+                {
+                    ImGui.Text(linkName);
+
+                    ImGui.Columns(3);
 
                     for (int i = 0; i < hashArray.Count; i++)
                     {
-                        ImGui.Columns(4);
-                        ImGui.AlignTextToFramePadding();
+                        ImGui.PushID($"{hashArray[i].ToString()}_{i}");
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetStyle().FramePadding.X);
                         ImGui.Text("Destination");
                         ImGui.NextColumn();
 
                         CourseActor? destActor = selectedArea.mActorHolder[hashArray[i]];
 
-                        if (ImGui.Button(destActor.mName))
+                        if (destActor != null)
                         {
+                            if (ImGui.Button(destActor.mName, new Vector2(ImGui.GetContentRegionAvail().X, 0)))
+                            {
+                                mSelectedActor = destActor;
+                                activeViewport.SelectedActor(destActor);
+                                activeViewport.Camera.Target.X = destActor.mTranslation.X;
+                                activeViewport.Camera.Target.Y = destActor.mTranslation.Y;
+                            }
+                        }
+                        else
+                        {
+                            if (ImGui.Button("Actor Not Found"))
+                            {
 
+                            }
                         }
 
                         ImGui.NextColumn();
 
-                        if (ImGui.Button("Replace (List)"))
+                        var cursorSP = ImGui.GetCursorScreenPos();
+                        var padding = ImGui.GetStyle().FramePadding;
+
+                        uint WithAlphaFactor(uint color, float factor) => color & 0xFFFFFF | ((uint)((color >> 24) * factor) << 24);
+
+                        float deleteButtonWidth = ImGui.GetFrameHeight() * 1.6f;
+
+                        float columnWidth = ImGui.GetContentRegionAvail().X;
+
+                        ImGui.PushClipRect(cursorSP,
+                            cursorSP + new Vector2(columnWidth - deleteButtonWidth, ImGui.GetFrameHeight()), true);
+
+                        var cursor = ImGui.GetCursorPos();
+                        ImGui.BeginDisabled();
+                        if (ImGui.Button("Replace"))
                         {
 
                         }
+                        ImGui.EndDisabled();
+                        cursor.X += ImGui.GetItemRectSize().X + 2;
+
+                        ImGui.SetCursorPos(cursor);
+                        if (ImGui.Button(IconUtil.ICON_EYE_DROPPER))
+                        {
+                            ImGui.SetWindowFocus(selectedArea.GetName());
+                            Task.Run(async () =>
+                            {
+                                var pickedDest = await PickLinkDestInViewportFor(mSelectedActor);
+                                if (pickedDest is null)
+                                    return;
+
+                                //TODO rework GetDestHashesFromSrc to return the actual link objects or do it in another way
+                                var link = selectedArea.mLinkHolder.mLinks.Find(
+                                    x => x.mSource == mSelectedActor.mHash &&
+                                    x.mLinkName == linkName &&
+                                    x.mDest == destActor!.mHash);
+
+                                link.mDest = pickedDest.mHash;
+                            });
+                        }
+
+                        ImGui.PopClipRect();
+                        cursorSP.X += columnWidth - deleteButtonWidth;
+                        ImGui.SetCursorScreenPos(cursorSP);
+
+                        bool clicked = ImGui.InvisibleButton("##Delete Link", new Vector2(deleteButtonWidth, ImGui.GetFrameHeight()));
+                        string deleteIcon = IconUtil.ICON_TRASH_ALT;
+                        ImGui.GetWindowDrawList().AddText(cursorSP + new Vector2((deleteButtonWidth - ImGui.CalcTextSize(deleteIcon).X) / 2, padding.Y),
+                            WithAlphaFactor(ImGui.GetColorU32(ImGuiCol.Text), ImGui.IsItemHovered() ? 1 : 0.5f),
+                            deleteIcon);
+
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Delete Link");
+
+                        if (clicked)
+                            editContext.DeleteLink(linkName, mSelectedActor.mHash, hashArray[i]);
 
                         ImGui.NextColumn();
-                        ImGui.PushID($"{hashArray[i].ToString()}_{i}");
-                        if (ImGui.Button("Replace (Viewport)"))
-                        {
-                            activeViewport.mEditorState = LevelViewport.EditorState.SelectingLink;
-                            activeViewport.SrcCourseLink = selectedArea.mLinkHolder.GetLinkWithDestHash(hashArray[i]);
-                        }
+
                         ImGui.PopID();
-
-                        ImGui.Columns(1);
                     }
 
                     ImGui.Separator();
-                    
+
+                }
+                #endregion
+
+                bool needsRecapture = false;
+
+                if (!ImGui.IsAnyItemActive())
+                {
+                    if (propertyCapture.placementPropCapture.TryGetRevertable(out var revertable, out var names))
+                    {
+                        editContext.CommitAction(revertable);
+                        needsRecapture = true;
+                    }
+
+                    if (propertyCapture.dynamicPropCapture.TryGetRevertable(out revertable, out names))
+                    {
+                        editContext.CommitAction(revertable);
+                        needsRecapture = true;
+                    }
+                }
+                if(needsRecapture || propertyCapture.courseObj != mSelectedActor)
+                {
+                    propertyCapture = (
+                        mSelectedActor,
+                        new PropertyFieldsCapture(mSelectedActor),
+                        new PropertyDictCapture(mSelectedActor.mActorParameters)
+                    );
                 }
 
+                propertyCapture.placementPropCapture.MakeCheckpoint();
+                propertyCapture.dynamicPropCapture.MakeCheckpoint();
             }
-            else if (mSelectedUnit != null)
+            else if (editContext.IsSingleObjectSelected(out CourseUnit? mSelectedUnit))
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Selected BG Unit");
@@ -505,15 +788,19 @@ namespace Fushigi.ui.widgets
                 {
                     ImGui.Columns(2);
                     ImGui.Text("Model Type"); ImGui.NextColumn();
-                    ImGui.InputInt("##mModelType", ref mSelectedUnit.mModelType); ImGui.NextColumn();
+
+                    ImGui.Combo("##mModelType", ref Unsafe.As<CourseUnit.ModelType, int>(ref mSelectedUnit.mModelType),
+                        CourseUnit.ModelTypeNames, CourseUnit.ModelTypeNames.Length);
+                    ImGui.NextColumn();
 
                     ImGui.Text("Skin Division"); ImGui.NextColumn();
-                    ImGui.InputInt("##mSkinDivision", ref mSelectedUnit.mSkinDivision); ImGui.NextColumn();
+                    ImGui.Combo("##SkinDivision", ref Unsafe.As<CourseUnit.SkinDivision, int>(ref mSelectedUnit.mSkinDivision),
+                        CourseUnit.SkinDivisionNames, CourseUnit.SkinDivisionNames.Length);
 
                     ImGui.Columns(1);
                 }
             }
-            else if (mSelectedUnitRail != null)
+            else if (editContext.IsSingleObjectSelected(out BGUnitRail? mSelectedUnitRail))
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Selected BG Unit Rail");
@@ -524,12 +811,207 @@ namespace Fushigi.ui.widgets
                 {
                     ImGui.Columns(2);
                     ImGui.Text("IsClosed"); ImGui.NextColumn();
-                    ImGui.Checkbox("##IsClosed", ref mSelectedUnitRail.IsClosed); ImGui.NextColumn();
+                    if (ImGui.Checkbox("##IsClosed", ref mSelectedUnitRail.IsClosed))
+                        mSelectedUnitRail.mCourseUnit.GenerateTileSubUnits();
 
-                    ImGui.Text("IsInternal"); ImGui.NextColumn();
-                    ImGui.Checkbox("##IsInternal", ref mSelectedUnitRail.IsInternal); ImGui.NextColumn();
+                    ImGui.NextColumn();
+
+                    //Depth editing for bg unit. All points share the same depth, so batch edit the Z point
+                    float depth = mSelectedUnitRail.Points.Count == 0 ? 0 : mSelectedUnitRail.Points[0].Position.Z;
+
+                    ImGui.Text("Z Depth"); ImGui.NextColumn();
+                    if (ImGui.DragFloat("##Depth", ref depth, 0.1f))
+                    {
+                        //Update depth to all points
+                        foreach (var p in mSelectedUnitRail.Points)
+                            p.Position = new System.Numerics.Vector3(p.Position.X, p.Position.Y, depth);
+                        mSelectedUnitRail.mCourseUnit.GenerateTileSubUnits();
+                    }
+                    ImGui.NextColumn();
 
                     ImGui.Columns(1);
+                }
+            }
+            else if (mSelectedGlobalLink != null)
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"Selected Global Link");
+                ImGui.NewLine();
+
+                if (ImGui.Button("Delete Link"))
+                {
+                    course.RemoveGlobalLink(mSelectedGlobalLink);
+                    mSelectedGlobalLink = null;
+                    return;
+                }
+
+                ImGui.Separator();
+
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Source Hash"); ImGui.NextColumn();
+                    string srcHash = mSelectedGlobalLink.mSource.ToString();
+                    if (ImGui.InputText("##Source Hash", ref srcHash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue))
+                    {
+                        mSelectedGlobalLink.mSource = Convert.ToUInt64(srcHash);
+                    }
+
+                    ImGui.NextColumn();
+
+                    ImGui.Text("Destination Hash"); ImGui.NextColumn();
+                    string destHash = mSelectedGlobalLink.mDest.ToString();
+                    if (ImGui.InputText("##Dest Hash", ref destHash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue))
+                    {
+                        mSelectedGlobalLink.mDest = Convert.ToUInt64(destHash);
+                    }
+
+                    ImGui.NextColumn();
+
+                    ImGui.Text("Link Type"); ImGui.NextColumn();
+
+                    List<string> types = linkTypes.ToList();
+                    int idx = types.IndexOf(mSelectedGlobalLink.mLinkName);
+                    ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                    if (ImGui.Combo("##Link Type", ref idx, linkTypes, linkTypes.Length))
+                    {
+                        mSelectedGlobalLink.mLinkName = linkTypes[idx];
+                    }
+
+                    ImGui.Columns(1);
+                }
+            }
+            else if (editContext.IsSingleObjectSelected(out CourseRail? mSelectedRail))
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"Selected Rail");
+                ImGui.NewLine();
+                ImGui.Separator();
+
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Hash"); ImGui.NextColumn();
+                    string hash = mSelectedRail.mHash.ToString();
+                    if (ImGui.InputText("##Hash", ref hash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue))
+                    {
+                        mSelectedRail.mHash = Convert.ToUInt64(hash);
+                    }
+
+                    ImGui.NextColumn();
+                    ImGui.Text("IsClosed");
+                    ImGui.NextColumn();
+                    ImGui.Checkbox("##IsClosed", ref mSelectedRail.mIsClosed);
+
+                    ImGui.Columns(1);
+                }
+
+                if (ImGui.CollapsingHeader("Dynamic Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+
+                    foreach (KeyValuePair<string, object> param in mSelectedRail.mParameters)
+                    {
+                        string type = param.Value.GetType().ToString();
+                        ImGui.Text(param.Key);
+                        ImGui.NextColumn();
+
+                        switch (type)
+                        {
+                            case "System.Int32":
+                                int int_val = (int)param.Value;
+                                if (ImGui.InputInt($"##{param.Key}", ref int_val))
+                                {
+                                    mSelectedRail.mParameters[param.Key] = int_val;
+                                }
+                                break;
+                            case "System.Boolean":
+                                bool bool_val = (bool)param.Value;
+                                if (ImGui.Checkbox($"##{param.Key}", ref bool_val))
+                                {
+                                    mSelectedRail.mParameters[param.Key] = bool_val;
+                                }
+                                break;
+                        }
+
+                        ImGui.NextColumn();
+                    }
+                }
+            }
+            else if (editContext.IsSingleObjectSelected(out CourseRail.CourseRailPoint? mSelectedRailPoint))
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"Selected Rail Point");
+                ImGui.NewLine();
+                ImGui.Separator();
+
+                if (ImGui.CollapsingHeader("Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+                    ImGui.Text("Hash"); ImGui.NextColumn();
+                    string hash = mSelectedRailPoint.mHash.ToString();
+                    if (ImGui.InputText("##Hash", ref hash, 256, ImGuiInputTextFlags.CharsDecimal | ImGuiInputTextFlags.EnterReturnsTrue))
+                    {
+                        mSelectedRailPoint.mHash = Convert.ToUInt64(hash);
+                    }
+                    ImGui.NextColumn();
+
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Translation");
+                    ImGui.NextColumn();
+
+                    ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+
+                    ImGui.DragFloat3("##Translation", ref mSelectedRailPoint.mTranslate, 0.25f);
+                    ImGui.PopItemWidth();
+
+                    ImGui.Columns(1);
+                }
+
+                if (ImGui.CollapsingHeader("Dynamic Properties", ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Columns(2);
+
+                    foreach (KeyValuePair<string, object> param in mSelectedRailPoint.mParameters)
+                    {
+                        string type = param.Value.GetType().ToString();
+                        ImGui.Text(param.Key);
+                        ImGui.NextColumn();
+
+                        switch (type)
+                        {
+                            case "System.UInt32":
+                                int uint_val = Convert.ToInt32(param.Value);
+                                if (ImGui.InputInt($"##{param.Key}", ref uint_val))
+                                {
+                                    mSelectedRailPoint.mParameters[param.Key] = Convert.ToUInt32(uint_val);
+                                }
+                                break;
+                            case "System.Int32":
+                                int int_val = (int)param.Value;
+                                if (ImGui.InputInt($"##{param.Key}", ref int_val))
+                                {
+                                    mSelectedRailPoint.mParameters[param.Key] = int_val;
+                                }
+                                break;
+                            case "System.Single":
+                                float float_val = (float)param.Value;
+                                if (ImGui.InputFloat($"##{param.Key}", ref float_val))
+                                {
+                                    mSelectedRailPoint.mParameters[param.Key] = float_val;
+                                }
+                                break;
+                            case "System.Boolean":
+                                bool bool_val = (bool)param.Value;
+                                if (ImGui.Checkbox($"##{param.Key}", ref bool_val))
+                                {
+                                    mSelectedRailPoint.mParameters[param.Key] = bool_val;
+                                }
+                                break;
+                        }
+
+                        ImGui.NextColumn();
+                    }
                 }
             }
             else
@@ -638,7 +1120,8 @@ namespace Fushigi.ui.widgets
 
         private void FillLayers(CourseActorHolder actorArray)
         {
-            foreach (CourseActor actor in actorArray.GetActors())
+            mLayersVisibility.Clear();
+            foreach (CourseActor actor in actorArray.mActors)
             {
                 string actorLayer = actor.mLayer;
                 mLayersVisibility[actorLayer] = true;
@@ -649,12 +1132,21 @@ namespace Fushigi.ui.widgets
 
         private void CourseUnitView(CourseUnitHolder unitHolder)
         {
+            var editContext = areaScenes[selectedArea].EditContext;
+
+            BGUnitRailSceneObj GetRailSceneObj(object courseObject)
+            {
+                if (!areaScenes[selectedArea].TryGetObjFor(courseObject, out var sceneObj))
+                    throw new Exception("Couldn't find scene object");
+                return (BGUnitRailSceneObj)sceneObj;
+            }
+
             ImGui.Text("Select a Wall");
             ImGui.Text("Alt + Left Click to add point");
 
             if (ImGui.Button("Add Tile Unit", new Vector2(100, 22)))
             {
-                unitHolder.mUnits.Add(new CourseUnit());
+                editContext.AddBgUnit(new CourseUnit());
             }
 
             List<CourseUnit> removed_tile_units = new List<CourseUnit>();
@@ -668,33 +1160,33 @@ namespace Fushigi.ui.widgets
                 bool expanded = ImGui.TreeNodeEx($"##{name}", ImGuiTreeNodeFlags.DefaultOpen);
 
                 ImGui.SameLine();
+                ImGui.SetNextItemAllowOverlap();
                 if (ImGui.Checkbox($"##Visible{name}", ref unit.Visible))
                 {
                     foreach (var wall in unit.Walls)
                     {
-                        wall.ExternalRail.Visible = unit.Visible;
+                        GetRailSceneObj(wall.ExternalRail).Visible = unit.Visible;
                         foreach (var rail in wall.InternalRails)
-                            rail.Visible = unit.Visible;
+                            GetRailSceneObj(rail).Visible = unit.Visible;
                     }
                 }
-                ImGui.SetItemAllowOverlap();
                 ImGui.SameLine();
 
-                if (ImGui.Selectable(name, mSelectedUnit == unit))
+                if (ImGui.Selectable(name, editContext.IsSelected(unit)))
                 {
-                    DeselectAll();
-                    mSelectedUnit = unit;
+                    editContext.DeselectAllOfType<CourseUnit>();
+                    editContext.Select(unit);
                 }
                 if (expanded)
                 {
                     void RailListItem(string type, BGUnitRail rail, int id)
                     {
-                        bool isSelected = activeViewport.mEditContext.IsSelected(rail);
+                        bool isSelected = editContext.IsSelected(rail);
                         string wallname = $"{type} {id}";
 
                         ImGui.Indent();
 
-                        if (ImGui.Checkbox($"##Visible{wallname}", ref rail.Visible))
+                        if (ImGui.Checkbox($"##Visible{wallname}", ref GetRailSceneObj(rail).Visible))
                         {
 
                         }
@@ -704,14 +1196,8 @@ namespace Fushigi.ui.widgets
 
                         void SelectRail()
                         {
-                            activeViewport.mEditContext.DeselectAllOfType<BGUnitRail>();
-
-                            activeViewport.mEditContext.Select(rail);
-
-                            //Remove actor properties to show path properties
-                            DeselectAll();
-                            //Show selection for rail with properties
-                            mSelectedUnitRail = rail;
+                            editContext.DeselectAllOfType<BGUnitRail>();
+                            editContext.Select(rail);
                         }
 
                         if (ImGui.Selectable($"##{name}{wallname}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
@@ -738,12 +1224,12 @@ namespace Fushigi.ui.widgets
                         ImGui.Unindent();
                     }
 
-                    if (unit == mSelectedUnit)
+                    if (editContext.IsSelected(unit))
                     {
                         if (ImGui.BeginPopupContextWindow("RailMenu", ImGuiPopupFlags.MouseButtonRight))
                         {
                             if (ImGui.MenuItem("Add Wall"))
-                                unit.Walls.Add(new Wall(unit));
+                                editContext.AddWall(unit, new Wall(unit));
 
                             if (ImGui.MenuItem($"Remove {name}"))
                                 removed_tile_units.Add(unit);
@@ -753,12 +1239,19 @@ namespace Fushigi.ui.widgets
                     }
 
                     if (ImGui.Button("Add Wall"))
-                        unit.Walls.Add(new Wall(unit));
+                        editContext.AddWall(unit, new Wall(unit));
                     ImGui.SameLine();
                     if (ImGui.Button("Remove Wall"))
                     {
-                        foreach (var wall in unit.Walls.Where(x => activeViewport.mEditContext.IsSelected(x.ExternalRail)).ToList())
-                            unit.Walls.Remove(wall);
+                        editContext.WithSuspendUpdateDo(() =>
+                        {
+                            for (int i = unit.Walls.Count - 1; i >= 0; i--)
+                            {
+                                //TODO is that REALLY how we want to do this?
+                                if (editContext.IsSelected(unit.Walls[i].ExternalRail))
+                                    editContext.DeleteWall(unit, unit.Walls[i]);
+                            }
+                        });
                     }
 
                     foreach (var wall in unit.Walls)
@@ -789,120 +1282,448 @@ namespace Fushigi.ui.widgets
                     ImGui.TreePop();
                 }
             }
-      
+
             if (removed_tile_units.Count > 0)
             {
                 foreach (var tile in removed_tile_units)
-                    unitHolder.mUnits.Remove(tile);
+                    editContext.DeleteBgUnit(tile);
                 removed_tile_units.Clear();
             }
         }
 
         private void CourseRailsView(CourseRailHolder railHolder)
         {
-            foreach(CourseRail rail in railHolder.mRails)
-            {
-                if (ImGui.TreeNode($"Rail {railHolder.mRails.IndexOf(rail)}"))
-                {
-                    //ImGui.Checkbox("IsClosed", ref rail.mIsClosed);
+            var editContext = areaScenes[selectedArea].EditContext;
 
+            if (ImGui.Button("Add Rail"))
+            {
+                railHolder.mRails.Add(new CourseRail(this.selectedArea.mRootHash));
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Remove Rail"))
+            {
+                var selected = editContext.GetSelectedObjects<CourseRail>();
+                foreach (var rail in selected)
+                    railHolder.mRails.Remove(rail);
+            }
+
+            foreach (CourseRail rail in railHolder.mRails)
+            {
+                var rail_node_flags = ImGuiTreeNodeFlags.None;
+                if (editContext.IsSelected(rail) &&
+                    !editContext.IsAnySelected<CourseRail.CourseRailPoint>())
+                {
+                    rail_node_flags |= ImGuiTreeNodeFlags.Selected;
+                }
+
+                bool expanded = ImGui.TreeNodeEx($"Rail {railHolder.mRails.IndexOf(rail)}", rail_node_flags);
+                if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
+                {
+                    editContext.DeselectAll();
+                    editContext.Select(rail);
+                }
+
+                if (expanded)
+                {
                     foreach (CourseRail.CourseRailPoint pnt in rail.mPoints)
                     {
-                        if (ImGui.TreeNode($"Point {rail.mPoints.IndexOf(pnt)}"))
-                        {
+                        var flags = ImGuiTreeNodeFlags.Leaf;
+                        if (editContext.IsSelected(pnt))
+                            flags |= ImGuiTreeNodeFlags.Selected;
+
+                        if (ImGui.TreeNodeEx($"Point {rail.mPoints.IndexOf(pnt)}", flags))
                             ImGui.TreePop();
+
+                        if (ImGui.IsItemHovered(0) && ImGui.IsMouseClicked(0))
+                        {
+                            editContext.DeselectAll();
+                            editContext.Select(pnt);
                         }
                     }
 
                     ImGui.TreePop();
-                    /*if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
-                    {
-                        
-                    }*/
                 }
             }
         }
 
+        private void CourseGlobalLinksView(CourseLinkHolder linkHolder)
+        {
+            for (int i = 0; i < linkHolder.mLinks.Count; i++)
+            {
+                CourseLink link = linkHolder.mLinks[i];
+                if (ImGui.Selectable($"Link {i}"))
+                {
+                    mSelectedGlobalLink = link;
+                }
+            }
+        }
+        
+        //VERY ROUGH BASE
+        //Still need to implement recursion on getting links, currently just displays the top most links
+        private void AreaLocalLinksView(CourseArea area)
+        {
+            var links = area.mLinkHolder;
+            var editContext = areaScenes[selectedArea].EditContext;
+
+            float em = ImGui.GetFrameHeight();
+            var wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
+            var wcMax = wcMin + ImGui.GetContentRegionAvail();
+
+            RecursiveLinkFind(area, links, editContext, em);
+
+            ImGui.PopClipRect();
+
+            ImGui.EndChild();
+        }
+
+        private void RecursiveLinkFind(CourseArea area, CourseLinkHolder links, CourseAreaEditContext editContext, float em)
+        {
+            foreach (CourseActor actor in area.GetActors().Where(x => !links.GetSrcHashesFromDest(x.mHash).Any() && links.GetDestHashesFromSrc(x.mHash).Any()))
+            {
+                ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.OpenOnArrow;
+                ImGui.PushID(actor.mHash.ToString());
+                bool expanded = false;
+                bool isVisible = true;
+                float margin = 1.5f * em;
+                float headerHeight = 1.4f * em;
+                Vector2 cp = ImGui.GetCursorScreenPos();
+                expanded = ImGui.TreeNodeEx(actor.mHash.ToString(), node_flags, actor.mPackName);
+
+                if (ImGui.IsItemFocused())
+                {
+                    activeViewport.SelectedActor(actor);
+                }
+
+                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                {
+                    activeViewport.FrameSelectedActor(actor);
+                }
+
+                if (!isVisible)
+                    ImGui.BeginDisabled();
+
+                if (expanded)
+                {
+                    foreach (var link in links.GetDestHashesFromSrc(actor.mHash))
+                    {
+                        if(ImGui.TreeNodeEx(actor.mHash.ToString() + link.Key, ImGuiTreeNodeFlags.FramePadding, link.Key))
+                        {
+                            foreach (CourseActor linkActor in area.GetActors().Where(x => link.Value.Contains(x.mHash)))
+                            {
+                                var act = linkActor;
+                                string actorName = act.mPackName;
+                                string name = act.mName;
+                                ulong actorHash = act.mHash;
+                                string actorLink = link.Key;
+                                //Check if the node is within the necessary search filter requirements if search is used
+                                bool HasText = act.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                            act.mPackName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                            act.ToString().Equals(mActorSearchText);
+
+                                if (!HasText)
+                                    continue;
+
+                                bool isSelected = editContext.IsSelected(act);
+
+                                ImGui.PushID(actorHash.ToString());
+                                ImGui.Columns(2);
+                                
+                                if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                                {
+                                    activeViewport.SelectedActor(act);
+                                }
+                                else if (ImGui.IsItemFocused())
+                                {
+                                    activeViewport.SelectedActor(act);
+                                }
+
+                                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                                {
+                                    activeViewport.FrameSelectedActor(act);
+                                }
+
+
+                                ImGui.NextColumn();
+                                ImGui.BeginDisabled();
+                                ImGui.Text(name);
+                                ImGui.EndDisabled();
+                                ImGui.Columns(1);
+
+                                ImGui.PopID();
+                                ImGui.TreePop();
+                            }
+                        }
+                    }
+                    ImGui.TreePop();
+                }
+            
+                if (!isVisible)
+                    ImGui.EndDisabled();
+
+                ImGui.PopID();
+            }
+        }
+
+        private void UpdateAllLayerVisiblity()
+        {
+            foreach (string layer in mLayersVisibility.Keys)
+            {
+                mLayersVisibility[layer] = mAllLayersVisible;
+            }
+        }
+
+        private static bool ToggleButton(string id, string textOn, string textOff, ref bool value, Vector2 size = default)
+        {
+            var textOnSize = ImGui.CalcTextSize(textOn) * 1.2f;
+            var textOffSize = ImGui.CalcTextSize(textOff) * 1.2f;
+
+            if (size.X <= 0 || size.Y <= 0)
+            {
+
+                size.X = MathF.Max(textOffSize.X, textOnSize.X) + ImGui.GetStyle().FramePadding.X * 2;
+                size.Y = MathF.Max(textOffSize.Y, textOnSize.Y) + ImGui.GetStyle().FramePadding.Y * 2;
+            }
+
+            Vector2 cp = ImGui.GetCursorScreenPos();
+            bool clicked = ImGui.InvisibleButton(id, size);
+            if (clicked)
+                value = !value;
+
+            float alpha = value ? 1f : 0.5f;
+
+            if (!ImGui.IsItemHovered())
+                alpha -= 0.2f;
+
+            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 1.2f,
+                cp + (size - (value ? textOnSize : textOffSize)) / 2,
+                (ImGui.GetColorU32(ImGuiCol.Text) & 0xFF_FF_FF) | (uint)(0xFF * alpha) << 24,
+                value ? textOn : textOff
+                );
+
+            return clicked;
+        }
+
         private void CourseActorsLayerView(CourseActorHolder actorArray)
         {
+            var editContext = areaScenes[selectedArea].EditContext;
+
+            float em = ImGui.GetFrameHeight();
+
             if (!mHasFilledLayers)
             {
                 FillLayers(actorArray);
             }
 
-            if (ImGui.Checkbox("All Layers", ref mAllLayersVisible))
-            {
-                foreach (string layer in mLayersVisibility.Keys)
-                {
-                    mLayersVisibility[layer] = mAllLayersVisible;
-                }
-            }
+            float margin = 1.5f * em;
 
+            float headerHeight = 1.4f * em;
+            Vector2 cp = ImGui.GetCursorScreenPos();
+            ImGui.GetWindowDrawList().AddRectFilled(
+                cp,
+                cp + new Vector2(ImGui.GetContentRegionAvail().X, headerHeight),
+                ImGui.GetColorU32(ImGuiCol.FrameBg));
+            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), em * 0.9f,
+                cp + new Vector2(em, (headerHeight - em) / 2 + 0.05f), 0xFF_FF_FF_FF,
+                "Layers");
+
+            var wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
+            var wcMax = wcMin + ImGui.GetContentRegionAvail();
+
+            ImGui.SetCursorScreenPos(new Vector2(wcMax.X - margin, cp.Y + (headerHeight - em) / 2));
+            if (ToggleButton($"VisibleCheckbox All", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH,
+                ref mAllLayersVisible, new Vector2(em)))
+                UpdateAllLayerVisiblity();
+
+            ImGui.SetCursorScreenPos(cp + new Vector2(0, headerHeight));
+
+            ImGui.BeginChild("Layers");
+
+            wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
+            wcMax = wcMin + ImGui.GetContentRegionAvail();
+
+            ImGui.PushClipRect(wcMin, wcMax - new Vector2(margin, 0), true);
+
+            bool isSearch = !string.IsNullOrWhiteSpace(mActorSearchText);
+
+            ImGui.Spacing();
             foreach (string layer in mLayersVisibility.Keys)
             {
-                bool isVisible = mLayersVisibility[layer];
-                if (ImGui.Checkbox("##" + layer, ref isVisible))
+                ImGui.PushID(layer);
+                cp = ImGui.GetCursorScreenPos();
+                bool expanded = false;
+                bool isVisible = true;
+
+                if (!isSearch)
                 {
-                    mLayersVisibility[layer] = isVisible;
+                    expanded = ImGui.TreeNodeEx("TreeNode", ImGuiTreeNodeFlags.FramePadding, layer);
+
+                    ImGui.PushClipRect(wcMin, wcMax, false);
+                    ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em) / 2, cp.Y));
+                    isVisible = mLayersVisibility[layer];
+                    if (ToggleButton($"VisibleCheckbox", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH,
+                        ref isVisible, new Vector2(em)))
+                        mLayersVisibility[layer] = isVisible;
+                    ImGui.PopClipRect();
+                }
+                else
+                {
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text(layer);
                 }
 
-                    ImGui.SameLine();
-
                 if (!isVisible)
-                {
                     ImGui.BeginDisabled();
-                }
 
-                if (ImGui.CollapsingHeader(layer, ImGuiTreeNodeFlags.Selected))
+                if (expanded || isSearch)
                 {
-                    ImGui.Indent();
-                    ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                    if (ImGui.BeginListBox("##" + layer))
+                    foreach (CourseActor actor in actorArray.mActors)
                     {
-                        foreach (CourseActor actor in actorArray.GetActors())
+                        string actorName = actor.mPackName;
+                        string name = actor.mName;
+                        ulong actorHash = actor.mHash;
+                        string actorLayer = actor.mLayer;
+
+                        //Check if the node is within the necessary search filter requirements if search is used
+                        bool HasText = actor.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                       actor.mPackName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                       actorHash.ToString().Equals(mActorSearchText);
+
+                        if (isSearch && !HasText)
+                            continue;
+
+                        if (actorLayer != layer)
                         {
-                            string actorName = actor.mActorName;
-                            string name = actor.mName;
-                            ulong actorHash = actor.mActorHash;
-                            string actorLayer = actor.mLayer;
-
-                            if (actorLayer != layer)
-                            {
-                                continue;
-                            }
-
-                            bool isSelected = (actor == mSelectedActor);
-
-                            ImGui.PushID(actorHash.ToString());
-                            ImGui.Columns(2);
-                            if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
-                            {
-                                mSelectedActor = actor;
-                                activeViewport.SelectedActor(actor);
-                            }
-                            if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                            {
-                                activeViewport.FrameSelectedActor(actor);
-                            }
-
-                            ImGui.NextColumn();
-                            ImGui.BeginDisabled();
-                            ImGui.Text(name);
-                            ImGui.EndDisabled();
-                            ImGui.Columns(1);
-
-                            ImGui.PopID();
+                            continue;
                         }
-                        ImGui.EndListBox();
+
+                        bool isSelected = editContext.IsSelected(actor);
+
+                        ImGui.PushID(actorHash.ToString());
+                        ImGui.Columns(2);
+                        if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                        {
+                            activeViewport.SelectedActor(actor);
+                        }
+                        else if (ImGui.IsItemFocused())
+                        {
+                            activeViewport.SelectedActor(actor);
+                        }
+
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                        {
+                            activeViewport.FrameSelectedActor(actor);
+                        }
+
+
+                        ImGui.NextColumn();
+                        ImGui.BeginDisabled();
+                        ImGui.Text(name);
+                        ImGui.EndDisabled();
+                        ImGui.Columns(1);
+
+                        ImGui.PopID();
                     }
-                    ImGui.Unindent();
+
+                    if (!isSearch)
+                        ImGui.TreePop();
                 }
 
                 if (!isVisible)
-                {
                     ImGui.EndDisabled();
-                }
+
+                ImGui.PopID();
             }
+
+            ImGui.PopClipRect();
+
+            ImGui.EndChild();
+        }
+
+        private void CourseMiniView()
+        {
+            var area = selectedArea;
+            var editContext = areaScenes[area].EditContext;
+            var view = viewports[area];
+            bool status = ImGui.Begin("Minimap", ImGuiWindowFlags.NoNav);
+
+            var topLeft = ImGui.GetCursorScreenPos();
+
+            ImGui.SetNextItemAllowOverlap();
+            ImGui.SetCursorScreenPos(topLeft);
+
+                    //ImGui.SetNextItemAllowOverlap();
+            var size = ImGui.GetContentRegionAvail();
+
+            ImGui.SetNextItemAllowOverlap();
+            ImGui.SetCursorScreenPos(topLeft);
+
+            var cam = view.Camera;
+            var camSize = view.GetCameraSizeIn2DWorldSpace();
+
+            Vector4 bounds = Vector4.Zero;
+            foreach(var actor in area.GetActors())
+            {
+                bounds = new(Math.Min(bounds.X, actor.mTranslation.X),
+                Math.Min(bounds.Y, actor.mTranslation.Y),
+                Math.Max(bounds.Z, actor.mTranslation.X),
+                Math.Max(bounds.W, actor.mTranslation.Y));
+            }
+            var levelRect = new Vector2(bounds.Z-bounds.X, bounds.W - bounds.Y);
+
+            float tanFOV = MathF.Tan(cam.Fov / 2);
+
+            var ratio = size.X/levelRect.X < size.Y/levelRect.Y ? size.X/levelRect.X : size.Y/levelRect.Y;
+            var miniRect = levelRect*ratio;
+            var miniCam = new Vector2(cam.Target.X, -cam.Target.Y)*ratio;
+            var miniCamSize = camSize*ratio;
+            var miniSaveCam = new Vector2(camSave.X, -camSave.Y)*ratio;
+            var center = new Vector2((size.X - miniRect.X)/2, (size.Y - miniRect.Y)/2);
+
+            var col = ImGuiCol.ButtonActive;
+
+            //ImGui.SetNextItemAllowOverlap();
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left) 
+            && ImGui.IsWindowHovered())
+            {
+                camSave = cam.Target;
+            }
+
+            if ((ImGui.IsMouseDown(ImGuiMouseButton.Left) || ImGui.IsMouseDown(ImGuiMouseButton.Right))
+            && ImGui.IsWindowFocused() &&
+            ((!ImGui.IsMouseClicked(ImGuiMouseButton.Right) && !ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            || ImGui.IsWindowHovered()))
+            {
+                if (camSave != default)
+                {
+                    col = ImGuiCol.TextDisabled;
+                    ImGui.GetWindowDrawList().AddRect(topLeft + miniSaveCam - miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
+                    topLeft + miniSaveCam + miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
+                    ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Button]),6,0,3);
+                }
+
+                var pos = ImGui.GetMousePos();
+                cam.Target = new((pos.X - (topLeft.X + center.X))/ratio,
+                (-pos.Y + topLeft.Y + center.Y + miniRect.Y)/ratio, cam.Target.Z);
+            }
+
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left)
+            && camSave != default)
+            {
+                cam.Target = camSave;
+                camSave = default;
+            }
+
+            ImGui.GetWindowDrawList().AddRect(topLeft + center, 
+            topLeft + miniRect + center, 
+            ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Text]),6,0,3);
+
+            ImGui.GetWindowDrawList().AddRect(topLeft + miniCam - miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
+            topLeft + miniCam + miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
+            ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)col]),6,0,3);
+
+            if (status)
+                ImGui.End();
+            
         }
 
         private static void PlacementNode(CourseActor actor)
@@ -935,6 +1756,7 @@ namespace Fushigi.ui.widgets
                     rad.Y = DegToRad(deg.Y);
                     rad.Z = DegToRad(deg.Z);
                 }
+
                 ImGui.PopItemWidth();
 
                 ImGui.NextColumn();
@@ -951,7 +1773,7 @@ namespace Fushigi.ui.widgets
 
                 ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f);
+                ImGui.DragFloat3("##Scale", ref actor.mScale, 0.25f, 0, float.MaxValue);
                 ImGui.PopItemWidth();
 
                 ImGui.NextColumn();
@@ -982,11 +1804,12 @@ namespace Fushigi.ui.widgets
         {
             if (ImGui.CollapsingHeader("Dynamic", ImGuiTreeNodeFlags.DefaultOpen))
             {
-                List<string> actorParams = ParamDB.GetActorComponents(actor.mActorName);
+                List<string> actorParams = ParamDB.GetActorComponents(actor.mPackName);
 
                 foreach (string param in actorParams)
                 {
                     Dictionary<string, ParamDB.ComponentParam> dict = ParamDB.GetComponentParams(param);
+
 
                     if (dict.Keys.Count == 0)
                     {
@@ -1001,64 +1824,82 @@ namespace Fushigi.ui.widgets
 
                     ImGui.Columns(2);
 
-                    foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
+                    if (param == "ChildActorSelectName" && ChildActorParam.ActorHasChildParam(actor.mPackName))
                     {
-                        string id = $"##{pair.Key}";
-
-                        ImGui.AlignTextToFramePadding();
-                        ImGui.Text(pair.Key);
+                        string id = $"##{param}";
+                        List<string> list = ChildActorParam.GetActorParams(actor.mPackName);
+                        int selected = list.IndexOf(actor.mActorParameters["ChildActorSelectName"].ToString());
+                        ImGui.Text("ChildParameters");
                         ImGui.NextColumn();
-
                         ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
 
-                        if (actor.mActorParameters.ContainsKey(pair.Key))
+                        if (ImGui.Combo("##Parameters", ref selected, list.ToArray(), list.Count))
                         {
-                            var actorParam = actor.mActorParameters[pair.Key];
-
-                            switch (pair.Value.Type)
-                            {
-                                case "S16":
-                                case "S32":
-                                    int val_int = (int)actorParam;
-                                    if (ImGui.InputInt(id, ref val_int))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_int;
-                                    }
-                                    break;
-                                case "Bool":
-                                    bool val_bool = (bool)actorParam;
-                                    if (ImGui.Checkbox(id, ref val_bool))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_bool;
-                                    }
-                                    break;
-                                case "F32":
-                                    float val_float = (float)actorParam;
-                                    if (ImGui.InputFloat(id, ref val_float)) 
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_float;
-                                    }
-                                    break;
-                                case "String":
-                                    string val_string = (string)actorParam;
-                                    if (ImGui.InputText(id, ref val_string, 1024))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val_string;
-                                    }
-                                    break;
-                                case "F64":
-                                    double val = (double)actorParam;
-                                    if (ImGui.InputDouble(id, ref val))
-                                    {
-                                        actor.mActorParameters[pair.Key] = val;
-                                    }
-                                    break;
-                            }
+                            actor.mActorParameters["ChildActorSelectName"] = list[selected];
                         }
+                    }
+                    else
+                    {
+                        foreach (KeyValuePair<string, ParamDB.ComponentParam> pair in ParamDB.GetComponentParams(param))
+                        {
+                            string id = $"##{pair.Key}";
 
-                        ImGui.PopItemWidth();
+                            ImGui.AlignTextToFramePadding();
+                            ImGui.Text(pair.Key);
+                            ImGui.NextColumn();
 
-                        ImGui.NextColumn();
+                            ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
+
+                            if (actor.mActorParameters.ContainsKey(pair.Key))
+                            {
+                                var actorParam = actor.mActorParameters[pair.Key];
+
+                                switch (pair.Value.Type)
+                                {
+                                    case "U8":
+                                    case "S16":
+                                    case "S32":
+                                        int val_int = (int)actorParam;
+                                        if (ImGui.InputInt(id, ref val_int))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_int;
+                                        }
+                                        break;
+                                    case "Bool":
+                                        bool val_bool = (bool)actorParam;
+                                        if (ImGui.Checkbox(id, ref val_bool))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_bool;
+                                        }
+                                        break;
+                                    case "F32":
+                                        float val_float = (float)actorParam;
+                                        if (ImGui.InputFloat(id, ref val_float))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_float;
+                                        }
+                                        break;
+                                    case "String":
+                                        string val_string = (string)actorParam;
+                                        if (ImGui.InputText(id, ref val_string, 1024))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val_string;
+                                        }
+                                        break;
+                                    case "F64":
+                                        double val = (double)actorParam;
+                                        if (ImGui.InputDouble(id, ref val))
+                                        {
+                                            actor.mActorParameters[pair.Key] = val;
+                                        }
+                                        break;
+                                }
+                            }
+
+                            ImGui.PopItemWidth();
+
+                            ImGui.NextColumn();
+                        }
                     }
 
                     ImGui.Columns(1);
@@ -1073,6 +1914,234 @@ namespace Fushigi.ui.widgets
         public Course GetCourse()
         {
             return course;
+        }
+
+        private async Task<CourseActor?> PickLinkDestInViewportFor(CourseActor source)
+        {
+            var (picked, _) = await activeViewport.PickObject(
+                            "Select the destination actor you wish to link to.",
+                            x => x is CourseActor && x != source);
+            return picked as CourseActor;
+        }
+
+        private async Task DeleteObjectsWithWarningPrompt(IReadOnlyList<object> objectsToDelete,
+            CourseAreaEditContext ctx, string actionName)
+        {
+            var actors = objectsToDelete.OfType<CourseActor>();
+            List<string> dstMsgStrs = [];
+            List<string> srcMsgStrs = [];
+
+            foreach (var actor in actors)
+            {
+                if (selectedArea.mLinkHolder.HasLinksWithDest(actor.mHash))
+                {
+                    var links = selectedArea.mLinkHolder.GetSrcHashesFromDest(actor.mHash);
+
+                    foreach (KeyValuePair<string, List<ulong>> kvp in links)
+                    {
+                        var hashes = kvp.Value;
+
+                        foreach (var hash in hashes)
+                        {
+                            /* only delete actors that the hash exists for...this may be caused by a user already deleting the source actor */
+                            if (selectedArea.mActorHolder.TryGetActor(hash, out _))
+                            {
+                                dstMsgStrs.Add($"{selectedArea.mActorHolder[hash].mPackName} [{selectedArea.mActorHolder[hash].mName}]\n");
+                            }
+                        }
+                    }
+
+                    var destHashes = selectedArea.mLinkHolder.GetDestHashesFromSrc(actor.mHash);
+
+                    foreach (KeyValuePair<string, List<ulong>> kvp in destHashes)
+                    {
+                        var hashes = kvp.Value;
+
+                        foreach (var hash in hashes)
+                        {
+                            if (selectedArea.mActorHolder.TryGetActor(hash, out _))
+                            {
+                                srcMsgStrs.Add($"{selectedArea.mActorHolder[hash].mPackName} [{selectedArea.mActorHolder[hash].mName}]\n");
+                            }
+                        }
+                    }
+                }
+            }
+
+            bool noWarnings = (dstMsgStrs.Count == 0 && srcMsgStrs.Count == 0);
+
+            if (!noWarnings)
+            {
+                var result = await OperationWarningDialog.ShowDialog(mPopupModalHost,
+                "Deletion warning",
+                "The object(s) you are about to delete " +
+                "are being used in other places",
+                ("As link source for", srcMsgStrs),
+                ("As link destination for", dstMsgStrs));
+
+                if (result == OperationWarningDialog.DialogResult.Cancel)
+                    return;
+            }
+
+            var batchAction = ctx.BeginBatchAction();
+
+            foreach (var actor in actors)
+            {
+                ctx.DeleteActor(actor);
+            }
+
+            batchAction.Commit($"{IconUtil.ICON_TRASH} {actionName}");
+        }
+
+        private async Task AddActorsWithSelectActorAndLayerWindow()
+        {
+            var viewport = activeViewport;
+            var area = selectedArea;
+            var ctx = areaScenes[selectedArea].EditContext;
+
+            if(mOpenToolWindows.Any(x=>x is SelectActorAndLayerWindow))
+                return;
+
+            var window = new SelectActorAndLayerWindow(mLayersVisibility);
+            mOpenToolWindows.Add(window);
+
+            var result = await window.Result();
+            if (!result.TryGetValue(out var resultVal))
+                return;
+
+            var (actorPack, layer) = resultVal;
+
+            Vector3? pos;
+            KeyboardModifier modifier;
+            do
+            {
+                ImGui.SetWindowFocus(area.mAreaName);
+                (pos, modifier) = await viewport.PickPosition(
+                    $"Placing actor {actorPack} -- Hold SHIFT to place multiple", layer);
+                if (!pos.TryGetValue(out var posVec))
+                    return;
+
+                var actor = new CourseActor(actorPack, area.mRootHash, layer);
+
+                posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                posVec.Z = 0.0f;
+                actor.mTranslation = posVec;
+
+                ctx.AddActor(actor);
+
+            } while ((modifier & KeyboardModifier.Shift) > 0);
+        }
+
+
+
+        interface IToolWindow
+        {
+            void Draw(ref bool windowOpen);
+        }
+
+        class SelectActorAndLayerWindow(IReadOnlyDictionary<string, bool> mLayersVisibility) : IToolWindow
+        {
+            public void Draw(ref bool windowOpen)
+            {
+                bool status;
+                if (mSelectedActor == null)
+                {
+                    status = ImGui.Begin("Add Actor###SelectActorLayer", ref windowOpen);
+                    SelectActorToAdd();
+                }
+                else if(mSelectedLayer == null)
+                {
+                    status = ImGui.Begin("Select Layer###SelectActorLayer", ref windowOpen);
+                    SelectActorToAddLayer();
+                }
+                else
+                {
+                    mPromise.TrySetResult((mSelectedActor, mSelectedLayer));
+                    windowOpen = false;
+                    return;
+                }
+
+                if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                {
+                    windowOpen = false;
+                }
+
+                if (!windowOpen)
+                {
+                    mPromise.TrySetResult(null);
+                }
+
+                if (status)
+                {
+                    ImGui.End();
+                }
+
+            }
+
+            private void SelectActorToAdd()
+            {
+                ImGui.InputText("Search", ref mAddActorSearchQuery, 256);
+
+                var filteredActors = ParamDB.GetActors().ToImmutableList();
+
+                if (mAddActorSearchQuery != "")
+                {
+                    filteredActors = FuzzySharp.Process.ExtractAll(mAddActorSearchQuery, ParamDB.GetActors(), cutoff: 65)
+                        .OrderByDescending(result => result.Score)
+                        .Select(result => result.Value)
+                        .ToImmutableList();
+                }
+
+                if (ImGui.BeginListBox("Select the actor you want to add.", ImGui.GetContentRegionAvail()))
+                {
+                    foreach (string actor in filteredActors)
+                    {
+                        ImGui.Selectable(actor);
+
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                            mSelectedActor = actor;
+                    }
+
+                    ImGui.EndListBox();
+                }
+            }
+
+            private void SelectActorToAddLayer()
+            {
+                ImGui.InputText("Search", ref mAddLayerSearchQuery, 256);
+
+                var fileteredLayers = mLayersVisibility.Keys.ToArray().ToImmutableList();
+
+                if (mAddLayerSearchQuery != "")
+                {
+                    fileteredLayers = FuzzySharp.Process.ExtractAll(mAddLayerSearchQuery, mLayersVisibility.Keys.ToArray(), cutoff: 65)
+                        .OrderByDescending(result => result.Score)
+                        .Select(result => result.Value)
+                        .ToImmutableList();
+                }
+
+                if (ImGui.BeginListBox("Select the layer you want to add the actor to.", ImGui.GetContentRegionAvail()))
+                {
+                    foreach (string layer in fileteredLayers)
+                    {
+                        ImGui.Selectable(layer);
+
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                            mSelectedLayer = layer;
+                    }
+
+                    ImGui.EndListBox();
+                }
+            }
+
+            public Task<(string actor, string layer)?> Result() => mPromise.Task;
+
+            private string? mSelectedActor;
+            private string? mSelectedLayer;
+            private TaskCompletionSource<(string actor, string layer)?> mPromise = new();
+            private string mAddActorSearchQuery = "";
+            private string mAddLayerSearchQuery = "";
         }
     }
 }

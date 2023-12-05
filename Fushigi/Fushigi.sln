@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fushigi.SARC", "..\SARC\Fus
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fushigi.Bfres", "..\Fushigi.Bfres\Fushigi.Bfres.csproj", "{1AED611D-03D2-4D8B-B3BF-494429D727FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fushigi.Msbt", "..\Fushigi.Msbt\Fushigi.Msbt.csproj", "{6A2ED54F-3A5A-4211-BFF7-DC45576CE784}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1AED611D-03D2-4D8B-B3BF-494429D727FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AED611D-03D2-4D8B-B3BF-494429D727FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AED611D-03D2-4D8B-B3BF-494429D727FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A2ED54F-3A5A-4211-BFF7-DC45576CE784}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A2ED54F-3A5A-4211-BFF7-DC45576CE784}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A2ED54F-3A5A-4211-BFF7-DC45576CE784}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A2ED54F-3A5A-4211-BFF7-DC45576CE784}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

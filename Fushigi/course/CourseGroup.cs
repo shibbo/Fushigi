@@ -2,6 +2,8 @@
 using Fushigi.util;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +12,7 @@ namespace Fushigi.course
 {
     public class CourseGroup
     {
-        public CourseGroup(BymlHashTable table, CourseActorHolder actorHolder)
+        public CourseGroup(BymlHashTable table)
         {
             mHash = BymlUtil.GetNodeData<ulong>(table["Hash"]);
 
@@ -18,53 +20,39 @@ namespace Fushigi.course
 
             foreach (BymlBigDataNode<ulong> node in groups.Array)
             {
-                mActors.Add(actorHolder[node.Data]);
+                mActors.Add(node.Data);
             }
         }
 
-        public ulong GetHash()
+        public bool ContainsActor(ulong hash)
         {
-            return mHash;
+            return mActors.Any(a => a == hash);
         }
 
-        public bool IsActorValid(ulong hash)
+        public bool TryGetIndexOfActor(ulong hash, out int index)
         {
-            return mActors.Any(a => a.GetHash() == hash);
-        }
-
-        public void RemoveActor(ulong hash)
-        {
-            mActors.RemoveAt(mActors.FindIndex(a => a.GetHash() == hash));
+            index = mActors.FindIndex(a => a == hash);
+            return index != -1;
         }
 
         public BymlHashTable BuildNode()
         {
             BymlHashTable tableNode = new();
-            tableNode.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>("Hash", mHash), "Hash");
+            tableNode.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mHash), "Hash");
 
             BymlArrayNode actorsArray = new((uint)mActors.Count);
 
-            foreach (CourseActor actor in mActors)
+            foreach (ulong actor in mActors)
             {
-                /* there are levels that were created in non-legit editors and that caused some things to be null when they should not have been */
-                if (actor == null)
-                {
-                    continue;
-                }
-                actorsArray.AddNodeToArray(BymlUtil.CreateNode<ulong>("", actor.GetHash()));
+                actorsArray.AddNodeToArray(BymlUtil.CreateNode<ulong>(actor));
             }
 
             tableNode.AddNode(BymlNodeId.Array, actorsArray, "Actors");
             return tableNode;
         }
 
-        public List<CourseActor> GetActors()
-        {
-            return mActors;
-        }
-
-        ulong mHash;
-        List<CourseActor> mActors = new();
+        public ulong mHash;
+        public List<ulong> mActors = new();
     }
 
     public class CourseGroupHolder
@@ -74,46 +62,37 @@ namespace Fushigi.course
         
         }
 
-        public CourseGroupHolder(BymlArrayNode array, CourseActorHolder actorHolder)
+        public CourseGroupHolder(BymlArrayNode array)
         {
             foreach (BymlHashTable tbl in array.Array)
             {
-                mGroups.Add(new CourseGroup(tbl, actorHolder));
+                mGroups.Add(new CourseGroup(tbl));
             }
 
         }
 
-        CourseGroup GetGroup(ulong hash)
+        public bool TryGetGroup(ulong hash, [NotNullWhen(true)] out CourseGroup? rail)
         {
-            foreach (CourseGroup grp in mGroups)
-            {
-                if (grp.GetHash() == hash)
-                {
-                    return grp;
-                }
-            }
-
-            return null;
+            rail = mGroups.Find(x => x.mHash == hash);
+            return rail is not null;
         }
 
         public CourseGroup this[ulong hash]
         {
             get
             {
-                return GetGroup(hash);
+                bool exists = TryGetGroup(hash, out CourseGroup? group);
+                Debug.Assert(exists);
+                return group!;
             }
         }
 
-        public void RemoveFromGroup(ulong hash)
+        public IEnumerable<CourseGroup> GetGroupsContaining(ulong hash)
         {
-            foreach (CourseGroup grp in mGroups)
+            foreach (CourseGroup group in mGroups)
             {
-                if (!grp.IsActorValid(hash))
-                {
-                    continue;
-                }
-
-                grp.RemoveActor(hash);
+                if (group.ContainsActor(hash))
+                    yield return group;
             }
         }
 
@@ -129,6 +108,6 @@ namespace Fushigi.course
             return arrayNode;
         }
 
-        List<CourseGroup> mGroups = new();
+        public List<CourseGroup> mGroups = new();
     }
 }

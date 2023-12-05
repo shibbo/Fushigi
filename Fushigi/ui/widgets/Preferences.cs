@@ -1,6 +1,7 @@
 ﻿using Fushigi.param;
 using Fushigi.util;
 using ImGuiNET;
+using Silk.NET.OpenGL;
 using System.Numerics;
 
 namespace Fushigi.ui.widgets
@@ -10,9 +11,15 @@ namespace Fushigi.ui.widgets
         static readonly Vector4 errCol = new Vector4(1f, 0, 0, 1);
         static bool romfsTouched = false;
         static bool modRomfsTouched = false;
+        static bool mIsGeneratingParamDB = false;
 
-        public static void Draw(ref bool continueDisplay)
+        public static void Draw(ref bool continueDisplay, GL gl)
         {
+            if (mIsGeneratingParamDB)
+            {
+                ParamDBDialog.Draw(ref mIsGeneratingParamDB);
+            }
+
             ImGui.SetNextWindowSize(new Vector2(700, 250), ImGuiCond.Once);
             if (ImGui.Begin("Preferences", ImGuiWindowFlags.NoDocking))
             {
@@ -37,12 +44,13 @@ namespace Fushigi.ui.widgets
                         return;
                     }
 
-                    RomFS.SetRoot(romfs);
-                    
+                    RomFS.SetRoot(romfs, gl);
+                    ChildActorParam.Load();
+
                     /* if our parameter database isn't set, set it */
                     if (!ParamDB.sIsInit)
                     {
-                        ParamDB.Load();
+                        mIsGeneratingParamDB = true;
                     }
                 }
 

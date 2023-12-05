@@ -4,12 +4,14 @@ using Silk.NET.OpenGL;
 using ImGuiNET;
 using Fushigi.util;
 using Fushigi.windowing;
-using Silk.NET.OpenGL.Extensions.ImGui;
 using Fushigi.Byml;
 using Fushigi.Byml.Writer;
 using Fushigi.Byml.Writer.Primitives;
 using Fushigi;
 using Fushigi.course;
+using Fushigi.rstb;
+using Fushigi.ui.widgets;
+using System.IO;
 
 namespace Fushigi.course
 {
@@ -29,26 +31,21 @@ namespace Fushigi.course
 
         public void LoadFromRomFS()
         {
-            
-            
-            var courseFilePath = FileUtil.FindContentPath(
-                Path.Combine("BancMapUnit", $"{mCourseName}.bcett.byml.zs")
-                );
-            var stageParamFilePath = FileUtil.FindContentPath(
-                Path.Combine("Stage", "StageParam", $"{mCourseName}.game__stage__StageParam.bgyml")
-                );
+            var courseFilePath = FileUtil.FindContentPath(Path.Combine("BancMapUnit", $"{mCourseName}.bcett.byml.zs"));
+            var stageParamFilePath = FileUtil.FindContentPath(Path.Combine("Stage", "StageParam", $"{mCourseName}.game__stage__StageParam.bgyml"));
+
             /* grab our course information file */
             Byml.Byml courseInfo = new Byml.Byml(new MemoryStream(FileUtil.DecompressFile(courseFilePath)));
             Byml.Byml stageParam = new Byml.Byml(new MemoryStream(File.ReadAllBytes(stageParamFilePath)));
 
             var stageParamRoot = (BymlHashTable)stageParam.Root;
+            var root = (BymlHashTable)courseInfo.Root;
 
             if (((BymlNode<string>)stageParamRoot["Category"]).Data == "Course1Area") {
                 mAreas.Add(new CourseArea(mCourseName));
             }
             else
             {
-                var root = (BymlHashTable)courseInfo.Root;
                 var stageList = (BymlArrayNode)root["RefStages"];
 
                 for (int i = 0; i < stageList.Length; i++)
@@ -59,6 +56,15 @@ namespace Fushigi.course
                 }
             }
 
+            if (root.ContainsKey("Links"))
+            {
+                var linksArr = root["Links"] as BymlArrayNode;
+                mGlobalLinks = new(linksArr);
+            }
+            else
+            {
+                mGlobalLinks = new(new BymlArrayNode());
+            }
         }
 
         public List<CourseArea> GetAreas()
@@ -89,7 +95,70 @@ namespace Fushigi.course
             return mAreas.Count;
         }
 
+        public void AddGlobalLink()
+        {
+            CourseLink link = new("Reference");
+            mGlobalLinks.mLinks.Add(link);
+        }
+
+        public void RemoveGlobalLink(CourseLink link)
+        {
+            mGlobalLinks.mLinks.Remove(link);
+        }
+
+        public CourseLinkHolder GetGlobalLinks()
+        {
+            return mGlobalLinks;
+        }
+
+        public void Save()
+        {
+            RSTB resource_table = new RSTB();
+            resource_table.Load();
+
+            BymlHashTable stageParamRoot = new();
+            stageParamRoot.AddNode(BymlNodeId.Array, new BymlArrayNode(), "Actors");
+            stageParamRoot.AddNode(BymlNodeId.Array, mGlobalLinks.SerializeToArray(), "Links");
+
+            BymlArrayNode refArr = new();
+
+            foreach (CourseArea area in mAreas)
+            {
+                refArr.AddNodeToArray(BymlUtil.CreateNode<string>("", $"Work/Stage/StageParam/{area.GetName()}.game__stage__StageParam.gyml"));
+            }
+
+            stageParamRoot.AddNode(BymlNodeId.Array, refArr, "RefStages");
+
+            var byml = new Byml.Byml(stageParamRoot);
+            var mem = new MemoryStream();
+            byml.Save(mem);
+            resource_table.SetResource($"BancMapUnit/{mCourseName}.bcett.byml", (uint)mem.Length);
+            string folder = Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit");
+
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            string levelPath = Path.Combine(folder, $"{mCourseName}.bcett.byml.zs");
+            File.WriteAllBytes(levelPath, FileUtil.CompressData(mem.ToArray()));
+
+            SaveAreas(resource_table);
+
+            resource_table.Save();
+        }
+
+        public void SaveAreas(RSTB resTable)
+        {
+            //Save each course area to current romfs folder
+            foreach (var area in GetAreas())
+            {
+                Console.WriteLine($"Saving area {area.GetName()}...");
+
+                area.Save(resTable);
+            }
+        }
+
         string mCourseName;
         List<CourseArea> mAreas;
+        CourseLinkHolder mGlobalLinks;
     }
 }

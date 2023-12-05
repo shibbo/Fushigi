@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ZstdSharp;
 
 namespace Fushigi.util
 {
@@ -30,6 +31,23 @@ namespace Fushigi.util
             return decompressedData;
         }
 
+        public static MemoryStream DecompressAsStream(string filePath)
+        {
+            return DecompressAsStream(File.OpenRead(filePath));
+        }
+
+        public static MemoryStream DecompressAsStream(Stream input)
+        {
+            var output = new MemoryStream();
+
+            using var decompressionStream = new ZstdSharp.DecompressionStream(input);
+            {
+                decompressionStream.CopyTo(output);
+                output.Position = 0;
+            }
+            return output;
+        }
+
         public static byte[] DecompressData(byte[] fileBytes)
         {
             byte[] decompressedData;
@@ -37,9 +55,9 @@ namespace Fushigi.util
             if (!IsFileCompressed(fileBytes)) {
                 throw new Exception("FileUtil::DecompressData -- File not ZSTD Compressed.");
             }
-            using (var decompressor = new ZstdNet.Decompressor())
+            using (var decompressor = new ZstdSharp.Decompressor())
             {
-                decompressedData = decompressor.Unwrap(fileBytes);
+                decompressedData = decompressor.Unwrap(new System.Span<byte>(fileBytes)).ToArray();
             }
 
             return decompressedData;
@@ -63,10 +81,10 @@ namespace Fushigi.util
         public static byte[] CompressData(byte[] fileBytes)
         {
             byte[] compressedData;
-
-            using (var compressor = new ZstdNet.Compressor(new ZstdNet.CompressionOptions(19)))
+            
+            using (var compressor = new ZstdSharp.Compressor(19))
             {
-                compressedData = compressor.Wrap(fileBytes);
+                compressedData = compressor.Wrap(new System.Span<byte>(fileBytes)).ToArray();
             }
 
             return compressedData;

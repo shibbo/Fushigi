@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fushigi.Bfres.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -22,16 +23,15 @@ namespace Fushigi.Bfres
         public Vector4[] GetTangents() => TryGetAttributeData($"_t0");
         public Vector4[] GetBitangent() => TryGetAttributeData($"_b0");
 
-
         /// <summary>
         /// The buffer data used to store attribute data.
         /// </summary>
-        public List<BufferData> Buffers = new List<BufferData>();
+        public List<BufferData> Buffers { get; set; } = new List<BufferData>();
 
         /// <summary>
         /// A list of vertex attributes for handling vertex data.
         /// </summary>
-        public Dictionary<string, VertexAttribute> Attributes = new Dictionary<string, VertexAttribute>();
+        public ResDict<VertexAttribute> Attributes { get; set; } = new ResDict<VertexAttribute>();
 
         /// <summary>
         /// The total number of vertices used in the buffer.
@@ -47,12 +47,14 @@ namespace Fushigi.Bfres
         {
             header = new VertexBufferHeader();
             reader.BaseStream.Read(Utils.AsSpan(ref header));
-            var attributes = reader.ReadArray<VertexAttribute>(header.AttributeArrayOffset, header.VertexAttributeCount);
+
+            long pos = reader.BaseStream.Position;
+
+            Attributes = reader.ReadDictionary<VertexAttribute>(header.AttributeArrayDictionary, header.AttributeArrayOffset);
             BufferInfo = reader.ReadArray<VertexBufferInfo>(header.VertexBufferInfoArray, header.VertexBufferCount);
             BufferStrides = reader.ReadArray<VertexStrideInfo>(header.VertexBufferStrideArray, header.VertexBufferCount);
 
-            foreach (var att in attributes)
-                Attributes.Add(att.Name, att); 
+            reader.SeekBegin(pos);
         }
 
         public void InitBuffers(BinaryReader reader, BufferMemoryPool bufferPoolInfo)
@@ -176,6 +178,11 @@ namespace Fushigi.Bfres
         public string Name { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public byte SkinCount => header.MaxSkinInfluence;
+
+        /// <summary>
         /// The index for the vertex buffer.
         /// </summary>
         internal int VertexBufferIndex
@@ -184,15 +191,41 @@ namespace Fushigi.Bfres
         }
 
         /// <summary>
+        /// The index for the material data.
+        /// </summary>
+        public int MaterialIndex
+        {
+            get { return header.MaterialIndex; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int BoneIndex
+        {
+            get { return header.BoneIndex; }
+        }
+        
+        /// <summary>
         /// The mesh list for handling level of details.
         /// The first mesh is used by default without LODs.
         /// </summary>
-        public List<Mesh> Meshes { get; set; }
+        public List<Mesh> Meshes { get; set; } = new List<Mesh>();
 
         /// <summary>
         /// The vertex buffer for handling vertices.
         /// </summary>
-        public VertexBuffer VertexBuffer { get; set; }
+        public VertexBuffer VertexBuffer { get; set; } = new VertexBuffer();
+
+        /// <summary>
+        /// Bounding boxes used to frustum check mesh LODs and submeshes.
+        /// </summary>
+        public List<ShapeBounding> BoundingBoxes { get; set; } = new List<ShapeBounding>();
+        
+        /// <summary>
+        /// List of spheres for culling either per mesh or per bone for rigged models.
+        /// </summary>
+        public List<Vector4> BoundingSpheres { get; set; } = new List<Vector4>();
 
         private ShapeHeader header;
 
@@ -203,12 +236,24 @@ namespace Fushigi.Bfres
             long pos = reader.BaseStream.Position;
 
             Name = reader.ReadStringOffset(header.NameOffset);
+            Meshes = reader.ReadArray<Mesh>(header.MeshArrayOffset, header.MeshCount);
 
-            reader.Seek(header.MeshArrayOffset);
-            Meshes = reader.ReadArray<Mesh>(header.MeshCount);
+            var numBounding = (int)Meshes.Sum(x => x.SubMeshes.Count + 1);
 
-            Console.WriteLine($"Shape - {Name} -");
+            BoundingSpheres = reader.ReadCustom(() =>
+            {
+                //Only load per mesh for now
+                //Rigs can use per bone
+                var numRadius = this.Meshes.Count; 
 
+                Vector4[] values = new Vector4[numRadius];
+                for (int i = 0; i < values.Length; i++)
+                    values[i] = reader.ReadVector4();
+
+                return values.ToList();
+            }, header.BoundingSphereOffset);
+
+            BoundingBoxes = reader.ReadArray<ShapeBounding>(header.BoundingBoxOffset, numBounding);
             reader.SeekBegin(pos);
         }
 
@@ -223,6 +268,10 @@ namespace Fushigi.Bfres
     }
     public class Mesh : IResData
     {
+        public uint IndexCount => header.IndexCount;
+        public BfresIndexFormat IndexFormat => header.IndexFormat;
+        public BfresPrimitiveType PrimitiveType => header.PrimType;
+
         /// <summary>
         /// The raw mesh buffer.
         /// </summary>
@@ -264,10 +313,10 @@ namespace Fushigi.Bfres
             header = new MeshHeader();
             reader.BaseStream.Read(Utils.AsSpan(ref header));
 
-            reader.Seek(header.BufferInfoOffset);
+            reader.SeekBegin(header.BufferInfoOffset);
             BufferInfo = reader.Read<IndexBufferInfo>();
 
-            reader.Seek(header.SubMeshArrayOffset);
+            reader.SeekBegin(header.SubMeshArrayOffset);
             SubMeshes = reader.ReadArray<SubMesh>(header.SubMeshCount);
         }
 
@@ -275,6 +324,18 @@ namespace Fushigi.Bfres
         {
             reader.SeekBegin((long)bufferPoolInfo.Offset + (int)header.BufferOffset);
             this.IndexBuffer = reader.ReadBytes((int)this.BufferInfo.Size);
+        }
+    }
+
+    public class ShapeBounding : IResData
+    {
+        public Vector3 Center;
+        public Vector3 Extent;
+
+        public void Read(BinaryReader reader)
+        {
+            Center = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            Extent = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
         }
     }
 
