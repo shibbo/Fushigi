@@ -498,19 +498,6 @@ namespace Fushigi.ui.widgets
 
             if (ImGui.IsItemClicked())
             {
-                bool isModeActor = mHoveredObject != null;
-                bool isModeUnit = HoveredPoint != null;
-
-                if (isModeActor && !isModeUnit)
-                {
-                    mEditorMode = EditorMode.Actors;
-                }
-
-                if (isModeUnit && !isModeActor)
-                {
-                    mEditorMode = EditorMode.Units;
-                }
-
                 /* if the user clicked somewhere and it was not hovered over an element, 
                     * we clear our selected actors array */
                 if (mHoveredObject == null)
@@ -550,9 +537,7 @@ namespace Fushigi.ui.widgets
             }
 
             if (ImGui.IsKeyPressed(ImGuiKey.Delete))
-            {
-                mEditorState = EditorState.DeleteActorLinkCheck;
-            }
+                ObjectDeletionRequested?.Invoke(mEditContext.GetSelectedObjects<CourseActor>().ToList());
 
             if (ImGui.IsKeyPressed(ImGuiKey.Escape))
                 mEditContext.DeselectAll();
