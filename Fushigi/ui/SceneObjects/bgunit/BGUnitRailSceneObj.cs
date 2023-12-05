@@ -301,8 +301,9 @@ namespace Fushigi.ui.SceneObjects.bgunit
             if (ImGui.IsMouseReleased(0))
                 OnMouseUp(ctx, viewport);
 
-            if (viewport.mEditorState == LevelViewport.EditorState.Selecting)
-                OnSelecting(ctx, viewport);
+            //TODO does it still need a condition like this?
+            //if (viewport.mEditorState == LevelViewport.EditorState.Selecting)
+            OnSelecting(ctx, viewport);
 
             OnKeyDown(ctx, viewport);
 

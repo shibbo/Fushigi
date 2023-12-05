@@ -44,8 +44,19 @@ namespace Fushigi.ui.widgets
         Transform Transform { get; }
     }
 
+    [Flags]
+    enum KeyboardModifier
+    {
+        None = 0,
+        Shift = 1,
+        CtrlCmd = 2,
+        Alt = 4
+    }
+
     internal class LevelViewport(CourseArea area, GL gl, CourseAreaScene areaScene)
     {
+        public event Action<IReadOnlyList<object>>? ObjectDeletionRequested;
+
         readonly CourseArea mArea = area;
 
         //this is only so BgUnitRail works, TODO make private
@@ -53,23 +64,13 @@ namespace Fushigi.ui.widgets
 
         ImDrawListPtr mDrawList;
         public EditorMode mEditorMode = EditorMode.Actors;
-        public EditorState mEditorState = EditorState.Selecting;
 
         public bool IsViewportHovered;
         public bool IsViewportActive;
 
         Vector2 mSize = Vector2.Zero;
-
-        private Vector3? mSelectedPoint;
-        private int mWallIdx = -1;
-        private int mUnitIdx = -1;
-        private int mPointIdx = -1;
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
-        public string mActorToAdd = "";
-        public string mLayerToAdd = "PlayArea1";
-        public bool mIsLinkNew = false;
-        public string mNewLinkType = "";
 
         public Camera Camera = new Camera();
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
@@ -77,27 +78,51 @@ namespace Fushigi.ui.widgets
 
         //TODO make this an ISceneObject? as soon as there's a SceneObj class for each course object
         private object? mHoveredObject;
-        public CourseLink? CurCourseLink = null;
-        public Vector3? HoveredPoint;
 
-        public uint GridColor = 0x77_FF_FF_FF;
-        public float GridLineThickness = 1.5f;
+        public static uint GridColor = 0x77_FF_FF_FF;
+        public static float GridLineThickness = 1.5f;
 
-        public enum EditorState
-        {
-            Selecting,
-            SelectingActorLayer,
-            AddingActor,
-            DeleteActorLinkCheck,
-            DeletingActor,
-            SelectingLinkSource,
-            SelectingLinkDest
-        }
+        private (string message, Predicate<object?> predicate,
+            TaskCompletionSource<(object? picked, KeyboardModifier modifiers)> promise)? 
+            mObjectPickingRequest = null;
+        private (string message, string layer, TaskCompletionSource<(Vector3? picked, KeyboardModifier modifiers)> promise)? 
+            mPositionPickingRequest = null;
 
         public enum EditorMode
         {
             Actors,
             Units
+        }
+
+        public Task<(object? picked, KeyboardModifier modifiers)> PickObject(string tooltipMessage, 
+            Predicate<object?> predicate)
+        {
+            CancelOngoingPickingRequests();
+            var promise = new TaskCompletionSource<(object? picked, KeyboardModifier modifiers)>();
+            mObjectPickingRequest = (tooltipMessage, predicate, promise);
+            return promise.Task;
+        }
+
+        public Task<(Vector3? picked, KeyboardModifier modifiers)> PickPosition(string tooltipMessage, string layer)
+        {
+            CancelOngoingPickingRequests();
+            var promise = new TaskCompletionSource<(Vector3? picked, KeyboardModifier modifiers)>();
+            mPositionPickingRequest = (tooltipMessage, layer, promise);
+            return promise.Task;
+        }
+
+        private void CancelOngoingPickingRequests()
+        {
+            if (mObjectPickingRequest.TryGetValue(out var objectPickingRequest))
+            {
+                objectPickingRequest.promise.SetCanceled();
+                mObjectPickingRequest = null;
+            }
+            if (mPositionPickingRequest.TryGetValue(out var positionPickingRequest))
+            {
+                positionPickingRequest.promise.SetCanceled();
+                mPositionPickingRequest = null;
+            }
         }
 
         public bool IsHovered(ISceneObject obj) => mHoveredObject == obj;
@@ -298,6 +323,9 @@ namespace Fushigi.ui.widgets
 
         public void Draw(Vector2 size, double deltaSeconds, IDictionary<string, bool> layersVisibility)
         {
+            if (size.X * size.Y == 0)
+                return;
+
             mLayersVisibility = layersVisibility;
             mTopLeft = ImGui.GetCursorScreenPos();
 
@@ -307,8 +335,14 @@ namespace Fushigi.ui.widgets
             IsViewportHovered = ImGui.IsItemHovered();
             IsViewportActive = ImGui.IsItemActive();
 
-            if (size.X * size.Y == 0)
-                return;
+            KeyboardModifier modifiers = KeyboardModifier.None;
+
+            if(ImGui.GetIO().KeyShift)
+                modifiers |= KeyboardModifier.Shift;
+            if(ImGui.GetIO().KeyAlt)
+                modifiers |= KeyboardModifier.Alt;
+            if (OperatingSystem.IsMacOS() ? ImGui.GetIO().KeySuper : ImGui.GetIO().KeyCtrl)
+                modifiers |= KeyboardModifier.CtrlCmd;
 
             mSize = size;
             mDrawList = ImGui.GetWindowDrawList();
@@ -336,275 +370,137 @@ namespace Fushigi.ui.widgets
 
             CourseActor? hoveredActor = mHoveredObject as CourseActor;
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                if (hoveredActor != null)
-                    ImGui.SetTooltip($"{hoveredActor.mPackName}");
+            if (hoveredActor != null && 
+                mObjectPickingRequest == null && mPositionPickingRequest == null) //prevents tooltip flickering
+                ImGui.SetTooltip($"{hoveredActor.mPackName}");
 
-                if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeySuper)
+            if (ImGui.IsKeyPressed(ImGuiKey.Z) && modifiers == KeyboardModifier.CtrlCmd)
+            {
+                mEditContext.Undo();
+            }
+            if ((ImGui.IsKeyPressed(ImGuiKey.Y) && modifiers == KeyboardModifier.CtrlCmd) ||
+                (ImGui.IsKeyPressed(ImGuiKey.Z) && modifiers == (KeyboardModifier.Shift | KeyboardModifier.CtrlCmd)))
+            {
+                mEditContext.Redo();
+            }
+
+
+
+            if (ImGui.IsWindowFocused())
+                InteractionWithFocus(modifiers);
+
+            ImGui.PopClipRect();
+        }
+
+        void InteractionWithFocus(KeyboardModifier modifiers)
+        {
+            if (IsViewportHovered &&
+                mObjectPickingRequest.TryGetValue(out var objectPickingRequest))
+            {
+
+                bool isValid = objectPickingRequest.predicate(mHoveredObject);
+
+                string currentlyHoveredObjText = "";
+                if (isValid && mHoveredObject is CourseActor hoveredActor)
+                    currentlyHoveredObjText = $"\n\nCurrently Hovered: {hoveredActor.mPackName}";
+
+                ImGui.SetTooltip(objectPickingRequest.message + "\nPress Escape to cancel" + 
+                    currentlyHoveredObjText);
+                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
                 {
-                    mEditContext.Undo();
+                    mObjectPickingRequest = null;
+                    objectPickingRequest.promise.SetResult((null, modifiers));
                 }
-                if (ImGui.IsKeyPressed(ImGuiKey.Y) && ImGui.GetIO().KeySuper || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeySuper)
+                else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) &&
+                    isValid)
                 {
-                    mEditContext.Redo();
+                    mObjectPickingRequest = null;
+                    objectPickingRequest.promise.SetResult((mHoveredObject, modifiers));
+                }
+
+                return;
+            }
+            if (IsViewportHovered && 
+                mPositionPickingRequest.TryGetValue(out var positionPickingRequest))
+            {
+                ImGui.SetTooltip(positionPickingRequest.message + "\nPress Escape to cancel");
+                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+                {
+                    mPositionPickingRequest = null;
+                    positionPickingRequest.promise.SetResult((null, modifiers));
+                }
+                else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                {
+                    //TODO use positionPickingRequest.layer
+                    mPositionPickingRequest = null;
+                    positionPickingRequest.promise.SetResult((ScreenToWorld(ImGui.GetMousePos()), modifiers));
+                }
+
+                return;
+            }
+
+            if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+            {
+                if (mEditContext.IsSingleObjectSelected(out CourseActor? actor))
+                {
+                    Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+
+                    if (ImGui.GetIO().KeyShift)
+                    {
+                        actor.mTranslation = posVec;
+                    }
+                    else
+                    {
+                        posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                        posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                        posVec.Z = actor.mTranslation.Z;
+                        actor.mTranslation = posVec;
+                    }
+                }
+                if (mEditContext.IsSingleObjectSelected(out CourseRail.CourseRailPoint? rail))
+                {
+                    Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
+
+                    if (ImGui.GetIO().KeyShift)
+                    {
+                        rail.mTranslate = posVec;
+                    }
+                    else
+                    {
+                        posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
+                        posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
+                        posVec.Z = rail.mTranslate.Z;
+                        rail.mTranslate = posVec;
+                    }
                 }
             }
-            else
+
+            if (ImGui.IsItemClicked())
             {
-                if (hoveredActor != null)
-                    ImGui.SetTooltip($"{hoveredActor.mPackName}");
-
-                if (ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyCtrl)
-                {
-                    mEditContext.Undo();
-                }
-                if (ImGui.IsKeyPressed(ImGuiKey.Y) && ImGui.GetIO().KeyCtrl || ImGui.IsKeyPressed(ImGuiKey.Z) && ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl)
-                {
-                    mEditContext.Redo();
-                }
-            };
-
-
-
-            bool isFocused = ImGui.IsWindowFocused();
-
-            if (isFocused && mEditorState == EditorState.Selecting)
-            {
-                if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
-                {
-                    if (mEditContext.IsSingleObjectSelected(out CourseActor? actor))
-                    {
-                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
-
-                        if (ImGui.GetIO().KeyShift)
-                        {
-                            actor.mTranslation = posVec;
-                        }
-                        else
-                        {
-                            posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
-                            posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
-                            posVec.Z = actor.mTranslation.Z;
-                            actor.mTranslation = posVec;
-                        }
-                    }
-                    if (mEditContext.IsSingleObjectSelected(out CourseRail.CourseRailPoint? rail))
-                    {
-                        Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
-
-                        if (ImGui.GetIO().KeyShift)
-                        {
-                            rail.mTranslate = posVec;
-                        }
-                        else
-                        {
-                            posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
-                            posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
-                            posVec.Z = rail.mTranslate.Z;
-                            rail.mTranslate = posVec;
-                        }
-                    }
-                }
-
-                if (ImGui.IsItemClicked())
-                {
-                    bool isModeActor = mHoveredObject != null;
-                    bool isModeUnit = HoveredPoint != null;
-
-                    if (isModeActor && !isModeUnit)
-                    {
-                        mEditorMode = EditorMode.Actors;
-                    }
-
-                    if (isModeUnit && !isModeActor)
-                    {
-                        mEditorMode = EditorMode.Units;
-                    }
-
-                    /* if the user clicked somewhere and it was not hovered over an element, 
-                        * we clear our selected actors array */
-                    if (mHoveredObject == null)
-                    {
-                        mEditContext.DeselectAll();
-                    }
-                    else if (mHoveredObject is IViewportSelectable obj)
-                    {
-                        obj.OnSelect(mEditContext);
-                    }
-                    else
-                    {
-                        //TODO remove this once all course objects have IViewportSelectable SceneObjs
-                        IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
-                    }
-
-                    if (HoveredPoint == null)
-                    {
-                        mSelectedPoint = null;
-                    }
-                    else
-                    {
-                        mSelectedPoint = HoveredPoint;
-                    }
-                }
-
-                if (ImGui.IsKeyPressed(ImGuiKey.Delete))
-                {
-                    mEditorState = EditorState.DeleteActorLinkCheck;
-                }
-
-                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+                /* if the user clicked somewhere and it was not hovered over an element, 
+                    * we clear our selected actors array */
+                if (mHoveredObject == null)
                 {
                     mEditContext.DeselectAll();
-                    mSelectedPoint = null;
                 }
-            }
-            else if (isFocused && mEditorState == EditorState.AddingActor)
-            {
-                ImGui.SetTooltip($"Placing actor {mActorToAdd} -- Hold SHIFT to place multiple, ESCAPE to cancel.");
-
-                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+                else if (mHoveredObject is IViewportSelectable obj)
                 {
-                    mEditorState = EditorState.Selecting;
-                }
-
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                {
-                    CourseActor actor = new CourseActor(mActorToAdd, mArea.mRootHash, mLayerToAdd);
-
-                    Vector3 posVec = ScreenToWorld(ImGui.GetMousePos());
-                    posVec.X = MathF.Round(posVec.X * 2, MidpointRounding.AwayFromZero) / 2;
-                    posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
-                    posVec.Z = 0.0f;
-                    actor.mTranslation = posVec;
-
-                    mEditContext.AddActor(actor);
-
-                    if (!ImGui.GetIO().KeyShift)
-                    {
-                        mActorToAdd = "";
-                        mEditorState = EditorState.Selecting;
-                    }
-                }
-            }
-            else if (isFocused && mEditorState == EditorState.DeleteActorLinkCheck)
-            {
-
-            }
-            else if (isFocused && mEditorState == EditorState.DeletingActor)
-            {
-                if (!isFocused)
-                {
-                    ImGui.SetWindowFocus();
-                }
-
-                if (mEditContext.IsAnySelected<CourseActor>())
-                {
-                    mEditContext.DeleteSelectedActors();
-                    mEditorState = EditorState.Selecting;
+                    obj.OnSelect(mEditContext);
                 }
                 else
                 {
-                    if (hoveredActor != null)
-                        ImGui.SetTooltip($"""
-                            Click to delete {hoveredActor.mPackName}.
-                            Hold SHIFT to delete multiple actors, ESCAPE to cancel.
-                            """);
-                    else
-                        ImGui.SetTooltip("""
-                            Click on any actor to delete it.
-                            Hold SHIFT to delete multiple actors, ESCAPE to cancel.
-                            """);
-
-                    if (ImGui.IsKeyPressed(ImGuiKey.Escape))
-                    {
-                        mEditorState = EditorState.Selecting;
-                    }
-
-                    if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                    {
-                        if (hoveredActor != null)
-                        {
-                            mEditContext.DeleteActor(hoveredActor);
-
-                            if (!ImGui.GetIO().KeyShift)
-                            {
-                                mEditorState = EditorState.Selecting;
-                            }
-                        }
-                    }
+                    //TODO remove this once all course objects have IViewportSelectable SceneObjs
+                    IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
                 }
             }
-            else if (isFocused && (mEditorState == EditorState.SelectingLinkSource || mEditorState == EditorState.SelectingLinkDest))
+
+            if (ImGui.IsKeyPressed(ImGuiKey.Delete))
             {
-                /* when we are begining to select a link, we will not always be immediately focused */
-                if (!isFocused)
-                {
-                    ImGui.SetWindowFocus();
-                }
-
-                if (ImGui.IsKeyPressed(ImGuiKey.Escape))
-                {
-                    mEditorState = EditorState.Selecting;
-                }
-
-                if (mEditorState == EditorState.SelectingLinkSource)
-                {
-                    if (hoveredActor != null)
-                    {
-                        ImGui.SetTooltip($"Select the source actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mPackName}");
-                    }
-                    else
-                    {
-                        ImGui.SetTooltip($"Select the source actor you wish to link to. Press ESCAPE to cancel.");
-                    }
-                }
-
-                if (mEditorState == EditorState.SelectingLinkDest)
-                {
-                    if (hoveredActor != null)
-                    {
-                        ImGui.SetTooltip($"Select the destination actor you wish to link to. Press ESCAPE to cancel.\n Currently Hovered: {hoveredActor.mPackName}");
-                    }
-                    else
-                    {
-                        ImGui.SetTooltip($"Select the destination actor you wish to link to. Press ESCAPE to cancel.");
-                    }
-                }
-
-                /* if our link is new, it means that we don't have to check for hovered actors for the source designation */
-                if (mIsLinkNew)
-                {
-                    CurCourseLink = new(mNewLinkType);
-                    CourseActor selActor = mEditContext.GetSelectedObjects<CourseActor>().ElementAt(0);
-                    CurCourseLink.mSource = selActor.mHash;
-                    mIsLinkNew = false;
-                }
-
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                {
-                    if (mEditorState == EditorState.SelectingLinkDest)
-                    {
-                        if (hoveredActor != null)
-                        {
-                            /* new links have a destination of 0 because there is no hash associated with a null actor */
-                            bool isNewLink = CurCourseLink.mDest == 0;
-                            ulong hash = hoveredActor.mHash;
-                            CurCourseLink.mDest = hash;
-
-                            if (isNewLink)
-                            {
-                                mEditContext.AddLink(CurCourseLink);
-                            }
-
-                            mEditorState = EditorState.Selecting;
-                        }
-                    }
-
-                }
+                ObjectDeletionRequested?.Invoke(mEditContext.GetSelectedObjects<CourseActor>().ToList());
             }
 
-            ImGui.PopClipRect();
+            if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+                mEditContext.DeselectAll();
         }
 
         void DrawGrid()

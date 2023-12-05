@@ -35,20 +35,6 @@ namespace Fushigi.ui
             batchAction.Commit($"{IconUtil.ICON_TRASH} Delete {actor.mPackName}");
         }
 
-        public void DeleteSelectedActors()
-        {
-            var selectedActors = GetSelectedObjects<CourseActor>().ToList();
-
-            var batchAction = BeginBatchAction();
-
-            foreach (var actor in selectedActors)
-            {
-                DeleteActor(actor);
-            }
-
-            batchAction.Commit($"{IconUtil.ICON_TRASH} Delete selected");
-        }
-
         public void AddActorToGroup(CourseGroup group, CourseActor actor)
         {
             Console.WriteLine($"Adding actor {actor.mPackName}[{actor.mHash}] to group [{group.mHash}].");
