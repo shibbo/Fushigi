@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Fushigi.rstb;
 
 namespace Fushigi.ui.widgets
 {
@@ -40,6 +41,7 @@ namespace Fushigi.ui.widgets
         readonly Dictionary<string, bool> mLayersVisibility = [];
         bool mHasFilledLayers = false;
         bool mAllLayersVisible = true;
+        bool mShowSaveFailureAlert = false;
         readonly List<IToolWindow> mOpenToolWindows = [];
 
         string mActorSearchText = "";
@@ -154,23 +156,6 @@ namespace Fushigi.ui.widgets
             return false;
         }
 
-        public void Save()
-        {
-            try
-            {
-                course.Save();
-                foreach (var area in course.GetAreas())
-                {
-                    lastSavedAction[area] = areaScenes[area].EditContext.GetLastAction();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox box = new MessageBox(MessageBox.MessageBoxType.Ok);
-                box.Show("Error", ex.Message);
-            }
-        }
-
         public void DrawUI(GL gl, double deltaSeconds)
         {
             UndoHistoryPanel();
@@ -203,6 +188,10 @@ namespace Fushigi.ui.widgets
                 }
             }
 
+            if (mShowSaveFailureAlert)
+            {
+                SaveFailureAlert();
+            }
 
             ulong selectionVersionBefore = areaScenes[selectedArea].EditContext.SelectionVersion;
 
@@ -289,7 +278,54 @@ namespace Fushigi.ui.widgets
 
         void UndoHistoryPanel()
         {
-            undoWindow.Render(areaScenes[selectedArea].EditContext);
+          undoWindow.Render(areaScenes[selectedArea].EditContext);
+        }
+        
+        public void Save()
+        {
+            RSTB resource_table = new RSTB();
+            resource_table.Load();
+
+            List<string> pathsToWriteTo = course.GetAreas().Select(
+                a=> Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit", $"{a.GetName()}.bcett.byml.zs")
+                ).ToList();
+            pathsToWriteTo.Add(
+                Path.Combine(UserSettings.GetModRomFSPath(), "System", "Resource", "ResourceSizeTable.Product.100.rsizetable.zs")
+                );
+
+            if (!pathsToWriteTo.All(EnsureFileIsWritable))
+            {
+                //one or more of the files are locked, due to being open externally. abandon save and show popup informing user
+                mShowSaveFailureAlert = true;
+                return;
+            }
+
+            //Save each course area to current romfs folder
+            foreach (var area in this.course.GetAreas())
+            {
+                Console.WriteLine($"Saving area {area.GetName()}...");
+
+                area.Save(resource_table);
+            }
+
+            resource_table.Save();
+        }
+
+        bool EnsureFileIsWritable(string path)
+        {
+            if (!File.Exists(path))
+                return true;
+            try
+            {
+                using (var fs = new FileStream(path, FileMode.Open))
+                {
+                    return fs.CanWrite;
+                }
+            }
+            catch(IOException e)
+            {
+                return false;
+            }
         }
 
         private void ActorsPanel()
@@ -364,6 +400,23 @@ namespace Fushigi.ui.widgets
             ImGui.End();
         }
 
+        private void SaveFailureAlert()
+        {
+            bool status = ImGui.Begin("Save Failed");
+
+            ImGui.Text("The course files may be open in an external app, or Super Mario Wonder may currently be running in an emulator. Close the emulator or external app and try again.");
+
+            if (ImGui.Button("Okay"))
+            {
+                mShowSaveFailureAlert = false;
+            }
+
+            if (status)
+            {
+                ImGui.End();
+            }
+        }
+      
         private void LocalLinksPanel()
         {
             ImGui.Begin("Local Links");

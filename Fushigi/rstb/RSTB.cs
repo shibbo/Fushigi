@@ -88,11 +88,19 @@ namespace Fushigi.rstb
 
             var mem = new MemoryStream();
             Write(mem);
-            
-            File.WriteAllBytes(
+
+            try
+            {
+                File.WriteAllBytes(
                 Path.Combine(dir, "ResourceSizeTable.Product.100.rsizetable.zs"), 
                 FileUtil.CompressData(mem.ToArray())
                 );
+            }
+            catch (IOException e)
+            {
+                //Likely due to the course being open in the game, caught to prevent crash
+                //TODO: notify the user
+            }
         }
 
         private void Read(Stream stream)
