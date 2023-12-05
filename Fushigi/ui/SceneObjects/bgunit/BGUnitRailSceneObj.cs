@@ -163,7 +163,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
                 int segmentCount = rail.Points.Count;
 
-                if (!rail.IsClosed)
+                if (!rail.IsClosed && rail.Points.Any())
                 {
                     segmentCount--;
                     var delta = Vector3.Distance(rail.Points[0].Position, pos);
