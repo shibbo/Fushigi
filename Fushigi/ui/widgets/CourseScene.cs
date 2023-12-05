@@ -286,8 +286,12 @@ namespace Fushigi.ui.widgets
             RSTB resource_table = new RSTB();
             resource_table.Load();
 
-            IEnumerable<string> pathsToWriteTo = course.GetAreas().Select(a=> Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit", $"{a.GetName()}.bcett.byml.zs"));
-            pathsToWriteTo.Concat([FileUtil.FindContentPath(Path.Combine("System", "Resource", "ResourceSizeTable.Product.100.rsizetable.zs"))]);
+            List<string> pathsToWriteTo = course.GetAreas().Select(
+                a=> Path.Combine(UserSettings.GetModRomFSPath(), "BancMapUnit", $"{a.GetName()}.bcett.byml.zs")
+                ).ToList();
+            pathsToWriteTo.Add(
+                Path.Combine(UserSettings.GetModRomFSPath(), "System", "Resource", "ResourceSizeTable.Product.100.rsizetable.zs")
+                );
 
             if (!pathsToWriteTo.All(EnsureFileIsWritable))
             {
