@@ -313,7 +313,8 @@ namespace Fushigi.ui.widgets
 
             var model = render.Models[modelName];
             //switch for drawing models with different methods easier
-            if(actor.mActorPack.DrainPipeRef != null){
+            if(actor.mActorPack.DrainPipeRef != null && actor.mActorPack.DrainPipeRef.ModelKeyTop != null &&
+             actor.mActorPack.DrainPipeRef.ModelKeyMiddle != null){
                 var drainRef = actor.mActorPack.DrainPipeRef;
                 var calc = actor.mActorPack.ShapeParams.mCalc;
                 var KeyMats = new Dictionary<string, Matrix4x4>{
