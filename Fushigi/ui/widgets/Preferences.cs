@@ -1,4 +1,5 @@
-﻿using Fushigi.param;
+﻿using Fushigi.gl;
+using Fushigi.param;
 using Fushigi.ui.modal;
 using Fushigi.util;
 using ImGuiNET;
@@ -13,7 +14,8 @@ namespace Fushigi.ui.widgets
         static bool romfsTouched = false;
         static bool modRomfsTouched = false;
 
-        public static void Draw(ref bool continueDisplay, GL gl, IPopupModalHost modalHost)
+        public static void Draw(ref bool continueDisplay, GLTaskScheduler glTaskScheduler,
+            IPopupModalHost modalHost)
         {
             ImGui.SetNextWindowSize(new Vector2(700, 250), ImGuiCond.Once);
             if (ImGui.Begin("Preferences", ImGuiWindowFlags.NoDocking))
@@ -39,14 +41,24 @@ namespace Fushigi.ui.widgets
                         return;
                     }
 
-                    RomFS.SetRoot(romfs, gl);
-                    ChildActorParam.Load();
-
-                    /* if our parameter database isn't set, set it */
-                    if (!ParamDB.sIsInit)
+                    Task.Run(async () =>
                     {
-                        MainWindow.LoadParamDBWithProgressBar(modalHost);
-                    }
+                        await ProgressBarDialog.ShowDialogForAsyncAction(modalHost,
+                        $"Preloading Thumbnails",
+                        async (p) =>
+                        {
+                            await glTaskScheduler.Schedule(gl => RomFS.SetRoot(romfs, gl));
+                        });
+
+                        ChildActorParam.Load();
+
+                        /* if our parameter database isn't set, set it */
+                        if (!ParamDB.sIsInit)
+                        {
+                            await MainWindow.LoadParamDBWithProgressBar(modalHost);
+                        }
+                    });
+                    
                 }
 
                 Tooltip.Show("The game files which are stored under the romfs folder.");

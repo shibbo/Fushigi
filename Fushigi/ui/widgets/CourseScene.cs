@@ -76,35 +76,48 @@ namespace Fushigi.ui.widgets
             "EventGuest_11",
         ];
 
-        public CourseScene(Course course, GL gl, IPopupModalHost popupModalHost)
+        public static async Task<CourseScene> Create(Course course, 
+            GLTaskScheduler glScheduler, 
+            IPopupModalHost popupModalHost,
+            IProgress<(string operationName, float? progress)> progress)
         {
-            this.course = course;
-            this.mPopupModalHost = popupModalHost;
-            selectedArea = course.GetArea(0);
-            undoWindow = new UndoWindow();
+            var cs = new CourseScene(course, glScheduler, popupModalHost);
 
             foreach (var area in course.GetAreas())
             {
                 var areaScene = new CourseAreaScene(area, new CourseAreaSceneRoot(area));
-                areaScenes[area] = areaScene;
-                var viewport = new LevelViewport(area, gl, areaScene);
-                viewports[area] = viewport;
-                lastSavedAction[area] = null;
+                cs.areaScenes[area] = areaScene;
+                var viewport = await glScheduler.Schedule(gl => new LevelViewport(area, gl, areaScene));
+                cs.viewports[area] = viewport;
+                cs.lastSavedAction[area] = null;
 
                 //might not be the best approach but better than what we had before
                 viewport.ObjectDeletionRequested += (objs) =>
                 {
                     if (objs.Count > 0)
-                        _ = DeleteObjectsWithWarningPrompt(objs, 
+                        _ = cs.DeleteObjectsWithWarningPrompt(objs,
                             areaScene.EditContext, "Delete objects");
                 };
             }
 
-            activeViewport = viewports[selectedArea];
-            PrepareResourcesLoad(gl);
+            cs.activeViewport = cs.viewports[cs.selectedArea];
+
+            await cs.PrepareResourcesLoad(glScheduler, progress);
+
+            return cs;
         }
 
-        public void PrepareResourcesLoad(GL gl)
+        private CourseScene(Course course, GLTaskScheduler glScheduler, IPopupModalHost popupModalHost)
+        {
+            this.course = course;
+            this.mPopupModalHost = popupModalHost;
+            selectedArea = course.GetArea(0);
+            undoWindow = new UndoWindow();
+            activeViewport = null!;
+        }
+
+        public async Task PrepareResourcesLoad(GLTaskScheduler glScheduler,
+            IProgress<(string operationName, float? progress)> progress)
         {
             //Check what files are needed to load/unload by area
             List<string> resourceFiles = new List<string>();
@@ -137,8 +150,17 @@ namespace Fushigi.ui.widgets
                 BfresCache.Cache.Remove(bfres);
 
             //Load all used resources
-            foreach (var file in resourceFiles)
-                BfresCache.Load(gl, file);
+            for (int i = 0; i < resourceFiles.Count; i++)
+            {
+                string? file = resourceFiles[i];
+                progress.Report(($"Loading models", i/(float)resourceFiles.Count));
+                await BfresCache.LoadAsync(glScheduler, file);
+            }
+        }
+
+        public void PreventFurtherRendering()
+        {
+            foreach (var v in viewports.Values) v.PreventFurtherRendering();
         }
 
         public void Undo() => areaScenes[selectedArea].EditContext.Undo();

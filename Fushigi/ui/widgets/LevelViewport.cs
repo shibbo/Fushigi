@@ -59,6 +59,9 @@ namespace Fushigi.ui.widgets
 
     internal class LevelViewport(CourseArea area, GL gl, CourseAreaScene areaScene)
     {
+        public void PreventFurtherRendering() => mIsNoMoreRendering = true;
+        private bool mIsNoMoreRendering = false;
+
         public event Action<IReadOnlyList<object>>? ObjectDeletionRequested;
 
         readonly CourseArea mArea = area;
@@ -242,6 +245,9 @@ namespace Fushigi.ui.widgets
 
         public void DrawScene3D(Vector2 size, IDictionary<string, bool> layersVisibility)
         {
+            if(mIsNoMoreRendering) 
+                goto SKIP_RENDERING; //sue me
+
             mLayersVisibility = layersVisibility;
 
             if (Framebuffer == null)
@@ -271,14 +277,14 @@ namespace Fushigi.ui.widgets
             }
             Framebuffer.Unbind();
 
-            ImGui.SetCursorScreenPos(mTopLeft);
-
             //Draw final output in post buffer
             HDRScreenBuffer.Render(gl, (int)size.X, (int)size.Y, (GLTexture2D)Framebuffer.Attachments[0]);
 
             Framebuffer.Unbind();
 
+        SKIP_RENDERING:
             //Draw framebuffer
+            ImGui.SetCursorScreenPos(mTopLeft);
             ImGui.Image((IntPtr)HDRScreenBuffer.GetOutput().ID, new Vector2(size.X, size.Y));
 
             ImGui.SetNextItemAllowOverlap();

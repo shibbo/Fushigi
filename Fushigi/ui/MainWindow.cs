@@ -1,4 +1,5 @@
 using Fushigi.course;
+using Fushigi.gl;
 using Fushigi.param;
 using Fushigi.ui.modal;
 using Fushigi.ui.widgets;
@@ -9,18 +10,17 @@ using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace Fushigi.ui
 {
     public class MainWindow : IPopupModalHost
     {
-
+        private GLTaskScheduler mGLTaskScheduler = new();
         private PopupModalHost mModalHost = new();
 
         private ImFontPtr mDefaultFont;
         private ImFontPtr mIconFont;
-
-        private (Course course, TaskCompletionSource promise)? mCourseLoadRequest = null;
 
         public MainWindow()
         {
@@ -153,7 +153,7 @@ namespace Fushigi.ui
                     });
         }
 
-        async Task StartupRoutine(GL gl)
+        async Task StartupRoutine()
         {
             await WaitTick();
             bool shouldShowPreferenceWindow = true;
@@ -161,7 +161,13 @@ namespace Fushigi.ui
             string romFSPath = UserSettings.GetRomFSPath();
             if (RomFS.IsValidRoot(romFSPath))
             {
-                RomFS.SetRoot(romFSPath, gl);
+                await ProgressBarDialog.ShowDialogForAsyncAction(this,
+                    "Preloading Thumbnails",
+                    async (p) =>
+                    {
+                        await mModalHost.WaitTick();
+                        await mGLTaskScheduler.Schedule(gl => RomFS.SetRoot(romFSPath, gl));
+                    });
                 ChildActorParam.Load();
 
                 if (!ParamDB.sIsInit)
@@ -207,19 +213,19 @@ namespace Fushigi.ui
                     $"Loading {name}",
                     async (p) =>
                     {
-                        var promise = new TaskCompletionSource();
                         p.Report(("Loading course files", null));
                         await mModalHost.WaitTick();
                         var course = new Course(name);
                         p.Report(("Loading other resources (this temporarily freezes the app)", null));
                         await mModalHost.WaitTick();
 
-                        mCourseLoadRequest = (course, promise);
-                        await promise.Task;
+                        mSelectedCourseScene?.PreventFurtherRendering();
+                        mSelectedCourseScene = await CourseScene.Create(course, mGLTaskScheduler, mModalHost, p);
+                        mCurrentCourseName = name;
                     });
         }
 
-        void DrawMainMenu(GL gl)
+        void DrawMainMenu()
         {
             /* create a new menubar */
             if (ImGui.BeginMainMenuBar())
@@ -342,14 +348,7 @@ namespace Fushigi.ui
 
         public void Render(GL gl, double delta, ImGuiController controller)
         {
-            //for now (makes sure we have atleast one frame rendered before the course get's loaded)
-            if(mCourseLoadRequest.TryGetValue(out var request))
-            {
-                mSelectedCourseScene = new(request.course, gl, this);
-                mCurrentCourseName = request.course.GetName();
-                request.promise.SetResult();
-                mCourseLoadRequest = null;
-            }
+            mGLTaskScheduler.ExecutePending(gl);
 
             /* keep OpenGLs viewport size in sync with the window's size */
             gl.Viewport(mWindow.FramebufferSize);
@@ -364,10 +363,10 @@ namespace Fushigi.ui
             if (ImGui.GetFrameCount() == 2)
             {
                 ImGui.LoadIniSettingsFromDisk("imgui.ini");
-                _ = StartupRoutine(gl);
+                _ = StartupRoutine();
             }
 
-            DrawMainMenu(gl);
+            DrawMainMenu();
 
             
             if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
@@ -378,7 +377,7 @@ namespace Fushigi.ui
 
             if (mIsShowPreferenceWindow)
             {
-                Preferences.Draw(ref mIsShowPreferenceWindow, gl, this);
+                Preferences.Draw(ref mIsShowPreferenceWindow, mGLTaskScheduler, this);
             }
 
             mModalHost.DrawHostedModals();

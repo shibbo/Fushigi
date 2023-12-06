@@ -80,7 +80,7 @@ namespace Fushigi.ui.widgets
             {
                 ImGui.Text(mOperationName);
                 if(mProgressValue.TryGetValue(out float value))
-                    ImGui.ProgressBar(value, new Vector2(0, 0));
+                    ImGui.ProgressBar(value, Vector2.Zero with { X = ImGui.GetContentRegionAvail().X});
             }
             else
             {
