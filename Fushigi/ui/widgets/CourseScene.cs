@@ -2126,26 +2126,14 @@ namespace Fushigi.ui.widgets
             private string mAddLayerSearchQuery = "";
         }
 
-        class SaveFailureAlert : IPopupModal<SaveFailureAlert.Void>
+        class SaveFailureAlert : OkDialog<SaveFailureAlert>
         {
-            private struct Void { }
+            protected override string Title => "Saving failed";
 
-            public static async Task ShowDialog(IPopupModalHost modalHost)
-            {
-
-                await modalHost.ShowPopUp(new SaveFailureAlert(), "Saving failed",
-                    ImGuiWindowFlags.AlwaysAutoResize);
-            }
-
-            void IPopupModal<Void>.DrawModalContent(Promise<Void> promise)
+            protected override void DrawBody()
             {
                 ImGui.Text("The course files may be open in an external app, or Super Mario Bros. Wonder may currently be running in an emulator. \n" +
                     "Close the emulator or external app and try again.");
-
-                if (ImGui.Button("Okay"))
-                {
-                    promise.SetResult(new Void());
-                }
             }
         }
     }

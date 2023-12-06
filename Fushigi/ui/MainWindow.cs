@@ -1,3 +1,4 @@
+using Fushigi.course;
 using Fushigi.param;
 using Fushigi.ui.modal;
 using Fushigi.ui.widgets;
@@ -19,11 +20,14 @@ namespace Fushigi.ui
         private ImFontPtr mDefaultFont;
         private ImFontPtr mIconFont;
 
+        private (Course course, TaskCompletionSource promise)? mCourseLoadRequest = null;
+
         public MainWindow()
         {
             WindowManager.CreateWindow(out mWindow,
                 onConfigureIO: () =>
                 {
+                    Console.WriteLine("Initializing Window");
                     unsafe
                     {
                         var io = ImGui.GetIO();
@@ -87,8 +91,6 @@ namespace Fushigi.ui
                 });
             mWindow.Load += () => WindowManager.RegisterRenderDelegate(mWindow, Render);
             mWindow.Closing += Close;
-            mWindow.Run();
-            mWindow.Dispose();
         }
 
         public async Task<bool> TryCloseCourse()
@@ -135,8 +137,27 @@ namespace Fushigi.ui
             }).ConfigureAwait(false); //fire and forget
         }
 
-        void LoadFromSettings(GL gl)
+        //TODO put this somewhere else
+        public static Task LoadParamDBWithProgressBar(IPopupModalHost modalHost)
         {
+            return ProgressBarDialog.ShowDialogForAsyncAction(modalHost,
+                    "Loading ParamDB",
+                    async (p) =>
+                    {
+                        p.Report(("Creating task", 0));
+                        await modalHost.WaitTick();
+                        var task = ParamDB.sIsInit ? 
+                        Task.Run(() => ParamDB.Reload(p)) : 
+                        Task.Run(() => ParamDB.Load(p));
+                        await task;
+                    });
+        }
+
+        async Task StartupRoutine(GL gl)
+        {
+            await WaitTick();
+            bool shouldShowPreferenceWindow = true;
+            bool shouldShowWelcomeDialog = true;
             string romFSPath = UserSettings.GetRomFSPath();
             if (RomFS.IsValidRoot(romFSPath))
             {
@@ -146,16 +167,21 @@ namespace Fushigi.ui
                 if (!ParamDB.sIsInit)
                 {
                     Console.WriteLine("Parameter database needs to be initialized...");
-                    mIsGeneratingParamDB = true;
+
+                    await LoadParamDBWithProgressBar(this);
+                    await Task.Delay(500); 
+                    
                 }
 
                 string? latestCourse = UserSettings.GetLatestCourse();
                 if (latestCourse != null && ParamDB.sIsInit)
                 {
-                    mCurrentCourseName = latestCourse;
-                    mSelectedCourseScene = new(new(mCurrentCourseName), gl, this);
-                    mIsChoosingPreferences = false;
-                    mIsWelcome = false;
+                    //wait for other pending dialogs to close
+                    await mModalHost.WaitTick();
+                    
+                    await LoadCourseWithProgressBar(latestCourse);
+                    shouldShowPreferenceWindow = false;
+                    shouldShowWelcomeDialog = false;
                 }
             }
 
@@ -164,11 +190,33 @@ namespace Fushigi.ui
             if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
                 !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
             {
-                mIsChoosingPreferences = false;
-                mIsWelcome = false;
+                shouldShowPreferenceWindow = false;
+                shouldShowWelcomeDialog = false;
             }
 
-             
+            if(shouldShowPreferenceWindow)
+                mIsShowPreferenceWindow = true;
+
+             if(shouldShowWelcomeDialog)
+                await WelcomeMessage.ShowDialog(this);
+        }
+
+        Task LoadCourseWithProgressBar(string name)
+        {
+            return ProgressBarDialog.ShowDialogForAsyncAction(this,
+                    $"Loading {name}",
+                    async (p) =>
+                    {
+                        var promise = new TaskCompletionSource();
+                        p.Report(("Loading course files", null));
+                        await mModalHost.WaitTick();
+                        var course = new Course(name);
+                        p.Report(("Loading other resources (this temporarily freezes the app)", null));
+                        await mModalHost.WaitTick();
+
+                        mCourseLoadRequest = (course, promise);
+                        await promise.Task;
+                    });
         }
 
         void DrawMainMenu(GL gl)
@@ -194,7 +242,7 @@ namespace Fushigi.ui
                                 {
                                     mCurrentCourseName = selectedCourse;
                                     Console.WriteLine($"Selected course {mCurrentCourseName}!");
-                                    mSelectedCourseScene = new(new(mCurrentCourseName), gl, this);
+                                    await LoadCourseWithProgressBar(mCurrentCourseName);
                                     UserSettings.AppendRecentCourse(mCurrentCourseName);
                                 }
                             }).ConfigureAwait(false); //fire and forget
@@ -265,12 +313,12 @@ namespace Fushigi.ui
                 {
                     if (ImGui.MenuItem("Preferences"))
                     {
-                        mIsChoosingPreferences = true;
+                        mIsShowPreferenceWindow = true;
                     }
 
                     if (ImGui.MenuItem("Regenerate Parameter Database", ParamDB.sIsInit))
                     {
-                        mIsGeneratingParamDB = true;
+                        _ = LoadParamDBWithProgressBar(this);
                     }
 
                     if (ImGui.MenuItem("Undo"))
@@ -292,25 +340,16 @@ namespace Fushigi.ui
             }
         }
 
-        void DrawWelcome()
-        {
-            if (!ImGui.Begin("Welcome"))
-            {
-                return;
-            }
-
-            ImGui.Text("Welcome to Fushigi! Set the RomFS game path and save directory to get started.");
-
-            if (ImGui.Button("Close"))
-            {
-                mIsWelcome = false;
-            }
-
-            ImGui.End();
-        }
-
         public void Render(GL gl, double delta, ImGuiController controller)
         {
+            //for now (makes sure we have atleast one frame rendered before the course get's loaded)
+            if(mCourseLoadRequest.TryGetValue(out var request))
+            {
+                mSelectedCourseScene = new(request.course, gl, this);
+                mCurrentCourseName = request.course.GetName();
+                request.promise.SetResult();
+                mCourseLoadRequest = null;
+            }
 
             /* keep OpenGLs viewport size in sync with the window's size */
             gl.Viewport(mWindow.FramebufferSize);
@@ -325,34 +364,21 @@ namespace Fushigi.ui
             if (ImGui.GetFrameCount() == 2)
             {
                 ImGui.LoadIniSettingsFromDisk("imgui.ini");
-                LoadFromSettings(gl);
+                _ = StartupRoutine(gl);
             }
 
             DrawMainMenu(gl);
 
-            // ImGui settings are available frame 3
-            if (ImGui.GetFrameCount() > 2)
+            
+            if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
+                !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
             {
-                if (!string.IsNullOrEmpty(RomFS.GetRoot()) &&
-                    !string.IsNullOrEmpty(UserSettings.GetModRomFSPath()))
-                {
-                    mSelectedCourseScene?.DrawUI(gl, delta);
-                }
+                mSelectedCourseScene?.DrawUI(gl, delta);
+            }
 
-                if (mIsChoosingPreferences)
-                {
-                    Preferences.Draw(ref mIsChoosingPreferences, gl);
-                }
-
-                if (mIsWelcome)
-                {
-                    DrawWelcome();
-                }
-
-                if (mIsGeneratingParamDB)
-                {
-                    ParamDBDialog.Draw(ref mIsGeneratingParamDB);
-                }
+            if (mIsShowPreferenceWindow)
+            {
+                Preferences.Draw(ref mIsShowPreferenceWindow, gl, this);
             }
 
             mModalHost.DrawHostedModals();
@@ -372,11 +398,25 @@ namespace Fushigi.ui
             return mModalHost.ShowPopUp(modal, title, windowFlags, minWindowSize);
         }
 
+        public Task WaitTick()
+        {
+            return ((IPopupModalHost)mModalHost).WaitTick();
+        }
+
         readonly IWindow mWindow;
         string? mCurrentCourseName;
         CourseScene? mSelectedCourseScene;
-        bool mIsChoosingPreferences = true;
-        bool mIsWelcome = true;
-        bool mIsGeneratingParamDB = false;
+        bool mIsShowPreferenceWindow = false;
+
+
+        class WelcomeMessage : OkDialog<WelcomeMessage>
+        {
+            protected override string Title => "Welcome";
+
+            protected override void DrawBody()
+            {
+                ImGui.Text("Welcome to Fushigi! Set the RomFS game path and save directory to get started.");
+            }
+        }
     }
 }

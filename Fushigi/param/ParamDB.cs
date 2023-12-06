@@ -69,7 +69,7 @@ namespace Fushigi.param
 
         public static string[] GetActors() => sActors.Keys.ToArray();
 
-        public static void Load()
+        public static void Load(IProgress<(string operationName, float? progress)> progress)
         {
             /* if we have already been initialized, we skip this process */
             if (sIsInit)
@@ -77,13 +77,18 @@ namespace Fushigi.param
                 return;
             }
 
+            progress.Report(("Gathering Actor packs", null));
             /* the files in /Pack/Actor in the RomFS contain the PACK files that contain our parameters */
-            // string[] files = RomFS.GetFiles("/Pack/Actor");
             string[] files = RomFS.GetFiles(Path.Combine("Pack", "Actor"));
 
+
             /* iterate through each file */
-            foreach (string file in files)
+            for (int i = 0; i < files.Length; i++)
             {
+                string file = files[i];
+
+                progress.Report(("Loading Parameters from Actor packs", i / (float)files.Length));
+
                 /* the actor name in question is at the beginning of the file name */
                 string actorName = Path.GetFileNameWithoutExtension(file).Split(".pack")[0];
                 ParamList param = new ParamList();
@@ -193,14 +198,14 @@ namespace Fushigi.param
             sIsInit = true;
         }
 
-        public static void Reload()
+        public static void Reload(IProgress<(string operationName, float? progress)> progress)
         {
             sActors.Clear();
             sComponents.Clear();
             sRails.Clear();
             sRailParamList.Clear();
             sIsInit = false;
-            Load();
+            Load(progress);
         }
 
         static Component ReadByml(Byml.Byml byml)

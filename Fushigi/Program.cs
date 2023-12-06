@@ -2,6 +2,7 @@ using Fushigi.util;
 using Fushigi.param;
 using Fushigi.ui;
 using System.Runtime.InteropServices;
+using Fushigi.windowing;
 
 
 FileStream outputStream = new FileStream("output.log", FileMode.Create);
@@ -39,8 +40,10 @@ if (!Path.Exists("imgui.ini"))
 };
 
 MainWindow window = new MainWindow();
+WindowManager.Run();
 
 outputStream.Close();
+
 
 void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
 {

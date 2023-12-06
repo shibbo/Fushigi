@@ -16,6 +16,8 @@ namespace Fushigi.ui.modal
             string title,
             ImGuiWindowFlags windowFlags = ImGuiWindowFlags.None,
             Vector2? minWindowSize = null);
+
+        Task WaitTick();
     }
 
     public class PopupModalHost : IPopupModalHost
@@ -35,6 +37,9 @@ namespace Fushigi.ui.modal
 
         private readonly Stack<(PopupInfo info, ModalMethods methods, Task resultTask)> mPopupStack = [];
         private readonly List<(PopupInfo info, ModalMethods methods, Task resultTask)> mNewPopups = [];
+
+        private ulong mTicks = 0;
+        private List<(ulong targetTick, TaskCompletionSource promise)> mTickWaiters = []; 
 
         public Task<(bool wasClosed, TResult result)> ShowPopUp<TResult>(IPopupModal<TResult> modal, 
             string title,
@@ -70,10 +75,35 @@ namespace Fushigi.ui.modal
             return completionSource.Task;
         }
 
+        public Task WaitTick()
+        {
+            lock (mTickWaiters)
+            {
+                var promise = new TaskCompletionSource();
+
+                mTickWaiters.Add((mTicks+2, promise));
+
+                return promise.Task;
+            }
+        }
+
         private readonly List<Task> mModalsToClose = [];
 
         public void DrawHostedModals()
         {
+            lock (mTickWaiters)
+            {
+                for (int i = mTickWaiters.Count - 1; i >= 0; i--)
+                {
+                    if (mTickWaiters[i].targetTick == mTicks)
+                    {
+                        mTickWaiters[i].promise.SetResult();
+                        mTickWaiters.RemoveAt(i);
+                    }
+
+                }
+            }
+
             lock (mNewPopups)
             {
                 foreach (var item in mNewPopups)
@@ -131,6 +161,9 @@ namespace Fushigi.ui.modal
             {
                 mPopupStack.Pop();
             }
+
+            lock (mTickWaiters)
+                mTicks++;
         }
     }
 }
