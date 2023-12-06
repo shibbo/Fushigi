@@ -2139,7 +2139,7 @@ namespace Fushigi.ui.widgets
 
             void IPopupModal<Void>.DrawModalContent(Promise<Void> promise)
             {
-                ImGui.Text("The course files may be open in an external app, or Super Mario Wonder may currently be running in an emulator. \n" +
+                ImGui.Text("The course files may be open in an external app, or Super Mario Bros. Wonder may currently be running in an emulator. \n" +
                     "Close the emulator or external app and try again.");
 
                 if (ImGui.Button("Okay"))
