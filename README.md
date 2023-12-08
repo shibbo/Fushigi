@@ -8,29 +8,14 @@ Make sure you have all of the following installed:
 [Git](https://git-scm.com/downloads)
 
 ## Instructions
-> [!WARNING]  
-> DO NOT HAVE ANY SELF-CREATED FILES NAMED "Fushigi" ON YOUR DESKTOP. THEY WILL BE DELETED.
-
 Open a CMD or terminal and run the following:
 ```
-cd Desktop
-rm -rf Fushigi
-git clone https://github.com/shibbo/Fushigi.git
+git clone https://github.com/shibbo/Fushigi
 cd Fushigi
-dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp --version 0.6.0-alpha
-dotnet add Fushigi/Fushigi.csproj package Newtonsoft.Json 
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.Input
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.GLFW
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui
-dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
-dotnet add Fushigi/Fushigi.csproj package ZstdSharp.Port
-dotnet restore Fushigi/Fushigi.sln
-dotnet build Fushigi/Fushigi.sln --no-restore
+dotnet-8 publish -c Release
 ```
 
-You will now have either "Fushigi.exe" (if you are on Windows) or "Fushigi" (if you are not on windows) located on your desktop at Fushigi/Fushigi/bin/Debug/net8.0/
+The build will be create din Fushigi/Fushigi/bin/Release/net8.0/. If you don't want the build to include the dotnet framework, use  `--no-self-contained`. If you want to make a Debug build, use `-c Debug` instead of `-c Release`.
 
 # Credit
 Line Awesome icon font provided by [icons8](https://icons8.com/line-awesome)
