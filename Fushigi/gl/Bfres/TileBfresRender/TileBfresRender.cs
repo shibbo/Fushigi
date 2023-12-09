@@ -5,6 +5,7 @@ using Fushigi.util;
 using Silk.NET.OpenGL;
 using System.Diagnostics;
 using System.Numerics;
+using System.Reflection;
 using static Fushigi.course.CourseUnit;
 
 namespace Fushigi.gl.Bfres
@@ -328,7 +329,7 @@ namespace Fushigi.gl.Bfres
             {
                 if (Wall == null) return;
 
-                Wall.RenderGameShaders(gl, BfresRender, BfresModelRender, Matrix4x4.Identity, camera);
+                Wall.Render(gl, BfresRender, BfresModelRender, Matrix4x4.Identity, camera);
                 TileManager.DrawWall();
             }
 
@@ -336,7 +337,7 @@ namespace Fushigi.gl.Bfres
             {
                 if (Ground == null) return;
 
-                Ground.RenderGameShaders(gl, BfresRender, BfresModelRender, Matrix4x4.Identity, camera);
+                Ground.Render(gl, BfresRender, BfresModelRender, Matrix4x4.Identity, camera);
                 TileManager.DrawGround();
 
             }
@@ -345,7 +346,7 @@ namespace Fushigi.gl.Bfres
             {
                 if (Edge == null) return;
 
-                Edge.RenderGameShaders(gl, BfresRender, BfresModelRender, Matrix4x4.Identity, camera);
+                Edge.Render(gl, BfresRender, BfresModelRender, Matrix4x4.Identity, camera);
                 TileManager.DrawEdge();
             }
             public void Dispose()

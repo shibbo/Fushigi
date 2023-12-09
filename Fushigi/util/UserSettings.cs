@@ -25,21 +25,22 @@ namespace Fushigi.util
             public string RomFSModPath;
             public Dictionary<string, string> ModPaths;
             public List<string> RecentCourses;
+            public bool UseGameShaders;
+
+            public Settings()
+            {
+                RomFSPath = "";
+                ModPaths = new();
+                RomFSModPath = "";
+                RecentCourses = new List<string>(MaxRecents);
+                UseGameShaders = true;
+            }
         }
 
         public static void Load()
         {
-            if (!File.Exists(SettingsFile))
-            {
-                AppSettings.RomFSPath = "";
-                AppSettings.ModPaths = new();
-                AppSettings.RomFSModPath = "";
-                AppSettings.RecentCourses = new List<string>(MaxRecents);
-            }
-            else
-            {
+            if (File.Exists(SettingsFile))
                 AppSettings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsFile));
-            }
         }
 
         public static void Save()
@@ -50,6 +51,14 @@ namespace Fushigi.util
             }
 
             File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(AppSettings, Formatting.Indented));
+        }
+
+        public static bool UseGameShaders() => AppSettings.UseGameShaders;
+
+        public static void SetGameShaders(bool value)
+        {
+            AppSettings.UseGameShaders = value;
+            Save(); //save setting
         }
 
         public static void SetRomFSPath(string path)

@@ -25,6 +25,7 @@ namespace Fushigi.ui.widgets
             {
                 var romfs = UserSettings.GetRomFSPath();
                 var mod = UserSettings.GetModRomFSPath();
+                var useGameShaders = UserSettings.UseGameShaders();
 
                 ImGui.Indent();
 
@@ -76,6 +77,13 @@ namespace Fushigi.ui.widgets
                     ImGui.TextColored(errCol,
                         "The path you have selected is invalid. Directory must not be empty.");
                 }
+
+                if (ImGui.Checkbox("Use Game Shaders", ref useGameShaders))
+                {
+                    UserSettings.SetGameShaders(useGameShaders);
+                }
+
+                Tooltip.Show("Displays models using the shaders present in the game. This may cause a performance drop but will look more visually accurate.");
 
                 ImGui.Unindent();
 

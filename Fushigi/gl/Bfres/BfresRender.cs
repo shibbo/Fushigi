@@ -113,7 +113,10 @@ namespace Fushigi.gl.Bfres
                     if (this.Skeleton.Bones[mesh.BoneIndex].Name == "Bonecap_Model")
                         continue;
 
-                    mesh.RenderGameShaders(gl, render, this, transform, camera);
+                    if (UserSettings.UseGameShaders())
+                        mesh.RenderGameShaders(gl, render, this, transform, camera);
+                    else
+                        mesh.Render(gl, render, this, transform, camera);
                 }
             }
 
@@ -297,7 +300,7 @@ namespace Fushigi.gl.Bfres
             {
                 var worldTransform = modelRender.Skeleton.Bones[this.BoneIndex].WorldMatrix * transform;
 
-                MaterialRender.Render(gl, renderer, modelRender, worldTransform, camera);
+                MaterialRender.RenderDefault(gl, renderer, modelRender, worldTransform, camera);
 
                 vbo.Enable(MaterialRender.Shader);
                 vbo.Use();

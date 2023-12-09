@@ -1,5 +1,7 @@
 ﻿using Fushigi.Bfres;
+using Fushigi.course;
 using Fushigi.gl.Shaders;
+using Fushigi.util;
 using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using System;
@@ -60,6 +62,14 @@ namespace Fushigi.gl.Bfres
 
         public void Render(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
         {
+            if (UserSettings.UseGameShaders())
+                this.RenderGameShaders(gl, renderer, model, transform, camera);
+            else
+                this.RenderDefault(gl, renderer, model, transform, camera);
+        }
+
+        public void RenderDefault(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
+        {
             GsysRenderState.Render(gl);
 
             Shader.Use();
@@ -118,11 +128,11 @@ namespace Fushigi.gl.Bfres
                     var tex = TryBindTexture(gl, renderer, texName);
                     if (tex != null)
                     {
-                        if (tex.Target == TextureTarget.Texture2DArray)
+                    /*    if (tex.Target == TextureTarget.Texture2DArray)
                         {
                             sampler_usage += "Array"; //add array suffix used in shader
                             uniform += "_array";
-                        }
+                        }*/
 
                         Shader.SetUniform(sampler_usage, 1);
                         Shader.SetTexture(uniform, tex, unit_slot);
@@ -132,6 +142,7 @@ namespace Fushigi.gl.Bfres
             }
             gl.ActiveTexture(TextureUnit.Texture0);
             gl.BindTexture(TextureTarget.Texture2D, 0);
+            gl.BindTexture(TextureTarget.Texture2DArray, 0);
         }
 
         private GLTexture TryBindTexture(GL gl, BfresRender renderer, string texName)
