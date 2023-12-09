@@ -1,5 +1,6 @@
 ﻿using Fushigi.Bfres;
 using Fushigi.Bfres.Texture;
+using Fushigi.util;
 using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using Silk.NET.SDL;
@@ -15,7 +16,7 @@ namespace Fushigi.gl.Bfres
 {
     public class BfresTextureCache 
     {
-        public static bool Enable = false;
+        public static bool Enable = UserSettings.UseAstcTextureCache();
 
         public static bool LoadCache(BfresTextureRender tex, byte[] image_data, uint depthLevel, int mipLevel)
         {
