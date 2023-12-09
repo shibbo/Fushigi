@@ -41,6 +41,7 @@ namespace Fushigi.util
 
         public static void Load()
         {
+            AppSettings = new Settings();
             if (File.Exists(SettingsFile))
                 AppSettings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsFile));
         }
