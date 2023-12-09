@@ -75,9 +75,8 @@ namespace Fushigi.ui.widgets
             {
                 return;
             }
-
             var numColumns = (int)(ImGui.GetContentRegionAvail().X / thumbnailSize.X);
-            if (!ImGui.BeginTable("", numColumns))
+            if (!ImGui.BeginTable("", numColumns) || numColumns == 0)
             {
                 return;
             }

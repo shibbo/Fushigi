@@ -178,16 +178,26 @@ namespace Fushigi
             filePath = GetPathGyml(GamePhysicsRef.mPath);
             data = sarc.OpenFile(filePath);
             ControllerPath = BymlSerialize.Deserialize<ControllerSetParam>(data);
-            if(ControllerPath.ShapeNamePathAry != null)
+
+            while (!string.IsNullOrEmpty(ControllerPath.parent) &&
+            (ControllerPath.ShapeNamePathAry == null ||
+            (ControllerPath.mRigids == null && ControllerPath.mEntity == null)))
+            {
+                filePath = GetPathGyml(ControllerPath.parent);
+                data = sarc.OpenFile(filePath);
+                var par = BymlSerialize.Deserialize<ControllerSetParam>(data);
+                foreach(var v in ControllerPath.GetType().GetProperties())
+                {
+                    if (v.GetValue(ControllerPath) == null && v.GetValue(par) != null)
+                        v.SetValue(ControllerPath, v.GetValue(par));
+                }
+                ControllerPath.parent = par.parent;
+            }
+            
+            if(ControllerPath.ShapeNamePathAry == null &&
+            ControllerPath.mRigids == null && ControllerPath.mEntity == null)
             {
                 var shapes = ControllerPath.ShapeNamePathAry;
-                while (!string.IsNullOrEmpty(ControllerPath.parent) &&
-                ControllerPath.mRigids == null && ControllerPath.mEntity == null)
-                {
-                    filePath = GetPathGyml(ControllerPath.parent);
-                    data = sarc.OpenFile(filePath);
-                    ControllerPath = BymlSerialize.Deserialize<ControllerSetParam>(data);
-                }
                 var rigidBodies = (ControllerPath.mRigids ?? new()).Concat(ControllerPath.mEntity ?? new());
 
                 foreach(var rigid in rigidBodies)
