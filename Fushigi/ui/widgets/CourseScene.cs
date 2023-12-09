@@ -29,10 +29,9 @@ namespace Fushigi.ui.widgets
         UndoWindow undoWindow;
         Vector3 camSave;
 
-        (object? courseObj, PropertyFieldsCapture placementPropCapture, PropertyDictCapture dynamicPropCapture)
-           propertyCapture = (null, 
-            PropertyFieldsCapture.Empty, 
-            PropertyDictCapture.Empty);
+        (object? courseObj, FullPropertyCapture capture)
+           propertyCapture = (null,
+            FullPropertyCapture.Empty);
 
         readonly Course course;
         readonly IPopupModalHost mPopupModalHost;
@@ -527,10 +526,9 @@ namespace Fushigi.ui.widgets
             if (editContext.IsSingleObjectSelected(out CourseActor? mSelectedActor))
             {
                 //invalidate current action if there has been external changes
-                if((propertyCapture.placementPropCapture.HasChangesSinceLastCheckpoint() ||
-                    propertyCapture.dynamicPropCapture.HasChangesSinceLastCheckpoint()))
+                if(propertyCapture.capture.HasChangesSinceLastCheckpoint())
                 {
-                    propertyCapture = (null, PropertyFieldsCapture.Empty, PropertyDictCapture.Empty);
+                    propertyCapture = (null, FullPropertyCapture.Empty);
                 }
 
                 #region Actor UI
@@ -757,13 +755,8 @@ namespace Fushigi.ui.widgets
 
                 if (!ImGui.IsAnyItemActive())
                 {
-                    if (propertyCapture.placementPropCapture.TryGetRevertable(out var revertable, out var names))
-                    {
-                        editContext.CommitAction(revertable);
-                        needsRecapture = true;
-                    }
-
-                    if (propertyCapture.dynamicPropCapture.TryGetRevertable(out revertable, out names))
+                    if (propertyCapture.capture.TryGetRevertable(out var revertable, 
+                        names => $"{IconUtil.ICON_WRENCH} Change {string.Join(", ", names)}"))
                     {
                         editContext.CommitAction(revertable);
                         needsRecapture = true;
@@ -773,13 +766,11 @@ namespace Fushigi.ui.widgets
                 {
                     propertyCapture = (
                         mSelectedActor,
-                        new PropertyFieldsCapture(mSelectedActor),
-                        new PropertyDictCapture(mSelectedActor.mActorParameters)
+                        new FullPropertyCapture(mSelectedActor)
                     );
                 }
 
-                propertyCapture.placementPropCapture.MakeCheckpoint();
-                propertyCapture.dynamicPropCapture.MakeCheckpoint();
+                propertyCapture.capture.MakeCheckpoint();
             }
             else if (editContext.IsSingleObjectSelected(out CourseUnit? mSelectedUnit))
             {

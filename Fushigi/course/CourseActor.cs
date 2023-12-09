@@ -17,8 +17,6 @@ namespace Fushigi.course
     {
         public CourseActor(BymlHashTable actorNode)
         {
-            mActorParameters = new Dictionary<string, object>();
-
             mPackName = BymlUtil.GetNodeData<string>(actorNode["Gyaml"]);
             mLayer = BymlUtil.GetNodeData<string>(actorNode["Layer"]);
 
@@ -42,15 +40,17 @@ namespace Fushigi.course
                         var components = ParamDB.GetComponentParams(p);
                         var dynamicNode = actorNode["Dynamic"] as BymlHashTable;
 
+                        var actorParameters = new Dictionary<string, object>();
+
                         foreach (string component in components.Keys)
                         {
-                            if (dynamicNode.ContainsKey(component) && !mActorParameters.ContainsKey(component))
+                            if (dynamicNode.ContainsKey(component) && !actorParameters.ContainsKey(component))
                             {
-                                mActorParameters.Add(component, BymlUtil.GetValueFromDynamicNode(dynamicNode[component], component, components[component].Type));
+                                actorParameters.Add(component, BymlUtil.GetValueFromDynamicNode(dynamicNode[component], component, components[component].Type));
                             }
                             else
                             {
-                                if (mActorParameters.ContainsKey(component))
+                                if (actorParameters.ContainsKey(component))
                                 {
                                     continue;
                                 }
@@ -63,20 +63,22 @@ namespace Fushigi.course
                                     case "S16":
                                     case "U32":
                                     case "S32":
-                                        mActorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
+                                        actorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
                                         break;
                                     case "F32":
-                                        mActorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
+                                        actorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
                                         break;
                                     case "Bool":
-                                        mActorParameters.Add(component, (bool)components[component].InitValue);
+                                        actorParameters.Add(component, (bool)components[component].InitValue);
                                         break;
                                     case "String":
-                                        mActorParameters.Add(component, (string)components[component].InitValue);
+                                        actorParameters.Add(component, (string)components[component].InitValue);
                                         break;
                                 }
                             }
                         }
+
+                        mActorParameters = new PropertyDict(actorParameters);
                     }
                 }
             }
@@ -87,7 +89,9 @@ namespace Fushigi.course
 
             if (actorNode.ContainsKey("System"))
             {
-                foreach(string node in ((BymlHashTable)actorNode["System"]).Keys)
+                var systemParameters = new List<PropertyDict.Entry>();
+
+                foreach (string node in ((BymlHashTable)actorNode["System"]).Keys)
                 {
                     BymlHashTable systemNode = ((BymlHashTable)actorNode["System"]);
                     var curNode = systemNode[node];
@@ -108,8 +112,10 @@ namespace Fushigi.course
                             throw new Exception("CourseActor::CourseActor() -- You are the chosen one. You have found a type we don't account for in the system params. WOAH!");
                     }
 
-                    mSystemParameters.Add(node, data);
+                    systemParameters.Add(new(node, data));
                 }
+
+                mSystemParameters = new PropertyDict(systemParameters);
             }
         }
 
@@ -130,7 +136,7 @@ namespace Fushigi.course
 
         public void InitializeDefaultDynamicParams()
         {
-            mActorParameters.Clear();
+            var actorParameters = new Dictionary<string, object>();
 
             if (ParamDB.HasActorComponents(mPackName))
             {
@@ -142,7 +148,7 @@ namespace Fushigi.course
 
                     foreach (string component in components.Keys)
                     {
-                        if (mActorParameters.ContainsKey(component))
+                        if (actorParameters.ContainsKey(component))
                         {
                             continue;
                         }
@@ -155,21 +161,23 @@ namespace Fushigi.course
                             case "S16":
                             case "U32":
                             case "S32":
-                                mActorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
+                                actorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
                                 break;
                             case "F32":
-                                mActorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
+                                actorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
                                 break;
                             case "Bool":
-                                mActorParameters.Add(component, (bool)components[component].InitValue);
+                                actorParameters.Add(component, (bool)components[component].InitValue);
                                 break;
                             case "String":
-                                mActorParameters.Add(component, (string)components[component].InitValue);
+                                actorParameters.Add(component, (string)components[component].InitValue);
                                 break;
                         }
                     }
                 }
             }
+
+            mActorParameters = new PropertyDict(actorParameters);
         }
 
         public BymlHashTable BuildNode(CourseLinkHolder linkHolder)
@@ -185,7 +193,7 @@ namespace Fushigi.course
             {
                 BymlHashTable dynamicNode = new();
 
-                foreach (KeyValuePair<string, object> dynParam in mActorParameters)
+                foreach (PropertyDict.Entry dynParam in mActorParameters)
                 {
                     object param = mActorParameters[dynParam.Key];
 
@@ -256,8 +264,8 @@ namespace Fushigi.course
         public System.Numerics.Vector3 mScale;
         public uint mAreaHash;
         public ulong mHash;
-        public Dictionary<string, object> mActorParameters = new();
-        public Dictionary<string, object> mSystemParameters = new();
+        public PropertyDict mActorParameters = PropertyDict.Empty;
+        public PropertyDict mSystemParameters = PropertyDict.Empty;
 
         public ActorPack mActorPack;
     }
