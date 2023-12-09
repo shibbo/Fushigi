@@ -194,8 +194,8 @@ namespace Fushigi
                 ControllerPath.parent = par.parent;
             }
             
-            if(ControllerPath.ShapeNamePathAry == null &&
-            ControllerPath.mRigids == null && ControllerPath.mEntity == null)
+            if(ControllerPath.ShapeNamePathAry != null &&
+            (ControllerPath.mRigids != null || ControllerPath.mEntity != null))
             {
                 var shapes = ControllerPath.ShapeNamePathAry;
                 var rigidBodies = (ControllerPath.mRigids ?? new()).Concat(ControllerPath.mEntity ?? new());
