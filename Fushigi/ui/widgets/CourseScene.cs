@@ -1,11 +1,13 @@
 using Fushigi.course;
 using Fushigi.gl.Bfres;
 using Fushigi.param;
+using Fushigi.ui.helpers;
 using Fushigi.ui.SceneObjects;
 using Fushigi.ui.SceneObjects.bgunit;
 using Fushigi.util;
 using ImGuiNET;
 using Silk.NET.OpenGL;
+using Silk.NET.SDL;
 using System.Collections.Immutable;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -196,6 +198,75 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.Begin(area.GetName(), ImGuiWindowFlags.NoNav))
                 {
+                    if (ImGui.BeginChild("viewport_menu_bar", new Vector2(ImGui.GetWindowWidth(), 30)))
+                    {
+                        Vector2 icon_size = new Vector2(25, 25);
+
+                        ImGui.PushStyleColor(ImGuiCol.Button, 0);
+               
+                        if (ImGui.Button(viewport.PlayAnimations ? IconUtil.ICON_STOP : IconUtil.ICON_PLAY, icon_size))
+                            viewport.PlayAnimations = !viewport.PlayAnimations;
+
+                        ImGui.SameLine();
+
+                        if (ImguiHelper.DrawTextToggle(IconUtil.ICON_BORDER_ALL, viewport.ShowGrid, icon_size))
+                            viewport.ShowGrid = !viewport.ShowGrid;
+
+                        ImGui.SameLine();
+
+                        if (ImguiHelper.DrawTextToggle(IconUtil.ICON_VECTOR_SQUARE, viewport.ShowActorBoxes, icon_size))
+                            viewport.ShowActorBoxes = !viewport.ShowActorBoxes;
+
+                        ImGui.SameLine();
+
+                        string current_palette = area.InitEnvPalette == null ? "" : area.InitEnvPalette.Name;
+
+                        void SelectPalette(string name, string palette)
+                        {
+                            if (string.IsNullOrEmpty(palette))
+                                return;
+
+                            palette = palette.Replace("Work/Gyml/Gfx/EnvPaletteParam/", "");
+                            palette = palette.Replace(".game__gfx__EnvPaletteParam.gyml", "");
+
+                            bool selected = current_palette == name;
+                            if (ImGui.Selectable($"{name} : {palette}", selected))
+                                viewport.EnvironmentData.TransitionEnvPalette(current_palette, palette);
+
+                            if (selected)
+                                ImGui.SetItemDefaultFocus();
+                        }
+
+                        ImGui.PushItemWidth(30);
+                        if (ImGui.BeginCombo($"##EnvPalette", $"{IconUtil.ICON_PALETTE}", ImGuiComboFlags.NoArrowButton))
+                        {
+                            SelectPalette($"Default Palette", area.mAreaParams.EnvPaletteSetting.InitPaletteBaseName);
+
+                            if (area.mAreaParams.EnvPaletteSetting.WonderPaletteList != null)
+                            {
+                                foreach (var palette in area.mAreaParams.EnvPaletteSetting.WonderPaletteList)
+                                    SelectPalette($"Wonder Palette", palette);
+                            }
+                            if (area.mAreaParams.EnvPaletteSetting.TransPaletteList != null)
+                            {
+                                foreach (var palette in area.mAreaParams.EnvPaletteSetting.TransPaletteList)
+                                    SelectPalette($"Transition Palette", palette);
+                            }
+                            if (area.mAreaParams.EnvPaletteSetting.EventPaletteList != null)
+                            {
+                                foreach (var palette in area.mAreaParams.EnvPaletteSetting.EventPaletteList)
+                                    SelectPalette($"Event Palette", palette);
+                            }
+                            ImGui.EndCombo();
+                        }
+                        ImGui.PopItemWidth();
+
+
+                        ImGui.PopStyleColor(1);
+
+                        ImGui.EndChild();
+                    }
+
                     if (ImGui.IsWindowFocused())
                     {
                         selectedArea = area;
