@@ -36,6 +36,22 @@ namespace Fushigi.gl.Bfres
             GsysShaderRender.Init(gl, modelRender, meshRender, shape, material);
         }
 
+        public void SetParam(string name, float value)
+        {
+            if (this.Material.ShaderParams.ContainsKey(name))
+            {
+                this.Material.ShaderParams[name].DataValue = value;
+                GsysShaderRender.ReloadMaterialBlock();
+            }
+        }
+
+        public void SetTexture(string name, string sampler)
+        {
+            int index = this.Material.Samplers.Keys.ToList().IndexOf(sampler);
+            if (index != -1)
+                Material.Textures[index] = name;
+        }
+
         public void RenderGameShaders(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
         {
             gl.Enable(EnableCap.TextureCubeMapSeamless);
@@ -124,13 +140,16 @@ namespace Fushigi.gl.Bfres
             {
                 var texture = renderer.Textures[texName];
 
-                texture.CheckState();
-                if (texture.TextureState == BfresTextureRender.State.Finished)
+                if (!(texture is BfresTextureRender))
+                    return texture; //GL texture generated at runtime
+
+                ((BfresTextureRender)texture).CheckState();
+                if (((BfresTextureRender)texture).TextureState == BfresTextureRender.State.Finished)
                 {
                     return texture;
                 }
-            }return null;
 
+            }
             return GLImageCache.GetDefaultTexture(gl);
         }
     }

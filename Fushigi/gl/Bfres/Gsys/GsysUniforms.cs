@@ -176,7 +176,18 @@ namespace Fushigi.gl.Bfres
 
             HemiDirection = new Vector4(1, 0, 0, 1);
 
+            //37.000 18.281
+            //0.60181502 sin
+            //0.3136776 sin
+            //0.79863551 cos
+            //0.94952955 cos
+
+            float x = -(MathF.Sin(37.000f) * MathF.Cos(18.281f));
+            float y = -MathF.Sin(18.281f);
+            float z = -MathF.Sin(18.281f);
+
             LightDirection0 = new Vector4(-0.5714403f, -0.3136818f, -0.7583269f, 3.8f);
+
             LightColor = new Vector4(3.8f, 3.3516f, 2.8842f, 3.8f);
             LightSpecColor = new Vector4(3.8f);
 
@@ -185,7 +196,7 @@ namespace Fushigi.gl.Bfres
             LightSpecColor1 = new Vector4(0, 0, 0, 1);
 
             LightDirection0World = new Vector4(0, 1, 0, 0);
-            HemiDirectionWorld = new Vector4(-0.5714403f, -0.3136818f, -0.7583269f, 0);
+            HemiDirectionWorld = new Vector4(-0.1344046f, -0.9702957f, -0.2011507f, 0);
             LightDirection1World = new Vector4(0, 1, 0, 0);
 
             for (int i = 0; i < FogList.Length; i++)
@@ -197,6 +208,10 @@ namespace Fushigi.gl.Bfres
             var mem = new System.IO.MemoryStream();
             using (var writer = new BinaryWriter(mem))
             {
+             //   writer.Write(File.ReadAllBytes("far.bin"));
+
+                writer.Seek(0, SeekOrigin.Begin);
+
                 writer.Write(AmbientColor);
                 writer.Write(HemiSkyColor);
                 writer.Write(HemiGroundColor);
@@ -226,7 +241,7 @@ namespace Fushigi.gl.Bfres
 
                 //vec4[21]
                 writer.Write(LightDirection0World);
-                writer.Write(HemiDirectionWorld);
+                writer.Write(LightDirection0);
                 writer.Write(LightDirection1World);
 
                 writer.Seek(400, SeekOrigin.Begin);

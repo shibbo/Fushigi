@@ -5,6 +5,7 @@ using Fushigi.course;
 using Fushigi.course.distance_view;
 using Fushigi.gl;
 using Fushigi.gl.Bfres;
+using Fushigi.gl.Bfres.AreaData;
 using Fushigi.param;
 using Fushigi.util;
 using ImGuiNET;
@@ -75,12 +76,16 @@ namespace Fushigi.ui.widgets
         public bool mIsLinkNew = false;
         public string mNewLinkType = "";
 
+        public bool PlayAnimations = false;
+        public bool ShowGrid = true;
+        public bool ShowActorBoxes = true;
+
         public Camera Camera = new Camera();
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
         public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
-        public VRSkybox VRSkybox;
         public TileBfresRender TileBfresRenderFieldA;
         public TileBfresRender TileBfresRenderFieldB;
+        public AreaResourceManager EnvironmentData = new AreaResourceManager(gl, area.InitEnvPalette);
 
         DistantViewManager DistantViewScrollManager = new DistantViewManager(area);
 
@@ -210,17 +215,13 @@ namespace Fushigi.ui.widgets
                 }
             }
         }
-
+        
         public void DrawScene3D(Vector2 size, IDictionary<string, bool> layersVisibility)
         {
             mLayersVisibility = layersVisibility;
 
             if (Framebuffer == null)
                 Framebuffer = new GLFramebuffer(gl, FramebufferTarget.Framebuffer, (uint)size.X, (uint)size.Y, InternalFormat.Rgba16f);
-
-            if (VRSkybox == null)
-                VRSkybox = new VRSkybox(gl);
-
 
             //TODO put this somewhere else and maybe cache this
             TileBfresRender CreateTileRendererForSkin(SkinDivision division, string skinName)
@@ -269,46 +270,63 @@ namespace Fushigi.ui.widgets
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
                 Framebuffer.Resize((uint)size.X, (uint)size.Y);
 
-            Framebuffer.Bind();
 
-            gl.ClearColor(0, 0, 0, 0);
-            gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            gl.Viewport(0, 0, Framebuffer.Width, Framebuffer.Height);
-
-            gl.Enable(EnableCap.DepthTest);
-
-            RenderStats.Reset();
-
-            //Update the gsys viewport uniforms once per frame
-            GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
-            //Wonder shader system params
-            WonderGameShader.UpdateSystem();
-
-            //Distance view calculations
-            DistantViewScrollManager.Calc(this.Camera.Target);
-
-            TileBfresRenderFieldA?.Render(gl, this.Camera);
-            TileBfresRenderFieldB?.Render(gl, this.Camera);
-
-            foreach (var actor in this.mArea.GetActors())
+            bool updateScene = true;
+            if (updateScene)
             {
-                if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
-                    continue;
+                //Update the gsys viewport uniforms once per frame
+                GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
+                //Wonder shader system params
+                if (PlayAnimations)
+                    WonderGameShader.UpdateSystem();
+                //Gsys lightmaps from area env
+                GsysShaderRender.GsysResources.Lightmaps = EnvironmentData.Lightmaps;
+                GsysShaderRender.GsysResources.UpdateEnvironment();
+                //Background calculations
+                EnvironmentData.UpdateBackground(gl, this.Camera);
+                //Distance view scrol calculations
+                DistantViewScrollManager.Calc(this.Camera.Target);
+                //Stat reset for tracking draw calls
+                RenderStats.Reset();
 
-                RenderActor(actor, actor.mActorPack.ModelInfoRef);
-                RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
+                Framebuffer.Bind();
+
+                gl.ClearColor(0, 0, 0, 0);
+                gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                gl.Viewport(0, 0, Framebuffer.Width, Framebuffer.Height);
+
+                gl.Enable(EnableCap.DepthTest);
+
+                gl.ClipControl(ClipControlOrigin.UpperLeft, ClipControlDepth.ZeroToOne);
+
+                TileBfresRenderFieldA?.Render(gl, this.Camera);
+                TileBfresRenderFieldB?.Render(gl, this.Camera);
+
+                AreaResourceManager.ActiveArea = this.EnvironmentData;
+
+                EnvironmentData.RenderSky(gl, this.Camera);
+
+                foreach (var actor in this.mArea.GetActors())
+                {
+                    if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
+                        continue;
+
+                    RenderActor(actor, actor.mActorPack.ModelInfoRef);
+                    RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
+                }
+
+
+                gl.ClipControl(ClipControlOrigin.LowerLeft, ClipControlDepth.ZeroToOne);
+
+                Framebuffer.Unbind();
+
+                ImGui.SetCursorScreenPos(mTopLeft);
+
+                //Draw final output in post buffer
+                HDRScreenBuffer.Render(gl, (int)size.X, (int)size.Y, (GLTexture2D)Framebuffer.Attachments[0]);
+
+                Framebuffer.Unbind();
             }
-
-            //  VRSkybox.Render(gl, this.Camera);
-
-            Framebuffer.Unbind();
-
-            ImGui.SetCursorScreenPos(mTopLeft);
-
-            //Draw final output in post buffer
-            HDRScreenBuffer.Render(gl, (int)size.X, (int)size.Y, (GLTexture2D)Framebuffer.Attachments[0]);
-
-            Framebuffer.Unbind();
 
             //Draw framebuffer
             ImGui.Image((IntPtr)HDRScreenBuffer.GetOutput().ID, new Vector2(size.X, size.Y));
@@ -333,11 +351,13 @@ namespace Fushigi.ui.widgets
             if (render == null || !render.Models.ContainsKey(modelName))
                 return;
 
+            var pos = actor.mTranslation;
+
             var transMat = Matrix4x4.CreateTranslation(actor.mTranslation);
             var scaleMat = Matrix4x4.CreateScale(actor.mScale);
             var rotMat = Matrix4x4.CreateRotationX(actor.mRotation.X) *
-                     Matrix4x4.CreateRotationY(actor.mRotation.Y) *
-                    Matrix4x4.CreateRotationZ(actor.mRotation.Z);
+                         Matrix4x4.CreateRotationY(actor.mRotation.Y) *
+                         Matrix4x4.CreateRotationZ(actor.mRotation.Z);
 
             var mat = scaleMat * rotMat * transMat;
 
@@ -398,9 +418,10 @@ namespace Fushigi.ui.widgets
             if (!Camera.UpdateMatrices())
                 return;
 
-            this.DrawScene3D(size, mLayersVisibility);
+            this.DrawScene3D(mSize, mLayersVisibility);
 
-            DrawGrid();
+            if (ShowGrid)
+                DrawGrid();
             DrawAreaContent();
 
             if (!IsViewportHovered)
@@ -1068,18 +1089,22 @@ namespace Fushigi.ui.widgets
 
                     bool isHovered = mHoveredObject == actor;
 
-                    for (int i = 0; i < 4; i++)
+                    if (ShowActorBoxes)
                     {
-                        if (mEditContext.IsSelected(actor))
+                        for (int i = 0; i < 4; i++)
                         {
-                            mDrawList.AddCircleFilled(s_actorRectPolygon[i],
-                                pointSize, color);
+                            if (mEditContext.IsSelected(actor))
+                            {
+                                mDrawList.AddCircleFilled(s_actorRectPolygon[i],
+                                    pointSize, color);
+                            }
+                            mDrawList.AddLine(
+                                s_actorRectPolygon[i],
+                                s_actorRectPolygon[(i + 1) % 4],
+                                color, isHovered ? 2.5f : 1.5f);
                         }
-                        mDrawList.AddLine(
-                            s_actorRectPolygon[i],
-                            s_actorRectPolygon[(i + 1) % 4],
-                            color, isHovered ? 2.5f : 1.5f);
                     }
+
 
                     string name = actor.mActorName;
 

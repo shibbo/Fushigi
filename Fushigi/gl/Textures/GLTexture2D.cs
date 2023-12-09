@@ -125,6 +125,33 @@ namespace Fushigi.gl
             LoadImage(rgba);
         }
 
+        public unsafe void Load(int width, int height, float[] rgba)
+        {
+            this.Width = (uint)width;
+            this.Height = (uint)height;
+
+            this.InternalFormat = InternalFormat.Rgba;
+            this.PixelFormat = Silk.NET.OpenGL.PixelFormat.Rgba;
+            this.PixelType = Silk.NET.OpenGL.PixelType.Float;
+
+            Bind();
+
+            fixed (float* ptr = rgba)
+            {
+                _gl.TexImage2D(Target, 0, InternalFormat, Width, Height, 0,
+                    PixelFormat, PixelType, ptr);
+            }
+
+            _gl.TextureParameter(ID, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            _gl.TextureParameter(ID, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            _gl.TextureParameter(ID, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            _gl.TextureParameter(ID, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+            _gl.GenerateMipmap(Target);
+
+            Unbind();
+        }
+
         public unsafe void LoadImage(byte[] image)
         {
             Bind();
@@ -137,7 +164,7 @@ namespace Fushigi.gl
 
             _gl.TextureParameter(ID, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
             _gl.TextureParameter(ID, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-            _gl.TextureParameter(ID, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            _gl.TextureParameter(ID, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
             _gl.TextureParameter(ID, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
             _gl.GenerateMipmap(Target);

@@ -312,7 +312,6 @@ namespace Fushigi.gl.Bfres
                 GsysShaderRender.GsysResources.UserBlock1 = TileManager.TileParams;
 
                 BfresModelRender.UpdateSkeleton(Matrix4x4.Identity);
-                GsysShaderRender.GsysResources.UpdateViewport(camera);
 
                 if (TileManager.EdgeTiles.Count > 0)
                     DrawEdge(gl, camera);

@@ -1,4 +1,5 @@
 ﻿using Fushigi.Byml;
+using Fushigi.env;
 using Fushigi.rstb;
 using Fushigi.ui.widgets;
 using Fushigi.util;
@@ -26,6 +27,12 @@ namespace Fushigi.course
                 Path.Combine("Stage", "AreaParam", $"{mAreaName}.game__stage__AreaParam.bgyml")
                 );
             mAreaParams = new AreaParam(new Byml.Byml(new MemoryStream(File.ReadAllBytes(areaParamPath))));
+
+            //Load env settings
+            if (mAreaParams.EnvPaletteSetting != null)
+            {
+                InitEnvPalette = new EnvPalette(mAreaParams.EnvPaletteSetting.InitPaletteBaseName);
+            }
 
             string levelPath = FileUtil.FindContentPath(
                 Path.Combine("BancMapUnit", $"{mAreaName}.bcett.byml.zs")
@@ -160,5 +167,7 @@ namespace Fushigi.course
         public CourseLinkHolder mLinkHolder;
         public CourseGroupHolder mGroups;
         public CourseUnitHolder mUnitHolder;
+
+        public EnvPalette InitEnvPalette;
     }
 }

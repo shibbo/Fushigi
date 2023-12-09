@@ -41,7 +41,9 @@ namespace Fushigi.gl.Bfres
         internal UniformBlock ShapeBlock;
         internal UniformBlock SkeletonBlock;
         internal UniformBlock MaterialOptionBlock;
-        internal UniformBlock SupportBlock;
+
+        //Make this static as it is shared across all materials
+        internal static UniformBlock SupportBlock;
 
         public virtual void Init(GL gl, BfresRender.BfresModel modelRender, BfresRender.BfresMesh meshRender, Shape shape, Material material) {
             Material = material;
@@ -59,9 +61,12 @@ namespace Fushigi.gl.Bfres
             MaterialBlock = new UniformBlock(gl);
             ShapeBlock = new UniformBlock(gl);
             MaterialOptionBlock = new UniformBlock(gl);
-            SupportBlock = new UniformBlock(gl);
 
-            this.LoadSupportingBlock();
+            if (SupportBlock == null)
+            {
+                SupportBlock = new UniformBlock(gl);
+                this.LoadSupportingBlock();
+            }
 
             GLUtil.Label(gl, ObjectIdentifier.Buffer, MaterialBlock.ID,  "Material Block");
             GLUtil.Label(gl, ObjectIdentifier.Buffer, ShapeBlock.ID, "Shape Block");
@@ -86,6 +91,12 @@ namespace Fushigi.gl.Bfres
 
             ShaderProgram = ReloadProgram(shape.SkinCount);
         }
+
+        public virtual void ReloadMaterialBlock()
+        {
+            SetMaterialBlock(this.MaterialBlock, this.Material);
+        }
+
 
         public virtual void SetMaterialBlock(UniformBlock block, Material material)
         {
@@ -365,25 +376,15 @@ namespace Fushigi.gl.Bfres
             {
                 var texture = renderer.Textures[texName];
 
-                texture.CheckState();
-                if (texture.TextureState == BfresTextureRender.State.Finished)
+                if (!(texture is BfresTextureRender))
+                    return texture; //GL texture generated at runtime
+
+                ((BfresTextureRender)texture).CheckState();
+                if (((BfresTextureRender)texture).TextureState == BfresTextureRender.State.Finished)
                 {
                     return texture;
-
-                    texture.Bind();
-
-
-
-                    return texture;
-                }
-                if (texture.TextureState != BfresTextureRender.State.Finished)
-                {
-                    Console.WriteLine(texture.Name);
                 }
             }
-          //  else
-             //   throw new Exception();
-            ////return null;
             return GLImageCache.GetDefaultTexture(gl);
         }
 

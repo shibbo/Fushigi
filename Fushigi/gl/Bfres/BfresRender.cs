@@ -12,7 +12,7 @@ namespace Fushigi.gl.Bfres
 {
     public class BfresRender
     {
-        public Dictionary<string, BfresTextureRender> Textures = new Dictionary<string, BfresTextureRender>();
+        public Dictionary<string, GLTexture> Textures = new Dictionary<string, GLTexture>();
         public Dictionary<string, BfresModel> Models = new Dictionary<string, BfresModel>();
 
         public BfresRender(GL gl, string filePath)
@@ -91,13 +91,13 @@ namespace Fushigi.gl.Bfres
 
             internal void Render(GL gl, BfresRender render, Matrix4x4 transform, Camera camera)
             {
-                UpdateSkeleton(transform);
-
                 foreach (var mesh in Meshes)
                     BoundingBox.Include(mesh.LodMeshes[0].BoundingBox);
 
                 if (!IsVisible || !camera.InFrustum(BoundingBox))
                     return;
+
+                UpdateSkeleton(transform);
 
                 foreach (var mesh in Meshes)
                 {
@@ -108,6 +108,9 @@ namespace Fushigi.gl.Bfres
                     mesh.LodMeshes[0].BoundingBox.Transform(transform);
 
                     if (!camera.InFrustum(mesh.LodMeshes[0].BoundingBox, mesh.LodMeshes[0].BoundingRadius))
+                        continue;
+
+                    if (this.Skeleton.Bones[mesh.BoneIndex].Name == "Bonecap_Model")
                         continue;
 
                     mesh.RenderGameShaders(gl, render, this, transform, camera);

@@ -369,7 +369,11 @@ namespace Fushigi.gl
                     int mipWidth = CalculateMipDimension(this.MainHeader.Width, mipLevel);
                     int mipHeight = CalculateMipDimension(this.MainHeader.Height, mipLevel);
 
-                    uint imageSize = DDSFormatHelper.CalculateImageSize((uint)mipWidth, (uint)mipHeight, this.Format);
+                    uint imageSize = (uint)(mipWidth * mipHeight * 4);
+                    if (this.Format == DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT)
+                        imageSize = (uint)(mipWidth * mipHeight * 16);
+                    if (this.IsBCNCompressed())
+                        imageSize = DDSFormatHelper.CalculateImageSize((uint)mipWidth, (uint)mipHeight, this.Format);
                     size += imageSize;
                 }
             }
@@ -396,13 +400,21 @@ namespace Fushigi.gl
                 return (int)baseLevelDimension / (int)Math.Pow(2, mipLevel);
             }
 
+
             for (int arrayLevel = 0; arrayLevel < ArrayCount; arrayLevel++)
             {
                 for (int mipLevel = 0; mipLevel < this.MainHeader.MipCount; mipLevel++)
                 {
                     int mipWidth = CalculateMipDimension(this.MainHeader.Width, mipLevel);
                     int mipHeight = CalculateMipDimension(this.MainHeader.Height, mipLevel);
-                    uint imageSize = DDSFormatHelper.CalculateImageSize((uint)mipWidth, (uint)mipHeight, this.Format);
+
+                    uint imageSize = (uint)(mipWidth * mipHeight * 4);
+                    if (this.Format == DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT)
+                        imageSize = (uint)(mipWidth * mipHeight * (4 * 4));
+                    if (this.Format == DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT)
+                        imageSize = (uint)(mipWidth * mipHeight * (2 * 4));
+                    if (this.IsBCNCompressed())
+                        imageSize = DDSFormatHelper.CalculateImageSize((uint)mipWidth, (uint)mipHeight, this.Format);
 
                     if (arrayIndex == arrayLevel && mip_level == mipLevel)
                         return buffer.Slice((int)offset, (int)imageSize).ToArray();

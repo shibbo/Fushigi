@@ -10,6 +10,7 @@ using Fushigi.util;
 using Fushigi.env;
 using System.Runtime.Intrinsics.Arm;
 using static Fushigi.gl.Bfres.GsysEnvironment;
+using Silk.NET.Core.Native;
 
 namespace Fushigi.gl.Bfres
 {
@@ -265,14 +266,33 @@ namespace Fushigi.gl.Bfres
         public void Setup(EnvPalette envPalette, Kind kind = Kind.Obj)
         {
             Reset();
-            if (envPalette.IsApplyFog)
-                SetFog(envPalette.Fog.Main, envPalette.Fog.MainWorld);
 
-            if (envPalette.IsApplyEnvColor)
-                SetEnvColor(envPalette);
-
+            //Set fog
             switch (kind)
             {
+                case Kind.FarPlaneFogCloud:
+                case Kind.Cloud: //Cloud fog
+                    if (envPalette.Fog != null)
+                        SetFog(envPalette.Fog.Cloud, envPalette.Fog.CloudWorld);
+                    break;
+                case Kind.FarPlane:
+                case Kind.Field:
+                case Kind.Char:
+                case Kind.Dv:
+                case Kind.Obj: //Normal fog
+                    if (envPalette.Fog != null)
+                        SetFog(envPalette.Fog.Main, envPalette.Fog.MainWorld);
+                    break;
+            }
+
+            //Set lighting
+            switch (kind)
+            {
+                case Kind.Black:
+                case Kind.FarPlane:
+                case Kind.FarPlaneFogCloud: //black lights
+                    SetLightsBlack();
+                    break;
                 case Kind.Obj:
                     SetLights(envPalette.ObjLight);
                     break;
@@ -281,12 +301,16 @@ namespace Fushigi.gl.Bfres
                     break;
                 case Kind.Cloud:
                     SetLights(envPalette.CloudLight);
+                    if (envPalette.Fog != null)
+                        SetFog(envPalette.Fog.Cloud, envPalette.Fog.CloudWorld);
                     break;
                 case Kind.Dv:
                     SetLights(envPalette.DvLight);
                     break;
                 case Kind.Field:
                     SetLights(envPalette.FieldLight);
+                    break;
+                default:
                     break;
             }
 
@@ -299,6 +323,21 @@ namespace Fushigi.gl.Bfres
             if (shadow == null) return;
 
             this.AOColor = shadow.AOColor.ToVector4();
+
+            var shadow_dir = GetDirectionalVector(shadow.Longitude, shadow.Latitude);
+          //  this.LightDirection0World = new Vector4(shadow_dir, 0);
+        }
+
+        private void SetLightsBlack()
+        {
+            //The game sets these in the env set files, but set these directly for simplicity 
+            this.HemiSkyColor = Vector4.Zero;
+            this.HemiGroundColor = Vector4.Zero;
+            this.LightDirection0 = new Vector4(-0.5773503f, -0.5773503f, -0.5773503f, 0f);
+            this.LightColor = Vector4.Zero;
+            this.LightSpecColor = Vector4.Zero;
+            this.LightDirection1 = Vector4.Zero;
+            this.LightDirection0World = new Vector4(-0.5773503f, -0.5773503f, -0.5773503f, 0f);
         }
 
         public void SetLights(EnvPalette.EnvLightList lightList)
@@ -309,7 +348,11 @@ namespace Fushigi.gl.Bfres
             this.HemiGroundColor = lightList.Hemi.Ground.ToVector4() * lightList.Hemi.Intensity;
             this.HemiDirection = new Vector4(0, 1, 0, 0);
 
+            var direction = GetDirectionalVector(lightList.Main.Latitude, lightList.Main.Longitude);
+
+            this.LightDirection0 = new Vector4(direction.X, direction.Y, direction.Z, lightList.Main.Intensity);
             this.LightColor = lightList.Main.Color.ToVector4() * lightList.Main.Intensity;
+
             LightSpecColor = new Vector4(lightList.Main.Intensity);
         }
 
@@ -321,11 +364,13 @@ namespace Fushigi.gl.Bfres
             this.FogList[0].End = fog.End;
             this.FogList[0].Damp = fog.Damp;
             this.FogList[0].Direciton = new Vector3(0, 0, -1f);
+            this.FogList[0].Color = fog.Color.ToVector4();
 
             this.FogList[1].Start = fogWorld.Start;
             this.FogList[1].End = fogWorld.End;
             this.FogList[1].Damp = fogWorld.Damp;
             this.FogList[1].Direciton = new Vector3(0, -1f, 0);
+            this.FogList[1].Color = fogWorld.Color.ToVector4();
         }
 
         public void SetEnvColor(EnvPalette envPalette)
@@ -359,12 +404,37 @@ namespace Fushigi.gl.Bfres
                 rim.IntensityFieldDeco,
                 rim.IntensityObject,
                 rim.IntensityPlayer); //field band, deco, object, player
+
+
+            if (rim.IntensityObject == 0)
+            {
+                //Unknown1 = new Vector4(0, 0, 0, 0);
+              //  Unknown2 = new Vector4(0, 0, 0, 0);
+            }
+        }
+        static Vector3 GetDirectionalVector(float latitude, float longitude)
+        {
+            // Convert latitude and longitude from degrees to radians
+            float latRad = latitude * MathUtil.Deg2Rad;
+            float lonRad = longitude * MathUtil.Deg2Rad;
+
+            float x = MathF.Cos(latRad) * MathF.Sin(lonRad);
+            float y = MathF.Sin(latRad);
+            float z = MathF.Cos(latRad) * MathF.Cos(lonRad);
+
+            var dir = new Vector3(x, y, z);
+            return Vector3.Normalize(-dir);
         }
 
         public override void WriteExtended(BinaryWriter writer)
         {
+            //this.RimParams = new Vector4(0, 0, 0, 0);
+
             for (int i = 0; i < EnvColor.Length; i++)
                 writer.Write(EnvColor[i]);
+
+            Unknown1 = new Vector4(0, 1, 1, 0.5f);
+            Unknown2 = new Vector4(15f, 1.1f, 2, 20);
 
             writer.Write(Unknown1);
             writer.Write(Unknown2);
@@ -378,18 +448,31 @@ namespace Fushigi.gl.Bfres
             writer.Write(Vector4.Zero); //unk
             writer.Write(Vector4.One); //unk
             writer.Write(AOColor);
+            writer.Write(new Vector4(13.75f, 8.25f, 200f, -776f));//unk
+            writer.Write(new Vector4(1, 0, 0, 0)); //unk
+            writer.Write(new Vector4(5.665776f, 3.789489f, -2.217012f, 0.1666667f)); //unk
+            writer.Write(new Vector4(0.01f, 0, 0, 0.7f)); //unk
+            writer.Write(new Vector4(0.8660254f, 0.25f, 0.4330127f, 0)); //unk
+            writer.Write(new Vector4(0, 0.8660254f, -0.5f, 0)); //unk
+            writer.Write(new Vector4(-0.5f, 0.4330127f, 0.75f, 0)); //unk
 
+            //One of these control wind parameters 
             for (int i = 0; i < 22; i++)
                 writer.Write(Vector4.One);
         }
 
+        //Note: The game determines these via default.baglenvset
+        //However to avoid over complicating this, set by preset types
         public enum Kind
         {
-            Cloud,
+            Cloud, //cloud hemi/dir + cloud fog
             Char,
             Dv,
             Obj,
             Field,
+            Black, //black hemi/dir no fog
+            FarPlane, //black + fog
+            FarPlaneFogCloud, //black + cloud fog
         }
     }
 }

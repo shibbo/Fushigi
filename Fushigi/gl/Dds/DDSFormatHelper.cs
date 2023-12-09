@@ -39,6 +39,7 @@ namespace Fushigi.gl
         {
             { DDS.DXGI_FORMAT.DXGI_FORMAT_R11G11B10_FLOAT, new PixelFormatInfo(InternalFormat.R11fG11fB10fExt, PixelFormat.Rgb, PixelType.UnsignedInt10f11f11fRev) },
             { DDS.DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM, new PixelFormatInfo(InternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.HalfFloat) },
+            { DDS.DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT, new PixelFormatInfo(InternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.HalfFloat) },
 
             { DDS.DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM, new PixelFormatInfo(InternalFormat.Rgba, PixelFormat.Rgba, PixelType.UnsignedByte) },
             { DDS.DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, new PixelFormatInfo(InternalFormat.SrgbAlpha, PixelFormat.Rgba, PixelType.UnsignedByte) },

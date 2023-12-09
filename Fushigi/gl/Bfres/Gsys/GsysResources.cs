@@ -1,4 +1,5 @@
-﻿using Fushigi.gl.Textures;
+﻿using Fushigi.gl.Bfres.AreaData;
+using Fushigi.gl.Textures;
 using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace Fushigi.gl.Bfres
     public class GsysResources
     {
         public GsysEnvironment EnvironmentParams = null;
+
+        public Dictionary<string, AglLightmap> Lightmaps = new Dictionary<string, AglLightmap>();
 
         public UniformBlock ContextBlock;
         public UniformBlock EnvironmentBlock;
@@ -67,6 +70,29 @@ namespace Fushigi.gl.Bfres
                 EnvironmentParams.Set(EnvironmentBlock);
         }
 
+        public UniformBlock GetEnvironmentBlock(GsysRenderParameters parameters)
+        {
+            var env = AreaResourceManager.ActiveArea.GetEnvironmentSet(parameters);
+            if (env != null)
+                env.Set(EnvironmentBlock);
+
+            return EnvironmentBlock;
+        }
+
+        public GLTexture GetDiffuseLightmap(GsysRenderParameters renderParameters)
+        {
+            if (Lightmaps.ContainsKey(renderParameters.LightMapDiffuse))
+                return Lightmaps[renderParameters.LightMapDiffuse].Output;
+            return DiffuseLightmap;
+        }
+
+        public GLTexture GetSpecularLightmap(GsysRenderParameters renderParameters)
+        {
+            if (Lightmaps.ContainsKey(renderParameters.LightMapSpecular))
+                return Lightmaps[renderParameters.LightMapSpecular].Output;
+            return SpecularLightmap;
+        }
+
         public void Init(GL gl)
         {
             if (init)
@@ -93,11 +119,11 @@ namespace Fushigi.gl.Bfres
             UpdateEnvironment();
 
             //  CubeMap = GLTextureCubeArray.CreateEmpty(gl, 4, 4, 1);
-            // DiffuseLightmap = GLTextureCube.CreateEmpty(gl, 4);
+            DiffuseLightmap = GLTextureCube.CreateEmpty(gl, 4);
             SpecularLightmap = GLTextureCube.CreateEmpty(gl, 4);
 
             CubeMap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapHDR.dds"), TextureTarget.TextureCubeMapArray);
-            DiffuseLightmap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapLightmapShadow.dds"), TextureTarget.TextureCubeMap);
+         //   DiffuseLightmap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapLightmap.dds"), TextureTarget.TextureCubeMap);
 
             DiffuseLightmap.Bind();
             DiffuseLightmap.WrapS = TextureWrapMode.ClampToEdge;
@@ -120,9 +146,9 @@ namespace Fushigi.gl.Bfres
             VolumeFog = GLTexture3D.CreateEmpty(gl, 4, 4, 1);
 
             UserTexture0 = GLTexture2D.CreateUncompressedTexture(gl, 4, 4);
-            UserTexture1 = GLTexture2D.CreateWhiteTex(gl, 4, 4);
+            UserTexture1 = GLTexture2D.CreateUncompressedTexture(gl, 4, 4);
             UserTexture2 = GLTexture2D.CreateUncompressedTexture(gl, 4, 4);
-            UserTexture3 = GLTexture2D.CreateWhiteTex(gl, 4, 4);
+            UserTexture3 = GLTexture2D.CreateUncompressedTexture(gl, 4, 4);
             UserTexture4 = GLTexture2D.CreateUncompressedTexture(gl, 4, 4);
             UserTexture5 = GLTexture2D.CreateUncompressedTexture(gl, 4, 4);
 

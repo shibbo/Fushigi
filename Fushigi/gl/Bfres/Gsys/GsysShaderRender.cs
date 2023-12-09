@@ -89,8 +89,8 @@ namespace Fushigi.gl.Bfres
             switch (sampler)
             {
                 case "gsys_cube_map": return GsysResources.CubeMap;
-                case "gsys_lightmap_diffuse": return GsysResources.DiffuseLightmap;
-                case "gsys_lightmap_specular": return GsysResources.SpecularLightmap;
+                case "gsys_lightmap_diffuse": return GsysResources.GetDiffuseLightmap(this.RenderParameters);
+                case "gsys_lightmap_specular": return GsysResources.GetSpecularLightmap(this.RenderParameters);
 
                 case "gsys_user0": return GsysResources.UserTexture0;
                 case "gsys_user1": return GsysResources.UserTexture1;
@@ -118,7 +118,7 @@ namespace Fushigi.gl.Bfres
             {
                 //Shared resources
                 case "gsys_context": return GsysResources.ContextBlock;
-                case "gsys_environment": return GsysResources.EnvironmentBlock;
+                case "gsys_environment": return GsysResources.GetEnvironmentBlock(this.RenderParameters);
                 case "gsys_scene_material": return GsysResources.SceneMaterialBlock;
                 case "gsys_user0": return GsysResources.UserBlock0;
                 case "gsys_user1": return GsysResources.UserBlock1;

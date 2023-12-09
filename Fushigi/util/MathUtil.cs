@@ -10,10 +10,18 @@ namespace Fushigi.util
 {
     internal static class MathUtil
     {
+        public const float Deg2Rad = (float)System.Math.PI / 180.0f;
+        public const float Rad2Deg = 180.0f / (float)System.Math.PI;
+
         [Pure]
         public static float Clamp(float value, float min, float max)
         {
             return value < min ? min : value > max ? max : value;
+        }
+
+        public static float Lerp(float a, float b, float t)
+        {
+            return a * (1 - t) + b * t;
         }
 
         public static int PolygonWindingNumber(Vector2 p, Span<Vector2> points)
