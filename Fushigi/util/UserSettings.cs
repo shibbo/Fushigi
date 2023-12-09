@@ -26,6 +26,7 @@ namespace Fushigi.util
             public Dictionary<string, string> ModPaths;
             public List<string> RecentCourses;
             public bool UseGameShaders;
+            public bool UseAstcTextureCache;
 
             public Settings()
             {
@@ -34,6 +35,7 @@ namespace Fushigi.util
                 RomFSModPath = "";
                 RecentCourses = new List<string>(MaxRecents);
                 UseGameShaders = true;
+                UseAstcTextureCache = false;
             }
         }
 
@@ -54,10 +56,17 @@ namespace Fushigi.util
         }
 
         public static bool UseGameShaders() => AppSettings.UseGameShaders;
+        public static bool UseAstcTextureCache() => AppSettings.UseAstcTextureCache;
 
         public static void SetGameShaders(bool value)
         {
             AppSettings.UseGameShaders = value;
+            Save(); //save setting
+        }
+
+        public static void SetAstcTextureCache(bool value)
+        {
+            AppSettings.UseAstcTextureCache = value;
             Save(); //save setting
         }
 

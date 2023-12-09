@@ -261,6 +261,13 @@ namespace Fushigi.ui.widgets
                         }
                         ImGui.PopItemWidth();
 
+                        ImGui.SameLine();
+
+                        bool useGameShaders = UserSettings.UseGameShaders();
+                        if (ImGui.Checkbox("Use Game Shaders", ref useGameShaders))
+                        {
+                            UserSettings.SetGameShaders(useGameShaders);
+                        }
 
                         ImGui.PopStyleColor(1);
 
