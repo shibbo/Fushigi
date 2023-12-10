@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Fushigi",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Fushigi/bin/Debug/net8.0/Fushigi.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Fushigi",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ]
+}
