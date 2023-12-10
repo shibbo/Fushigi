@@ -108,7 +108,7 @@ namespace Fushigi.util
             }
 
             index = start;
-            return true;
+            return false;
         }
 
         private static int CompareKeys(Entry l, Entry r)
