@@ -22,6 +22,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
         public uint Color_SlopeError = 0xFF0000FF;
 
         private Vector3 mouseDownPos;
+        private (Vector3 pos, int index)? addPointPos;
 
         public CourseUnit CourseUnit = unit;
 
@@ -117,6 +118,77 @@ namespace Fushigi.ui.SceneObjects.bgunit
                     ImGui.GetMousePos());
         }
 
+        private (Vector3 pos, int index)? EvaluateAddPointPos(CourseAreaEditContext ctx, LevelViewport viewport)
+        {
+            if (!ImGui.GetIO().KeyAlt || !ctx.IsSelected(rail))
+                return null;
+
+            Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
+            Vector3 pos = new(
+                 MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
+                 MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
+                 2);
+
+            if (rail.Points.Count == 0)
+                return (pos, 0);
+
+            if (rail.Points.Count == 1)
+                return (pos, 1);
+
+
+            //find best index to insert at (minimizing distance)
+
+            var min = (distance: float.PositiveInfinity, index: 0);
+
+            int segmentCount = rail.Points.Count;
+            if (!rail.IsClosed)
+                segmentCount--;
+
+            Vector3 pointA, pointB;
+
+            for (int i = 0; i < segmentCount; i++)
+            {
+                pointA = rail.Points[i].Position;
+                pointB = rail.Points.GetWrapped(i + 1).Position;
+
+                var length = (pointB - pointA).Length();
+                var dir = (pointB - pointA) / length;
+                var t = Vector3.Dot(pos - pointA, dir) / length;
+                if (t < 0 || t > 1)
+                    continue;
+
+                var normal = Vector3.Normalize(Vector3.Cross(dir, Vector3.UnitZ));
+                float distance = MathF.Abs(Vector3.Dot(pos - pointA, normal));
+
+                var delta = distance;
+                if (delta <= min.distance)
+                    min = (delta, i + 1);
+            }
+
+            if (rail.IsClosed)
+            {
+                if (min.distance == float.PositiveInfinity)
+                    return null;
+
+                return (pos, min.index);
+            }
+            
+            //!rail is not closed here
+
+            //prefer appending/prepending
+            //only allow inserting in the middle if the point is close enough to or on the edge
+            if (min.distance < 1)
+                return (pos, min.index);
+
+
+            pointA = rail.Points[0].Position;
+            pointB = rail.Points[^1].Position;
+            if (Vector3.Distance(pointA, pos) < Vector3.Distance(pointB, pos))
+                return (pos, 0);
+            else
+                return (pos, rail.Points.Count);
+        }
+
         public void OnMouseDown(CourseAreaEditContext ctx, LevelViewport viewport)
         {
             bool isSelected = IsSelected(ctx);
@@ -126,61 +198,10 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             mouseDownPos = viewport.ScreenToWorld(ImGui.GetMousePos());
 
-            var selected = GetSelected(ctx);
-
-            if (ImGui.GetIO().KeyAlt && selected.Count == 1)
+            if(addPointPos.TryGetValue(out var addPos))
             {
-                var index = rail.Points.IndexOf(selected[0]);
-                //Insert and add
-                Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
-                Vector3 pos = new(
-                     MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
-                     MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
-                     selected[0].Position.Z);
-
-                if (rail.Points.Count - 1 == index) //is last point
-                    AddPoint(ctx, new BGUnitRail.RailPoint(rail, pos));
-                else
-                    InsertPoint(ctx, new BGUnitRail.RailPoint(rail, pos), index + 1);
-            }
-            else if (ImGui.GetIO().KeyAlt && selected.Count == 0) //Add new point from last 
-            {
-                Vector3 posVec = viewport.ScreenToWorld(ImGui.GetMousePos());
-                Vector3 pos = new(
-                     MathF.Round(posVec.X, MidpointRounding.AwayFromZero),
-                     MathF.Round(posVec.Y, MidpointRounding.AwayFromZero),
-                     2);
-
-                //find best index to insert at (minimizing circumference)
-
-                var min = (delta: float.PositiveInfinity, index: 0);
-
-                int segmentCount = rail.Points.Count;
-
-                if (!rail.IsClosed && rail.Points.Any())
-                {
-                    segmentCount--;
-                    var delta = Vector3.Distance(rail.Points[0].Position, pos);
-                    if (delta < min.delta)
-                        min = (delta, 1);
-                }
-
-                for (int i = 0; i < segmentCount; i++)
-                {
-                    var pointA = rail.Points[i];
-                    var pointB = rail.Points[(i+1)%rail.Points.Count];
-
-                    var distance = Vector3.Distance(pointA.Position, pointB.Position);
-                    var newDistanceSum = Vector3.Distance(pointA.Position, pos) +
-                        Vector3.Distance(pointB.Position, pos);
-
-                    var delta = newDistanceSum-distance;
-                    if (delta < min.delta)
-                        min = (delta, i+1);
-                }
-
                 DeselectAll(ctx);
-                InsertPoint(ctx, new BGUnitRail.RailPoint(rail, pos), min.index);
+                InsertPoint(ctx, new BGUnitRail.RailPoint(rail, addPos.pos), addPos.index);
             }
             else
             {
@@ -285,7 +306,9 @@ namespace Fushigi.ui.SceneObjects.bgunit
             if (!Visible)
                 return;
 
-            if ((ImGui.GetIO().KeyAlt && ctx.IsSelected(rail)) || HitTest(viewport))
+            addPointPos = EvaluateAddPointPos(ctx, viewport);
+
+            if ((addPointPos.HasValue && ctx.IsSelected(rail)) || HitTest(viewport))
                 isNewHoveredObj = true;
 
             bool isSelected = IsSelected(ctx);
@@ -312,17 +335,13 @@ namespace Fushigi.ui.SceneObjects.bgunit
                 Vector2 nextPos2D = Vector2.Zero;
                 if (i < rail.Points.Count - 1) //is not last point
                 {
-                    nextPos2D = viewport.WorldToScreen(new(
-                        rail.Points[i + 1].Position.X,
-                        rail.Points[i + 1].Position.Y,
-                        rail.Points[i + 1].Position.Z));
+                    nextPos2D = viewport.WorldToScreen(
+                        rail.Points[i + 1].Position);
                 }
                 else if (rail.IsClosed) //last point to first if closed
                 {
-                    nextPos2D = viewport.WorldToScreen(new(
-                       rail.Points[0].Position.X,
-                       rail.Points[0].Position.Y,
-                       rail.Points[0].Position.Z));
+                    nextPos2D = viewport.WorldToScreen(
+                       rail.Points[0].Position);
                 }
                 else //last point but not closed, draw no line
                     continue;
@@ -354,6 +373,39 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
                     dl.AddLine(arrow[0], arrow[1], ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, alpha)), lineThickness);
                 }
+            }
+
+            //draw visual hint for added point
+            if (addPointPos.TryGetValue(out var addPos))
+            {
+                var pos2D = viewport.WorldToScreen(addPos.pos);
+
+                if(rail.Points.Count > 0)
+                {
+                    int index = addPos.index;
+                    var pointA = viewport.WorldToScreen(rail.Points.GetWrapped(index - 1).Position);
+                    var pointB = viewport.WorldToScreen(rail.Points.GetWrapped(index).Position);
+                    var pointC = pos2D;
+
+                    dl.AddTriangleFilled(pointA, pointB, pointC, 0x99FFFFFF);
+                    if(rail.IsClosed || index > 0)
+                        dl.AddLine(pointA, pointC, 0xFFFFFFFF, 2.5f);
+                    if(rail.IsClosed || index < rail.Points.Count)
+                        dl.AddLine(pointB, pointC, 0xFFFFFFFF, 2.5f);
+
+                    if (!rail.IsClosed)
+                    {
+                        if (index == 0)
+                            ImGui.SetTooltip("Prepend point");
+                        else if (index == rail.Points.Count)
+                            ImGui.SetTooltip("Append point");
+                        else
+                            ImGui.SetTooltip("Insert point");
+                    }
+
+                }
+                
+                dl.AddCircleFilled(pos2D, 3.5f, 0xFFFFFFFF);
             }
         }
 
