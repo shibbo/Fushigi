@@ -41,6 +41,7 @@ namespace Fushigi
         public GamePhysics GamePhysicsRef;
         public ControllerSetParam ControllerPath;
         public ShapeParamList ShapeParams;
+        public BgUnitInfo BgUnitInfo;
 
         public string Category = "";
 
@@ -168,6 +169,9 @@ namespace Fushigi
                         this.GamePhysicsRef = BymlSerialize.Deserialize<GamePhysics>(data);
                         if(!string.IsNullOrEmpty(GamePhysicsRef.mPath))
                             ShapeParams = GetActorShape(sarc, data, filePath);
+                        break;
+                    case "BgUnitInfo":
+                        this.BgUnitInfo = BymlSerialize.Deserialize<BgUnitInfo>(data);
                         break;
                 }
             }
