@@ -1,5 +1,7 @@
 ﻿using Fushigi.Bfres;
+using Fushigi.course;
 using Fushigi.gl.Shaders;
+using Fushigi.util;
 using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using System;
@@ -8,6 +10,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Fushigi.gl.Bfres
 {
@@ -15,29 +18,57 @@ namespace Fushigi.gl.Bfres
     {
         public GLShader Shader;
 
+        public string Name {  get; set; }
+
         public GsysRenderState GsysRenderState = new GsysRenderState();
 
-     //   public WonderGameShader GsysShaderRender = new WonderGameShader();
+        public WonderGameShader GsysShaderRender = new WonderGameShader();
 
         private Material Material;
 
         public void Init(GL gl, BfresRender.BfresModel modelRender, BfresRender.BfresMesh meshRender, Shape shape, Material material) {
             Material = material;
+            Name = material.Name;
 
             Shader = GLShaderCache.GetShader(gl, "Bfres",
                Path.Combine("res", "shaders", "Bfres.vert"),
                Path.Combine("res", "shaders", "Bfres.frag"));
 
             GsysRenderState.Init(material);
-          //  GsysShaderRender.Init(gl, modelRender, meshRender, shape, material);
+            GsysShaderRender.Init(gl, modelRender, meshRender, shape, material);
+        }
+
+        public void SetParam(string name, float value)
+        {
+            if (this.Material.ShaderParams.ContainsKey(name))
+            {
+                this.Material.ShaderParams[name].DataValue = value;
+                GsysShaderRender.ReloadMaterialBlock();
+            }
+        }
+
+        public void SetTexture(string name, string sampler)
+        {
+            int index = this.Material.Samplers.Keys.ToList().IndexOf(sampler);
+            if (index != -1)
+                Material.Textures[index] = name;
         }
 
         public void RenderGameShaders(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
         {
-          //  GsysShaderRender.Render(gl, renderer, model, transform, camera);
+            gl.Enable(EnableCap.TextureCubeMapSeamless);
+            GsysShaderRender.Render(gl, renderer, model, transform, camera);
         }
 
         public void Render(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
+        {
+            if (UserSettings.UseGameShaders())
+                this.RenderGameShaders(gl, renderer, model, transform, camera);
+            else
+                this.RenderDefault(gl, renderer, model, transform, camera);
+        }
+
+        public void RenderDefault(GL gl, BfresRender renderer, BfresRender.BfresModel model, System.Numerics.Matrix4x4 transform, Camera camera)
         {
             GsysRenderState.Render(gl);
 
@@ -46,7 +77,9 @@ namespace Fushigi.gl.Bfres
             Shader.SetUniform("mtxMdl", transform);
             Shader.SetUniform("hasAlbedoMap", 0);
             Shader.SetUniform("hasNormalMap", 0);
+            Shader.SetUniform("hasEmissionMap", 0);
             Shader.SetUniform("const_color0", Vector4.One);
+            Shader.SetUniform("const_color1", Vector4.Zero);
 
             Shader.SetUniform("tile_id", 0);
 
@@ -61,6 +94,11 @@ namespace Fushigi.gl.Bfres
             {
                 var color = (float[])this.Material.ShaderParams["const_color0"].DataValue;
                 Shader.SetUniform("const_color0", new Vector4(color[0], color[1], color[2], color[3]));
+            }
+            if (this.Material.ShaderParams.ContainsKey("const_color1"))
+            {
+                var color = (float[])this.Material.ShaderParams["const_color1"].DataValue;
+                Shader.SetUniform("const_color1", new Vector4(color[0], color[1], color[2], color[3]));
             }
 
             int unit_slot = 2;
@@ -90,11 +128,11 @@ namespace Fushigi.gl.Bfres
                     var tex = TryBindTexture(gl, renderer, texName);
                     if (tex != null)
                     {
-                        if (tex.Target == TextureTarget.Texture2DArray)
+                    /*    if (tex.Target == TextureTarget.Texture2DArray)
                         {
                             sampler_usage += "Array"; //add array suffix used in shader
                             uniform += "_array";
-                        }
+                        }*/
 
                         Shader.SetUniform(sampler_usage, 1);
                         Shader.SetTexture(uniform, tex, unit_slot);
@@ -104,6 +142,7 @@ namespace Fushigi.gl.Bfres
             }
             gl.ActiveTexture(TextureUnit.Texture0);
             gl.BindTexture(TextureTarget.Texture2D, 0);
+            gl.BindTexture(TextureTarget.Texture2DArray, 0);
         }
 
         private GLTexture TryBindTexture(GL gl, BfresRender renderer, string texName)
@@ -112,13 +151,16 @@ namespace Fushigi.gl.Bfres
             {
                 var texture = renderer.Textures[texName];
 
-                texture.CheckState();
-                if (texture.TextureState == BfresTextureRender.State.Finished)
+                if (!(texture is BfresTextureRender))
+                    return texture; //GL texture generated at runtime
+
+                ((BfresTextureRender)texture).CheckState();
+                if (((BfresTextureRender)texture).TextureState == BfresTextureRender.State.Finished)
                 {
                     return texture;
                 }
-            }return null;
 
+            }
             return GLImageCache.GetDefaultTexture(gl);
         }
     }

@@ -1,6 +1,8 @@
 ﻿using Silk.NET.OpenGL;
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Fushigi.gl
 {
@@ -44,6 +46,23 @@ namespace Fushigi.gl
             Unbind();
         }
 
+        public unsafe void SetSubData<T>(T value, int offset) where T : struct
+        {
+            SetSubData(new T[] { value }, offset);
+        }
+
+        public unsafe void SetSubData<T>(T[] value, int offset) where T : struct
+        {
+            var size = Marshal.SizeOf(typeof(T));
+
+            Bind();
+            fixed (void* d = value)
+            {
+                _gl.BufferSubData(Target, offset, (nuint)size, d);
+            }
+            Unbind();
+        }
+
         public unsafe void SetData(byte[] data, BufferUsageARB hint = BufferUsageARB.StaticDraw)
         {
             DataCount = data.Length;
@@ -70,6 +89,18 @@ namespace Fushigi.gl
             Unbind();
         }
 
+        public unsafe void SetStruct<T>(T[] data, int size, BufferUsageARB hint = BufferUsageARB.StaticDraw) where T : struct
+        {
+            Bind();
+
+            fixed (void* d = data)
+            {
+                _gl.BufferData(Target, (nuint)size, d, BufferUsageARB.StaticDraw);
+            }
+
+            Unbind();
+        }
+
         public void Bind()
         {
             _gl.BindBuffer(Target, ID);
@@ -80,7 +111,7 @@ namespace Fushigi.gl
             _gl.BindBuffer(Target, 0);
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             _gl.DeleteBuffer(ID);
         }

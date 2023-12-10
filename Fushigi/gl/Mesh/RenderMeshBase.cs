@@ -36,7 +36,7 @@ namespace Fushigi.gl.Mesh
             Draw(material.Shader);
         }
 
-        public void Draw(GLShader shader)
+        public void Draw(GLShader shader = null)
         {
             Draw(shader, DrawCount, 0);
         }
