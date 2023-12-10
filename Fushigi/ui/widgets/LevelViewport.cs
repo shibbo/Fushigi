@@ -1,9 +1,11 @@
 using Fushigi.actor_pack.components;
+using Fushigi.Byml.Serializer;
 using Fushigi.course;
 using Fushigi.course.distance_view;
 using Fushigi.gl;
 using Fushigi.gl.Bfres;
 using Fushigi.gl.Bfres.AreaData;
+using Fushigi.param;
 using Fushigi.util;
 using ImGuiNET;
 using Silk.NET.Maths;
@@ -89,6 +91,8 @@ namespace Fushigi.ui.widgets
         public Camera Camera = new Camera();
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
         public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
+        public TileBfresRender TileBfresRenderFieldA;
+        public TileBfresRender TileBfresRenderFieldB;
         public AreaResourceManager EnvironmentData = new AreaResourceManager(gl, area.mInitEnvPalette);
 
         DistantViewManager DistantViewScrollManager = new DistantViewManager(area);
@@ -304,6 +308,47 @@ namespace Fushigi.ui.widgets
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
                 RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
             }
+
+            //TODO put this somewhere else and maybe cache this
+            TileBfresRender CreateTileRendererForSkin(SkinDivision division, string skinName)
+            {
+                var bootupPack = RomFS.GetOrLoadBootUpPack();
+
+                var bytes = bootupPack.OpenFile(
+                    "System/CombinationDataTableData/DefaultBgUnitSkinConfigTable.pp__CombinationDataTableData.bgyml");
+                var table = BymlSerialize.Deserialize<DefaultBgUnitSkinConfigTable>(bytes);
+
+
+                var render = new TileBfresRender(gl,
+                    new TileBfresRender.UnitPackNames(
+                        FullHit: table.GetPackName(skinName, "FullHit"),
+                        HalfHit: table.GetPackName(skinName, "HalfHit"),
+                        NoHit: table.GetPackName(skinName, "NoHit"),
+                        Bridge: table.GetPackName(skinName, "Bridge")
+                    ), division);
+                render.Load(this.mArea.mUnitHolder, this.Camera);
+
+                foreach (var courseUnit in this.mArea.mUnitHolder.mUnits.Where(x => x.mSkinDivision == division))
+                {
+                    courseUnit.TilesUpdated += delegate
+                    {
+                        render.Load(this.mArea.mUnitHolder, this.Camera);
+                    };
+                }
+
+                return render;
+            }
+            string? fieldASkin = mArea.mAreaParams.SkinParam?.FieldA;
+            string? fieldBSkin = mArea.mAreaParams.SkinParam?.FieldB;
+
+            if (TileBfresRenderFieldA == null && !string.IsNullOrEmpty(fieldASkin))
+                TileBfresRenderFieldA = CreateTileRendererForSkin(SkinDivision.FieldA, fieldASkin);
+
+            if (TileBfresRenderFieldB == null && !string.IsNullOrEmpty(fieldBSkin))
+                TileBfresRenderFieldB = CreateTileRendererForSkin(SkinDivision.FieldB, fieldBSkin);
+
+            TileBfresRenderFieldA?.Render(gl, this.Camera);
+            TileBfresRenderFieldB?.Render(gl, this.Camera);
 
             //Reset back to defaults
             gl.ClipControl(ClipControlOrigin.LowerLeft, ClipControlDepth.ZeroToOne);
@@ -665,94 +710,6 @@ namespace Fushigi.ui.widgets
             const float pointSize = 3.0f;
             Vector3? newHoveredPoint = null;
             object? newHoveredObject = null;
-
-            foreach (var unit in this.mArea.mUnitHolder.mUnits)
-            {
-                if (!unit.Visible)
-                    continue;
-
-                if (unit.mTileSubUnits.Count > 0)
-                {
-                    var clipMin = new Vector2(float.NegativeInfinity);
-                    var clipMax = new Vector2(float.PositiveInfinity);
-
-                    var nearZ = unit.mTileSubUnits.Min(x => x.mOrigin.Z);
-                    var farZ = unit.mTileSubUnits.Max(x => x.mOrigin.Z);
-
-                    foreach (TileSubUnits subUnit in unit.mTileSubUnits.OrderBy(x => x.mOrigin.Z))
-                    {
-                        float blend = ((subUnit.mOrigin.Z - farZ) / (nearZ - farZ));
-                        if (float.IsNaN(blend)) blend = 0;
-
-                        uint color = ImGui.ColorConvertFloat4ToU32(
-                            (1 - blend) * new Vector4(0f, 0f, 1f, 1f) +
-                            blend * new Vector4(0f, 1f, 1f, 1f)
-                            );
-
-                        var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
-
-                        foreach (var (tileID, position) in subUnit.mTileMap.GetTiles(clipMin - origin2D, clipMax - origin2D))
-                        {
-                            mDrawList.AddRectFilled(
-                                WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
-                                new Vector3(0, unit.mModelType == ModelType.Bridge ? .5f : 0, 0)),
-                                WorldToScreen(subUnit.mOrigin + new Vector3(position, 0) +
-                                new Vector3(1, 1, 0)),
-                                color
-                                );
-                        }
-
-                        foreach (var (x, y, width, height, type) in subUnit.mSlopes)
-                        {
-                            var bbMin = subUnit.mOrigin + new Vector3(x, y, 0);
-                            var bbMax = bbMin + new Vector3(width, height, 0);
-
-                            var bbTL = new Vector3(bbMin.X, bbMax.Y, 0);
-                            var bbTR = new Vector3(bbMax.X, bbMax.Y, 0);
-                            var bbBL = new Vector3(bbMin.X, bbMin.Y, 0);
-                            var bbBR = new Vector3(bbMax.X, bbMin.Y, 0);
-
-                            switch (type)
-                            {
-                                case TileSubUnits.SlopeType.UpperLeft:
-                                    mDrawList.AddTriangleFilled(
-                                        WorldToScreen(bbTL),
-                                        WorldToScreen(bbBL),
-                                        WorldToScreen(bbTR),
-                                        color
-                                    );
-                                    break;
-                                case TileSubUnits.SlopeType.UpperRight:
-                                    mDrawList.AddTriangleFilled(
-                                        WorldToScreen(bbTL),
-                                        WorldToScreen(bbBR),
-                                        WorldToScreen(bbTR),
-                                        color
-                                    );
-                                    break;
-                                case TileSubUnits.SlopeType.LowerLeft:
-                                    mDrawList.AddTriangleFilled(
-                                        WorldToScreen(bbTL),
-                                        WorldToScreen(bbBL),
-                                        WorldToScreen(bbBR),
-                                        color
-                                    );
-                                    break;
-                                case TileSubUnits.SlopeType.LowerRight:
-                                    mDrawList.AddTriangleFilled(
-                                        WorldToScreen(bbTR),
-                                        WorldToScreen(bbBL),
-                                        WorldToScreen(bbBR),
-                                        color
-                                    );
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
 
             areaScene.ForEach<IViewportDrawable>(obj =>
             {

@@ -31,7 +31,7 @@ namespace Fushigi.course.distance_view
 
             foreach (var actor in area.GetActors())
             {
-                if (actor.mName == "DVBasePosLocator")
+                if (actor.mPackName == "DVBasePosLocator")
                 {
                     DVLocator = actor;
                     //TODO there should be a way to update these during property edit
