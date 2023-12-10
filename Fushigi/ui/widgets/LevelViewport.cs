@@ -297,18 +297,6 @@ namespace Fushigi.ui.widgets
             //Start drawing the scene. Bfres draw upside down so flip the viewport clip
             gl.ClipControl(ClipControlOrigin.UpperLeft, ClipControlDepth.ZeroToOne);
 
-            //Display skybox
-            EnvironmentData.RenderSky(gl, this.Camera);
-
-            foreach (var actor in this.mArea.GetActors())
-            {
-                if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
-                    continue;
-
-                RenderActor(actor, actor.mActorPack.ModelInfoRef);
-                RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
-            }
-
             //TODO put this somewhere else and maybe cache this
             TileBfresRender CreateTileRendererForSkin(SkinDivision division, string skinName)
             {
@@ -349,6 +337,18 @@ namespace Fushigi.ui.widgets
 
             TileBfresRenderFieldA?.Render(gl, this.Camera);
             TileBfresRenderFieldB?.Render(gl, this.Camera);
+
+            //Display skybox
+            EnvironmentData.RenderSky(gl, this.Camera);
+
+            foreach (var actor in this.mArea.GetActors())
+            {
+                if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
+                    continue;
+
+                RenderActor(actor, actor.mActorPack.ModelInfoRef);
+                RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
+            }
 
             //Reset back to defaults
             gl.ClipControl(ClipControlOrigin.LowerLeft, ClipControlDepth.ZeroToOne);
