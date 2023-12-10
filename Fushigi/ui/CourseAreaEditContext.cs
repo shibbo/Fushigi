@@ -64,11 +64,30 @@ namespace Fushigi.ui
 
         public void AddLink(CourseLink link)
         {
+            var linkList = area.mLinkHolder.mLinks;
             LogAdding<CourseLink>($": {link.mSource} -{link.mLinkName}-> {link.mDest}");
-            CommitAction(
-                area.mLinkHolder.mLinks.RevertableAdd(link,
-                    $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.mLinkName} Link")
-            );
+
+            //Checks if the the source actor already has links
+            if(linkList.Any(x => x.mSource == link.mSource)){
+
+                //Looks through the source actor's links
+                //Then looks through it's links of the same type (If it has any)
+                //Placing the new link in the right spot
+                CommitAction(
+                    area.mLinkHolder.mLinks.RevertableInsert(link, 
+                        linkList.LastIndexOf(linkList.Last(x => x.mSource == link.mSource 
+                        && (!linkList.Any(x => x.mLinkName == link.mLinkName) || x.mLinkName == link.mLinkName))),
+                        $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.mLinkName} Link")
+                );
+                return;
+            }
+            else{
+                //If it's the actor's first link
+                CommitAction(
+                    area.mLinkHolder.mLinks.RevertableAdd(link,
+                        $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.mLinkName} Link")
+                );
+            }
         }
 
         private void DeleteLinksWithDest(ulong hash)
