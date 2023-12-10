@@ -39,13 +39,7 @@ vec4 CalculateLight(vec3 normal, LightSource light)
     float lut = light.lutIndex / 32.0;
     if (settings.is_specular == 1)
     {
-        float r = 50;
-        float x = r * r + 0.0001;
-        float t = (amount * amount) * (x - 1.0) + 1.0;
-        float d = x / (t * t);                                             
-        float v = (2.0 - 1.5 * x) * 0.5;
-
-        return  clamp(vec4(mix(light.lowerColor.rgb, light.upperColor.rgb, texture(uLutTex, vec2(amount, lut)).r), v), 0, 1);
+        return clamp(vec4(mix(light.lowerColor.rgb, light.upperColor.rgb, texture(uLutTex, vec2(amount, lut)).r), amount), 0, 1);
     }
     else
         return clamp(vec4(mix(light.lowerColor.rgb, light.upperColor.rgb, texture(uLutTex, vec2(amount, lut)).r), amount), 0, 1);
