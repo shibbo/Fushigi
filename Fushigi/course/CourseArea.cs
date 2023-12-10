@@ -1,4 +1,5 @@
 ﻿using Fushigi.Byml;
+using Fushigi.env;
 using Fushigi.rstb;
 using Fushigi.ui.widgets;
 using Fushigi.util;
@@ -28,7 +29,11 @@ namespace Fushigi.course
                 );
             mAreaParams = new AreaParam(new Byml.Byml(new MemoryStream(File.ReadAllBytes(areaParamPath))));
 
-            
+            //Load env settings
+            if (mAreaParams.EnvPaletteSetting != null)
+                mInitEnvPalette = new EnvPalette(mAreaParams.EnvPaletteSetting.InitPaletteBaseName);
+
+
             string levelPath = FileUtil.FindContentPath(
                 Path.Combine("BancMapUnit", $"{mAreaName}.bcett.byml.zs")
                 );
@@ -162,55 +167,6 @@ namespace Fushigi.course
         public CourseLinkHolder mLinkHolder;
         public CourseGroupHolder mGroupsHolder;
         public CourseUnitHolder mUnitHolder;
-
-        public class AreaParam
-        {
-            public AreaParam(Byml.Byml byml)
-            {
-                mByml = byml;
-            }
-
-            public bool ContainsParam(string param)
-            {
-                return ((BymlHashTable)mByml.Root).ContainsKey(param);
-            }
-
-            public object GetParam(BymlHashTable node, string paramName, string paramType)
-            {
-                switch (paramType)
-                {
-                    case "String":
-                        return ((BymlNode<string>)node[paramName]).Data;
-                    case "Bool":
-                        return ((BymlNode<bool>)node[paramName]).Data;
-                    case "Float":
-                        return ((BymlNode<float>)node[paramName]).Data;
-                }
-
-                return null;
-            }
-
-            public BymlHashTable GetRoot()
-            {
-                return (BymlHashTable)mByml.Root;
-            }
-
-            /*
-            public bool ContainsSkinParam(string param)
-            {
-                return ((BymlHashTable)((BymlHashTable)mByml.Root)["SkinParam"]).ContainsKey(param);
-            }
-            */
-
-            public class SkinParam
-            {
-                public bool mDisableBgUnitDecoA;
-                public string mFieldA;
-                public string mFieldB;
-                public string mObject;
-            }
-
-            Byml.Byml mByml;
-        }
+        public EnvPalette mInitEnvPalette;
     }
 }

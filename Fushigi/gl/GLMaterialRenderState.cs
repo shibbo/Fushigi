@@ -84,7 +84,9 @@ namespace Fushigi.gl
                 gl.DepthMask(DepthWrite);
             }
             else
+            {
                 gl.Disable(EnableCap.DepthTest);
+            }
         }
 
         public void RenderAlphaTest(GL gl)
@@ -102,12 +104,17 @@ namespace Fushigi.gl
                 gl.BlendColor(BlendColor.X, BlendColor.Y, BlendColor.Z, BlendColor.W);
             }
             else
+            {
                 gl.Disable(EnableCap.Blend);
+                gl.BlendFunc(BlendingFactor.One, BlendingFactor.One);
+                gl.BlendColor(0, 0, 0, 0);
+            }
         }
 
         public void RenderPolygonState(GL gl)
         {
             gl.PolygonOffset(PolygonOffsetFactor, PolygonOffsetUnits);
+            gl.Enable(EnableCap.CullFace);
 
             if (this.CullBack && this.CullFront)
                 gl.CullFace(TriangleFace.FrontAndBack);

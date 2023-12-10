@@ -2,6 +2,7 @@ using Fushigi.actor_pack.components;
 using Fushigi.course;
 using Fushigi.gl;
 using Fushigi.gl.Bfres;
+using Fushigi.gl.Bfres.AreaData;
 using Fushigi.util;
 using ImGuiNET;
 using Silk.NET.Maths;
@@ -85,6 +86,7 @@ namespace Fushigi.ui.widgets
         public Camera Camera = new Camera();
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
         public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
+        public AreaResourceManager EnvironmentData = new AreaResourceManager(gl, area.mInitEnvPalette);
 
         //TODO make this an ISceneObject? as soon as there's a SceneObj class for each course object
         private object? mHoveredObject;
@@ -266,6 +268,8 @@ namespace Fushigi.ui.widgets
             gl.Enable(EnableCap.DepthTest);
 
             RenderStats.Reset();
+
+            GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
 
             foreach (var actor in this.mArea.GetActors())
             {

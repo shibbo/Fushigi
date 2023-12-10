@@ -17,7 +17,7 @@ namespace Fushigi.actor_pack.components
     [Serializable]
     public class ModelExpandParamSettings
     {
-        [BymlProperty("MinScale", DefaultValue = "")]
+        [BymlProperty("MinScale")]
         public Vector2 mMinScale { get; set; }
 
         [BymlProperty("BoneSetting")]
@@ -46,11 +46,29 @@ namespace Fushigi.actor_pack.components
 
         [BymlProperty("ScalingType", DefaultValue = "")]
         public string mScalingType { get; set; }
+
+        [BymlProperty("CustomCalc")]
+        public CustomCalc mCustomCalc { get; set; }
+
+        [BymlProperty("IsCustomCalc")]
+        public bool mIsCustomCalc { get; set; }
+
+        public Vector3 CalculateScale()
+        {
+            return Vector3.One;
+        }
     }
 
     [Serializable]
     public class ModelExpandMatSetting
     {
         public bool IsUpdateByModelUpdateWldMtx { get; set; }
+    }
+
+    [Serializable]
+    public class CustomCalc
+    {
+        public float A {  get; set; }
+        public float B { get; set; }
     }
 }

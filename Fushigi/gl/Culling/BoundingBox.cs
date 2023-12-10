@@ -55,6 +55,14 @@ namespace Fushigi.gl
             return Max - Min;
         }
 
+        public BoundingBox() { }
+
+        public BoundingBox(Vector3 min, Vector3 max)
+        {
+            this.Min = min;
+            this.Max = max;
+        }
+
         public void Include(BoundingBox box)
         {
             this.min.X = MathF.Min(Min.X, box.Min.X);

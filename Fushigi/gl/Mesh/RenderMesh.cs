@@ -15,7 +15,7 @@ namespace Fushigi.gl
         private RenderAttribute[] attributes = new RenderAttribute[0];
         private VertexArrayObject vao = null;
 
-        private List<BufferObject> VertexBuffers = new List<BufferObject>();
+        public List<BufferObject> VertexBuffers = new List<BufferObject>();
 
         public RenderMesh(GL gl, TVertex[] vertices, int[] indices = null, 
             PrimitiveType primitiveType = PrimitiveType.Triangles) : base(gl, primitiveType)

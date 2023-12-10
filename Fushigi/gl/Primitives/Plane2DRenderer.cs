@@ -31,7 +31,6 @@ namespace Fushigi.gl
 
             shader.Use();
             shader.SetUniform("hasTexture", Image != null ? 1 : 0);
-
             shader.SetUniform("mtxCam", camera.ViewProjectionMatrix);
 
             if (Image != null)
