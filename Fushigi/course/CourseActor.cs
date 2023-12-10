@@ -33,14 +33,14 @@ namespace Fushigi.course
             {
                 if (ParamDB.HasActorComponents(mPackName))
                 {
+                    var actorParameters = new Dictionary<string, object>();
+
                     List<string> paramList = ParamDB.GetActorComponents(mPackName);
 
                     foreach (string p in paramList)
                     {
                         var components = ParamDB.GetComponentParams(p);
                         var dynamicNode = actorNode["Dynamic"] as BymlHashTable;
-
-                        var actorParameters = new Dictionary<string, object>();
 
                         foreach (string component in components.Keys)
                         {
@@ -77,9 +77,9 @@ namespace Fushigi.course
                                 }
                             }
                         }
-
-                        mActorParameters = new PropertyDict(actorParameters);
                     }
+
+                    mActorParameters = new PropertyDict(actorParameters);
                 }
             }
             else
