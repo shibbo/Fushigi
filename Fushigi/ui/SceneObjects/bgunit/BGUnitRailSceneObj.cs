@@ -33,17 +33,11 @@ namespace Fushigi.ui.SceneObjects.bgunit
             {
                 foreach (var pt in rail.Points)
                 {
-                    var railPointObj = ctx.UpdateOrCreateObjFor(pt, () =>
-                    {
-                        var railPoint = new RailPoint(pt);
-                        railPoint.Transform.Update += unit.GenerateTileSubUnits;
-                        return railPoint;
-                    });
+                    var railPointObj = ctx.UpdateOrCreateObjFor(pt, () => new RailPoint(pt));
 
                     railPoints[pt] = (RailPoint)railPointObj;
                 }
             }
-            rail.mCourseUnit.GenerateTileSubUnits();
 
             ChildPoints = railPoints;
         }

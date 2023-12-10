@@ -6,6 +6,8 @@ namespace Fushigi.ui.SceneObjects.bgunit
     {
         public void Update(ISceneUpdateContext ctx, bool isSelected)
         {
+            unit.GenerateTileSubUnits();
+
             void CreateOrUpdateRail(BGUnitRail rail)
             {
                 ctx.UpdateOrCreateObjFor(rail, () => new BGUnitRailSceneObj(unit, rail));

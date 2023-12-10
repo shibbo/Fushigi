@@ -60,6 +60,7 @@ namespace Fushigi.ui
             CollectDirty();
 
             mIsUpdating = false;
+            mNeedsUpdate = false;
         }
 
         public bool TryGetObjFor(object courseObject, [NotNullWhen(true)] out ISceneObject? sceneObject)
