@@ -16,9 +16,9 @@ namespace Fushigi.param
 
         public void LoadDefault()
         {
-           /* SARC.SARC packSarc = RomFS.GetOrLoadBootUpPack();
+            SARC.SARC packSarc = RomFS.GetOrLoadBootUpPack();
             var file = packSarc.OpenFile("Layer/DVLayerParamTable/Default.game__actor__DVLayerParamTable.bgyml");
-            Load(new MemoryStream(file));*/
+            Load(new MemoryStream(file));
         }
 
         public void Load(string name)

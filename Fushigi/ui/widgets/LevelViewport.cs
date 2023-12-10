@@ -1,5 +1,6 @@
 using Fushigi.actor_pack.components;
 using Fushigi.course;
+using Fushigi.course.distance_view;
 using Fushigi.gl;
 using Fushigi.gl.Bfres;
 using Fushigi.gl.Bfres.AreaData;
@@ -76,6 +77,8 @@ namespace Fushigi.ui.widgets
         public bool IsViewportHovered;
         public bool IsViewportActive;
         public bool IsWonderView;
+        public bool PlayAnimations = false;
+        public bool ShowGrid = true;
 
         Vector2 mSize = Vector2.Zero;
       
@@ -87,6 +90,8 @@ namespace Fushigi.ui.widgets
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
         public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
         public AreaResourceManager EnvironmentData = new AreaResourceManager(gl, area.mInitEnvPalette);
+
+        DistantViewManager DistantViewScrollManager = new DistantViewManager(area);
 
         //TODO make this an ISceneObject? as soon as there's a SceneObj class for each course object
         private object? mHoveredObject;
@@ -259,6 +264,24 @@ namespace Fushigi.ui.widgets
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
                 Framebuffer.Resize((uint)size.X, (uint)size.Y);
 
+            RenderStats.Reset();
+
+            //Wonder shader system params
+            if (PlayAnimations)
+                WonderGameShader.UpdateSystem();
+
+            //Background calculations
+            EnvironmentData.UpdateBackground(gl, this.Camera);
+
+            //Render viewport settings for game shaders
+            GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
+            //Setup light map resources for the currently loaded area
+            GsysShaderRender.GsysResources.Lightmaps = EnvironmentData.Lightmaps;
+            //Distance view scrol calculations
+            DistantViewScrollManager.Calc(this.Camera.Target);
+            //Set active area for getting env settings by the materials
+            AreaResourceManager.ActiveArea = this.EnvironmentData;
+
             Framebuffer.Bind();
 
             gl.ClearColor(0, 0, 0, 0);
@@ -267,9 +290,11 @@ namespace Fushigi.ui.widgets
 
             gl.Enable(EnableCap.DepthTest);
 
-            RenderStats.Reset();
+            //Start drawing the scene. Bfres draw upside down so flip the viewport clip
+            gl.ClipControl(ClipControlOrigin.UpperLeft, ClipControlDepth.ZeroToOne);
 
-            GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
+            //Display skybox
+            EnvironmentData.RenderSky(gl, this.Camera);
 
             foreach (var actor in this.mArea.GetActors())
             {
@@ -279,6 +304,10 @@ namespace Fushigi.ui.widgets
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
                 RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
             }
+
+            //Reset back to defaults
+            gl.ClipControl(ClipControlOrigin.LowerLeft, ClipControlDepth.ZeroToOne);
+
             Framebuffer.Unbind();
 
             //Draw final output in post buffer
@@ -320,6 +349,8 @@ namespace Fushigi.ui.widgets
             var debugSMat = Matrix4x4.CreateScale(modelInfo.mModelScale != default ? modelInfo.mModelScale:Vector3.One);
 
             var mat = debugSMat * scaleMat * rotMat * transMat;
+
+            DistantViewScrollManager.UpdateMatrix(actor.mLayer, ref mat);
 
             var model = render.Models[modelName];
             //switch for drawing models with different methods easier
@@ -390,7 +421,8 @@ namespace Fushigi.ui.widgets
 
             this.DrawScene3D(size, mLayersVisibility);
 
-            DrawGrid();
+            if (ShowGrid)
+                DrawGrid();
             DrawAreaContent();
 
             if (!IsViewportHovered)
