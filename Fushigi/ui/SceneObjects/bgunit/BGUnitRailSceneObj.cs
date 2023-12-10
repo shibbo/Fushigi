@@ -208,14 +208,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
                 if (!ImGui.GetIO().KeyCtrl && !ImGui.GetIO().KeyShift)
                     DeselectAll(ctx);
             }
-
-            for (int i = 0; i < rail.Points.Count; i++)
-            {
-                Vector3 point = rail.Points[i].Position;
-
-                if (ChildPoints.TryGetValue(rail.Points[i], out RailPoint? childPoint))
-                    childPoint.PreviousPosition = point;
-            }
             mouseDown = true;
         }
 
@@ -484,7 +476,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
             public Transform Transform = new Transform();
 
             //For transforming
-            public Vector3 PreviousPosition { get; set; }
+            public Vector3 PreviousPosition { get; private set; }
 
             private bool HitTest(LevelViewport viewport)
             {
@@ -495,7 +487,8 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             void ISceneObject.Update(ISceneUpdateContext ctx, bool isSelected)
             {
-
+                //TODO don't do this when only the selection has changed
+                PreviousPosition = point.Position;
             }
 
             void IViewportSelectable.OnSelect(CourseAreaEditContext ctx)

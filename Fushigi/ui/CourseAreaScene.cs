@@ -17,6 +17,7 @@ namespace Fushigi.ui
 
     interface ISceneObject
     {
+        //TODO differentiate between selection changed and data changed/action committed
         void Update(ISceneUpdateContext ctx, bool isSelected);
     }
 
