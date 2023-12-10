@@ -18,3 +18,10 @@ SARC/obj/*
 .DS_Store
 ConsoleApp1/*
 ConsoleApp2/*
+Fushigi/imgui.ini
+Fushigi/ShaderCache/
+Fushigi/actors.json
+Fushigi/components.json
+Fushigi/railParams.json
+Fushigi/rails.json
+Fushigi/output.log
