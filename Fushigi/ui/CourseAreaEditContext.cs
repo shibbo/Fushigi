@@ -75,8 +75,8 @@ namespace Fushigi.ui
                 //Placing the new link in the right spot
                 CommitAction(
                     area.mLinkHolder.mLinks.RevertableInsert(link, 
-                        linkList.LastIndexOf(linkList.Last(x => x.mSource == link.mSource 
-                        && (!linkList.Any(x => x.mLinkName == link.mLinkName) || x.mLinkName == link.mLinkName))),
+                        linkList.FindLastIndex(x => x.mSource == link.mSource 
+                        && (!linkList.Any(x => x.mLinkName == link.mLinkName) || x.mLinkName == link.mLinkName)),
                         $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.mLinkName} Link")
                 );
                 return;
