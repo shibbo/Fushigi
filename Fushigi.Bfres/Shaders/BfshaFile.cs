@@ -1,16 +1,5 @@
 ﻿using Fushigi.Bfres.Common;
-using Ryujinx.Common.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static Fushigi.Bfres.BfshaFile;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace Fushigi.Bfres
 {
@@ -69,8 +58,12 @@ namespace Fushigi.Bfres
 
             private ShaderModelHeader header;
 
+            private Stream Stream;
+
             public void Read(BinaryReader reader)
             {
+                Stream = reader.BaseStream;
+
                 reader.BaseStream.Read(Utils.AsSpan(ref header));
                 long pos = reader.BaseStream.Position;
 
@@ -110,22 +103,21 @@ namespace Fushigi.Bfres
                 reader.SeekBegin((long)header.BnshOffset + 0x1C);
                 var bnshSize = (int)reader.ReadUInt32();
 
-                reader.SeekBegin((long)header.BnshOffset);
-                byte[] data = reader.ReadBytes(bnshSize);
-                BnshFile = new BnshFile(new MemoryStream(data));
-
                 reader.SeekBegin(pos);
             }
 
             public BnshFile.ShaderVariation GetShaderVariation(ShaderProgram program)
             {
-                foreach (var var in BnshFile.Variations)
-                {
-                    //Todo this is kinda dumb. It would be better if I read the variation from here by offset
-                    if (var.Position + (long)header.BnshOffset == (long)program.VariationOffset)
-                        return var;
-                }
-                return null;
+                Stream.Position = 0;
+
+                var sub = new SubStream(Stream, (long)header.BnshOffset);
+                var reader = sub.AsBinaryReader();
+
+                reader.SeekBegin((long)program.VariationOffset - (long)header.BnshOffset);
+
+                var v = new BnshFile.ShaderVariation();
+                v.Read(reader);
+                return v;
             }
 
             public int GetProgramIndex(Dictionary<string, string> options)

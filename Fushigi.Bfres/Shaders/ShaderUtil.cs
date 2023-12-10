@@ -49,6 +49,8 @@ namespace Fushigi.Bfres.Shaders
                             writer.Write((int)matParam.DataValue);
                         else if (matParam.DataValue is uint)
                             writer.Write((uint)matParam.DataValue);
+                        else if (matParam.DataValue is bool)
+                            writer.Write((bool)matParam.DataValue);
                         else
                             throw new Exception($"Unsupported render type! {matParam.Type}");
                     }
