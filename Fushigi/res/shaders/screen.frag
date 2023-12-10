@@ -10,7 +10,7 @@ const float GAMMA = 2.2;
 
 void main()
 {
-    FragColor.rgb = texture(screenTexture, TexCoords).rgb;
+    FragColor.rgb = texture(screenTexture, vec2(TexCoords.x, 1.0 - TexCoords.y)).rgb;
     FragColor.a = 1.0;
 
     FragColor.rgb = pow(FragColor.rgb, vec3(1.0/GAMMA));

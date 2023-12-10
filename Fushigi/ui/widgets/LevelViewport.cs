@@ -76,6 +76,7 @@ namespace Fushigi.ui.widgets
         public bool IsViewportHovered;
         public bool IsViewportActive;
         public bool IsWonderView;
+        public bool PlayAnimations = false;
 
         Vector2 mSize = Vector2.Zero;
       
@@ -269,7 +270,24 @@ namespace Fushigi.ui.widgets
 
             RenderStats.Reset();
 
+            //Wonder shader system params
+            if (PlayAnimations)
+                WonderGameShader.UpdateSystem();
+
+            //Render viewport settings for game shaders
             GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
+            //Setup light map resources for the currently loaded area
+            GsysShaderRender.GsysResources.Lightmaps = EnvironmentData.Lightmaps;
+            //Background calculations
+            EnvironmentData.UpdateBackground(gl, this.Camera);
+            //Set active area for getting env settings by the materials
+            AreaResourceManager.ActiveArea = this.EnvironmentData;
+
+            //Start drawing the scene. Bfres draw upside down so flip the viewport clip
+            gl.ClipControl(ClipControlOrigin.UpperLeft, ClipControlDepth.ZeroToOne);
+
+            //Display skybox
+            EnvironmentData.RenderSky(gl, this.Camera);
 
             foreach (var actor in this.mArea.GetActors())
             {
@@ -279,6 +297,10 @@ namespace Fushigi.ui.widgets
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
                 RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
             }
+
+            //Reset back to defaults
+            gl.ClipControl(ClipControlOrigin.LowerLeft, ClipControlDepth.ZeroToOne);
+
             Framebuffer.Unbind();
 
             //Draw final output in post buffer

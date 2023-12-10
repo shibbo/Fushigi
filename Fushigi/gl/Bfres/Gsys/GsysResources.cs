@@ -72,8 +72,6 @@ namespace Fushigi.gl.Bfres
 
         public UniformBlock GetEnvironmentBlock(GsysRenderParameters parameters)
         {
-            return EnvironmentBlock;
-
             var env = AreaResourceManager.ActiveArea.GetEnvironmentSet(parameters);
             if (env != null)
                 env.Set(EnvironmentBlock);
