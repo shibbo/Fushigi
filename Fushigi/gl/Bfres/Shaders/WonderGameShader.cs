@@ -439,7 +439,7 @@ namespace Fushigi.gl.Bfres
             writer.Write(Unknown1);
             writer.Write(Unknown2);
             writer.Write(RimColor);
-            writer.Write(RimParams);
+            writer.Write(new Vector4(0));
             writer.Write(RimIntensty1); //cloud, enemy, dv, wall
             writer.Write(RimIntensty2); //field band, deco, object, player
 
