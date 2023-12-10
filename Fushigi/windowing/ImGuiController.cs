@@ -16,7 +16,6 @@ using Silk.NET.Input.Extensions;
 using Silk.NET.Windowing.Glfw;
 using Sdl = Silk.NET.SDL.Sdl;
 using Silk.NET.Windowing.Sdl;
-using Silk.NET.SDL;
 using PixelFormat = Silk.NET.OpenGL.PixelFormat;
 using PixelType = Silk.NET.OpenGL.PixelType;
 
@@ -79,11 +78,12 @@ public class ImGuiController : IDisposable
             if (glfw is not null)
             {
                 
-                TranslateKeyFunc = (key, scanCode) =>
+                LocalizeKeyFunc = (key) =>
                 {
                     if(Key.A <= key && key <= Key.Z)
                     {
                         int glfwKey = (int)Silk.NET.GLFW.Keys.A + (key - Key.A);
+                        int scanCode = glfw.GetKeyScancode(glfwKey);
                         char keyNameChar = glfw.GetKeyName(glfwKey, scanCode)[0];
 
                         key = Key.A + (char.ToLower(keyNameChar) - 'a');
@@ -95,12 +95,13 @@ public class ImGuiController : IDisposable
             else if (sdl is not null)
             {
 
-                TranslateKeyFunc = (key, scanCode) =>
+                LocalizeKeyFunc = (key) =>
                 {
                     if (Key.A <= key && key <= Key.Z)
                     {
-                        var sdlKey = sdl.GetKeyFromScancode((Silk.NET.SDL.Scancode)scanCode);
-                        char keyNameChar = sdl.GetKeyNameS(sdlKey)[0];
+                        int sdlKey = (int)Silk.NET.SDL.KeyCode.KA + (key - Key.A);
+                        var scanCode = sdl.GetScancodeFromKey(sdlKey);
+                        char keyNameChar = sdl.GetScancodeNameS(scanCode)[0];
 
                         key = Key.A + (char.ToLower(keyNameChar) - 'a');
                     }
@@ -159,7 +160,7 @@ public class ImGuiController : IDisposable
         _pressedChars.Add(arg2);
     }
 
-    private Func<Key, int, Key>? TranslateKeyFunc;
+    private Func<Key, Key>? LocalizeKeyFunc;
 
     private void OnKeyDown(IKeyboard keyboard, Key key, int scanCode)
     {
@@ -271,6 +272,9 @@ public class ImGuiController : IDisposable
                 int changeFromStart1 = (int)keyToConvert - (int)startKey1;
                 return startKey2 + changeFromStart1;
             }
+
+            if(LocalizeKeyFunc is not null)
+                key = LocalizeKeyFunc(key);
 
             result = key switch
             {
