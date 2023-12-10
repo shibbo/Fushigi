@@ -78,6 +78,7 @@ namespace Fushigi.ui.widgets
         public bool IsViewportActive;
         public bool IsWonderView;
         public bool PlayAnimations = false;
+        public bool ShowGrid = true;
 
         Vector2 mSize = Vector2.Zero;
       
@@ -263,6 +264,24 @@ namespace Fushigi.ui.widgets
             if (Framebuffer.Width != (uint)size.X || Framebuffer.Height != (uint)size.Y)
                 Framebuffer.Resize((uint)size.X, (uint)size.Y);
 
+            RenderStats.Reset();
+
+            //Wonder shader system params
+            if (PlayAnimations)
+                WonderGameShader.UpdateSystem();
+
+            //Background calculations
+            EnvironmentData.UpdateBackground(gl, this.Camera);
+
+            //Render viewport settings for game shaders
+            GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
+            //Setup light map resources for the currently loaded area
+            GsysShaderRender.GsysResources.Lightmaps = EnvironmentData.Lightmaps;
+            //Distance view scrol calculations
+            DistantViewScrollManager.Calc(this.Camera.Target);
+            //Set active area for getting env settings by the materials
+            AreaResourceManager.ActiveArea = this.EnvironmentData;
+
             Framebuffer.Bind();
 
             gl.ClearColor(0, 0, 0, 0);
@@ -270,23 +289,6 @@ namespace Fushigi.ui.widgets
             gl.Viewport(0, 0, Framebuffer.Width, Framebuffer.Height);
 
             gl.Enable(EnableCap.DepthTest);
-
-            RenderStats.Reset();
-
-            //Wonder shader system params
-            if (PlayAnimations)
-                WonderGameShader.UpdateSystem();
-
-            //Render viewport settings for game shaders
-            GsysShaderRender.GsysResources.UpdateViewport(this.Camera);
-            //Setup light map resources for the currently loaded area
-            GsysShaderRender.GsysResources.Lightmaps = EnvironmentData.Lightmaps;
-            //Background calculations
-            EnvironmentData.UpdateBackground(gl, this.Camera);
-            //Distance view scrol calculations
-            DistantViewScrollManager.Calc(this.Camera.Target);
-            //Set active area for getting env settings by the materials
-            AreaResourceManager.ActiveArea = this.EnvironmentData;
 
             //Start drawing the scene. Bfres draw upside down so flip the viewport clip
             gl.ClipControl(ClipControlOrigin.UpperLeft, ClipControlDepth.ZeroToOne);
@@ -419,7 +421,8 @@ namespace Fushigi.ui.widgets
 
             this.DrawScene3D(size, mLayersVisibility);
 
-            DrawGrid();
+            if (ShowGrid)
+                DrawGrid();
             DrawAreaContent();
 
             if (!IsViewportHovered)
