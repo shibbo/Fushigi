@@ -1,5 +1,6 @@
 using Fushigi.actor_pack.components;
 using Fushigi.course;
+using Fushigi.course.distance_view;
 using Fushigi.gl;
 using Fushigi.gl.Bfres;
 using Fushigi.gl.Bfres.AreaData;
@@ -88,6 +89,8 @@ namespace Fushigi.ui.widgets
         public GLFramebuffer Framebuffer; //Draws opengl data into the viewport
         public HDRScreenBuffer HDRScreenBuffer = new HDRScreenBuffer();
         public AreaResourceManager EnvironmentData = new AreaResourceManager(gl, area.mInitEnvPalette);
+
+        DistantViewManager DistantViewScrollManager = new DistantViewManager(area);
 
         //TODO make this an ISceneObject? as soon as there's a SceneObj class for each course object
         private object? mHoveredObject;
@@ -280,6 +283,8 @@ namespace Fushigi.ui.widgets
             GsysShaderRender.GsysResources.Lightmaps = EnvironmentData.Lightmaps;
             //Background calculations
             EnvironmentData.UpdateBackground(gl, this.Camera);
+            //Distance view scrol calculations
+            DistantViewScrollManager.Calc(this.Camera.Target);
             //Set active area for getting env settings by the materials
             AreaResourceManager.ActiveArea = this.EnvironmentData;
 
@@ -342,6 +347,8 @@ namespace Fushigi.ui.widgets
             var debugSMat = Matrix4x4.CreateScale(modelInfo.mModelScale != default ? modelInfo.mModelScale:Vector3.One);
 
             var mat = debugSMat * scaleMat * rotMat * transMat;
+
+            DistantViewScrollManager.UpdateMatrix(actor.mLayer, ref mat);
 
             var model = render.Models[modelName];
             //switch for drawing models with different methods easier

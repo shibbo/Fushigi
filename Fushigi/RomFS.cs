@@ -30,6 +30,19 @@ namespace Fushigi
             return sRomFSRoot;
         }
 
+        private static SARC.SARC? mBootUpPack = null;
+
+        public static SARC.SARC GetOrLoadBootUpPack()
+        {
+            if (mBootUpPack != null)
+                return mBootUpPack;
+
+            byte[] packbytes = FileUtil.DecompressData(GetFileBytes("Pack/Bootup.Nin_NX_NVN.pack.zs"));
+            SARC.SARC packSarc = new SARC.SARC(new MemoryStream(packbytes));
+
+            return mBootUpPack = packSarc;
+        }
+
         public static bool IsValidRoot(string root)
         {
             /* common paths to check */
