@@ -1,4 +1,5 @@
 ﻿using Fushigi.Byml;
+using Fushigi.param;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -57,34 +58,28 @@ namespace Fushigi.util
             return vec;
         }
         
-        public static object GetValueFromDynamicNode(IBymlNode node, string dynNode, string type)
+        public static object GetValueFromDynamicNode(IBymlNode node, ParamDB.ComponentParam param)
         {
-            if (type == "U8" && node.Id == BymlNodeId.Int)
-            {
-                type = "S32";
-            }
-            else if (type == "U8" && node.Id == BymlNodeId.UInt)
-            {
-                type = "U32";
-            }
+            //TODO should we cast to the correct signed-ness?
+            if (param.IsUnsignedInt() && node.Id == BymlNodeId.Int)
+                return BymlUtil.GetNodeData<int>(node);
+            if (param.IsSignedInt() && node.Id == BymlNodeId.UInt)
+                return BymlUtil.GetNodeData<uint>(node);
 
-            switch (type)
-            {
-                case "U16":
-                case "U32":
-                    return BymlUtil.GetNodeData<uint>(node);
-                case "S16":
-                case "S32":
-                    return BymlUtil.GetNodeData<int>(node);
-                case "Bool":
-                    return BymlUtil.GetNodeData<bool>(node);
-                case "String":
-                    return BymlUtil.GetNodeData<string>(node);
-                case "F32":
-                    return BymlUtil.GetNodeData<float>(node);
-            }
+            if (param.IsUnsignedInt())
+                return BymlUtil.GetNodeData<uint>(node);
+            if (param.IsSignedInt())
+                return BymlUtil.GetNodeData<int>(node);
+            if (param.IsBool())
+                return BymlUtil.GetNodeData<bool>(node);
+            if (param.IsString())
+                return BymlUtil.GetNodeData<string>(node);
+            if (param.IsFloat())
+                return BymlUtil.GetNodeData<float>(node);
+            if (param.IsDouble())
+                return BymlUtil.GetNodeData<double>(node);
 
-            return null;
+            return null!;
         }
     }
 }

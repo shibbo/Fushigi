@@ -1928,45 +1928,55 @@ namespace Fushigi.ui.widgets
                             {
                                 var actorParam = actor.mActorParameters[pair.Key];
 
-                                switch (pair.Value.Type)
+                                if(pair.Value.IsSignedInt(out int minValue, out int maxValue))
                                 {
-                                    case "U8":
-                                    case "S16":
-                                    case "S32":
-                                        int val_int = (int)actorParam;
-                                        if (ImGui.InputInt(id, ref val_int))
-                                        {
-                                            actor.mActorParameters[pair.Key] = val_int;
-                                        }
-                                        break;
-                                    case "Bool":
-                                        bool val_bool = (bool)actorParam;
-                                        if (ImGui.Checkbox(id, ref val_bool))
-                                        {
-                                            actor.mActorParameters[pair.Key] = val_bool;
-                                        }
-                                        break;
-                                    case "F32":
-                                        float val_float = (float)actorParam;
-                                        if (ImGui.InputFloat(id, ref val_float))
-                                        {
-                                            actor.mActorParameters[pair.Key] = val_float;
-                                        }
-                                        break;
-                                    case "String":
-                                        string val_string = (string)actorParam;
-                                        if (ImGui.InputText(id, ref val_string, 1024))
-                                        {
-                                            actor.mActorParameters[pair.Key] = val_string;
-                                        }
-                                        break;
-                                    case "F64":
-                                        double val = (double)actorParam;
-                                        if (ImGui.InputDouble(id, ref val))
-                                        {
-                                            actor.mActorParameters[pair.Key] = val;
-                                        }
-                                        break;
+                                    int val_int = (int)actorParam;
+                                    if (ImGui.InputInt(id, ref val_int))
+                                    {
+                                        actor.mActorParameters[pair.Key] = Math.Clamp(val_int, minValue, maxValue);
+                                    }
+                                }
+                                else if (pair.Value.IsUnsignedInt(out minValue, out maxValue))
+                                {
+                                    uint val_uint = (uint)actorParam;
+                                    int val_int = unchecked((int)val_uint);
+                                    if (ImGui.InputInt(id, ref val_int))
+                                    {
+                                        actor.mActorParameters[pair.Key] = unchecked((uint)Math.Clamp(val_int, minValue, maxValue));
+                                    }
+                                }
+                                else if (pair.Value.IsBool())
+                                {
+                                    bool val_bool = (bool)actorParam;
+                                    if (ImGui.Checkbox(id, ref val_bool))
+                                    {
+                                        actor.mActorParameters[pair.Key] = val_bool;
+                                    }
+
+                                }
+                                else if (pair.Value.IsFloat())
+                                {
+                                    float val_float = (float)actorParam;
+                                    if (ImGui.InputFloat(id, ref val_float))
+                                    {
+                                        actor.mActorParameters[pair.Key] = val_float;
+                                    }
+                                }
+                                else if (pair.Value.IsString())
+                                {
+                                    string val_string = (string)actorParam;
+                                    if (ImGui.InputText(id, ref val_string, 1024))
+                                    {
+                                        actor.mActorParameters[pair.Key] = val_string;
+                                    }
+                                }
+                                else if (pair.Value.IsDouble())
+                                {
+                                    double val = (double)actorParam;
+                                    if (ImGui.InputDouble(id, ref val))
+                                    {
+                                        actor.mActorParameters[pair.Key] = val;
+                                    }
                                 }
                             }
 

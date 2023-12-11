@@ -42,24 +42,7 @@ namespace Fushigi.course
                 foreach (string component in comp.Keys)
                 {
                     var c = comp[component];
-
-                    switch (c.Type)
-                    {
-                        case "S16":
-                        case "U32":
-                        case "S32":
-                            mParameters.Add(component, Convert.ToInt32(comp[component].InitValue));
-                            break;
-                        case "F32":
-                            mParameters.Add(component, Convert.ToSingle(comp[component].InitValue));
-                            break;
-                        case "Bool":
-                            mParameters.Add(component, (bool)comp[component].InitValue);
-                            break;
-                        case "String":
-                            mParameters.Add(component, (string)comp[component].InitValue);
-                            break;
-                    }
+                    mParameters.Add(component, c.InitValue);
                 }
             }
             else
@@ -70,29 +53,12 @@ namespace Fushigi.course
                 {
                     if (dynamicNode.ContainsKey(component))
                     {
-                        mParameters.Add(component, BymlUtil.GetValueFromDynamicNode(dynamicNode[component], component, comp[component].Type));
+                        mParameters.Add(component, BymlUtil.GetValueFromDynamicNode(dynamicNode[component], comp[component]));
                     }
                     else
                     {
                         var c = comp[component];
-
-                        switch (c.Type)
-                        {
-                            case "S16":
-                            case "U32":
-                            case "S32":
-                                mParameters.Add(component, Convert.ToInt32(comp[component].InitValue));
-                                break;
-                            case "F32":
-                                mParameters.Add(component, Convert.ToSingle(comp[component].InitValue));
-                                break;
-                            case "Bool":
-                                mParameters.Add(component, (bool)comp[component].InitValue);
-                                break;
-                            case "String":
-                                mParameters.Add(component, (string)comp[component].InitValue);
-                                break;
-                        }
+                        mParameters.Add(component, c.InitValue);
                     }
                 }
             }
@@ -194,24 +160,7 @@ namespace Fushigi.course
                     foreach (string component in comp.Keys)
                     {
                         var c = comp[component];
-
-                        switch (c.Type)
-                        {
-                            case "S16":
-                            case "U32":
-                            case "S32":
-                                mParameters.Add(component, Convert.ToInt32(comp[component].InitValue));
-                                break;
-                            case "F32":
-                                mParameters.Add(component, Convert.ToSingle(comp[component].InitValue));
-                                break;
-                            case "Bool":
-                                mParameters.Add(component, (bool)comp[component].InitValue);
-                                break;
-                            case "String":
-                                mParameters.Add(component, (string)comp[component].InitValue);
-                                break;
-                        }
+                        mParameters.Add(component, c.InitValue);
                     }
 
                     /* we're done with this rail, so we exit as we have no more data to read */
@@ -229,29 +178,12 @@ namespace Fushigi.course
                 {
                     if (dynamicNode.ContainsKey(component))
                     {
-                        mParameters.Add(component, BymlUtil.GetValueFromDynamicNode(dynamicNode[component], component, comp[component].Type));
+                        mParameters.Add(component, BymlUtil.GetValueFromDynamicNode(dynamicNode[component], comp[component]));
                     }
                     else
                     {
                         var c = comp[component];
-
-                        switch (c.Type)
-                        {
-                            case "S16":
-                            case "U32":
-                            case "S32":
-                                mParameters.Add(component, Convert.ToInt32(comp[component].InitValue));
-                                break;
-                            case "F32":
-                                mParameters.Add(component, Convert.ToSingle(comp[component].InitValue));
-                                break;
-                            case "Bool":
-                                mParameters.Add(component, (bool)comp[component].InitValue);
-                                break;
-                            case "String":
-                                mParameters.Add(component, (string)comp[component].InitValue);
-                                break;
-                        }
+                        mParameters.Add(component, c.InitValue);
                     }
                 }
             }

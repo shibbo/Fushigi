@@ -46,7 +46,7 @@ namespace Fushigi.course
                         {
                             if (dynamicNode.ContainsKey(component) && !actorParameters.ContainsKey(component))
                             {
-                                actorParameters.Add(component, BymlUtil.GetValueFromDynamicNode(dynamicNode[component], component, components[component].Type));
+                                actorParameters.Add(component, BymlUtil.GetValueFromDynamicNode(dynamicNode[component], components[component]));
                             }
                             else
                             {
@@ -56,25 +56,7 @@ namespace Fushigi.course
                                 }
 
                                 var c = components[component];
-
-                                switch (c.Type)
-                                {
-                                    case "U8":
-                                    case "S16":
-                                    case "U32":
-                                    case "S32":
-                                        actorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
-                                        break;
-                                    case "F32":
-                                        actorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
-                                        break;
-                                    case "Bool":
-                                        actorParameters.Add(component, (bool)components[component].InitValue);
-                                        break;
-                                    case "String":
-                                        actorParameters.Add(component, (string)components[component].InitValue);
-                                        break;
-                                }
+                                actorParameters.Add(component, c.InitValue);
                             }
                         }
                     }
@@ -154,25 +136,7 @@ namespace Fushigi.course
                         }
 
                         var c = components[component];
-
-                        switch (c.Type)
-                        {
-                            case "U8":
-                            case "S16":
-                            case "U32":
-                            case "S32":
-                                actorParameters.Add(component, Convert.ToInt32(components[component].InitValue));
-                                break;
-                            case "F32":
-                                actorParameters.Add(component, Convert.ToSingle(components[component].InitValue));
-                                break;
-                            case "Bool":
-                                actorParameters.Add(component, (bool)components[component].InitValue);
-                                break;
-                            case "String":
-                                actorParameters.Add(component, (string)components[component].InitValue);
-                                break;
-                        }
+                        actorParameters.Add(component, c.InitValue);
                     }
                 }
             }

@@ -15,6 +15,7 @@ using Fushigi.Byml;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Fushigi.param
 {
@@ -28,8 +29,43 @@ namespace Fushigi.param
 
         public struct ComponentParam
         {
-            public string Type;
             public object InitValue;
+            public string Type;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool IsSignedInt() => IsSignedInt(out _, out _);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool IsSignedInt(out int minValue, out int maxValue)
+            {
+                (bool ret, minValue, maxValue) = Type switch
+                {
+                    "S16" => (true, short.MinValue, short.MaxValue),
+                    "S32" => (true, int.MinValue, int.MaxValue),
+                    _ => default,
+                };
+                return ret;
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool IsUnsignedInt() => IsUnsignedInt(out _, out _);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool IsUnsignedInt(out int minValue, out int maxValue)
+            {
+                (bool ret, minValue, maxValue) = Type switch
+                {
+                    "U8" => (true, byte.MinValue, byte.MaxValue),
+                    "U32" => (true, 0, int.MaxValue),
+                    _ => default,
+                };
+                return ret;
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool IsFloat() => Type == "F32";
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool IsDouble() => Type == "F64";
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool IsBool() => Type == "Bool";
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool IsString() => Type == "String";
         }
 
         struct ParamList
@@ -288,35 +324,41 @@ namespace Fushigi.param
                                 continue;
                             }
 
-                            ComponentParam comp = new ComponentParam();
                             string key = ((BymlNode<string>)(ht["BBKey"])).Data;
-                            comp.Type = type;
+
+                            object initialValue = null!;
 
                             /* we look through the type that we set earlier to assign the proper initial value */
                             switch (type)
                             {
                                 case "U8":
                                 case "U32":
-                                    comp.InitValue = ((BymlNode<uint>)ht["InitVal"]).Data;
+                                    initialValue = ((BymlNode<uint>)ht["InitVal"]).Data;
                                     break;
                                 /* S16 and S32 are both internally still a Int32 node, but S16 has bounds checks */
                                 case "S16":
                                 case "S32":
-                                    comp.InitValue = ((BymlNode<int>)ht["InitVal"]).Data;
+                                    initialValue = ((BymlNode<int>)ht["InitVal"]).Data;
                                     break;
                                 case "F32":
-                                    comp.InitValue = ((BymlNode<float>)ht["InitVal"]).Data;
+                                    initialValue = ((BymlNode<float>)ht["InitVal"]).Data;
                                     break;
                                 case "F64":
-                                    comp.InitValue = ((BymlNode<double>)ht["InitVal"]).Data;
+                                    initialValue = ((BymlNode<double>)ht["InitVal"]).Data;
                                     break;
                                 case "Bool":
-                                    comp.InitValue = ((BymlNode<bool>)ht["InitVal"]).Data;
+                                    initialValue = ((BymlNode<bool>)ht["InitVal"]).Data;
                                     break;
                                 case "String":
-                                    comp.InitValue = ((BymlNode<string>)ht["InitValConverted"]).Data;
+                                    initialValue = ((BymlNode<string>)ht["InitValConverted"]).Data;
                                     break;
                             }
+
+                            var comp = new ComponentParam
+                            {
+                                Type = type,
+                                InitValue = initialValue
+                            };
 
                             /* and now we add our parameter to the component we are dealing with */
                             component.Parameters.Add(key, comp);
