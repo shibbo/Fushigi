@@ -1730,12 +1730,17 @@ namespace Fushigi.ui.widgets
             var camSize = view.GetCameraSizeIn2DWorldSpace();
 
             Vector4 bounds = Vector4.Zero;
-            foreach(var actor in area.GetActors())
+            foreach(var actor in area.GetActors().Where(x => x.mPackName != "GlobalAreaInfoActor"))
             {
-                bounds = new(Math.Min(bounds.X, actor.mTranslation.X),
-                Math.Min(bounds.Y, actor.mTranslation.Y),
-                Math.Max(bounds.Z, actor.mTranslation.X),
-                Math.Max(bounds.W, actor.mTranslation.Y));
+                if(bounds == Vector4.Zero){
+                    bounds = new Vector4(actor.mTranslation.X, actor.mTranslation.X, actor.mTranslation.Y, actor.mTranslation.Y);
+                }
+                else{
+                    bounds = new(Math.Min(bounds.X, actor.mTranslation.X),
+                    Math.Min(bounds.Y, actor.mTranslation.Y),
+                    Math.Max(bounds.Z, actor.mTranslation.X),
+                    Math.Max(bounds.W, actor.mTranslation.Y));
+                }
             }
             var levelRect = new Vector2(bounds.Z-bounds.X, bounds.W - bounds.Y);
 
@@ -1743,9 +1748,9 @@ namespace Fushigi.ui.widgets
 
             var ratio = size.X/levelRect.X < size.Y/levelRect.Y ? size.X/levelRect.X : size.Y/levelRect.Y;
             var miniRect = levelRect*ratio;
-            var miniCam = new Vector2(cam.Target.X, -cam.Target.Y)*ratio;
+            var miniCam = new Vector2(cam.Target.X-bounds.X, -cam.Target.Y + bounds.Y)*ratio;
             var miniCamSize = camSize*ratio;
-            var miniSaveCam = new Vector2(camSave.X, -camSave.Y)*ratio;
+            var miniSaveCam = new Vector2(camSave.X-bounds.X, -camSave.Y + bounds.Y)*ratio;
             var center = new Vector2((size.X - miniRect.X)/2, (size.Y - miniRect.Y)/2);
 
             var col = ImGuiCol.ButtonActive;
@@ -1771,8 +1776,8 @@ namespace Fushigi.ui.widgets
                 }
 
                 var pos = ImGui.GetMousePos();
-                cam.Target = new((pos.X - (topLeft.X + center.X))/ratio,
-                (-pos.Y + topLeft.Y + center.Y + miniRect.Y)/ratio, cam.Target.Z);
+                cam.Target = new((pos.X - (topLeft.X + center.X))/ratio + bounds.X,
+                (-pos.Y + topLeft.Y + center.Y + miniRect.Y)/ratio + bounds.Y, cam.Target.Z);
             }
 
             if (ImGui.IsMouseReleased(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left)
