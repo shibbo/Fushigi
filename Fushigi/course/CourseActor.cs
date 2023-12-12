@@ -28,6 +28,7 @@ namespace Fushigi.course
             mName = BymlUtil.GetNodeData<string>(actorNode["Name"]);
             mActorPack = ActorPackCache.Load(mPackName);
 
+            friendlyName = ActorDataDB.Translate(mPackName);
 
             if (actorNode.ContainsKey("Dynamic"))
             {
@@ -112,6 +113,8 @@ namespace Fushigi.course
             mScale = new System.Numerics.Vector3(1.0f);
             mHash = RandomUtil.GetRandom();
             mActorPack = ActorPackCache.Load(mPackName);
+
+            friendlyName = ActorDataDB.Translate(mPackName);
 
             InitializeDefaultDynamicParams();
         }
@@ -230,6 +233,7 @@ namespace Fushigi.course
         public ulong mHash;
         public PropertyDict mActorParameters = PropertyDict.Empty;
         public PropertyDict mSystemParameters = PropertyDict.Empty;
+        public string friendlyName;
 
         public ActorPack mActorPack;
     }
@@ -283,7 +287,7 @@ namespace Fushigi.course
     public class CourseActorRender //This can be overridden per actor for individual behavior
     {
 
-        public virtual void Render() 
+        public virtual void Render()
         {
         }
     }

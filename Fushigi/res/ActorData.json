@@ -1,0 +1,8795 @@
+{
+  "AdditionalCullingAabbArea": {
+    "nameOverride": null
+  },
+  "AirWall": {
+    "nameOverride": null
+  },
+  "AirWallRight": {
+    "nameOverride": null
+  },
+  "amplitudeTag": {
+    "nameOverride": null
+  },
+  "AnnihilateTag": {
+    "nameOverride": null
+  },
+  "AreaBottomlessPit": {
+    "nameOverride": null
+  },
+  "AreaCommon": {
+    "nameOverride": "Common Area"
+  },
+  "AreaDowsing": {
+    "nameOverride": null
+  },
+  "AreaEnemyDeath": {
+    "nameOverride": "Enemy Death Area"
+  },
+  "AreaEnemyGoroboStrongReflection": {
+    "nameOverride": null
+  },
+  "AreaEnemyNokonokoRaceJump": {
+    "nameOverride": null
+  },
+  "AreaEnemyNokonokoRaceSpeedSet": {
+    "nameOverride": null
+  },
+  "AreaEnemyNokoNokoRaceTurn": {
+    "nameOverride": null
+  },
+  "AreaEnemyRaceDance": {
+    "nameOverride": null
+  },
+  "AreaEnemyRacePlayAnim": {
+    "nameOverride": null
+  },
+  "AreaEnemyRaceSwim": {
+    "nameOverride": null
+  },
+  "AreaEnemyRaceWarp": {
+    "nameOverride": null
+  },
+  "AreaEnterScreenCapture": {
+    "nameOverride": null
+  },
+  "AreaForbidPlayerReturnJump": {
+    "nameOverride": null
+  },
+  "AreaGelField": {
+    "nameOverride": null
+  },
+  "AreaGelFieldBreakable": {
+    "nameOverride": null
+  },
+  "AreaHipDropCallout": {
+    "nameOverride": null
+  },
+  "AreaHipDropNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaHitSendMessage": {
+    "nameOverride": null
+  },
+  "AreaInLeftNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaInRightNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaInstantDeathForMapPartsRings": {
+    "nameOverride": null
+  },
+  "AreaJumpNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaKeepJumpSpeed": {
+    "nameOverride": null
+  },
+  "AreaLavaBox": {
+    "nameOverride": null
+  },
+  "AreaLavaSphere": {
+    "nameOverride": null
+  },
+  "AreaNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaNextGoToDrillOnly": {
+    "nameOverride": null
+  },
+  "AreaNextGoToOnlyClownPlayer": {
+    "nameOverride": null
+  },
+  "AreaNoWaitNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaOutLeftNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaOutRightDisjointedNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaOutRightNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaOutScreen": {
+    "nameOverride": null
+  },
+  "AreaPlayerDisableInAirDecPow": {
+    "nameOverride": null
+  },
+  "AreaPlayerDisplayCorrect": {
+    "nameOverride": null
+  },
+  "AreaPlayerExpansionLimitSlopeAngle": {
+    "nameOverride": null
+  },
+  "AreaPlayerJumpAcceptSurfaceVelocityY": {
+    "nameOverride": null
+  },
+  "AreaPlayerPressPalliation": {
+    "nameOverride": null
+  },
+  "AreaPoisonousSwampBox": {
+    "nameOverride": null
+  },
+  "AreaPoisonousSwampSphere": {
+    "nameOverride": null
+  },
+  "AreaPropellerFlowerNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaReleasePropellerFlower": {
+    "nameOverride": null
+  },
+  "AreaReturnWonderNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaSand": {
+    "nameOverride": null
+  },
+  "AreaScreenCapture": {
+    "nameOverride": null
+  },
+  "AreaSoundWonderStartJump": {
+    "nameOverride": null
+  },
+  "AreaSwitchBase": {
+    "nameOverride": null
+  },
+  "AreaSwitchLightEffect": {
+    "nameOverride": null
+  },
+  "AreaSwitchLocal": {
+    "nameOverride": null
+  },
+  "AreaSwitchLocalIncludeGhost": {
+    "nameOverride": null
+  },
+  "AreaSwitchLocalOnlyCrown": {
+    "nameOverride": null
+  },
+  "AreaUpWaterFlow": {
+    "nameOverride": null
+  },
+  "AreaVineNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaWaterBox": {
+    "nameOverride": null
+  },
+  "AreaWaterVineNextGoTo": {
+    "nameOverride": null
+  },
+  "AreaWindFlow": {
+    "nameOverride": null
+  },
+  "ArenaCommendationTag": {
+    "nameOverride": null
+  },
+  "AssistantBindPulling": {
+    "nameOverride": null
+  },
+  "AssistantPendulum": {
+    "nameOverride": null
+  },
+  "AssistantRail": {
+    "nameOverride": null
+  },
+  "AssistantRotation": {
+    "nameOverride": null
+  },
+  "AssistantRotationPulling": {
+    "nameOverride": null
+  },
+  "AutoScrollControlSignalFrame": {
+    "nameOverride": null
+  },
+  "BackdanceHakkun": {
+    "nameOverride": null
+  },
+  "BackgroundAreaLocator": {
+    "nameOverride": null
+  },
+  "BadgeFlower": {
+    "nameOverride": null
+  },
+  "BadSmokeTag": {
+    "nameOverride": null
+  },
+  "BallDaisy": {
+    "nameOverride": null
+  },
+  "BallKinopio": {
+    "nameOverride": null
+  },
+  "BallLuigi": {
+    "nameOverride": null
+  },
+  "BallMario": {
+    "nameOverride": null
+  },
+  "BalloonKillerDaisy": {
+    "nameOverride": null
+  },
+  "BalloonKillerKinopico": {
+    "nameOverride": null
+  },
+  "BalloonKillerKinopio": {
+    "nameOverride": null
+  },
+  "BalloonKillerLuigi": {
+    "nameOverride": null
+  },
+  "BalloonKillerMario": {
+    "nameOverride": null
+  },
+  "BalloonKillerPeach": {
+    "nameOverride": null
+  },
+  "BalloonKillerTotten": {
+    "nameOverride": null
+  },
+  "BalloonKillerYoshi": {
+    "nameOverride": null
+  },
+  "BalloonPosMappingArea": {
+    "nameOverride": null
+  },
+  "BallPeach": {
+    "nameOverride": null
+  },
+  "BallTotten": {
+    "nameOverride": null
+  },
+  "BallYoshi": {
+    "nameOverride": null
+  },
+  "BgmChangeTag": {
+    "nameOverride": null
+  },
+  "BgUnitBreakableFullHitA2x2": {
+    "nameOverride": null
+  },
+  "BgUnitDecoDisableArea": {
+    "nameOverride": null
+  },
+  "BgUnitEmptyTag": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Bridge_Ground": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Bridge_LL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Bridge_LL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Bridge_RL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Bridge_RL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_Ground": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_LL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_LL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_LU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_LU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_RL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_RL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_RU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Han_RU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_Ground": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_LL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_LL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_LU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_LU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_RL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_RL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_RU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_NoHit_RU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_Ground": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_LL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_LL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_LU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_LU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_RL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_RL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_RU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_A_Zen_RU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Bridge_Ground": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Bridge_LL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Bridge_LL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Bridge_RL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Bridge_RL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_Ground": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_LL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_LL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_LU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_LU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_RL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_RL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_RU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Han_RU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_Ground": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_LL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_LL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_LU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_LU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_RL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_RL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_RU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_NoHit_RU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_Ground": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_LL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_LL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_LU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_LU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_RL30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_RL45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_RU30Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPart_B_Zen_RU45Slope": {
+    "nameOverride": null
+  },
+  "BgUnitPushWallA": {
+    "nameOverride": null
+  },
+  "BgUnitThroughPassge": {
+    "nameOverride": null
+  },
+  "BindRetryPoint": {
+    "nameOverride": null
+  },
+  "bindScrollLimitTag": {
+    "nameOverride": null
+  },
+  "bindShabonPlayerLimitTag": {
+    "nameOverride": null
+  },
+  "BisuRotate": {
+    "nameOverride": null
+  },
+  "BisuRotateMini": {
+    "nameOverride": null
+  },
+  "BiyonSquatReciprocateTag": {
+    "nameOverride": null
+  },
+  "BlockChikuwaControlTag": {
+    "nameOverride": null
+  },
+  "BlockClarity": {
+    "nameOverride": null
+  },
+  "BlockCloudLight": {
+    "nameOverride": null
+  },
+  "BlockCloudLightLong": {
+    "nameOverride": null
+  },
+  "BlockHatena": {
+    "nameOverride": "? Block"
+  },
+  "BlockHatenaBindable": {
+    "nameOverride": null
+  },
+  "BlockHatenaLong": {
+    "nameOverride": null
+  },
+  "BlockHatenaLongBindable": {
+    "nameOverride": null
+  },
+  "BlockMarioBros": {
+    "nameOverride": null
+  },
+  "BlockMarioBrosBindable": {
+    "nameOverride": null
+  },
+  "BlockMarioBrosItem": {
+    "nameOverride": null
+  },
+  "BlockRenga": {
+    "nameOverride": "Brick Block"
+  },
+  "BlockRengaItem": {
+    "nameOverride": null
+  },
+  "BlockRengaItemBindable": {
+    "nameOverride": null
+  },
+  "BlockRengaLight": {
+    "nameOverride": null
+  },
+  "BlockRoundLight": {
+    "nameOverride": null
+  },
+  "BlockRoundLightBindable": {
+    "nameOverride": null
+  },
+  "BlockRoundLong6x1": {
+    "nameOverride": null
+  },
+  "BlockRoundLong9x1": {
+    "nameOverride": null
+  },
+  "BlockRoundLongLight": {
+    "nameOverride": null
+  },
+  "BlueBlock": {
+    "nameOverride": null
+  },
+  "BlueBlockShutter": {
+    "nameOverride": null
+  },
+  "BlueBlockShutterEdge": {
+    "nameOverride": null
+  },
+  "BlueBlockShutterEdgeTop": {
+    "nameOverride": null
+  },
+  "BoolGameDataTag": {
+    "nameOverride": null
+  },
+  "BossKoopaJr": {
+    "nameOverride": null
+  },
+  "BossKoopaJrDummy": {
+    "nameOverride": null
+  },
+  "BulletBase": {
+    "nameOverride": null
+  },
+  "BulletBlast": {
+    "nameOverride": null
+  },
+  "BulletEggUzaPiyo": {
+    "nameOverride": null
+  },
+  "BulletElephantDrainage": {
+    "nameOverride": null
+  },
+  "BulletFireBall": {
+    "nameOverride": null
+  },
+  "BulletHammer": {
+    "nameOverride": null
+  },
+  "BulletKoopaBall": {
+    "nameOverride": null
+  },
+  "BulletKoopaCounterFire": {
+    "nameOverride": null
+  },
+  "BulletKoopaJrApron": {
+    "nameOverride": null
+  },
+  "BulletKoopaJrFire": {
+    "nameOverride": null
+  },
+  "BulletKoopaMusicalNote": {
+    "nameOverride": null
+  },
+  "BulletKoopaMusicalNoteFromBackArea": {
+    "nameOverride": null
+  },
+  "BulletKoopaMusicalNoteFromBackAreaLarge": {
+    "nameOverride": null
+  },
+  "BulletKoopaMusicalNoteFromBackAreaLong": {
+    "nameOverride": null
+  },
+  "BulletKoopaMusicalNoteScatter": {
+    "nameOverride": null
+  },
+  "BulletKoopaSmoke": {
+    "nameOverride": null
+  },
+  "BulletLavaBallComeFromBack_Fall": {
+    "nameOverride": null
+  },
+  "BulletLavaBallComeFromBack_Straight": {
+    "nameOverride": null
+  },
+  "BulletOfHanabi": {
+    "nameOverride": null
+  },
+  "BulletShabon": {
+    "nameOverride": null
+  },
+  "BulletWaterBlast": {
+    "nameOverride": null
+  },
+  "BulletWireCap": {
+    "nameOverride": null
+  },
+  "BulletYoshiFire": {
+    "nameOverride": null
+  },
+  "BulletYoshiSeed": {
+    "nameOverride": null
+  },
+  "CallEffectLastBossKoopaHeadDemoTag": {
+    "nameOverride": null
+  },
+  "CallEffectTag": {
+    "nameOverride": null
+  },
+  "CallEffectTagBase": {
+    "nameOverride": null
+  },
+  "CallEffectTagWorldMap": {
+    "nameOverride": null
+  },
+  "CallEnvironmentSoundTag": {
+    "nameOverride": null
+  },
+  "CallSETag": {
+    "nameOverride": null
+  },
+  "CameraArea": {
+    "nameOverride": null
+  },
+  "CameraAreaConditional": {
+    "nameOverride": null
+  },
+  "CameraAreaPlacement": {
+    "nameOverride": null
+  },
+  "CameraAreaSignal": {
+    "nameOverride": null
+  },
+  "CarriedThrowObjectBase": {
+    "nameOverride": null
+  },
+  "ChangeWorldGravityTag": {
+    "nameOverride": null
+  },
+  "ChangeXLinkGlobalPropertyTag": {
+    "nameOverride": null
+  },
+  "CheckWonderFinishTag": {
+    "nameOverride": null
+  },
+  "ChildActorDeathObserveTag": {
+    "nameOverride": null
+  },
+  "CloudCastleFactoryFar00": {
+    "nameOverride": null
+  },
+  "CloudCastleFactoryFar01": {
+    "nameOverride": null
+  },
+  "CloudCastleFactoryFar02": {
+    "nameOverride": null
+  },
+  "CloudCastleSiroFarA00": {
+    "nameOverride": null
+  },
+  "CloudCommonBonusFar00": {
+    "nameOverride": null
+  },
+  "CloudCommonBonusFar01": {
+    "nameOverride": null
+  },
+  "CloudCommonBonusFar02": {
+    "nameOverride": null
+  },
+  "CloudCommonDoukutuA": {
+    "nameOverride": null
+  },
+  "CloudCommonHosoNagaAA": {
+    "nameOverride": null
+  },
+  "CloudCommonHosoNagaAB": {
+    "nameOverride": null
+  },
+  "CloudCommonHosoNagaAC": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuAFarA00": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuAFarA01": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuAFarA01Senkan": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuAFarA02": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuAFarA02Senkan": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuAFarA03": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuANearSujigumo00": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuANearSujigumo01": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuANearSujigumo02": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuNearA00": {
+    "nameOverride": null
+  },
+  "CloudCommonJoukuNearA01": {
+    "nameOverride": null
+  },
+  "CloudCommonMaruyamaAA01": {
+    "nameOverride": null
+  },
+  "CloudCommonMaruyamaAA02": {
+    "nameOverride": null
+  },
+  "CloudCommonMaruyamaAA03": {
+    "nameOverride": null
+  },
+  "CloudCommonMaruyamaAA04": {
+    "nameOverride": null
+  },
+  "CloudCommonMaruyamaAB": {
+    "nameOverride": null
+  },
+  "CloudCommonSenkanScrollNearA": {
+    "nameOverride": null
+  },
+  "CloudCommonTorideKemuriA": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganHareFarA01": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganHareFarA02": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganHareFarA03": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganHareFarA04": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganHareFarA05": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganHareFarA06": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganMiddleWonder00": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganMiddleWonder01": {
+    "nameOverride": null
+  },
+  "CloudHajimariKaiganNearWonder00": {
+    "nameOverride": null
+  },
+  "CloudHajimariSougenA": {
+    "nameOverride": null
+  },
+  "CloudHajimariSougenHanaA": {
+    "nameOverride": null
+  },
+  "CloudMushiMachiFarA00": {
+    "nameOverride": null
+  },
+  "CloudMushiMachiFarA01": {
+    "nameOverride": null
+  },
+  "CloudMushiMachiFarA02": {
+    "nameOverride": null
+  },
+  "CloudSabakuIsekiFarA00": {
+    "nameOverride": null
+  },
+  "CloudSabakuIsekiFarA01": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuFar00": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuFar01": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuFar02": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuFar03": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuFarSujigumo00": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuFarSujigumo01": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuFarSujigumo02": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuFarSujigumo03": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuMiddle00": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuNear00": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuNear01": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuNearSujigumo00": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuNearSujigumo01": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuWonderFar00": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuWonderFar01": {
+    "nameOverride": null
+  },
+  "CloudSabakuJyokuWonderFar02": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuFarA00": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuFarB00": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuFarC00": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuFarC01": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuFarE00": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuMiddleA": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuSujigumoA00": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuSujigumoA01": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuSujigumoA02": {
+    "nameOverride": null
+  },
+  "CloudSavannaJyokuSujigumoA03": {
+    "nameOverride": null
+  },
+  "CloudSavannaSabakuHareFarA00": {
+    "nameOverride": null
+  },
+  "CloudSavannaSabakuHareFarA01": {
+    "nameOverride": null
+  },
+  "CloudSavannaSabakuHareFarA02": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar00_LeftWind": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar00_Senkan": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar01": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar02": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar02_LeftWind": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar03": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar04": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar05": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar05_LeftWind": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFar07": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFarSujigumo00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFarSujigumo01": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFarSujigumo02": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFarUkigumo00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFarUkigumo01": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFarUkigumo02": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFarUkigumo03": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuFarUkigumo04": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddle01": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddle02": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddle03": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddle04": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddleSujigumo00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddleWonder00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddleWonderOnpu00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddleWonderOnpu01": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddleWonderOnpu02": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuMiddleWonderOnpuSujigumo00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuNear00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuNear01": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuNearEnemyA00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuNearEnemyA01": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuNearEnemyA02": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuNearSujigumo00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuWonderSujigumoA00": {
+    "nameOverride": null
+  },
+  "CloudYamaJyokuWonderSujigumoA01": {
+    "nameOverride": null
+  },
+  "CloudYamaTijyoFar00": {
+    "nameOverride": null
+  },
+  "CloudYamaTijyoFar01": {
+    "nameOverride": null
+  },
+  "CloudYamaTijyoFar02": {
+    "nameOverride": null
+  },
+  "CloudYamaTijyoFar03": {
+    "nameOverride": null
+  },
+  "CloudYamaTijyoFar04": {
+    "nameOverride": null
+  },
+  "CoinBase": {
+    "nameOverride": null
+  },
+  "CompassTag": {
+    "nameOverride": null
+  },
+  "ControlCourseTimerTag": {
+    "nameOverride": null
+  },
+  "ConversationEventArea": {
+    "nameOverride": null
+  },
+  "ConversationEventAreaOnlyCrown": {
+    "nameOverride": null
+  },
+  "CourseDisplayBoxSwitch": {
+    "nameOverride": null
+  },
+  "CourseMapMapUnitMarker": {
+    "nameOverride": null
+  },
+  "CourseNpcAngler": {
+    "nameOverride": null
+  },
+  "CourseNpcBase": {
+    "nameOverride": null
+  },
+  "CourseNpcBubble": {
+    "nameOverride": null
+  },
+  "CourseNpcButler": {
+    "nameOverride": null
+  },
+  "CourseNpcEnemyKuribo": {
+    "nameOverride": null
+  },
+  "CourseNPCHanachan": {
+    "nameOverride": null
+  },
+  "CourseNpcKinkinGuide": {
+    "nameOverride": null
+  },
+  "CourseNpcOpeningButler": {
+    "nameOverride": null
+  },
+  "CourseNpcPrince": {
+    "nameOverride": null
+  },
+  "CourseNpcTeacher": {
+    "nameOverride": null
+  },
+  "CourseScreenDispAngle": {
+    "nameOverride": null
+  },
+  "CourseStaticMgrActor": {
+    "nameOverride": null
+  },
+  "CreateTag": {
+    "nameOverride": null
+  },
+  "CrownPriorityDirArea": {
+    "nameOverride": null
+  },
+  "CullingSyncTag": {
+    "nameOverride": null
+  },
+  "DecoBase": {
+    "nameOverride": null
+  },
+  "DecoBaseBack": {
+    "nameOverride": null
+  },
+  "DecoBaseFront": {
+    "nameOverride": null
+  },
+  "DecoBaseFrontPanel": {
+    "nameOverride": null
+  },
+  "DisplayOutNextGotoTag": {
+    "nameOverride": null
+  },
+  "DisplayRotaionTag": {
+    "nameOverride": null
+  },
+  "DispMusicNameTag": {
+    "nameOverride": null
+  },
+  "DownScrollStopRailTag": {
+    "nameOverride": null
+  },
+  "DragonBubble": {
+    "nameOverride": null
+  },
+  "DrillCameraAreaSwichLocal": {
+    "nameOverride": null
+  },
+  "DVBase": {
+    "nameOverride": null
+  },
+  "DVBasePosLocator": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryCastle": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryFarDaizaA": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryFarEnkeiA": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryFarJimenA": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryFarKanbanB": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryFarKusariA": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryFarSpotLightB": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryFarSpotLightC": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryFarTubeA": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryMiddleKanbanA": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryMiddleLiveKabeA": {
+    "nameOverride": null
+  },
+  "DVCastleFactorySkyKemuriA": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryWonderKumoA": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryWonderKumoB": {
+    "nameOverride": null
+  },
+  "DVCastleFactoryWonderLensFlare": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarHanamichiTsuruA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarHanamichiTsuruB": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarKabeA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarKabeB": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarKaijyouKabeA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarKaijyouKabeB": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarKaijyouLightA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarKaijyouLightB": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarkaijyouLightC": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarKaijyouLightD": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarkaijyouLightE": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarKaijyouTowerA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarLightA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarLightB": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarLightFogA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroFarTunnelA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiGateA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiGateB": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiGateC": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiHonegumiA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiHonegumiB": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiKabeA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiKabeB": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiKabeC": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleHanamichiKabeD": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleKabeA": {
+    "nameOverride": null
+  },
+  "DVCastleSiroMiddleKabeB00": {
+    "nameOverride": null
+  },
+  "DVCommmonWonderEffectStar": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatFarJimenSunaA": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleHashiraA": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleHikariA": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleKabeA00": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleKabeA01": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleKabeA02": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleKabeA03": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleKabeB00": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleKabeB01": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleKabeB02": {
+    "nameOverride": null
+  },
+  "DVCommon4BeatMiddleTaikoStageA01": {
+    "nameOverride": null
+  },
+  "DVCommonArenaHataPartsA": {
+    "nameOverride": null
+  },
+  "DVCommonArenaWall": {
+    "nameOverride": null
+  },
+  "DVCommonArenaWallEnd": {
+    "nameOverride": null
+  },
+  "DVCommonArenaWallPartsA": {
+    "nameOverride": null
+  },
+  "DVCommonArenaWallPartsB": {
+    "nameOverride": null
+  },
+  "DVCommonArenaWallPartsC": {
+    "nameOverride": null
+  },
+  "DVCommonArenaWallPartsD": {
+    "nameOverride": null
+  },
+  "DVCommonBonusCoinFarCoinA": {
+    "nameOverride": null
+  },
+  "DVCommonBonusCoinFarCoinB": {
+    "nameOverride": null
+  },
+  "DVCommonBonusCoinFarWall02": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiCastleFlowerFarNiwaA": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiCastleFlowerFarNiwaB": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiCastleFlowerFarSiroA": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiCastleFlowerFarSiroFlagA": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiKinokoFarOukokuA": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiKinokoFarOukokuB": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiSavannaFarHikariA": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiSavannaFarHikariB": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiSavannaFarYamaA": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiSavannaFarYamaB": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiSavannaFarYamaC": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiSavannaFarYamaD": {
+    "nameOverride": null
+  },
+  "DVCommonEnkeiSavannaFarYamaMeA": {
+    "nameOverride": null
+  },
+  "DVCommonFarKoopaCastleA": {
+    "nameOverride": null
+  },
+  "DVCommonHikariItaA": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaFarHatenaA": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaFarHatenaB": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaFarHatenaC": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieHashiraA": {
+    "nameOverride": null
+  },
+  "DVcommonHirobaMiddlieHashiraC": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieHashiraD": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieHashiraE": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabeA": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabeB": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabeC": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabeD": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabesyouA": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabesyouB": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabesyouC": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabesyouD": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabesyouE": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKabesyouF": {
+    "nameOverride": null
+  },
+  "DVCommonHirobaMiddlieKanbanA": {
+    "nameOverride": null
+  },
+  "DVCommonMiniMokkinMiddleKabeA00": {
+    "nameOverride": null
+  },
+  "DVCommonMiniMokkinMiddleKabeA01": {
+    "nameOverride": null
+  },
+  "DVCommonNPCHouseMiddleTenjou": {
+    "nameOverride": null
+  },
+  "DVCommonNPCHouseMiddleTobira": {
+    "nameOverride": null
+  },
+  "DVCommonNPCHouseMiddleTobira00": {
+    "nameOverride": null
+  },
+  "DVCommonNPCHouseMiddleWall": {
+    "nameOverride": null
+  },
+  "DVCommonNPCHouseNearTenjou": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossBeltConveyor": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossBeltConveyor00": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossBeltConveyorBomuhei": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossBeltConveyorBox": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossBeltConveyorMechaKoopa": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossBeltConveyorMechaKoopaMk2": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossDokan": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossKabe": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanBossPressMachine": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanFarHagurumaA": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanFarHoA": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanFarJimenA": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanFarPuroperaA": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanFarPuroperaB": {
+    "nameOverride": null
+  },
+  "DVCommonSenkanMiddleHashiraA": {
+    "nameOverride": null
+  },
+  "DVCommonSozaiKomorebiA": {
+    "nameOverride": null
+  },
+  "DVCommonSozaiKomorebiUmiA": {
+    "nameOverride": null
+  },
+  "DVCommonTorideBossYoganMiddleWallA00": {
+    "nameOverride": null
+  },
+  "DVCommonTorideFarHata": {
+    "nameOverride": null
+  },
+  "DVCommonTorideFarOutDoorA": {
+    "nameOverride": null
+  },
+  "DVCommonTorideKemuriA": {
+    "nameOverride": null
+  },
+  "DVCommonTorideKemuriB": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleBossRoom": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleHata": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleJimenKiwa": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleKaidanKabeA": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleKaidanKabeAHashira": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleKaidanKabeAHashiraHana": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleMonAA": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleMonAANoMainLight": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleMonAATemae": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleMonAB": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleMonABTemae": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleWallA": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleWallOutDoorA": {
+    "nameOverride": null
+  },
+  "DVCommonTorideMiddleWallOutDoorAWall": {
+    "nameOverride": null
+  },
+  "DVCommonTorideNearGateShadow": {
+    "nameOverride": null
+  },
+  "DVCommonUmiAsaseFarFogA": {
+    "nameOverride": null
+  },
+  "DVCommonUmiAsaseFarIwaA": {
+    "nameOverride": null
+  },
+  "DVCommonUmiAsaseFarJimenA": {
+    "nameOverride": null
+  },
+  "DVCommonUmiAsaseFarSuimenA": {
+    "nameOverride": null
+  },
+  "DVCommonUmiAsaseMiddleKabeIwaA": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarHashiraA00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarHashiraA01": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarKabeA00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarKabeA01": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarKiA00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarKiB00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarMadoA00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarMadoB00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarMadoB01": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiFarNunoA00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiMiddleKusaA00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiMiddleKusaA01": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiMiddleNunoA00": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiMiddleNunoA01": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiMiddleNunoA02": {
+    "nameOverride": null
+  },
+  "DVCommonYashikiMiniCourseFarKabeA": {
+    "nameOverride": null
+  },
+  "DVHajimariChikaFarIwaA": {
+    "nameOverride": null
+  },
+  "DVHajimariChikaFarIwaB": {
+    "nameOverride": null
+  },
+  "DVHajimariChikaNearIwaA00": {
+    "nameOverride": null
+  },
+  "DVHajimariChikaNearIwaA01": {
+    "nameOverride": null
+  },
+  "DVHajimariChikaNearTsuruA": {
+    "nameOverride": null
+  },
+  "DVHajimariChikaWonderAwaFarAwaA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarGakeA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarIeA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarNamiIwaA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarNamiIwaB": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarSimaA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarSunaA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarUmiA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarUmiB": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganFarUmiC": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganMiddleSunaA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganMiddleWallA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganMiddleWallC00": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganMiddleWallC01": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganMiddleWallC02": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganMiddleWallC03": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganNearKusaA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganWonderKazeA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganWonderKazeB": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganWonderUzuKazeA": {
+    "nameOverride": null
+  },
+  "DVHajimariKaiganWonderUzuKazeB": {
+    "nameOverride": null
+  },
+  "DVHajimariMoriFarHappaA": {
+    "nameOverride": null
+  },
+  "DVHajimariMoriFarHikariA": {
+    "nameOverride": null
+  },
+  "DVHajimariMoriFarHikariB01": {
+    "nameOverride": null
+  },
+  "DVHajimariMoriFarOkaA": {
+    "nameOverride": null
+  },
+  "DVHajimariMoriMiddleKiA": {
+    "nameOverride": null
+  },
+  "DVHajimariMoriNearHikariB01": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarGroundA": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarGroundB": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarGroundC": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarGroundCBlue": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarGroundCFar": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarGroundD": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarGroundDFar": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarIwaB": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaA": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaB": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC00": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC01": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC02": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC03": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC04": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC05": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC06": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC07": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarJimenHanaC08": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarUmiA": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarUmiHikariA": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarWonderDokanB00": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenFarWonderDokanB01": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenMiddleKarikomiA": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenMiddleKiA": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenMiddleSpotLight": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenMiddleSpotLightSpecial": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenNearJimenHanaA": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenNearJimenHanaB00": {
+    "nameOverride": null
+  },
+  "DVHajimariSougenNearTsuruA": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiFarHikariA": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiFarJimenA01": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiFarJimenA02": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiFarJimenA03": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiFarJimenA04": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiFarJimenB": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiFarKinokoWoodA": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiMiddleKinokoWoodA": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiNearKabocyaA": {
+    "nameOverride": null
+  },
+  "DVKinMoriAkaruiNearKabocyaB": {
+    "nameOverride": null
+  },
+  "DVKinMoriFarKinAmiA": {
+    "nameOverride": null
+  },
+  "DVKinMoriFarKinJimenA01": {
+    "nameOverride": null
+  },
+  "DVKinMoriFarKinJimenA02": {
+    "nameOverride": null
+  },
+  "DVKinMoriFarKinJimenA03": {
+    "nameOverride": null
+  },
+  "DVKinMoriFarKinJimenA04": {
+    "nameOverride": null
+  },
+  "DVKinMoriFarKinokoWoodA": {
+    "nameOverride": null
+  },
+  "DVKinMoriMiddleKinokoWoodA": {
+    "nameOverride": null
+  },
+  "DVKinMoriNearKinokoA": {
+    "nameOverride": null
+  },
+  "DVKinMoriNearKinokoB": {
+    "nameOverride": null
+  },
+  "DVKinSlimeDokuDokuWonderMiddleKabeA03": {
+    "nameOverride": null
+  },
+  "DVKinSlimeFarGelA": {
+    "nameOverride": null
+  },
+  "DVKinSlimeFarRemainsA04": {
+    "nameOverride": null
+  },
+  "DVKinSlimeFarStepA": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeA00": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeA01": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeA02": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeA03": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeA04": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeAHashira00": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeAHashira01": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeAHashira02": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeAHashira03": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleKabeAHashira04": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleWonderGelA00": {
+    "nameOverride": null
+  },
+  "DVKinSlimeMiddleWonderGelA01": {
+    "nameOverride": null
+  },
+  "DVMushiChikaFarHashiraA": {
+    "nameOverride": null
+  },
+  "DVMushiChikaFarHashiraB": {
+    "nameOverride": null
+  },
+  "DVMushiChikaFarIkeA": {
+    "nameOverride": null
+  },
+  "DVMushiChikaFarTenjyoA": {
+    "nameOverride": null
+  },
+  "DVMushiChikaFarYamaA": {
+    "nameOverride": null
+  },
+  "DVMushiChikaMiddleKabeA": {
+    "nameOverride": null
+  },
+  "DVMushiChikaMiddleKabeB": {
+    "nameOverride": null
+  },
+  "DVMushiChikaMiddleKabeHashiA": {
+    "nameOverride": null
+  },
+  "DVMushiChikaMiddleKabeHashiB": {
+    "nameOverride": null
+  },
+  "DVMushiChikaNearTsuruA": {
+    "nameOverride": null
+  },
+  "DVMushiMachiFarHayashiA": {
+    "nameOverride": null
+  },
+  "DVMushiMachiFarIeA": {
+    "nameOverride": null
+  },
+  "DVMushiMachiFarIeB": {
+    "nameOverride": null
+  },
+  "DVMushiMachiFarJimenA": {
+    "nameOverride": null
+  },
+  "DVMushiMachiFarJimenB": {
+    "nameOverride": null
+  },
+  "DVMushiMachiFarYamaA": {
+    "nameOverride": null
+  },
+  "DVMushiMachiFarYamaB": {
+    "nameOverride": null
+  },
+  "DVNettaiJurinAFarDragonRockA": {
+    "nameOverride": null
+  },
+  "DVNettaiResortDaibutsuWonderMiddleKazariA00": {
+    "nameOverride": null
+  },
+  "DVNettaiResortDaibutsuWonderWonderGimmickA00": {
+    "nameOverride": null
+  },
+  "DVNettaiResortDaibutsuWonderWonderGimmickAEmi": {
+    "nameOverride": null
+  },
+  "DVNettaiResortDaibutsuWonderWonderGimmickAHa00": {
+    "nameOverride": null
+  },
+  "DVNettaiResortDaibutsuWonderWonderGimmickAHa01": {
+    "nameOverride": null
+  },
+  "DVNettaiResortDaibutsuWonderWonderGimmickAHa02": {
+    "nameOverride": null
+  },
+  "DVNettaiResortDaibutsuWonderWonderGimmickAMayugeL": {
+    "nameOverride": null
+  },
+  "DVNettaiResortDaibutsuWonderWonderGimmickAMayugeR": {
+    "nameOverride": null
+  },
+  "DVNettaiResortFarIwaA": {
+    "nameOverride": null
+  },
+  "DVNettaiResortFarJimenA": {
+    "nameOverride": null
+  },
+  "DVNettaiResortFarKabeA": {
+    "nameOverride": null
+  },
+  "DVNettaiResortKakyuWonderDaizaB00": {
+    "nameOverride": null
+  },
+  "DVNettaiResortKakyuWonderDaizaC00": {
+    "nameOverride": null
+  },
+  "DVNettaiResortMiddleKiA": {
+    "nameOverride": null
+  },
+  "DVNettaiResortNearYouganA": {
+    "nameOverride": null
+  },
+  "DVNettaiResortWonderNoroiGINearLight": {
+    "nameOverride": null
+  },
+  "DVNettaiResortWonderNoroiGINearLight_B": {
+    "nameOverride": null
+  },
+  "DVNettaiResortWonderNoroiGINearLight_C": {
+    "nameOverride": null
+  },
+  "DVNettaiResortWonderNoroiGINearLight_D": {
+    "nameOverride": null
+  },
+  "DVNettaiResortWonderNoroiGINearLight_E": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganFarIwaA00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganFarIwaKabeA00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganFarJimenA00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganFarKiB00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganFarKiB01": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganFarTenjoA00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganFarTenjoA01": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeA00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeA01": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeABottom00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeAT00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeAT01": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeATop00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeATop01": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeAW00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeAW01": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeB00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeBTop00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeBW00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeC00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeC01": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeCTop00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeCTop01": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeCW00": {
+    "nameOverride": null
+  },
+  "DVNettaiYoganMiddleKabeCW01": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarBlockA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarGateA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarIwaA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarJimenA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarJimenC": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarSazinA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarSazinB": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarSazinC": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarSazinD": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarSunaA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouFarSunaB": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouMiddleBlockA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouMiddleWoodA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouNearBlockA": {
+    "nameOverride": null
+  },
+  "DVSabakuChijouNearKusaA": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarHagurumaA01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarHagurumaA02": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarHashiraA01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarHashiraA02": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarSakinYamaA01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarTenjyouA01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarTenjyouB01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarTenjyouC01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaFarTenjyouD01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaMiddleKabeA01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaMiddleKabeB01": {
+    "nameOverride": null
+  },
+  "DVSabakuChikaMiddleKabeB02": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarAtama": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarGateA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarHoshiA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarHoshiB": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarJimenA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarJimenC": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarKusaA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarUmiA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarWoodA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarWoodB": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarYamaA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiFarYamaB": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiMiddleHatenaRoomA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiMiddleKabeB00": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiMiddleKabeB01": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiMiddleKabeB02": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiMiddleKabeB03": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiMiddleKabeB04": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiMiddleWoodA": {
+    "nameOverride": null
+  },
+  "DVSabakuIsekiNearTesuriA": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarMoon": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarStar": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarStarRoad": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarYama00": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarYama01": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarYama02": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarYama03": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarYama04": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarYama05": {
+    "nameOverride": null
+  },
+  "DVSabakuJyokuFarYama06": {
+    "nameOverride": null
+  },
+  "DVSabakuPyramidWonderMiddleHashiraA00": {
+    "nameOverride": null
+  },
+  "DVSabakuPyramidWonderMiddleHashiraA01": {
+    "nameOverride": null
+  },
+  "DVSabakuPyramidWonderMiddleHashiraA02": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarDokanA": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarDokanB": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarDokanC": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarHikariA": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarHikariC": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarMoveDokanA": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarShigemiA": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarShigemiC": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarShigemiCoverA": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarTenjyouA": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarTenjyouB": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarWonderA": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarWonderB00": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarWonderB01": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarWonderC00": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarWonderD00": {
+    "nameOverride": null
+  },
+  "DVSavannaChiteiFarWonderE": {
+    "nameOverride": null
+  },
+  "DVSavannaFarHikariA": {
+    "nameOverride": null
+  },
+  "DVSavannaFarIwaA": {
+    "nameOverride": null
+  },
+  "DVSavannaFarJimenA": {
+    "nameOverride": null
+  },
+  "DVSavannaFarYamaC": {
+    "nameOverride": null
+  },
+  "DVSavannaFarYamaCFar": {
+    "nameOverride": null
+  },
+  "DVSavannaFarYamaCSS": {
+    "nameOverride": null
+  },
+  "DVSavannaJyokuFarSeizaA": {
+    "nameOverride": null
+  },
+  "DVSavannaJyokuFarYama00": {
+    "nameOverride": null
+  },
+  "DVSavannaJyokuFarYama01": {
+    "nameOverride": null
+  },
+  "DVSavannaJyokuFarYama02": {
+    "nameOverride": null
+  },
+  "DVSavannaMiddleSekibanAA": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuFarJimenA": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuFarKiA": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuFarKiB": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuFarYamaA": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuMiddleKiA": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuMiddleKiB": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuMiddleKiC": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuNijiAshibaWonderFarMoonA": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuNijiAshibaWonderFarNijiA": {
+    "nameOverride": null
+  },
+  "DVSavannaSabakuNijiAshibaWonderFarNijiB": {
+    "nameOverride": null
+  },
+  "DVSavannaTossinMiddleSekibanKazariA00": {
+    "nameOverride": null
+  },
+  "DVSavannaZouYamaFarZouYamaA": {
+    "nameOverride": null
+  },
+  "DVScrollReferencePointLocater": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarCloudA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarCloudA02": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarHoshiA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarHoshiA02": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarHoshiA03": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarHoshiC01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarHoshiC02": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarHoshiHamonA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarIwaA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarIwaA02": {
+    "nameOverride": null
+  },
+  "DVWaKaiganFarTakiA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganHoshiWonderMiddleHoshiB00": {
+    "nameOverride": null
+  },
+  "DVWaKaiganMiddleCloudA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganMiddleCloudA02": {
+    "nameOverride": null
+  },
+  "DVWaKaiganMiddleIwaA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganMiddleIwaA02": {
+    "nameOverride": null
+  },
+  "DVWaKaiganMiddleKiA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganMiddleKiA02": {
+    "nameOverride": null
+  },
+  "DVWaKaiganMiddleTakiA03": {
+    "nameOverride": null
+  },
+  "DVWaKaiganNearIwaA": {
+    "nameOverride": null
+  },
+  "DVWaKaiganNearKiA01": {
+    "nameOverride": null
+  },
+  "DVWaKaiganNearKiA02": {
+    "nameOverride": null
+  },
+  "DVWaKaiganTakiWonderMiddleTakiA": {
+    "nameOverride": null
+  },
+  "DVWaKaiganTakiWonderNearKiA": {
+    "nameOverride": null
+  },
+  "DVWaKaiganTakiWonderNearKiB": {
+    "nameOverride": null
+  },
+  "DVYamaJyokuFarYama00": {
+    "nameOverride": null
+  },
+  "DVYamaJyokuFarYama01": {
+    "nameOverride": null
+  },
+  "DVYamaJyokuFarYama02": {
+    "nameOverride": null
+  },
+  "DVYamaJyokuFarYama03": {
+    "nameOverride": null
+  },
+  "DVYamaJyokuFarYama04": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarJimen00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarJimen01": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarJimen02": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarJimen03": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarJimenUnder": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarKamakura00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarKawa00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarKawa01": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarKawa02": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarKooriHashira00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarKooriHashira01": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarOka00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyoju00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyoju01": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyoju02": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyoju03": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyoju04": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyoju05": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyoju06": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyoju07": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarShinyojuKazari00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarStar00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarYama00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarYama01": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarYamaSaboten00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarYamaSnow00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarYukidaruma00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoFarYukidaruma01": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoMiddleKabe00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoNearJimen00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoNearJimen01": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoNearKazariB00": {
+    "nameOverride": null
+  },
+  "DVYamaTijyoNearKazariB01": {
+    "nameOverride": null
+  },
+  "EDVKuriboSleep": {
+    "nameOverride": null
+  },
+  "EDVWorldMapBubble": {
+    "nameOverride": null
+  },
+  "EDVWorldMapJumpUni": {
+    "nameOverride": null
+  },
+  "EDVWorldMapKuribo": {
+    "nameOverride": null
+  },
+  "EDVWorldMapMajiro": {
+    "nameOverride": null
+  },
+  "EDVWorldMapMajiroShell": {
+    "nameOverride": null
+  },
+  "EDVWorldMapMerikondoru": {
+    "nameOverride": null
+  },
+  "EDVWorldMapPukupuku": {
+    "nameOverride": null
+  },
+  "EDVWorldMapSlime": {
+    "nameOverride": null
+  },
+  "EDVWorldMapTosshin": {
+    "nameOverride": null
+  },
+  "EnemuWonderKoronporin_HighJump": {
+    "nameOverride": null
+  },
+  "EnemyAnguri": {
+    "nameOverride": null
+  },
+  "EnemyBalloonKiller": {
+    "nameOverride": null
+  },
+  "EnemyBalloonKillerBig": {
+    "nameOverride": null
+  },
+  "EnemyBase": {
+    "nameOverride": null
+  },
+  "EnemyBigFirePackun": {
+    "nameOverride": null
+  },
+  "EnemyBigJumpUniPurple": {
+    "nameOverride": null
+  },
+  "EnemyBigKakibo": {
+    "nameOverride": "Big Goombrat"
+  },
+  "EnemyBigKuribo": {
+    "nameOverride": null
+  },
+  "EnemyBigPackun": {
+    "nameOverride": null
+  },
+  "EnemyBigRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyBigSlidon": {
+    "nameOverride": null
+  },
+  "EnemyBigSlidonDynamic": {
+    "nameOverride": null
+  },
+  "EnemyBigSnail": {
+    "nameOverride": null
+  },
+  "EnemyBigSnailShell": {
+    "nameOverride": null
+  },
+  "EnemyBigSoundRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyBiyon": {
+    "nameOverride": null
+  },
+  "EnemyBlackPackun": {
+    "nameOverride": null
+  },
+  "EnemyBlackPackunLight": {
+    "nameOverride": null
+  },
+  "EnemyBlackPackunLightSet2": {
+    "nameOverride": null
+  },
+  "EnemyBlackPackunLightSet4": {
+    "nameOverride": null
+  },
+  "EnemyBlowgunhei": {
+    "nameOverride": null
+  },
+  "EnemyBlowgunheiBlowgun": {
+    "nameOverride": null
+  },
+  "EnemyBombhei": {
+    "nameOverride": null
+  },
+  "EnemyBombheiPlant": {
+    "nameOverride": null
+  },
+  "EnemyBoneKuribo": {
+    "nameOverride": null
+  },
+  "EnemyBonePackun": {
+    "nameOverride": null
+  },
+  "EnemyBoneRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyBrosHammer": {
+    "nameOverride": null
+  },
+  "EnemyBubble": {
+    "nameOverride": null
+  },
+  "EnemyCanChan": {
+    "nameOverride": null
+  },
+  "EnemyCanChanRed": {
+    "nameOverride": null
+  },
+  "EnemyChaseDoor": {
+    "nameOverride": null
+  },
+  "EnemyChaseDoorWeak": {
+    "nameOverride": null
+  },
+  "EnemyChoroChu": {
+    "nameOverride": null
+  },
+  "EnemyDarkNokonoko": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBigFirePackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBigPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBigRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBigSoundDancePackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBigSoundRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBoneNobiNobiPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBoneNobiNobiRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBonePackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutBoneRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutFirePackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutRunRunPackunKoopaJr": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutSoundDancePackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutSoundRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemyDirectPutWatermelonPackun": {
+    "nameOverride": null
+  },
+  "EnemyDossun": {
+    "nameOverride": null
+  },
+  "EnemyDurian": {
+    "nameOverride": null
+  },
+  "EnemyEater": {
+    "nameOverride": null
+  },
+  "EnemyEaterSimple": {
+    "nameOverride": null
+  },
+  "EnemyEaterWonder": {
+    "nameOverride": null
+  },
+  "EnemyElectricBubble": {
+    "nameOverride": null
+  },
+  "EnemyErin": {
+    "nameOverride": null
+  },
+  "EnemyErinRed": {
+    "nameOverride": null
+  },
+  "EnemyFireGabon": {
+    "nameOverride": null
+  },
+  "EnemyFireGabonFireBall": {
+    "nameOverride": null
+  },
+  "EnemyFirePackun": {
+    "nameOverride": null
+  },
+  "EnemyFirePackunFireBall": {
+    "nameOverride": null
+  },
+  "EnemyGabon": {
+    "nameOverride": null
+  },
+  "EnemyGabonBase": {
+    "nameOverride": null
+  },
+  "EnemyGabonPinata": {
+    "nameOverride": null
+  },
+  "EnemyGabonSchringan": {
+    "nameOverride": null
+  },
+  "EnemyGessoHota": {
+    "nameOverride": null
+  },
+  "EnemyGessoHotaWonder": {
+    "nameOverride": null
+  },
+  "EnemyGiantKuribo": {
+    "nameOverride": null
+  },
+  "EnemyGorobo": {
+    "nameOverride": null
+  },
+  "EnemyHacondor": {
+    "nameOverride": null
+  },
+  "EnemyHaiden": {
+    "nameOverride": null
+  },
+  "EnemyHakkun": {
+    "nameOverride": null
+  },
+  "EnemyHanabihei": {
+    "nameOverride": null
+  },
+  "EnemyHebimushi": {
+    "nameOverride": null
+  },
+  "EnemyHebimushiBody": {
+    "nameOverride": null
+  },
+  "EnemyHebimushiBodyRapid": {
+    "nameOverride": null
+  },
+  "EnemyHebimushiRapid": {
+    "nameOverride": null
+  },
+  "EnemyHebimushiTail": {
+    "nameOverride": null
+  },
+  "EnemyHebimushiTailRapid": {
+    "nameOverride": null
+  },
+  "EnemyHouHou": {
+    "nameOverride": null
+  },
+  "EnemyIronBall": {
+    "nameOverride": null
+  },
+  "EnemyIronBallBig": {
+    "nameOverride": null
+  },
+  "EnemyIronBallBigForLastStage": {
+    "nameOverride": null
+  },
+  "EnemyIronBallVeryBig": {
+    "nameOverride": null
+  },
+  "EnemyJugemu": {
+    "nameOverride": null
+  },
+  "EnemyJugemuCloud": {
+    "nameOverride": null
+  },
+  "EnemyJumpUni": {
+    "nameOverride": null
+  },
+  "EnemyJumpUniHigh": {
+    "nameOverride": null
+  },
+  "EnemyJumpUniHighDummy": {
+    "nameOverride": null
+  },
+  "EnemyJumpUniPurple": {
+    "nameOverride": null
+  },
+  "EnemyJumpUniPurpleBambooIn": {
+    "nameOverride": null
+  },
+  "EnemyKakibo": {
+    "nameOverride": "Goombrat"
+  },
+  "EnemyKaron": {
+    "nameOverride": "Dry Bones"
+  },
+  "EnemyKaronBone": {
+    "nameOverride": null
+  },
+  "EnemyKawasemi2": {
+    "nameOverride": null
+  },
+  "EnemyKawasemiAscend": {
+    "nameOverride": null
+  },
+  "EnemyKeseran": {
+    "nameOverride": null
+  },
+  "EnemyKeseranBig": {
+    "nameOverride": null
+  },
+  "EnemyKiller": {
+    "nameOverride": null
+  },
+  "EnemyKillerSearch_OneActor": {
+    "nameOverride": null
+  },
+  "EnemyKonpei": {
+    "nameOverride": null
+  },
+  "EnemyKorobu": {
+    "nameOverride": null
+  },
+  "EnemyKorobuBig": {
+    "nameOverride": null
+  },
+  "EnemyKoropon": {
+    "nameOverride": null
+  },
+  "EnemyKuribo": {
+    "nameOverride": "Goomba"
+  },
+  "EnemyKuriboKoopaJr": {
+    "nameOverride": "Koopa Troopa"
+  },
+  "EnemyLivelyHakkun": {
+    "nameOverride": null
+  },
+  "EnemyLongBiyon": {
+    "nameOverride": null
+  },
+  "EnemyLongKiller": {
+    "nameOverride": null
+  },
+  "EnemyMadillo": {
+    "nameOverride": null
+  },
+  "EnemyMagChan": {
+    "nameOverride": null
+  },
+  "EnemyMagChanBig": {
+    "nameOverride": null
+  },
+  "EnemyMagumaDossun": {
+    "nameOverride": null
+  },
+  "EnemyMechaKoopa": {
+    "nameOverride": null
+  },
+  "EnemyMechaKoopaMk2Plant": {
+    "nameOverride": null
+  },
+  "EnemyMechaKoopaMk3": {
+    "nameOverride": null
+  },
+  "EnemyMechaKoopaPlant": {
+    "nameOverride": null
+  },
+  "EnemyMeraMera": {
+    "nameOverride": null
+  },
+  "EnemyMeriCondor": {
+    "nameOverride": null
+  },
+  "EnemyMet": {
+    "nameOverride": null
+  },
+  "EnemyMokumokumo": {
+    "nameOverride": null
+  },
+  "EnemyMokumokumoBig": {
+    "nameOverride": null
+  },
+  "EnemyMokumokumoBody": {
+    "nameOverride": null
+  },
+  "EnemyMokumokumoBodyYoshi": {
+    "nameOverride": null
+  },
+  "EnemyMokumokumoLittleBig": {
+    "nameOverride": null
+  },
+  "EnemyMokumokumoYoshiTail": {
+    "nameOverride": null
+  },
+  "EnemyMorocon": {
+    "nameOverride": null
+  },
+  "EnemyMummy": {
+    "nameOverride": null
+  },
+  "EnemyNewMeriCondor": {
+    "nameOverride": null
+  },
+  "EnemyNokonoko": {
+    "nameOverride": null
+  },
+  "EnemyNokonokoRed": {
+    "nameOverride": null
+  },
+  "EnemyNokonokoRolling": {
+    "nameOverride": null
+  },
+  "EnemyNokonokoSea": {
+    "nameOverride": null
+  },
+  "EnemyNokonokoSkate": {
+    "nameOverride": null
+  },
+  "EnemyNokonokoSkateWonder": {
+    "nameOverride": null
+  },
+  "EnemyOctopusFoot": {
+    "nameOverride": null
+  },
+  "EnemyOnagazaru": {
+    "nameOverride": null
+  },
+  "EnemyOnagazaruQuizAnswerChoices1": {
+    "nameOverride": null
+  },
+  "EnemyOnagazaruQuizAnswerChoices2": {
+    "nameOverride": null
+  },
+  "EnemyOnagazaruQuizAnswerChoices3": {
+    "nameOverride": null
+  },
+  "EnemyOsukun": {
+    "nameOverride": null
+  },
+  "EnemyOsukunWonder": {
+    "nameOverride": null
+  },
+  "EnemyOverSizeSlidon": {
+    "nameOverride": null
+  },
+  "EnemyPackun": {
+    "nameOverride": null
+  },
+  "EnemyPatagon": {
+    "nameOverride": null
+  },
+  "EnemyPatapata": {
+    "nameOverride": null
+  },
+  "EnemyPatapataRed": {
+    "nameOverride": null
+  },
+  "EnemyPuchiPackun": {
+    "nameOverride": null
+  },
+  "EnemyPukupuku": {
+    "nameOverride": null
+  },
+  "EnemyPukupukuReaction": {
+    "nameOverride": null
+  },
+  "EnemyPukupukuReactionKoopaJr": {
+    "nameOverride": null
+  },
+  "EnemyPukupukuReactionPlus": {
+    "nameOverride": null
+  },
+  "EnemyRaceHanachanBody": {
+    "nameOverride": null
+  },
+  "EnemyRaceHanachanBody1": {
+    "nameOverride": null
+  },
+  "EnemyRaceHanachanBody2": {
+    "nameOverride": null
+  },
+  "EnemyRaceHanachanBody3": {
+    "nameOverride": null
+  },
+  "EnemyRaceHanachanHead": {
+    "nameOverride": null
+  },
+  "EnemyRhythmGabon": {
+    "nameOverride": null
+  },
+  "EnemyRumble": {
+    "nameOverride": null
+  },
+  "EnemyRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemySamboBody": {
+    "nameOverride": null
+  },
+  "EnemySamboBodyYoshi": {
+    "nameOverride": null
+  },
+  "EnemySamboHead": {
+    "nameOverride": null
+  },
+  "EnemyShadowMario": {
+    "nameOverride": null
+  },
+  "EnemySingWonderTeresaBig": {
+    "nameOverride": null
+  },
+  "EnemySlidon": {
+    "nameOverride": null
+  },
+  "EnemySlime": {
+    "nameOverride": null
+  },
+  "EnemySlug": {
+    "nameOverride": null
+  },
+  "EnemySnail": {
+    "nameOverride": null
+  },
+  "EnemySnailShell": {
+    "nameOverride": null
+  },
+  "EnemySoundCanChan": {
+    "nameOverride": null
+  },
+  "EnemySoundCanChanRed": {
+    "nameOverride": null
+  },
+  "EnemySoundChaseDoorWeak": {
+    "nameOverride": null
+  },
+  "EnemySoundFirePackun": {
+    "nameOverride": null
+  },
+  "EnemySoundHakkun": {
+    "nameOverride": null
+  },
+  "EnemySoundJumpHakkun": {
+    "nameOverride": null
+  },
+  "EnemySoundPackun": {
+    "nameOverride": null
+  },
+  "EnemySoundRunRunPackun": {
+    "nameOverride": null
+  },
+  "EnemySoundTakebo": {
+    "nameOverride": null
+  },
+  "EnemySoundTakeboRed": {
+    "nameOverride": null
+  },
+  "EnemySoundTeresa": {
+    "nameOverride": null
+  },
+  "EnemyTakebo": {
+    "nameOverride": null
+  },
+  "EnemyTakeboRed": {
+    "nameOverride": null
+  },
+  "EnemyTakeboUnderGround": {
+    "nameOverride": null
+  },
+  "EnemyTeresa": {
+    "nameOverride": null
+  },
+  "EnemyTogezo": {
+    "nameOverride": null
+  },
+  "EnemyTossin": {
+    "nameOverride": null
+  },
+  "EnemyTossinGroup": {
+    "nameOverride": null
+  },
+  "EnemyTsuboChan": {
+    "nameOverride": null
+  },
+  "EnemyUnira": {
+    "nameOverride": null
+  },
+  "EnemyUzaPiyo": {
+    "nameOverride": null
+  },
+  "EnemyWatage": {
+    "nameOverride": null
+  },
+  "EnemyWatermelonPackun": {
+    "nameOverride": null
+  },
+  "EnemyWatermelonPackunSeed": {
+    "nameOverride": null
+  },
+  "EnemyWonderBigPatagon": {
+    "nameOverride": null
+  },
+  "EnemyWonderKoronporin": {
+    "nameOverride": null
+  },
+  "EnemyWonderLongKiller": {
+    "nameOverride": null
+  },
+  "EnemyWonderMokumokumoLittleBig": {
+    "nameOverride": null
+  },
+  "EnemyWonderSanta": {
+    "nameOverride": null
+  },
+  "EnemyWonderSantaIronBall": {
+    "nameOverride": null
+  },
+  "EnemyZundoko": {
+    "nameOverride": null
+  },
+  "EnemyZundoko_Bind": {
+    "nameOverride": null
+  },
+  "entryCourseZoomsignal": {
+    "nameOverride": null
+  },
+  "entryCourseZoomSignalKoopaJr04": {
+    "nameOverride": null
+  },
+  "entryCourseZoomSignalLastBossKoopaHead": {
+    "nameOverride": null
+  },
+  "EnvEffectOverrideTag": {
+    "nameOverride": null
+  },
+  "EnvironmentSoundChangeTag": {
+    "nameOverride": null
+  },
+  "EnvPaletteTransTag": {
+    "nameOverride": null
+  },
+  "EnvPaletteTransTagForWorldMapEnterKoopaCastle": {
+    "nameOverride": null
+  },
+  "EnvPaletteTransTagWorldMap": {
+    "nameOverride": null
+  },
+  "EventGuest10Common": {
+    "nameOverride": null
+  },
+  "EventGuest11Common": {
+    "nameOverride": null
+  },
+  "EventGuest1Common": {
+    "nameOverride": null
+  },
+  "EventGuest2Common": {
+    "nameOverride": null
+  },
+  "EventGuest3Common": {
+    "nameOverride": null
+  },
+  "EventGuest4Common": {
+    "nameOverride": null
+  },
+  "EventGuest5Common": {
+    "nameOverride": null
+  },
+  "EventGuest6Common": {
+    "nameOverride": null
+  },
+  "EventGuest7Common": {
+    "nameOverride": null
+  },
+  "EventGuest8Common": {
+    "nameOverride": null
+  },
+  "EventGuest9Common": {
+    "nameOverride": null
+  },
+  "EventGuestCommon": {
+    "nameOverride": null
+  },
+  "EventItemWonderFlower": {
+    "nameOverride": null
+  },
+  "EventItemWonderFlowerGoalDemo": {
+    "nameOverride": null
+  },
+  "EventItemWonderSeedGoalGateDemo": {
+    "nameOverride": null
+  },
+  "EventSignal": {
+    "nameOverride": null
+  },
+  "EventStarterCommon": {
+    "nameOverride": null
+  },
+  "EventSystemActor": {
+    "nameOverride": null
+  },
+  "FinalCourceDemoKameck": {
+    "nameOverride": null
+  },
+  "FinalCourseDemoKoopaJr": {
+    "nameOverride": null
+  },
+  "FirePackunFireBallTag": {
+    "nameOverride": null
+  },
+  "FloorTag": {
+    "nameOverride": null
+  },
+  "FloweringCheckTag": {
+    "nameOverride": null
+  },
+  "FluidAreaBase": {
+    "nameOverride": null
+  },
+  "FluidEntityObjectBase": {
+    "nameOverride": null
+  },
+  "FluidMapBase": {
+    "nameOverride": null
+  },
+  "FluidObjectBase": {
+    "nameOverride": null
+  },
+  "FluidSensorObjectBase": {
+    "nameOverride": null
+  },
+  "FluidTagBase": {
+    "nameOverride": null
+  },
+  "FollowTag": {
+    "nameOverride": null
+  },
+  "ForbidUploadKakashiArea": {
+    "nameOverride": null
+  },
+  "ForceOneTimeSlopeSlideTag": {
+    "nameOverride": null
+  },
+  "FriendRaceFailEntryObserveTag": {
+    "nameOverride": null
+  },
+  "GameCourseCamera": {
+    "nameOverride": null
+  },
+  "GenerateShootingWonderStarTag": {
+    "nameOverride": null
+  },
+  "GlobalAreaInfoActor": {
+    "nameOverride": null
+  },
+  "GoQKunWonderTag": {
+    "nameOverride": null
+  },
+  "GrandWorldMapCamera": {
+    "nameOverride": null
+  },
+  "GroundNoiseTag": {
+    "nameOverride": null
+  },
+  "HalfBlockStaticMapBase": {
+    "nameOverride": null
+  },
+  "HanachanRaceStartTag": {
+    "nameOverride": null
+  },
+  "IcePopUp": {
+    "nameOverride": null
+  },
+  "IcePopUpSmall": {
+    "nameOverride": null
+  },
+  "InAllWaterEnemyBase": {
+    "nameOverride": null
+  },
+  "IronBoxBase": {
+    "nameOverride": null
+  },
+  "IsekiBlock4M": {
+    "nameOverride": null
+  },
+  "IsekiBlock4M_1x3": {
+    "nameOverride": null
+  },
+  "IsekiBlock4M_2x2": {
+    "nameOverride": null
+  },
+  "IsekiPendulumShaft": {
+    "nameOverride": null
+  },
+  "ItemAwaFlower": {
+    "nameOverride": null
+  },
+  "ItemAwaFlowerKoopa": {
+    "nameOverride": null
+  },
+  "ItemBalloon": {
+    "nameOverride": null
+  },
+  "Itembase": {
+    "nameOverride": null
+  },
+  "ItemBubble": {
+    "nameOverride": null
+  },
+  "ItemBubbleKoopaHead": {
+    "nameOverride": null
+  },
+  "ItemBubbleKoopaJr": {
+    "nameOverride": null
+  },
+  "ItemDrillSuit": {
+    "nameOverride": null
+  },
+  "ItemElephantSuit": {
+    "nameOverride": null
+  },
+  "ItemElephantSuitKoopa": {
+    "nameOverride": null
+  },
+  "ItemFireFlower": {
+    "nameOverride": null
+  },
+  "ItemGrandSeedDemo": {
+    "nameOverride": null
+  },
+  "ItemKinoko": {
+    "nameOverride": null
+  },
+  "ItemKinokoKoopaJr": {
+    "nameOverride": null
+  },
+  "ItemMotherSeed": {
+    "nameOverride": null
+  },
+  "ItemOffering": {
+    "nameOverride": null
+  },
+  "ItemOneUpKinoko": {
+    "nameOverride": null
+  },
+  "ItemOriFinishWonderSead": {
+    "nameOverride": null
+  },
+  "ItemStar": {
+    "nameOverride": null
+  },
+  "ItemWonderChip": {
+    "nameOverride": null
+  },
+  "ItemWonderChipFront": {
+    "nameOverride": null
+  },
+  "ItemWonderFinishWonderSead": {
+    "nameOverride": null
+  },
+  "ItemWonderHole": {
+    "nameOverride": null
+  },
+  "ItemWonderHoleView": {
+    "nameOverride": null
+  },
+  "ItemWonderStar": {
+    "nameOverride": null
+  },
+  "KoopaJr04ObjectDokanPopUp": {
+    "nameOverride": null
+  },
+  "KoopaJr04ScaleFloor": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrain3M": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrain4M": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrain5M": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrain7M": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrain8M": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrainBase": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrainDamage3M": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrainDamage4M": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrainDamage5M": {
+    "nameOverride": null
+  },
+  "KoopaJrMovingTerrainDamageBase": {
+    "nameOverride": null
+  },
+  "KoopaJrSystemWaterMixAreaPlane": {
+    "nameOverride": null
+  },
+  "KoopaJrWalkFootingBase": {
+    "nameOverride": null
+  },
+  "KoopaJrWaterSphere": {
+    "nameOverride": null
+  },
+  "KoopaJrWonderHole": {
+    "nameOverride": null
+  },
+  "KoopaRhythmMovingLift": {
+    "nameOverride": null
+  },
+  "KoopaRhythmMovingLiftPositionTag": {
+    "nameOverride": null
+  },
+  "KoopaRhythmMovingTerrain": {
+    "nameOverride": null
+  },
+  "KuriboMario": {
+    "nameOverride": null
+  },
+  "KuriboWillGrowIntoGiant": {
+    "nameOverride": null
+  },
+  "LastBossKoopaHead": {
+    "nameOverride": null
+  },
+  "LastBossKoopaHeadSwitch": {
+    "nameOverride": null
+  },
+  "LastBossKoopaKnuckle": {
+    "nameOverride": null
+  },
+  "LastBossKoopaKnuckleR": {
+    "nameOverride": null
+  },
+  "LastBossWonderBadSmokeAllVerTag": {
+    "nameOverride": null
+  },
+  "LastBossWonderBadSmokeTag": {
+    "nameOverride": null
+  },
+  "LavaFountainWidth4": {
+    "nameOverride": null
+  },
+  "LavaFountainWidth6": {
+    "nameOverride": null
+  },
+  "LavaTag": {
+    "nameOverride": null
+  },
+  "LiftBase": {
+    "nameOverride": null
+  },
+  "LiftCastleFactoryUpDown": {
+    "nameOverride": null
+  },
+  "LiftCastleFactoryUpDown8m": {
+    "nameOverride": null
+  },
+  "LightLocatorStatic": {
+    "nameOverride": null
+  },
+  "LightLocatorStaticWorldMap": {
+    "nameOverride": null
+  },
+  "LightSwitchBlockMgr": {
+    "nameOverride": null
+  },
+  "LocalItemPopupMgr": {
+    "nameOverride": null
+  },
+  "LogicalSignalANDTag": {
+    "nameOverride": null
+  },
+  "LogicalSignalNORTag": {
+    "nameOverride": null
+  },
+  "LogicalSignalORTag": {
+    "nameOverride": null
+  },
+  "LogicalSignalSystemNANDTag": {
+    "nameOverride": null
+  },
+  "LogicalSignalXNORTag": {
+    "nameOverride": null
+  },
+  "LogicalSignalXORTag": {
+    "nameOverride": null
+  },
+  "LongBlockClarity": {
+    "nameOverride": null
+  },
+  "ManualDuckingControlTag": {
+    "nameOverride": null
+  },
+  "MapObj4BeatKazariA00": {
+    "nameOverride": null
+  },
+  "MapObj4BeatKazariA01": {
+    "nameOverride": null
+  },
+  "MapObj4BeatKazariB00": {
+    "nameOverride": null
+  },
+  "MapObj4BeatKazariB01": {
+    "nameOverride": null
+  },
+  "MapObj4BeatRoomAndCurtain": {
+    "nameOverride": null
+  },
+  "MapObj4BeatRoomAndCurtainRed": {
+    "nameOverride": null
+  },
+  "MapObjBalloonKillerGoRound12x12": {
+    "nameOverride": null
+  },
+  "MapObjBalloonKillerGoRound9x9": {
+    "nameOverride": null
+  },
+  "MapObjBalloonKillerWall": {
+    "nameOverride": null
+  },
+  "MapObjBlockHardBreakableFrontGoal00": {
+    "nameOverride": null
+  },
+  "MapObjBounceCubeFull": {
+    "nameOverride": null
+  },
+  "MapObjBounceCubeHalf": {
+    "nameOverride": null
+  },
+  "MapObjBrokenBowserStatue": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryAshibaAA": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryAshibaAB": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryAshibaBA": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryKazariJimenHanaA00": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryKazariJimenHanaA01": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryKazariJimenSakuA": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryKazariJimenSakuB": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryKazariKabePipeA00": {
+    "nameOverride": null
+  },
+  "MapObjCastleFactoryKazariKabePipeA01": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroAshibaA01": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroAshibaA03A": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroAshibaA03B": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroAshibaA04": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroAshibaB00": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroAshibaTrussA00": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroAshibaTrussA01": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroAshibaTrussA02": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroKazariFenceA00": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroKazariHataA00": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroKazariHataA01": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroKazariJimenIshiA00": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroKazariJimenIshiA01": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroKazariJimenIshiA02": {
+    "nameOverride": null
+  },
+  "MapObjCastleSiroKazariTetsuHashiraA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaA00Emblem": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaB00": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaB01": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaB02": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaHanA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaHanB00": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaAshibaHanB01": {
+    "nameOverride": null
+  },
+  "MapObjCommonArenaDokanFutaA": {
+    "nameOverride": null
+  },
+  "MapObjCommonBadgeKazariA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonBadgeKazariA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonBadgeKazariB": {
+    "nameOverride": null
+  },
+  "MapObjCommonBadgeStart_TomeiBadge": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinAshibaB": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinKazariJimenA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinKazariJimenA02": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinKazariJimenA03": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinKazariJimenB01": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinKazariJimenB02": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinKazariKabeA": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinSlopeAshibaA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinSlopeAshibaA02": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinSlopeAshibaA03": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinSlopeAshibaB01": {
+    "nameOverride": null
+  },
+  "MapObjCommonBonusCoinSlopeAshibaB02": {
+    "nameOverride": null
+  },
+  "MapObjCommonColorBox": {
+    "nameOverride": null
+  },
+  "MapObjCommonColorBox1x1m": {
+    "nameOverride": null
+  },
+  "MapObjCommonColorBox2x2m": {
+    "nameOverride": null
+  },
+  "MapObjCommonColorBoxHalfCollision": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaKazariJimenA": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaKazariJimenKadanA": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaKazariKabeA": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaKazariKabeB": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaKazariKabeC01": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaKazariKabeC02": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaKazariKabeC03": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaKazariKabeC04": {
+    "nameOverride": null
+  },
+  "MapObjcommonHirobaRainbowKazariA": {
+    "nameOverride": null
+  },
+  "MapObjCommonIsekiBox3M": {
+    "nameOverride": null
+  },
+  "MapObjCommonJoukuAKazariJimenKumoA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonJoukuAKazariJimenKusaA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonJoukuAKazariJimenKusaA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonJoukuAKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonJoukuAKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonKinokoAshiba": {
+    "nameOverride": null
+  },
+  "MapObjCommonKinokoAshibaSakasa": {
+    "nameOverride": null
+  },
+  "MapObjCommonLavaSlopeA": {
+    "nameOverride": null
+  },
+  "MapObjCommonLavaSlopeB": {
+    "nameOverride": null
+  },
+  "MapObjCommonMiniMokkinAshibaHashiraA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonMiniMokkinAshibaHashiraA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonMiniMokkinKazariHashiraTopA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonNarakuA": {
+    "nameOverride": null
+  },
+  "MapObjCommonNeonAshibaBlockA": {
+    "nameOverride": null
+  },
+  "MapObjCommonNeonAshibaBlockAlwaysShine": {
+    "nameOverride": null
+  },
+  "MapObjCommonNeonAshibaBlockB": {
+    "nameOverride": null
+  },
+  "MapObjCommonNeonAshibaBlockC": {
+    "nameOverride": null
+  },
+  "MapObjCommonNeonAshibaBlockD": {
+    "nameOverride": null
+  },
+  "MapObjCommonNijiAshiba": {
+    "nameOverride": null
+  },
+  "MapObjCommonNPCHouseAshibaA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonNPCHouseAshibaB": {
+    "nameOverride": null
+  },
+  "MapObjCommonNPCHouseKazariJimenJouro": {
+    "nameOverride": null
+  },
+  "MapObjCommonNPCHouseKazariJimenJouroR": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanAshibaEndBaseA": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanAshibaEndBaseAMae": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanAshibaTopBaseA": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanAshibaTopBaseAMae": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanBossAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanBurner": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanBurnerBoss": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanBurnerSasae": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanKazariJimenTesuriA": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanKazariJimenTesuriB": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanKazariJimenTunagiA": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanKazariJimenTunagiB": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanKazariJimenTunagiC": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanKazariKabeKoopaA": {
+    "nameOverride": null
+  },
+  "MapObjCommonSenkanKazariKabeMadoA": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideAshibaALeft": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideAshibaAMiddle": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideAshibaAMiddle01": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideAshibaARight": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKaidanA": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKaidanAHajime": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKaidanB00": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKaidanB01": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKazariHanaA": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKazariHanaB00": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKazariHanaB01": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKazariHanaB02": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKazariHanaB03": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideKazariHanaB04": {
+    "nameOverride": null
+  },
+  "MapObjCommonTorideSabakuKaidanB00": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKaiteiKusaB": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKaiteiKusaC": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariJimenKusaA": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariJimenKusaB00": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariJimenKusaB01": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariJimenKusaC00": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariJimenKusaC01": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariKabeA": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariKabeB": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariSangoA": {
+    "nameOverride": null
+  },
+  "MapObjCommonUmiAsaseKazariSangoB00": {
+    "nameOverride": null
+  },
+  "MapObjCommonVignetteA": {
+    "nameOverride": null
+  },
+  "MapObjCommonYashikiAshibaA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonYashikiAshibaA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonYashikiKazariA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonYashikiKazariA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonYashikiKazariDoorA00": {
+    "nameOverride": null
+  },
+  "MapObjCommonYashikiKazariDoorA01": {
+    "nameOverride": null
+  },
+  "MapObjCommonYashikiKazariDoorA02": {
+    "nameOverride": null
+  },
+  "MapObjCommonYashikiKazariKabeA00": {
+    "nameOverride": null
+  },
+  "MapObjCRingA": {
+    "nameOverride": null
+  },
+  "MapObjCRingASetEffect": {
+    "nameOverride": null
+  },
+  "MapObjCRingReverseA": {
+    "nameOverride": null
+  },
+  "MapObjCRingReverseASetEffect": {
+    "nameOverride": null
+  },
+  "MapObjDiveHalfPipe00L": {
+    "nameOverride": null
+  },
+  "MapObjDiveHalfPipe00R": {
+    "nameOverride": null
+  },
+  "MapObjDiveHalfPipe01L": {
+    "nameOverride": null
+  },
+  "MapObjDiveHalfPipe01R": {
+    "nameOverride": null
+  },
+  "MapObjDiveHalfPipe02L": {
+    "nameOverride": null
+  },
+  "MapObjDiveHalfPipe02R": {
+    "nameOverride": null
+  },
+  "MapObjDiveHalfPipe03L": {
+    "nameOverride": null
+  },
+  "MapObjDiveHalfPipe03R": {
+    "nameOverride": null
+  },
+  "MapObjectSnowBall": {
+    "nameOverride": null
+  },
+  "MapObjHajimariChikaKazariJimenHouseki": {
+    "nameOverride": null
+  },
+  "MapObjHajimariChikaKazariJimenHousekiA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariChikaKazariJimenIwaA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariChikaKazariJimenIwaB": {
+    "nameOverride": null
+  },
+  "MapObjHajimariChikaKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariChikaKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariKaiganKazariA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariKaiganKazariB": {
+    "nameOverride": null
+  },
+  "MapObjHajimariKaiganKazariC": {
+    "nameOverride": null
+  },
+  "MapObjHajimariKaiganKazariD": {
+    "nameOverride": null
+  },
+  "MapObjHajimariKaiganKazariE": {
+    "nameOverride": null
+  },
+  "MapObjHajimariKaiganKazariKabeA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariKaiganKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariKaiganRainbowKazariA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariDokanA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariDokanA01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariDokanA02": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariJimenKusaA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariJimenSigemiA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariKabeA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariKabeA01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariKabeA02": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriSigemiB": {
+    "nameOverride": null
+  },
+  "MapObjHajimariMoriSigemiC": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenAshibaAMae": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenAshibaB": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenAshibaBMae": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenAshibaC1": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenDemoDaizaA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenDemoDaizaKazariA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenDemoKadanA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariDokanA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariDokanA01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariDokanA02": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariDokanA03": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenHanaA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenHanaA01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenHanaB": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenHanaB01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenHanaC00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenHanaC01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenKusa": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenKusa1": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenNeA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenNeA01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenNemotoA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenNemotoB": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenSakuA": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenSigemi": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariJimenSigemiB02": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariKadanA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariKokeA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariKokeA01": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjHajimariSougenKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjKinHorrorAshiba": {
+    "nameOverride": null
+  },
+  "MapObjKinHorrorAshibaDemo": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiA": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiA02": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiA02Rail": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiARail": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaHanIshiA00": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaHanIshiA01": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaHanIshiA02": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaHanIshiA03": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaHanIshiA04": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaKazariGelA00": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaKazariGelA01": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaKazariGelA02": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaKazariGelA03": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiAshibaKazariGelA04": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiB": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiB02": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiB02Rail": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiBRail": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiC": {
+    "nameOverride": null
+  },
+  "MapObjKinIsekiCRail": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriAkaruiKazariB": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriAkaruiKazariC": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriAkaruiKazariKabeB": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriAkaruiKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriAkaruiKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriAkaruiKazariTsukushiA": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariJimenKinoko00": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariJimenKinoko02": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariJimenKinoko03": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariJimenKinokoB00": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariJimenKinokoB01": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariJimenKinokoB02": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariKabeKinoko01": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariKabeKinoko04": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjKinMoriKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariA01": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariDoorA00": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariDoorA01": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariDoorB00": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariDoorB01": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariDoorC00": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariDoorC01": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariJimenIshi00": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariJimenIshi01": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariJimenSlimeA00": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariJimenSlimeA01": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimeKazariJimenSlimeA02": {
+    "nameOverride": null
+  },
+  "MapObjKinSlimerSpotKazariA01": {
+    "nameOverride": null
+  },
+  "MapObjMirrorballGoal": {
+    "nameOverride": null
+  },
+  "MapObjMushiChikaKazariA": {
+    "nameOverride": null
+  },
+  "MapObjMushiChikaKazariB": {
+    "nameOverride": null
+  },
+  "MapObjMushiChikaKazariD": {
+    "nameOverride": null
+  },
+  "MapObjMushiChikaKazariE": {
+    "nameOverride": null
+  },
+  "MapObjMushiChikaKazariKabeA00": {
+    "nameOverride": null
+  },
+  "MapObjMushiChikaKazariKabeA01": {
+    "nameOverride": null
+  },
+  "MapObjMushiChikaKazariKabeA02": {
+    "nameOverride": null
+  },
+  "MapObjMushiChikaKazariObiA": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariA": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariB": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariC": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariD": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariJimenIshiA": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariJimenIshiA02": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariKabeSweetsA00": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariKabeSweetsA01": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariKabeSweetsA02": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariKabeSweetsA03": {
+    "nameOverride": null
+  },
+  "MapObjMushiMachiKazariObiA": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortAshibaA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortAshibaA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortAshibaA02": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortAshibaA03": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortEnkeiAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariDokanYoganA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariDokanYoganA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariDoor": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariHashiraA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariHashiraA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariJimenHoneA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariJimenHoneA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariJimenHoneA02": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariJimenHoneA03": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariJimenHoneA04": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariJimenKusaAA": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariJimenKusaAB": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariObiB00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiResortKazariObiB01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganAshibaA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganAshibaB00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganAshibaC00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganAshibaC01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganAshibaD00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganIwaBlockA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganIwaBlockA00Tate3": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganIwaBlockA00Yoko3": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganIwaBlockA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganIwaBlockA02": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganKazariA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganKazariA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganKazariHashiraA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganKazariHashiraA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjNettaiYoganKazariTopA00": {
+    "nameOverride": null
+  },
+  "MapObjPyramidWonderNashiKabeA00": {
+    "nameOverride": null
+  },
+  "MapObjRaceSaku00": {
+    "nameOverride": null
+  },
+  "MapObjRaceSaku01": {
+    "nameOverride": null
+  },
+  "MapObjRaceStartDodai": {
+    "nameOverride": null
+  },
+  "MapObjRaceStartKabe": {
+    "nameOverride": null
+  },
+  "MapObjRaceStartKanban": {
+    "nameOverride": null
+  },
+  "MapObjRingA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouAshibaB": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariB": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariC": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariD": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariE": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariF": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariG": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariIshiA00": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariIshiA01": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariKabeA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariKabeB": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariKabeC": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariKabeD": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChijouKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaDaizaC": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaDaizaC02": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaDaizaD": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariA00": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariJimenRopeA00": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariJimenRopeA01": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariJimenRopeA02": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariJimenSunaA01": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariJimenSunaA02": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariJimenSunaA03": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariJimenSunaA04": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariJimenSunaA05": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariKabeLightA00": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjSabakuChikaKinkaiKazariB": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariDoorA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariDoorB": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariJimenDaizaA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariJimenSunaA01": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariJimenSunaA02": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariJimenSunaA03": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariJimenSunaA04": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariJimenSunaA05": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariKabeA00": {
+    "nameOverride": null
+  },
+  "MapObjSabakuIsekiKazariTesuriA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuJyokuBalloonKillerGoRound02": {
+    "nameOverride": null
+  },
+  "MapObjSabakuJyokuKabeA00": {
+    "nameOverride": null
+  },
+  "MapObjSabakuJyokuKabeA01": {
+    "nameOverride": null
+  },
+  "MapObjSabakuJyokuKabeA02": {
+    "nameOverride": null
+  },
+  "MapObjSabakuPyramidWonderAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuPyramidWonderAshibaB": {
+    "nameOverride": null
+  },
+  "MapObjSabakuPyramidWonderAshibaC": {
+    "nameOverride": null
+  },
+  "MapObjSabakuPyramidWonderKazariA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuPyramidWonderKazariHekigaA01": {
+    "nameOverride": null
+  },
+  "MapObjSabakuPyramidWonderKazariKabeA": {
+    "nameOverride": null
+  },
+  "MapObjSabakuPyramidWonderTrapL2": {
+    "nameOverride": null
+  },
+  "MapObjSabakuPyramidWonderTrapR2": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshiba30A": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshiba30A_6m": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshiba30A_8m": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshiba30B": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshiba30B_6m": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshiba30B_8m": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshiba45A": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshiba45B": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshibaBottomA": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshibaBottomA_6m": {
+    "nameOverride": null
+  },
+  "MapObjSakaAshibaBottomA_8m": {
+    "nameOverride": null
+  },
+  "MapObjSavannaAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjSavannaAshibaAMae": {
+    "nameOverride": null
+  },
+  "MapObjSavannaAshibaB": {
+    "nameOverride": null
+  },
+  "MapObjSavannaAshibaBMae": {
+    "nameOverride": null
+  },
+  "MapObjSavannaAshibaE": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiAshibaDokanA": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiAshibaDokanB": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariDokanA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariDokanA01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariDokanA02": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariDokanA03": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariJimenA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariJimenA01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariJimenB00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariJimenB01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiKazariWonderA": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiWonderAshibaDokanA": {
+    "nameOverride": null
+  },
+  "MapObjSavannaChiteiWonderAshibaDokanB": {
+    "nameOverride": null
+  },
+  "MapObjSavannaFallAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjSavannaFallAshibaB": {
+    "nameOverride": null
+  },
+  "MapObjSavannaFallAshibaBNextGoTo": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariA": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariDokanA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariDokanA01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKinomiA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKinomiA01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKusaA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKusaA01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKusaA02": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKusaB00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKusaB01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKusaC00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariJimenKusaC01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeIshi00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeIshi01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeIshi02": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeNeA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeNeA01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeNeB00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeNeB01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeNeB02": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeTsutiA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariKabeTsutiA01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaSabakuKazariIwaB00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaSabakuKazariJimenIwa00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaSabakuKazariJimenIwa01": {
+    "nameOverride": null
+  },
+  "MapObjSavannaSabakuKazariJimenIwa02": {
+    "nameOverride": null
+  },
+  "MapObjSavannaSabakuKazariKusaA": {
+    "nameOverride": null
+  },
+  "MapObjSavannaSabakuKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjSavannaSabakuKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjScaffoldingPerHalfFountain": {
+    "nameOverride": null
+  },
+  "MapObjWaJyokuDashFloorCorner": {
+    "nameOverride": null
+  },
+  "MapObjWaJyokuWonderSkiJump": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganAshibaA": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganAshibaC": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganAshibaD": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganAshibaHana": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganAshibaHana00": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganAshibaHana01": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganAshibaKazariA": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariD01": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariD02": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariIwaA00": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariIwaA01": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariIwaA02": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenA01": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenA02": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenB01": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenB02": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenB03": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenB04": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenB05": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenC01": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenC02": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariJimenC03": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariKabeA01": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariKabeB01": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariKabeB02": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariKabeB03": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariObiA00": {
+    "nameOverride": null
+  },
+  "MapObjWaKaiganKazariObiA01": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuAshibaA00": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuAshibaA01": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuAshibaA02": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuAshibaB00": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuAshibaB01": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariA00": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariA01": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariA02": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariHashiraA00": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariHashiraA01": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariJimenIshi00": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariJimenIshi01": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariJimenKumo00": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariJimenKumo01": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariJimenKumo02": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariKabeEdaA00": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariKabeEdaA01": {
+    "nameOverride": null
+  },
+  "MapObjYamaJyokuKazariObiA": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoAshibaC01": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoAshibaC02": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoGoalPole": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariA00": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariA01": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariA02": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariB00": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariB01": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariB02": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariC00": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariC01": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariC02": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariE00": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariE01": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoKazariE02": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoYukidamaKamakuraA": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoYukidamaSekisetsuA": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoYukidamaYukidarumaA": {
+    "nameOverride": null
+  },
+  "MapObjYamaTijyoYukidamaYukidarumaB": {
+    "nameOverride": null
+  },
+  "MapPartsBase": {
+    "nameOverride": null
+  },
+  "MeraMeraFireBall": {
+    "nameOverride": null
+  },
+  "MorphPlayerBase": {
+    "nameOverride": null
+  },
+  "NoSearchArea": {
+    "nameOverride": null
+  },
+  "NoteObjectCoinYellow": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockToObjectBlockLift": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonder1x9": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonder2x7": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonder3x1": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonder3x3": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonder3x5": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonder5x1": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonder5x3": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonder7x1": {
+    "nameOverride": null
+  },
+  "ObjectAdditionalBlockWonderToObjectBlockLift": {
+    "nameOverride": null
+  },
+  "ObjectAreaGoal": {
+    "nameOverride": null
+  },
+  "ObjectAreaSwitchInvoke": {
+    "nameOverride": null
+  },
+  "ObjectArenaGoalDokan": {
+    "nameOverride": null
+  },
+  "ObjectArenaGoalDokanController": {
+    "nameOverride": null
+  },
+  "ObjectAshibaDisappearStep": {
+    "nameOverride": null
+  },
+  "ObjectAvocadoBlock2x2": {
+    "nameOverride": null
+  },
+  "ObjectAvocadoBlock4x4": {
+    "nameOverride": null
+  },
+  "ObjectAvocadoBlock4x4_Light": {
+    "nameOverride": null
+  },
+  "ObjectBadge": {
+    "nameOverride": null
+  },
+  "ObjectBadgeSignBoard": {
+    "nameOverride": null
+  },
+  "ObjectBadgeTreasureChest": {
+    "nameOverride": null
+  },
+  "ObjectBalloonKillerHodai": {
+    "nameOverride": null
+  },
+  "ObjectBalloonKillerHodaiLeft": {
+    "nameOverride": null
+  },
+  "ObjectBalloonKillerHodaiRight": {
+    "nameOverride": null
+  },
+  "ObjectBalloonKillerHodaiUp": {
+    "nameOverride": null
+  },
+  "ObjectBalloonWall": {
+    "nameOverride": null
+  },
+  "ObjectBeltConveyor": {
+    "nameOverride": null
+  },
+  "ObjectBigFireKnuckle": {
+    "nameOverride": null
+  },
+  "ObjectBigPyramid": {
+    "nameOverride": null
+  },
+  "ObjectBigTenLuckyCoin": {
+    "nameOverride": null
+  },
+  "ObjectBlockBase": {
+    "nameOverride": null
+  },
+  "ObjectBlockChikuwa": {
+    "nameOverride": null
+  },
+  "ObjectBlockChikuwa4Unit": {
+    "nameOverride": null
+  },
+  "ObjectBlockClarityCharacter": {
+    "nameOverride": null
+  },
+  "ObjectBlockCreatePole": {
+    "nameOverride": null
+  },
+  "ObjectBlockCreatePoleSide": {
+    "nameOverride": null
+  },
+  "ObjectBlockDirDispOnOff": {
+    "nameOverride": null
+  },
+  "ObjectBlockDirDispOnOff2x2": {
+    "nameOverride": null
+  },
+  "ObjectBlockDirDispOnOff2x2W": {
+    "nameOverride": null
+  },
+  "ObjectBlockDirDispOnOff3x3": {
+    "nameOverride": null
+  },
+  "ObjectBlockDirDispOnOff3x3W": {
+    "nameOverride": null
+  },
+  "ObjectBlockDirDispOnOffBindable": {
+    "nameOverride": null
+  },
+  "ObjectBlockDirDispOnOffW": {
+    "nameOverride": null
+  },
+  "ObjectBlockDotLine": {
+    "nameOverride": null
+  },
+  "ObjectBlockDotLineWithBaseSignal": {
+    "nameOverride": null
+  },
+  "ObjectBlockDotLineWithTimerBlock": {
+    "nameOverride": null
+  },
+  "ObjectBlockEndurance": {
+    "nameOverride": null
+  },
+  "ObjectBlockEndurance2x12": {
+    "nameOverride": null
+  },
+  "ObjectBlockEndurance2x4": {
+    "nameOverride": null
+  },
+  "ObjectBlockEndurance2x6": {
+    "nameOverride": null
+  },
+  "ObjectBlockEndurance4x4": {
+    "nameOverride": null
+  },
+  "ObjectBlockEndurance4x6": {
+    "nameOverride": null
+  },
+  "ObjectBlockEndurance6x6": {
+    "nameOverride": null
+  },
+  "ObjectBlockHard": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardBreakable": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardBreakableBindable": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardBreakableCoral": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardBreakableStone": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardBreakableStoneBig": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardBreakableSugar": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardSabaku1M": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardSabaku2M": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardSabaku3M": {
+    "nameOverride": null
+  },
+  "ObjectBlockHardToride": {
+    "nameOverride": null
+  },
+  "ObjectBlockHotStone": {
+    "nameOverride": null
+  },
+  "ObjectBlockHotStoneBig": {
+    "nameOverride": null
+  },
+  "ObjectBlockLift": {
+    "nameOverride": null
+  },
+  "ObjectBlockLightVisible": {
+    "nameOverride": null
+  },
+  "ObjectBlockOnOff": {
+    "nameOverride": null
+  },
+  "ObjectBlockPole": {
+    "nameOverride": null
+  },
+  "ObjectBlockPot": {
+    "nameOverride": null
+  },
+  "ObjectBlockPow": {
+    "nameOverride": null
+  },
+  "ObjectBlockPowRed": {
+    "nameOverride": null
+  },
+  "ObjectBlockPushIce": {
+    "nameOverride": null
+  },
+  "ObjectBlockPushIce4x4": {
+    "nameOverride": null
+  },
+  "ObjectBlockPushIce4x4_Bind": {
+    "nameOverride": null
+  },
+  "ObjectBlockRaceStart": {
+    "nameOverride": null
+  },
+  "ObjectBlockRoulette": {
+    "nameOverride": null
+  },
+  "ObjectBlockRouletteSlow": {
+    "nameOverride": null
+  },
+  "ObjectBlockRound": {
+    "nameOverride": null
+  },
+  "ObjectBlockRoundLong": {
+    "nameOverride": null
+  },
+  "ObjectBlockShoot": {
+    "nameOverride": null
+  },
+  "ObjectBlockShootHatena": {
+    "nameOverride": null
+  },
+  "ObjectBlockSnakePole": {
+    "nameOverride": null
+  },
+  "ObjectBlockSurpriseYellow": {
+    "nameOverride": null
+  },
+  "ObjectBlossomsBlockClarity": {
+    "nameOverride": null
+  },
+  "ObjectBlossomsBlockHatena": {
+    "nameOverride": null
+  },
+  "ObjectBlossomsBlockRenga": {
+    "nameOverride": null
+  },
+  "ObjectBlossomsTenBlockTag": {
+    "nameOverride": null
+  },
+  "ObjectBlowgunheiBurrow": {
+    "nameOverride": null
+  },
+  "ObjectBulletSwitchHodai": {
+    "nameOverride": null
+  },
+  "ObjectBurner": {
+    "nameOverride": null
+  },
+  "ObjectBurner15": {
+    "nameOverride": null
+  },
+  "ObjectBurnerEnemyPlant": {
+    "nameOverride": null
+  },
+  "ObjectCactusBlock4x2": {
+    "nameOverride": null
+  },
+  "ObjectCastleFactoryOri": {
+    "nameOverride": null
+  },
+  "ObjectChildRailLiftHalfCollisionNoSleepNotConnect": {
+    "nameOverride": null
+  },
+  "ObjectChildRailLiftHalfCollisionNotConnect": {
+    "nameOverride": null
+  },
+  "ObjectChildRailLiftNotConnect": {
+    "nameOverride": null
+  },
+  "ObjectChildRailLiftStoneHalfCollisionNoSleepNotConnect": {
+    "nameOverride": null
+  },
+  "ObjectChildRailLiftStoneHalfCollisionNotConnect": {
+    "nameOverride": null
+  },
+  "ObjectChildRailLiftStoneNotConnect": {
+    "nameOverride": null
+  },
+  "ObjectCircleTrampoline_Size1": {
+    "nameOverride": null
+  },
+  "ObjectCloudArea": {
+    "nameOverride": null
+  },
+  "ObjectCoinBlue": {
+    "nameOverride": "Blue Coin"
+  },
+  "ObjectCoinRandom": {
+    "nameOverride": "Random Coin"
+  },
+  "ObjectCoinYellow": {
+    "nameOverride": "Yellow Coin"
+  },
+  "ObjectColorLockDoor": {
+    "nameOverride": null
+  },
+  "ObjectColorLockDoorBlue": {
+    "nameOverride": null
+  },
+  "ObjectColorLockDoorRed": {
+    "nameOverride": null
+  },
+  "ObjectCommonBadgeStart": {
+    "nameOverride": null
+  },
+  "ObjectCycads": {
+    "nameOverride": null
+  },
+  "ObjectDashFloor": {
+    "nameOverride": null
+  },
+  "ObjectDashFloorBlue": {
+    "nameOverride": null
+  },
+  "ObjectDashFloorMove": {
+    "nameOverride": null
+  },
+  "ObjectDecorationPumpkinBlock2x2": {
+    "nameOverride": null
+  },
+  "ObjectDemoCoinRandom": {
+    "nameOverride": null
+  },
+  "ObjectDemoCoinYellow": {
+    "nameOverride": null
+  },
+  "ObjectDemoCoinYellow10Count": {
+    "nameOverride": null
+  },
+  "ObjectDemoMinWonderCoin": {
+    "nameOverride": null
+  },
+  "ObjectDokan": {
+    "nameOverride": null
+  },
+  "ObjectDokan1Unit": {
+    "nameOverride": null
+  },
+  "ObjectDokanConnection": {
+    "nameOverride": null
+  },
+  "ObjectDokanDynamic": {
+    "nameOverride": null
+  },
+  "ObjectDokanExitSavannaChiteiWonder": {
+    "nameOverride": null
+  },
+  "ObjectDokanJoint": {
+    "nameOverride": null
+  },
+  "ObjectDokanJoint1m": {
+    "nameOverride": null
+  },
+  "ObjectDokanMiddle": {
+    "nameOverride": null
+  },
+  "ObjectDokanMiddleDynamic": {
+    "nameOverride": null
+  },
+  "ObjectDominoRock": {
+    "nameOverride": null
+  },
+  "ObjectDominoRock12m": {
+    "nameOverride": null
+  },
+  "ObjectDominoRock4mHitCeiling": {
+    "nameOverride": null
+  },
+  "ObjectDominoRock6m": {
+    "nameOverride": null
+  },
+  "ObjectDominoRock8m": {
+    "nameOverride": null
+  },
+  "ObjectDominoRock8mHitCeiling": {
+    "nameOverride": null
+  },
+  "ObjectDoorHalfLeft": {
+    "nameOverride": null
+  },
+  "ObjectDoorHalfRight": {
+    "nameOverride": null
+  },
+  "ObjectDoorKey": {
+    "nameOverride": null
+  },
+  "ObjectDoorKeyBlue": {
+    "nameOverride": null
+  },
+  "ObjectDoorKeyRed": {
+    "nameOverride": null
+  },
+  "ObjectDoorMovable": {
+    "nameOverride": null
+  },
+  "ObjectDoorNormal": {
+    "nameOverride": null
+  },
+  "ObjectDownDokan": {
+    "nameOverride": null
+  },
+  "ObjectDropLuckyCoin": {
+    "nameOverride": null
+  },
+  "ObjectElectricCloud": {
+    "nameOverride": null
+  },
+  "ObjectEndingItem0": {
+    "nameOverride": null
+  },
+  "ObjectEndingItem1": {
+    "nameOverride": null
+  },
+  "ObjectEnemyPlant": {
+    "nameOverride": null
+  },
+  "ObjectFireBar": {
+    "nameOverride": null
+  },
+  "ObjectFireBarFirePart": {
+    "nameOverride": null
+  },
+  "ObjectFireKnuckle": {
+    "nameOverride": null
+  },
+  "ObjectFireSphere": {
+    "nameOverride": null
+  },
+  "ObjectFireworksWonderHoppin": {
+    "nameOverride": null
+  },
+  "ObjectFireworks_Immediate": {
+    "nameOverride": null
+  },
+  "ObjectFireworks_Signal": {
+    "nameOverride": null
+  },
+  "ObjectFluidEffectsLineCheckerTag": {
+    "nameOverride": null
+  },
+  "ObjectFluidEffectsLineCheckerTag_TransOnly": {
+    "nameOverride": null
+  },
+  "ObjectForegroundUpWormDokan": {
+    "nameOverride": null
+  },
+  "ObjectFountainDokan": {
+    "nameOverride": null
+  },
+  "ObjectGimmickBase": {
+    "nameOverride": null
+  },
+  "ObjectGoalDemoNpc": {
+    "nameOverride": null
+  },
+  "ObjectGoalDemoNPCPrince": {
+    "nameOverride": null
+  },
+  "ObjectGoalPole": {
+    "nameOverride": null
+  },
+  "ObjectGoalPoleDeadByBodyAttack": {
+    "nameOverride": null
+  },
+  "ObjectGoalPoleFort": {
+    "nameOverride": null
+  },
+  "ObjectGoalPoleOnlyPole": {
+    "nameOverride": null
+  },
+  "ObjectGoldLeaf": {
+    "nameOverride": null
+  },
+  "ObjectGoQKun": {
+    "nameOverride": null
+  },
+  "ObjectGrassShade": {
+    "nameOverride": null
+  },
+  "ObjectHatenaCapsule": {
+    "nameOverride": null
+  },
+  "ObjectHexagonMagChan4M": {
+    "nameOverride": null
+  },
+  "ObjectHexagonMagChan6M": {
+    "nameOverride": null
+  },
+  "ObjectHoden": {
+    "nameOverride": null
+  },
+  "ObjectHodenInvariable": {
+    "nameOverride": null
+  },
+  "ObjectHouhouNest": {
+    "nameOverride": null
+  },
+  "ObjectIronBox2x2": {
+    "nameOverride": null
+  },
+  "ObjectIronBox2x2Plant": {
+    "nameOverride": null
+  },
+  "ObjectIronBox4x4": {
+    "nameOverride": null
+  },
+  "ObjectIronGate": {
+    "nameOverride": null
+  },
+  "ObjectIronGateLong": {
+    "nameOverride": null
+  },
+  "ObjectIvyBase": {
+    "nameOverride": null
+  },
+  "ObjectIvyBlockGenerated": {
+    "nameOverride": null
+  },
+  "ObjectIvyFixed": {
+    "nameOverride": null
+  },
+  "ObjectIvyNextGotoExit2": {
+    "nameOverride": null
+  },
+  "ObjectIvyWater": {
+    "nameOverride": null
+  },
+  "ObjectKakashiPlayer": {
+    "nameOverride": null
+  },
+  "ObjectKillerHodai": {
+    "nameOverride": null
+  },
+  "ObjectKillerHodaiJumpThroughProtector": {
+    "nameOverride": null
+  },
+  "ObjectKillerHodaiLeftJumping": {
+    "nameOverride": null
+  },
+  "ObjectKillerHodaiLeftTop": {
+    "nameOverride": null
+  },
+  "ObjectKillerHodaiRightTop": {
+    "nameOverride": null
+  },
+  "ObjectKillerHodaiTop": {
+    "nameOverride": null
+  },
+  "ObjectKillerHoudaiLeft": {
+    "nameOverride": null
+  },
+  "ObjectKillerHoudaiRight": {
+    "nameOverride": null
+  },
+  "ObjectKillerSearchHodai": {
+    "nameOverride": null
+  },
+  "ObjectKillerSearchHodaiLeft": {
+    "nameOverride": null
+  },
+  "ObjectKillerSearchHodaiTop": {
+    "nameOverride": null
+  },
+  "ObjectKinokoControllKoopaJr04": {
+    "nameOverride": null
+  },
+  "ObjectKoopaBurner": {
+    "nameOverride": null
+  },
+  "ObjectKoopaBurner4": {
+    "nameOverride": null
+  },
+  "ObjectLavaBox": {
+    "nameOverride": null
+  },
+  "ObjectLavaSphere": {
+    "nameOverride": null
+  },
+  "ObjectLiftBamboo_L": {
+    "nameOverride": null
+  },
+  "ObjectLiftBamboo_S": {
+    "nameOverride": null
+  },
+  "ObjectLiftFloat10Unit": {
+    "nameOverride": null
+  },
+  "ObjectLiftFloat6Unit": {
+    "nameOverride": null
+  },
+  "ObjectLiftNormal": {
+    "nameOverride": null
+  },
+  "ObjectLiftNormalAllHit": {
+    "nameOverride": null
+  },
+  "ObjectLiftNormalStone": {
+    "nameOverride": null
+  },
+  "ObjectLiftNormalStoneAllHit": {
+    "nameOverride": null
+  },
+  "ObjectLiftTrampoline": {
+    "nameOverride": null
+  },
+  "ObjectLiftWonderDragon": {
+    "nameOverride": null
+  },
+  "ObjectLightSwitchBlock": {
+    "nameOverride": null
+  },
+  "ObjectLightWithLightSwitchBlock": {
+    "nameOverride": null
+  },
+  "ObjectLockOnWonder": {
+    "nameOverride": null
+  },
+  "ObjectLockOnWonderBullet": {
+    "nameOverride": null
+  },
+  "ObjectMagicCarpet3M": {
+    "nameOverride": null
+  },
+  "ObjectMagicCarpet6M": {
+    "nameOverride": null
+  },
+  "ObjectMagicCarpet9M": {
+    "nameOverride": null
+  },
+  "ObjectMariomanshipAddEffect": {
+    "nameOverride": null
+  },
+  "ObjectMariomanShipTag": {
+    "nameOverride": null
+  },
+  "ObjectMiniFlowerApproach": {
+    "nameOverride": null
+  },
+  "ObjectMiniFlowerInAir": {
+    "nameOverride": null
+  },
+  "ObjectMiniFlowerInBlock": {
+    "nameOverride": null
+  },
+  "ObjectMiniFlowerWater": {
+    "nameOverride": null
+  },
+  "ObjectMiniLuckyCoin": {
+    "nameOverride": null
+  },
+  "ObjectMiniWonderCoinFront": {
+    "nameOverride": null
+  },
+  "ObjectMoveMiniLuckyCoin": {
+    "nameOverride": null
+  },
+  "ObjectNeedleAllDirection": {
+    "nameOverride": null
+  },
+  "ObjectNeedleAllDirectionColor": {
+    "nameOverride": null
+  },
+  "ObjectNeedleOneDirection": {
+    "nameOverride": null
+  },
+  "ObjectNextGotoWormDokan": {
+    "nameOverride": null
+  },
+  "ObjectOpeningPlayerKinopioBlue": {
+    "nameOverride": null
+  },
+  "ObjectOpeningPlayerKinopioYellow": {
+    "nameOverride": null
+  },
+  "ObjectOpeningPlayerLuigi": {
+    "nameOverride": null
+  },
+  "ObjectOpeningPlayerMario": {
+    "nameOverride": null
+  },
+  "ObjectOpeningPlayerPeach": {
+    "nameOverride": null
+  },
+  "ObjectOpeningPlayerTotten": {
+    "nameOverride": null
+  },
+  "ObjectOpeningPlayerYoshiGreen": {
+    "nameOverride": null
+  },
+  "ObjectPalaceBossDoor": {
+    "nameOverride": null
+  },
+  "ObjectPalmeras": {
+    "nameOverride": null
+  },
+  "ObjectPendulumBurner": {
+    "nameOverride": null
+  },
+  "ObjectPlayerRestMonitor": {
+    "nameOverride": null
+  },
+  "ObjectPoisonousSwampBox": {
+    "nameOverride": null
+  },
+  "ObjectPopUpItemUnderGround": {
+    "nameOverride": null
+  },
+  "ObjectPopUpMiniWonderCoinBalloonWall": {
+    "nameOverride": null
+  },
+  "ObjectPreSinkingShipBack": {
+    "nameOverride": null
+  },
+  "ObjectPropellerFlowerCourseInExit": {
+    "nameOverride": null
+  },
+  "ObjectPropellerFlowerCourseOutExit": {
+    "nameOverride": null
+  },
+  "ObjectPropellerFlowerForCourse": {
+    "nameOverride": null
+  },
+  "ObjectPropellerFlowerNextGoToExit": {
+    "nameOverride": null
+  },
+  "ObjectPullingLift": {
+    "nameOverride": null
+  },
+  "ObjectPullingString": {
+    "nameOverride": null
+  },
+  "ObjectPullingSwitchPullOnly": {
+    "nameOverride": null
+  },
+  "ObjectPumpkinBlock": {
+    "nameOverride": null
+  },
+  "ObjectPumpkinBlock2x2": {
+    "nameOverride": null
+  },
+  "ObjectPumpkinBlock3x3": {
+    "nameOverride": null
+  },
+  "ObjectPumpkinBlock4x2": {
+    "nameOverride": null
+  },
+  "ObjectPumpkinBlock4x4": {
+    "nameOverride": null
+  },
+  "ObjectPumpLift": {
+    "nameOverride": null
+  },
+  "ObjectPumpLiftL": {
+    "nameOverride": null
+  },
+  "ObjectPumpLiftM": {
+    "nameOverride": null
+  },
+  "ObjectPushDokan": {
+    "nameOverride": null
+  },
+  "ObjectPushKoopaZou": {
+    "nameOverride": null
+  },
+  "ObjectPushMapParts": {
+    "nameOverride": null
+  },
+  "ObjectPushMapParts2x2m": {
+    "nameOverride": null
+  },
+  "ObjectPushMapPartsNoWheel": {
+    "nameOverride": null
+  },
+  "ObjectPyramid1": {
+    "nameOverride": null
+  },
+  "ObjectPyramid2": {
+    "nameOverride": null
+  },
+  "ObjectRaceGoalGate": {
+    "nameOverride": null
+  },
+  "ObjectReactionBlockBase": {
+    "nameOverride": null
+  },
+  "ObjectRhythmJumpFooting": {
+    "nameOverride": null
+  },
+  "ObjectRhythmJumpFootingAlwaysOn": {
+    "nameOverride": null
+  },
+  "ObjectSand": {
+    "nameOverride": null
+  },
+  "ObjectScatterCoin": {
+    "nameOverride": null
+  },
+  "ObjectScatterMiniLuckyCoin": {
+    "nameOverride": null
+  },
+  "ObjectScatterRandomCoin": {
+    "nameOverride": null
+  },
+  "ObjectScatterRhythmsCannonCoin": {
+    "nameOverride": null
+  },
+  "ObjectScatterRhythmsCannonFlowerCoin": {
+    "nameOverride": null
+  },
+  "ObjectSenkanBossPressMachine": {
+    "nameOverride": null
+  },
+  "ObjectShabonDaisy": {
+    "nameOverride": null
+  },
+  "ObjectShabonKinopico": {
+    "nameOverride": null
+  },
+  "ObjectShabonKinopio": {
+    "nameOverride": null
+  },
+  "ObjectShabonLifting": {
+    "nameOverride": null
+  },
+  "ObjectShabonLuigi": {
+    "nameOverride": null
+  },
+  "ObjectShabonMario": {
+    "nameOverride": null
+  },
+  "ObjectShabonPeach": {
+    "nameOverride": null
+  },
+  "ObjectShabonPlayer": {
+    "nameOverride": null
+  },
+  "ObjectShabonTotten": {
+    "nameOverride": null
+  },
+  "ObjectShabonYoshi": {
+    "nameOverride": null
+  },
+  "ObjectSinkBlock": {
+    "nameOverride": null
+  },
+  "ObjectSkyRocketCoin": {
+    "nameOverride": null
+  },
+  "ObjectSnakePole": {
+    "nameOverride": null
+  },
+  "ObjectSnakePolePerent": {
+    "nameOverride": null
+  },
+  "ObjectSnakePoleSide": {
+    "nameOverride": null
+  },
+  "ObjectSoundBlinkBlock": {
+    "nameOverride": null
+  },
+  "ObjectSoundComboBlinkBlockHalfCollision": {
+    "nameOverride": null
+  },
+  "ObjectStaticLiftTrampoline": {
+    "nameOverride": null
+  },
+  "ObjectStaticNeedleAllDirection": {
+    "nameOverride": null
+  },
+  "ObjectStaticNeedleAllDirectionColor": {
+    "nameOverride": null
+  },
+  "ObjectStaticNeedleAllDirectionNonCollision": {
+    "nameOverride": null
+  },
+  "ObjectStaticNeedleAllDirectionNonCollisionColor": {
+    "nameOverride": null
+  },
+  "ObjectStaticNeedleOneDirection": {
+    "nameOverride": null
+  },
+  "ObjectStaticNeedleRockOneDirection": {
+    "nameOverride": null
+  },
+  "ObjectStaticNeedleRockOneDirectionCollisionQualitySevere": {
+    "nameOverride": null
+  },
+  "ObjectStaticNeedleThornOneDirection": {
+    "nameOverride": null
+  },
+  "ObjectStretcheFooting": {
+    "nameOverride": null
+  },
+  "ObjectSuddenWonderTag": {
+    "nameOverride": null
+  },
+  "ObjectSuddenWonderTagEnding": {
+    "nameOverride": null
+  },
+  "ObjectSuddenWonderTagSingleSignal": {
+    "nameOverride": null
+  },
+  "ObjectSwitch": {
+    "nameOverride": null
+  },
+  "ObjectSwitchEnemyPlant": {
+    "nameOverride": null
+  },
+  "ObjectSwitchHatena": {
+    "nameOverride": null
+  },
+  "ObjectSwitchHodai": {
+    "nameOverride": null
+  },
+  "ObjectSwitchIncludeGhost": {
+    "nameOverride": null
+  },
+  "ObjectSwitchOnlyCrown": {
+    "nameOverride": null
+  },
+  "ObjectSwitchP": {
+    "nameOverride": null
+  },
+  "ObjectSwitchSurprise": {
+    "nameOverride": null
+  },
+  "ObjectTalkingFlower": {
+    "nameOverride": "Talking Flower"
+  },
+  "ObjectTalkingFlowerAfar": {
+    "nameOverride": "Talking Flower (Afar)"
+  },
+  "ObjectTalkingFlowerCheckBuried": {
+    "nameOverride": "Talking Flower (CheckBuried)"
+  },
+  "ObjectTalkingFlowerFive": {
+    "nameOverride": "Talking Flower (Five)"
+  },
+  "ObjectTalkingFlowerJumpOut": {
+    "nameOverride": "Talking Flower (JumpOut)"
+  },
+  "ObjectTalkingFlowerMissType": {
+    "nameOverride": "Talking Flower (MissType)"
+  },
+  "ObjectTalkingFlowerMissTypeAir": {
+    "nameOverride": "Talking Flower (MissTypeAir)"
+  },
+  "ObjectTalkingFlowerOnOffBlock": {
+    "nameOverride": "Talking Flower (OnOffBlock)"
+  },
+  "ObjectTalkingFlowerPot": {
+    "nameOverride": "Talking Flower (Pot)"
+  },
+  "ObjectTalkingFlowerPulling": {
+    "nameOverride": "Talking Flower (Pulling)"
+  },
+  "ObjectTalkingFlowerPullingCheckBuried": {
+    "nameOverride": "Talking Flower (PullingCheckBuried)"
+  },
+  "ObjectTalkingFlowerS": {
+    "nameOverride": "Talking Flower (S)"
+  },
+  "ObjectTalkingFlowerSensor": {
+    "nameOverride": "Talking Flower (Sensor)"
+  },
+  "ObjectTalkingFlowerSlidePress": {
+    "nameOverride": "Talking Flower (SlidePress)"
+  },
+  "ObjectTalkingFlowerWater": {
+    "nameOverride": "Talking Flower (Water)"
+  },
+  "ObjectThroughProtectorArea": {
+    "nameOverride": null
+  },
+  "ObjectThrowDownRope": {
+    "nameOverride": null
+  },
+  "ObjectThrowDownRopeKoopaJr": {
+    "nameOverride": null
+  },
+  "ObjectThunder": {
+    "nameOverride": null
+  },
+  "ObjectThunderTag": {
+    "nameOverride": null
+  },
+  "ObjectTimerSwitchBlockSync": {
+    "nameOverride": null
+  },
+  "ObjectTogeKabe": {
+    "nameOverride": null
+  },
+  "ObjectTreasureChest": {
+    "nameOverride": null
+  },
+  "ObjectTriangleTrampolineL": {
+    "nameOverride": null
+  },
+  "ObjectTriangleTrampolineS": {
+    "nameOverride": null
+  },
+  "ObjectTukaCoin": {
+    "nameOverride": null
+  },
+  "ObjectTukaCoinOnGround": {
+    "nameOverride": null
+  },
+  "ObjectUpDownDokan": {
+    "nameOverride": null
+  },
+  "ObjectWalkFooting": {
+    "nameOverride": null
+  },
+  "ObjectWalkFooting8x7": {
+    "nameOverride": null
+  },
+  "ObjectWalkFootingBackGroundArea": {
+    "nameOverride": null
+  },
+  "ObjectWalkFootingKoopaJr4x7": {
+    "nameOverride": null
+  },
+  "ObjectWalkFootingKoopaJr5x5": {
+    "nameOverride": null
+  },
+  "ObjectWalkFootingKoopaJr6x5": {
+    "nameOverride": null
+  },
+  "ObjectWalkFootingKoopaJr7x3": {
+    "nameOverride": null
+  },
+  "ObjectWalkFootingKoopaJr8x3": {
+    "nameOverride": null
+  },
+  "ObjectWaterFlow": {
+    "nameOverride": null
+  },
+  "ObjectWaterIvyNextGotoExit": {
+    "nameOverride": null
+  },
+  "ObjectWaterIvyNextGotoExitDown": {
+    "nameOverride": null
+  },
+  "ObjectWaterSphere": {
+    "nameOverride": null
+  },
+  "ObjectWonderBlock": {
+    "nameOverride": null
+  },
+  "ObjectWonderDeleteBlock": {
+    "nameOverride": null
+  },
+  "ObjectWonderHoleInsideWonderFlower": {
+    "nameOverride": null
+  },
+  "ObjectWonderKoroponSeiza": {
+    "nameOverride": null
+  },
+  "ObjectWonderLinkJunction": {
+    "nameOverride": null
+  },
+  "ObjectWonderLongKillerJointParts": {
+    "nameOverride": null
+  },
+  "ObjectWonderMochimakiJugemu": {
+    "nameOverride": null
+  },
+  "ObjectWonderShabon": {
+    "nameOverride": null
+  },
+  "ObjectWonderShinkShip_New": {
+    "nameOverride": null
+  },
+  "ObjectWonderSnow": {
+    "nameOverride": null
+  },
+  "ObjectWonderStopTag": {
+    "nameOverride": null
+  },
+  "ObjectWonderTag": {
+    "nameOverride": null
+  },
+  "ObjectWonderUpDownDokan": {
+    "nameOverride": null
+  },
+  "ObjectWonderWalkFootingBackGroundArea": {
+    "nameOverride": null
+  },
+  "ObjectWoodBox2x2": {
+    "nameOverride": null
+  },
+  "ObjectWoodBox4x2": {
+    "nameOverride": null
+  },
+  "ObjectWoodBox4x4": {
+    "nameOverride": null
+  },
+  "ObjectWormDokan": {
+    "nameOverride": null
+  },
+  "ObjectWormDokanSlowRoundTrip": {
+    "nameOverride": null
+  },
+  "ObjectWormHoleGenerator": {
+    "nameOverride": null
+  },
+  "ObjectWormHoleSearch": {
+    "nameOverride": null
+  },
+  "ObjectXylophoneBridge": {
+    "nameOverride": null
+  },
+  "ObjectXylophoneBridgeLeft": {
+    "nameOverride": null
+  },
+  "ObjectXylophoneBridgeRight": {
+    "nameOverride": null
+  },
+  "ObjectYajirushi": {
+    "nameOverride": null
+  },
+  "ObjectYajirushiOnGround": {
+    "nameOverride": null
+  },
+  "Object_WonderHoleInsideBase": {
+    "nameOverride": null
+  },
+  "ObjSwitchKinokoAshiba": {
+    "nameOverride": null
+  },
+  "ObjSwitchKinokoAshibaForColiseum": {
+    "nameOverride": null
+  },
+  "ObservationEventDemo": {
+    "nameOverride": null
+  },
+  "OneWayMoveTag": {
+    "nameOverride": null
+  },
+  "OnOffBlockSignalObserveTag": {
+    "nameOverride": null
+  },
+  "OverlayMessageMgr": {
+    "nameOverride": null
+  },
+  "Player": {
+    "nameOverride": null
+  },
+  "PlayerBase": {
+    "nameOverride": null
+  },
+  "PlayerDaisy": {
+    "nameOverride": null
+  },
+  "PlayerDaisyChibiModel": {
+    "nameOverride": null
+  },
+  "PlayerDaisyChibiWMModel": {
+    "nameOverride": null
+  },
+  "PlayerDaisyElephantModel": {
+    "nameOverride": null
+  },
+  "PlayerDaisyElephantWMModel": {
+    "nameOverride": null
+  },
+  "PlayerDaisyModelBase": {
+    "nameOverride": null
+  },
+  "PlayerDaisySuperModel": {
+    "nameOverride": null
+  },
+  "PlayerDaisySuperWMModel": {
+    "nameOverride": null
+  },
+  "PlayerDrillForceCancelArea": {
+    "nameOverride": null
+  },
+  "PlayerKinopico": {
+    "nameOverride": "Toadette"
+  },
+  "PlayerKinopicoChibiModel": {
+    "nameOverride": "Toadette (Chibi Model)"
+  },
+  "PlayerKinopicoChibiWMModel": {
+    "nameOverride": "Toadette (Chibi WMModel)"
+  },
+  "PlayerKinopicoElephantModel": {
+    "nameOverride": "Toadette (Elephant Model)"
+  },
+  "PlayerKinopicoElephantWMModel": {
+    "nameOverride": "Toadette (Elephant WMModel)"
+  },
+  "PlayerKinopicoModelBase": {
+    "nameOverride": "Toadette (Model Base)"
+  },
+  "PlayerKinopicoSuperModel": {
+    "nameOverride": "Toadette (Super Model)"
+  },
+  "PlayerKinopicoSuperWMModel": {
+    "nameOverride": "Toadette (Super WMModel)"
+  },
+  "PlayerKinopioBlue": {
+    "nameOverride": "Toad (Blue)"
+  },
+  "PlayerKinopioBlueChibiModel": {
+    "nameOverride": "Toad (Blue Chibi Model)"
+  },
+  "PlayerKinopioBlueChibiWMModel": {
+    "nameOverride": "Toad (Blue Chibi WMModel)"
+  },
+  "PlayerKinopioBlueElephantModel": {
+    "nameOverride": "Toad (Blue Elephant Model)"
+  },
+  "PlayerKinopioBlueElephantWMModel": {
+    "nameOverride": "Toad (Blue Elephant WMModel)"
+  },
+  "PlayerKinopioBlueModelBase": {
+    "nameOverride": "Toad (Blue Model Base)"
+  },
+  "PlayerKinopioBlueSuperModel": {
+    "nameOverride": "Toad (Blue Super Model)"
+  },
+  "PlayerKinopioBlueSuperWMModel": {
+    "nameOverride": "Toad (Blue Super WMModel)"
+  },
+  "PlayerKinopioYellow": {
+    "nameOverride": "Toad (Yellow)"
+  },
+  "PlayerKinopioYellowChibiModel": {
+    "nameOverride": "Toad (Yellow Chibi Model)"
+  },
+  "PlayerKinopioYellowChibiWMModel": {
+    "nameOverride": "Toad (Yellow Chibi WMModel)"
+  },
+  "PlayerKinopioYellowElephantModel": {
+    "nameOverride": "Toad (Yellow Elephant Model)"
+  },
+  "PlayerKinopioYellowElephantWMModel": {
+    "nameOverride": "Toad (Yellow Elephant WMModel)"
+  },
+  "PlayerKinopioYellowModelBase": {
+    "nameOverride": "Toad (Yellow Model Base)"
+  },
+  "PlayerKinopioYellowSuperModel": {
+    "nameOverride": "Toad (Yellow Super Model)"
+  },
+  "PlayerKinopioYellowSuperWMModel": {
+    "nameOverride": "Toad (Yellow Super WMModel)"
+  },
+  "PlayerLightBindTag": {
+    "nameOverride": null
+  },
+  "PlayerLightBindTagWithObjectBlockLightVisible": {
+    "nameOverride": null
+  },
+  "PlayerLocator": {
+    "nameOverride": null
+  },
+  "PlayerLuigi": {
+    "nameOverride": null
+  },
+  "PlayerLuigiChibiModel": {
+    "nameOverride": null
+  },
+  "PlayerLuigiChibiWMModel": {
+    "nameOverride": null
+  },
+  "PlayerLuigiElephantModel": {
+    "nameOverride": null
+  },
+  "PlayerLuigiElephantWMModel": {
+    "nameOverride": null
+  },
+  "PlayerLuigiModelBase": {
+    "nameOverride": null
+  },
+  "PlayerLuigiSuperModel": {
+    "nameOverride": null
+  },
+  "PlayerLuigiSuperWMModel": {
+    "nameOverride": null
+  },
+  "PlayerMarioChibiModel": {
+    "nameOverride": null
+  },
+  "PlayerMarioChibiWMModel": {
+    "nameOverride": null
+  },
+  "PlayerMarioElephantModel": {
+    "nameOverride": null
+  },
+  "PlayerMarioElephantWMModel": {
+    "nameOverride": null
+  },
+  "PlayerMarioHoppinChibiModel": {
+    "nameOverride": null
+  },
+  "PlayerMarioHoppinModel": {
+    "nameOverride": null
+  },
+  "PlayerMarioModelBase": {
+    "nameOverride": null
+  },
+  "PlayerMarioSuperModel": {
+    "nameOverride": null
+  },
+  "PlayerMarioSuperWMModel": {
+    "nameOverride": null
+  },
+  "PlayerModelBase": {
+    "nameOverride": null
+  },
+  "PlayerPeach": {
+    "nameOverride": null
+  },
+  "PlayerPeachChibiModel": {
+    "nameOverride": null
+  },
+  "PlayerPeachChibiWMModel": {
+    "nameOverride": null
+  },
+  "PlayerPeachElephantModel": {
+    "nameOverride": null
+  },
+  "PlayerPeachElephantWMModel": {
+    "nameOverride": null
+  },
+  "PlayerPeachModelBase": {
+    "nameOverride": null
+  },
+  "PlayerPeachSuperModel": {
+    "nameOverride": null
+  },
+  "PlayerPeachSuperWMModel": {
+    "nameOverride": null
+  },
+  "PlayerPressPalliationArea": {
+    "nameOverride": null
+  },
+  "PlayerRevivalProhibitsArea": {
+    "nameOverride": null
+  },
+  "PlayerTotten": {
+    "nameOverride": null
+  },
+  "PlayerTottenModel": {
+    "nameOverride": null
+  },
+  "PlayerTottenWMModel": {
+    "nameOverride": null
+  },
+  "PlayerVoiceCallArea": {
+    "nameOverride": null
+  },
+  "PlayerYoshi": {
+    "nameOverride": null
+  },
+  "PlayerYoshiBlue": {
+    "nameOverride": null
+  },
+  "PlayerYoshiBlueModel": {
+    "nameOverride": null
+  },
+  "PlayerYoshiBlueWMModel": {
+    "nameOverride": null
+  },
+  "PlayerYoshiGreen": {
+    "nameOverride": null
+  },
+  "PlayerYoshiGreenModel": {
+    "nameOverride": null
+  },
+  "PlayerYoshiGreenWMModel": {
+    "nameOverride": null
+  },
+  "PlayerYoshiModel": {
+    "nameOverride": null
+  },
+  "PlayerYoshiRed": {
+    "nameOverride": null
+  },
+  "PlayerYoshiRedModel": {
+    "nameOverride": null
+  },
+  "PlayerYoshiRedWMModel": {
+    "nameOverride": null
+  },
+  "PlayerYoshiYellow": {
+    "nameOverride": null
+  },
+  "PlayerYoshiYellowModel": {
+    "nameOverride": null
+  },
+  "PlayerYoshiYellowWMModel": {
+    "nameOverride": null
+  },
+  "PoisonousSwampTag": {
+    "nameOverride": null
+  },
+  "PopUpTag": {
+    "nameOverride": null
+  },
+  "PopUpTagKoopaJr": {
+    "nameOverride": null
+  },
+  "PopUpTagKoopaJrRight": {
+    "nameOverride": null
+  },
+  "PositionTag": {
+    "nameOverride": null
+  },
+  "PositionTagKoopaRoomCenter": {
+    "nameOverride": null
+  },
+  "PreferDir": {
+    "nameOverride": null
+  },
+  "QuizMgrTag": {
+    "nameOverride": null
+  },
+  "RailLiftHalfCollisionMgrNotConnect": {
+    "nameOverride": null
+  },
+  "RailLiftMgrBamboo_L": {
+    "nameOverride": null
+  },
+  "RailLiftMgrBamboo_S": {
+    "nameOverride": null
+  },
+  "RailLiftMgrNotConnect": {
+    "nameOverride": null
+  },
+  "RandomSwapTag": {
+    "nameOverride": null
+  },
+  "ReciprocateTag": {
+    "nameOverride": null
+  },
+  "RedBlock": {
+    "nameOverride": null
+  },
+  "RedBlockShutter": {
+    "nameOverride": null
+  },
+  "RedBlockShutterEdge": {
+    "nameOverride": null
+  },
+  "RedBlockShutterEdgeTop": {
+    "nameOverride": null
+  },
+  "RedBlueBlockLayerCheckTag": {
+    "nameOverride": null
+  },
+  "ReplayGhostRecordFinishTag": {
+    "nameOverride": null
+  },
+  "RequestEventTag": {
+    "nameOverride": null
+  },
+  "ResidentSignalDelayTag": {
+    "nameOverride": null
+  },
+  "RetryPoint": {
+    "nameOverride": null
+  },
+  "ReverseHalfColBlockOff": {
+    "nameOverride": null
+  },
+  "ReverseHalfColBlockOffReverseDir": {
+    "nameOverride": null
+  },
+  "ReverseHalfColBlockOn": {
+    "nameOverride": null
+  },
+  "ReverseHalfColBlockOnForwardDir": {
+    "nameOverride": null
+  },
+  "RhythmJumpEffectTag": {
+    "nameOverride": null
+  },
+  "RhythmPopUpTag": {
+    "nameOverride": null
+  },
+  "RhythmRichEDVBase": {
+    "nameOverride": null
+  },
+  "RichDVBaobabTree": {
+    "nameOverride": null
+  },
+  "RichDVBase": {
+    "nameOverride": null
+  },
+  "RichDVBossKoopaJr04": {
+    "nameOverride": null
+  },
+  "RichDVBossKoopaJr04TorideKemuri": {
+    "nameOverride": null
+  },
+  "RichDVBreakableMushroom": {
+    "nameOverride": null
+  },
+  "RichDVCastleFactoryCastle": {
+    "nameOverride": null
+  },
+  "RichDVCastleFactoryMiddleLiveKabeA": {
+    "nameOverride": null
+  },
+  "RichDVCastleFactoryMiddleLiveKabeB": {
+    "nameOverride": null
+  },
+  "RichDVCastleShiroAudienceA": {
+    "nameOverride": null
+  },
+  "RichDVCastleShiroAudienceB": {
+    "nameOverride": null
+  },
+  "RichDVCastleSiroFarKaijyouHashiraA": {
+    "nameOverride": null
+  },
+  "RichDVCastleSiroFarKaijyouHashiraB": {
+    "nameOverride": null
+  },
+  "RichDVCastleSiroFarKaijyouHashiraC": {
+    "nameOverride": null
+  },
+  "RichDVCastleSiroFarLightDemoA": {
+    "nameOverride": null
+  },
+  "RichDVCastleSiroFarLightDemoJumpMaeA": {
+    "nameOverride": null
+  },
+  "RichDVCastleSiroFarLightDemoUpA": {
+    "nameOverride": null
+  },
+  "RichDVCastleSiroFarLightDownA": {
+    "nameOverride": null
+  },
+  "RichDVCommonEnkeiCastleFlowerFarSiroFlagA": {
+    "nameOverride": null
+  },
+  "RichDVCommonTorideDemoPalace": {
+    "nameOverride": null
+  },
+  "RichDVCommonTorideDemoPalaceHata": {
+    "nameOverride": null
+  },
+  "RichDVEnkeiCastleFlowerFarSiroA": {
+    "nameOverride": null
+  },
+  "RichDVFallenKoronporin": {
+    "nameOverride": null
+  },
+  "RichDVFarKoopaJrYogan": {
+    "nameOverride": null
+  },
+  "RichDVGabonA": {
+    "nameOverride": null
+  },
+  "RichDVHajimariMori": {
+    "nameOverride": null
+  },
+  "RichDVHajimariSougenFarWonderDokanA00": {
+    "nameOverride": null
+  },
+  "RichDVHajimariSougenFarWonderDokanA00SW": {
+    "nameOverride": null
+  },
+  "RichDVHajimariSougenFarWonderDokanA01": {
+    "nameOverride": null
+  },
+  "RichDVHajimariSougenFarWonderDokanA01SW": {
+    "nameOverride": null
+  },
+  "RichDVKinSlimeDokuDokuWonderMiddleKabeA00": {
+    "nameOverride": null
+  },
+  "RichDVKinSlimeDokuDokuWonderMiddleKabeA01": {
+    "nameOverride": null
+  },
+  "RichDVKinSlimeDokuDokuWonderMiddleKabeA02": {
+    "nameOverride": null
+  },
+  "RichDVKoronporin": {
+    "nameOverride": null
+  },
+  "RichDVMiddleKoopaJrRoom": {
+    "nameOverride": null
+  },
+  "RichDVSenkanBossCore": {
+    "nameOverride": null
+  },
+  "RichDVSenkanBossLight": {
+    "nameOverride": null
+  },
+  "RichDVSenkanKoopaFace": {
+    "nameOverride": null
+  },
+  "RichDVSoundPackun": {
+    "nameOverride": null
+  },
+  "RichDVSoundRunRunPackun": {
+    "nameOverride": null
+  },
+  "RichDVStoneCanon": {
+    "nameOverride": null
+  },
+  "RichDVStretchTree": {
+    "nameOverride": null
+  },
+  "RichDVTossinGroup": {
+    "nameOverride": null
+  },
+  "RichDVWonderEimiGroupTransverse": {
+    "nameOverride": null
+  },
+  "RichEDVTakebo": {
+    "nameOverride": null
+  },
+  "RichNearDVAudience": {
+    "nameOverride": null
+  },
+  "RichNearDVAudienceHakkun": {
+    "nameOverride": null
+  },
+  "RichNearDVKoronporin": {
+    "nameOverride": null
+  },
+  "RichNearDVTossinGroup": {
+    "nameOverride": null
+  },
+  "ScrollAreaInfo": {
+    "nameOverride": null
+  },
+  "ShabonMoveAreaRailTag": {
+    "nameOverride": null
+  },
+  "SignalDelayTag": {
+    "nameOverride": null
+  },
+  "SignalKeepTag": {
+    "nameOverride": null
+  },
+  "SignalMessageTag": {
+    "nameOverride": null
+  },
+  "SignalRelayTag": {
+    "nameOverride": null
+  },
+  "SimplifiedCreateTag_Contents": {
+    "nameOverride": null
+  },
+  "SimulateBGMTag": {
+    "nameOverride": null
+  },
+  "SimultaneousChildCullingTag": {
+    "nameOverride": null
+  },
+  "SinkBlockDaisy": {
+    "nameOverride": null
+  },
+  "SinkBlockKinopico": {
+    "nameOverride": null
+  },
+  "SinkBlockLuigi": {
+    "nameOverride": null
+  },
+  "SinkBlockMario": {
+    "nameOverride": null
+  },
+  "SinkBlockPeach": {
+    "nameOverride": null
+  },
+  "SinkBlockTotten": {
+    "nameOverride": null
+  },
+  "SinkBlockYoshi": {
+    "nameOverride": null
+  },
+  "SkyCommonWonderA": {
+    "nameOverride": null
+  },
+  "SlimeDaisy": {
+    "nameOverride": null
+  },
+  "SlimeDaisyCap": {
+    "nameOverride": null
+  },
+  "SlimeDaisyFace": {
+    "nameOverride": null
+  },
+  "SlimeKinopio": {
+    "nameOverride": null
+  },
+  "SlimeKinopioCap": {
+    "nameOverride": null
+  },
+  "SlimeKinopioFace": {
+    "nameOverride": null
+  },
+  "SlimeLuige": {
+    "nameOverride": null
+  },
+  "SlimeLuigeCap": {
+    "nameOverride": null
+  },
+  "SlimeLuigeFace": {
+    "nameOverride": null
+  },
+  "SlimeMario": {
+    "nameOverride": null
+  },
+  "SlimeMarioCap": {
+    "nameOverride": null
+  },
+  "SlimeMarioFace": {
+    "nameOverride": null
+  },
+  "SlimePeach": {
+    "nameOverride": null
+  },
+  "SlimePeachCap": {
+    "nameOverride": null
+  },
+  "SlimePeachFace": {
+    "nameOverride": null
+  },
+  "SlimeTotten": {
+    "nameOverride": null
+  },
+  "SlimeTottenCap": {
+    "nameOverride": null
+  },
+  "SlimeTottenFace": {
+    "nameOverride": null
+  },
+  "SlimeYoshi": {
+    "nameOverride": null
+  },
+  "SlimeYoshiCap": {
+    "nameOverride": null
+  },
+  "SlimeYoshiFace": {
+    "nameOverride": null
+  },
+  "SnowfallTag": {
+    "nameOverride": null
+  },
+  "SnowStormEnvSoundTag": {
+    "nameOverride": null
+  },
+  "SoundMarkerSwitch": {
+    "nameOverride": null
+  },
+  "SoundMarkerToggleSwitch": {
+    "nameOverride": null
+  },
+  "SoundRhythmAssistantRail": {
+    "nameOverride": null
+  },
+  "SoundRhythmAssistantRotation": {
+    "nameOverride": null
+  },
+  "SoundRhythmAutoScrollControlSignalFrame": {
+    "nameOverride": null
+  },
+  "SoundRhythmCoinHodaiLeft": {
+    "nameOverride": null
+  },
+  "SoundRhythmCoinHodaiLeftTop": {
+    "nameOverride": null
+  },
+  "SoundRhythmCoinHodaiRight": {
+    "nameOverride": null
+  },
+  "SoundRhythmCoinHodaiRightTop": {
+    "nameOverride": null
+  },
+  "SoundRhythmCoinPopupDokan": {
+    "nameOverride": null
+  },
+  "SoundRhythmFireKnuckle": {
+    "nameOverride": null
+  },
+  "SoundRhythmFireKnuckleFastSpeed": {
+    "nameOverride": null
+  },
+  "SoundRhythmFireKnuckleMediumSpeed": {
+    "nameOverride": null
+  },
+  "SoundRhythmJumpComboMgr": {
+    "nameOverride": null
+  },
+  "SoundRhythmJumpComboSwitch": {
+    "nameOverride": null
+  },
+  "SoundRhythmJumpPermitTag": {
+    "nameOverride": null
+  },
+  "SoundRhythmKillerHodai": {
+    "nameOverride": null
+  },
+  "SoundRhythmKillerHodaiLeft": {
+    "nameOverride": null
+  },
+  "SoundRhythmKillerHodaiRight": {
+    "nameOverride": null
+  },
+  "SoundRhythmKillerHodaiTop": {
+    "nameOverride": null
+  },
+  "SoundRhythmKillerSearchHodai": {
+    "nameOverride": null
+  },
+  "SoundRhythmKillerSearchHodaiLeft": {
+    "nameOverride": null
+  },
+  "SoundRhythmKillerSearchHodaiRight": {
+    "nameOverride": null
+  },
+  "SoundRhythmObjectEffectDokan": {
+    "nameOverride": null
+  },
+  "SoundRhythmObjectLight": {
+    "nameOverride": null
+  },
+  "SoundRhythmObjectUpDownDokan": {
+    "nameOverride": null
+  },
+  "SoundRhythmOneWayMoveTag": {
+    "nameOverride": null
+  },
+  "SoundRhythmReciprocateTag": {
+    "nameOverride": null
+  },
+  "SoundRhythmTalkingFlower": {
+    "nameOverride": null
+  },
+  "SoundRhythmTalkingFlowerAir": {
+    "nameOverride": null
+  },
+  "SoundTriggerSwitch": {
+    "nameOverride": null
+  },
+  "SpaceWalkTag": {
+    "nameOverride": null
+  },
+  "StaffCreditsControlTag": {
+    "nameOverride": null
+  },
+  "StaffCreditsTag": {
+    "nameOverride": null
+  },
+  "StaticEntityAreaBase": {
+    "nameOverride": null
+  },
+  "StaticMapBase": {
+    "nameOverride": null
+  },
+  "StaticMapFrontBase": {
+    "nameOverride": null
+  },
+  "StaticSensorAreaBase": {
+    "nameOverride": null
+  },
+  "StopScroll": {
+    "nameOverride": null
+  },
+  "SyncPutActorMgr": {
+    "nameOverride": null
+  },
+  "SystemFluidLavaBlackFall": {
+    "nameOverride": null
+  },
+  "SystemFluidLavaFactoryFall": {
+    "nameOverride": null
+  },
+  "SystemFluidLavaFactoryFallWall": {
+    "nameOverride": null
+  },
+  "SystemFluidLavaFall": {
+    "nameOverride": null
+  },
+  "SystemFluidLavaFallBlackWallLong": {
+    "nameOverride": null
+  },
+  "TakeboMetal": {
+    "nameOverride": null
+  },
+  "TimelineEventActorBase": {
+    "nameOverride": null
+  },
+  "TimelineEventDaisy": {
+    "nameOverride": null
+  },
+  "TimelineEventEffectKoopaTransform": {
+    "nameOverride": null
+  },
+  "TimelineEventEffectTagBase": {
+    "nameOverride": null
+  },
+  "TimelineEventGoalFort": {
+    "nameOverride": null
+  },
+  "TimelineEventGoalPole": {
+    "nameOverride": null
+  },
+  "TimelineEventHanapio": {
+    "nameOverride": null
+  },
+  "TimelineEventKameck": {
+    "nameOverride": null
+  },
+  "TimelineEventKinopico": {
+    "nameOverride": null
+  },
+  "TimelineEventKinopioBlue": {
+    "nameOverride": null
+  },
+  "TimelineEventKinopioYellow": {
+    "nameOverride": null
+  },
+  "TimelineEventKoopa": {
+    "nameOverride": null
+  },
+  "TimelineEventKoopaCastle": {
+    "nameOverride": null
+  },
+  "TimelineEventKoopaClown": {
+    "nameOverride": null
+  },
+  "TimelineEventKoopaJr": {
+    "nameOverride": null
+  },
+  "TimelineEventKoopaJrClown": {
+    "nameOverride": null
+  },
+  "TimelineEventLuigi": {
+    "nameOverride": null
+  },
+  "TimelineEventMario": {
+    "nameOverride": null
+  },
+  "TimelineEventPeach": {
+    "nameOverride": null
+  },
+  "TimelineEventPrince": {
+    "nameOverride": null
+  },
+  "TimelineEventPropellerFlower": {
+    "nameOverride": null
+  },
+  "TimelineEventTalkingFlower": {
+    "nameOverride": null
+  },
+  "TimelineEventTotten": {
+    "nameOverride": null
+  },
+  "TimelineEventWonderFlower": {
+    "nameOverride": null
+  },
+  "TimelineEventWonderHole": {
+    "nameOverride": null
+  },
+  "TimelineEventWonderPackun": {
+    "nameOverride": null
+  },
+  "TimelineEventWonderPackunLight": {
+    "nameOverride": null
+  },
+  "TimelineEventYoshiBlue": {
+    "nameOverride": null
+  },
+  "TimelineEventYoshiGreen": {
+    "nameOverride": null
+  },
+  "TimelineEventYoshiRed": {
+    "nameOverride": null
+  },
+  "TimelineEventYoshiYellow": {
+    "nameOverride": null
+  },
+  "TimelineRichDVCommonEnkeiCastleFlowerFarSiroFlagA": {
+    "nameOverride": null
+  },
+  "TimelineRichDVEnkeiCastleFlowerFarSiroA": {
+    "nameOverride": null
+  },
+  "TimerSwitchBlockMgr": {
+    "nameOverride": null
+  },
+  "TimerSwitchSignalTag": {
+    "nameOverride": null
+  },
+  "TransformingMapObjCRingA": {
+    "nameOverride": null
+  },
+  "TransformingMapObjCRingASetEffect": {
+    "nameOverride": null
+  },
+  "TransformingMapObjCRingAWithDeathArea": {
+    "nameOverride": null
+  },
+  "UnitCastleFactoryAHan": {
+    "nameOverride": null
+  },
+  "UnitCastleFactoryANashi": {
+    "nameOverride": null
+  },
+  "UnitCastleFactoryAZen": {
+    "nameOverride": null
+  },
+  "UnitCastleSiroAZen": {
+    "nameOverride": null
+  },
+  "UnitCommonMiniCourseAAZen": {
+    "nameOverride": null
+  },
+  "UnitCommonSenkanAHan": {
+    "nameOverride": null
+  },
+  "UnitCommonSenkanANashi": {
+    "nameOverride": null
+  },
+  "UnitCommonSenkanAZen": {
+    "nameOverride": null
+  },
+  "UnitCommonSoraAHan": {
+    "nameOverride": null
+  },
+  "UnitCommonSoraANashi": {
+    "nameOverride": null
+  },
+  "UnitCommonSoraAZen": {
+    "nameOverride": null
+  },
+  "UnitCommonTorideAHan": {
+    "nameOverride": null
+  },
+  "UnitCommonTorideANashi": {
+    "nameOverride": null
+  },
+  "UnitCommonTorideAZen": {
+    "nameOverride": null
+  },
+  "UnitCommonTorideBZen": {
+    "nameOverride": null
+  },
+  "UnitCommonYashikiAZen": {
+    "nameOverride": null
+  },
+  "UnitHajimariChikaAHan": {
+    "nameOverride": null
+  },
+  "UnitHajimariChikaANashi": {
+    "nameOverride": null
+  },
+  "UnitHajimariChikaAZen": {
+    "nameOverride": null
+  },
+  "UnitHajimariKaiganAHan": {
+    "nameOverride": null
+  },
+  "UnitHajimariKaiganANashi": {
+    "nameOverride": null
+  },
+  "UnitHajimariKaiganAZen": {
+    "nameOverride": null
+  },
+  "UnitHajimariMoriAHan": {
+    "nameOverride": null
+  },
+  "UnitHajimariMoriANashi": {
+    "nameOverride": null
+  },
+  "UnitHajimariMoriAZen": {
+    "nameOverride": null
+  },
+  "UnitHajimariSougenAHan": {
+    "nameOverride": null
+  },
+  "UnitHajimariSougenANashi": {
+    "nameOverride": null
+  },
+  "UnitHajimariSougenAZen": {
+    "nameOverride": null
+  },
+  "UnitHashiKazariAL": {
+    "nameOverride": null
+  },
+  "UnitHashiKazariAR": {
+    "nameOverride": null
+  },
+  "UnitHashiKiA": {
+    "nameOverride": null
+  },
+  "UnitHashiKooriA": {
+    "nameOverride": null
+  },
+  "UnitHashiTetsuA": {
+    "nameOverride": null
+  },
+  "UnitKinMoriAHan": {
+    "nameOverride": null
+  },
+  "UnitKinMoriAkaruiAHan": {
+    "nameOverride": null
+  },
+  "UnitKinMoriAkaruiANashi": {
+    "nameOverride": null
+  },
+  "UnitKinMoriAkaruiAZen": {
+    "nameOverride": null
+  },
+  "UnitKinMoriANashi": {
+    "nameOverride": null
+  },
+  "UnitKinMoriAZen": {
+    "nameOverride": null
+  },
+  "UnitKinSlimeHanA": {
+    "nameOverride": null
+  },
+  "UnitKinSlimeNashiA": {
+    "nameOverride": null
+  },
+  "UnitKinSlimeZenA": {
+    "nameOverride": null
+  },
+  "UnitMushiChikaAHan": {
+    "nameOverride": null
+  },
+  "UnitMushiChikaANashi": {
+    "nameOverride": null
+  },
+  "UnitMushiChikaAZen": {
+    "nameOverride": null
+  },
+  "UnitMushiMachiAHan": {
+    "nameOverride": null
+  },
+  "UnitMushiMachiANashi": {
+    "nameOverride": null
+  },
+  "UnitMushiMachiAZen": {
+    "nameOverride": null
+  },
+  "UnitNettaiResortAHan": {
+    "nameOverride": null
+  },
+  "UnitNettaiResortANashi": {
+    "nameOverride": null
+  },
+  "UnitNettaiResortAZen": {
+    "nameOverride": null
+  },
+  "UnitNettaiResortDarkAZen": {
+    "nameOverride": null
+  },
+  "UnitNettaiYoganAHan": {
+    "nameOverride": null
+  },
+  "UnitNettaiYoganANashi": {
+    "nameOverride": null
+  },
+  "UnitNettaiYoganAZen": {
+    "nameOverride": null
+  },
+  "UnitSabakuChijouAHan": {
+    "nameOverride": null
+  },
+  "UnitSabakuChijouANashi": {
+    "nameOverride": null
+  },
+  "UnitSabakuChijouAZen": {
+    "nameOverride": null
+  },
+  "UnitSabakuChikaAHan": {
+    "nameOverride": null
+  },
+  "UnitSabakuChikaANashi": {
+    "nameOverride": null
+  },
+  "UnitSabakuChikaAZen": {
+    "nameOverride": null
+  },
+  "UnitSabakuIsekiAHan": {
+    "nameOverride": null
+  },
+  "UnitSabakuIsekiANashi": {
+    "nameOverride": null
+  },
+  "UnitSabakuIsekiAZen": {
+    "nameOverride": null
+  },
+  "UnitSavannaChiteiAHan": {
+    "nameOverride": null
+  },
+  "UnitSavannaChiteiANashi": {
+    "nameOverride": null
+  },
+  "UnitSavannaChiteiAZen": {
+    "nameOverride": null
+  },
+  "UnitSavannaHeigenAHan": {
+    "nameOverride": null
+  },
+  "UnitSavannaHeigenANashi": {
+    "nameOverride": null
+  },
+  "UnitSavannaHeigenAZen": {
+    "nameOverride": null
+  },
+  "UnitSavannaSabakuAHan": {
+    "nameOverride": null
+  },
+  "UnitSavannaSabakuANashi": {
+    "nameOverride": null
+  },
+  "UnitSavannaSabakuAZen": {
+    "nameOverride": null
+  },
+  "UnitWaKaiganAHan": {
+    "nameOverride": null
+  },
+  "UnitWaKaiganANashi": {
+    "nameOverride": null
+  },
+  "UnitWaKaiganAZen": {
+    "nameOverride": null
+  },
+  "UnitYamaDokutuAHan": {
+    "nameOverride": null
+  },
+  "UnitYamaDokutuANashi": {
+    "nameOverride": null
+  },
+  "UnitYamaDokutuAZen": {
+    "nameOverride": null
+  },
+  "UnitYamaJyokuAHan": {
+    "nameOverride": null
+  },
+  "UnitYamaJyokuANashi": {
+    "nameOverride": null
+  },
+  "UnitYamaJyokuAZen": {
+    "nameOverride": null
+  },
+  "UnitYamaTijyoAHan": {
+    "nameOverride": null
+  },
+  "UnitYamaTijyoANashi": {
+    "nameOverride": null
+  },
+  "UnitYamaTijyoAZen": {
+    "nameOverride": null
+  },
+  "UpperEdgeDecoParamArea": {
+    "nameOverride": null
+  },
+  "WaitStartRaceSignalTag": {
+    "nameOverride": null
+  },
+  "WaterTag": {
+    "nameOverride": null
+  },
+  "WaterTagKoopaJr": {
+    "nameOverride": null
+  },
+  "WaterUpHole": {
+    "nameOverride": null
+  },
+  "WMapCastle": {
+    "nameOverride": null
+  },
+  "WMapCastleBurnerA": {
+    "nameOverride": null
+  },
+  "WMapCastleKemuriA": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaA": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaA01": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaA02": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaA03": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaALocked": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaBSet00": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaBSet01": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaBSet02": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaBSet03": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsAshibaBSet04": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsKanbanA": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsKanbanB": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsKoopaCastleA": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsTowerA": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsTowerB": {
+    "nameOverride": null
+  },
+  "WMapCastlePartsTowerC": {
+    "nameOverride": null
+  },
+  "WMapCastleSuimenA": {
+    "nameOverride": null
+  },
+  "WMapCommonAirWall": {
+    "nameOverride": null
+  },
+  "WMapHajimariBaseSougenA": {
+    "nameOverride": null
+  },
+  "WMapHajimariBaseSougenB": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsKaiganKiA": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsKaiganKiB": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsKaiganOkaA": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsKaiganSangoA": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsKaiganShimaA": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsKaiganTenbouA": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsMoriKiA": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsMoriKiB": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsMoriKiC": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsMoriOkaA": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsMoriOkaB": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsSougenKiC": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsSougenKiD": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsSougenKiE": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsSougenKiF": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsSougenKumoC": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsSougenKumoD": {
+    "nameOverride": null
+  },
+  "WMapHajimariPartsSougenKumoSujiB": {
+    "nameOverride": null
+  },
+  "WMapHajimariSougenHikariA": {
+    "nameOverride": null
+  },
+  "WMapHajimariSougenPartDokanA02": {
+    "nameOverride": null
+  },
+  "WMapHajimariSougenPartDokanA03": {
+    "nameOverride": null
+  },
+  "WMapHimituBaseEnkeiA": {
+    "nameOverride": null
+  },
+  "WMapHimituBaseJimenA": {
+    "nameOverride": null
+  },
+  "WMapHimituBaseJimenB": {
+    "nameOverride": null
+  },
+  "WMapHimituBaseJimenHutaA": {
+    "nameOverride": null
+  },
+  "WMapHimituBaseSkyA": {
+    "nameOverride": null
+  },
+  "WMapHimituPartsHanaA": {
+    "nameOverride": null
+  },
+  "WMapHimituPartsHanaB": {
+    "nameOverride": null
+  },
+  "WMapHimituPartsHanaC": {
+    "nameOverride": null
+  },
+  "WMapHimituPartsHanaD": {
+    "nameOverride": null
+  },
+  "WMapKin": {
+    "nameOverride": null
+  },
+  "WMapKinLandscape": {
+    "nameOverride": null
+  },
+  "WMapKinLandscapeKumoA": {
+    "nameOverride": null
+  },
+  "WMapKinLandscapeKumoB": {
+    "nameOverride": null
+  },
+  "WMapKinPartsIsekiHashiraA": {
+    "nameOverride": null
+  },
+  "WMapKinPartsIsekiHashiraB": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodA": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodAA": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodB": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodBB": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodC": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodCC": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodD": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodMoriA": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodSetA": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKinokoWoodSetB": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKumoA": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKumoB": {
+    "nameOverride": null
+  },
+  "WMapKinPartsKumoC": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiKiA": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiKumoA": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiKumoB": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiOkaA": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiOkaB": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiOkaC": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiYamaA": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiYamaB": {
+    "nameOverride": null
+  },
+  "WMapMushiPartsMachiYamaC": {
+    "nameOverride": null
+  },
+  "WMapNakaBaseKaiganA": {
+    "nameOverride": null
+  },
+  "WMapNakaBaseKaiganED": {
+    "nameOverride": null
+  },
+  "WMapNakaKumoAA": {
+    "nameOverride": null
+  },
+  "WMapNakaKumoAB": {
+    "nameOverride": null
+  },
+  "WMapNakaKumoAC": {
+    "nameOverride": null
+  },
+  "WMapNettai": {
+    "nameOverride": null
+  },
+  "WMapNettaiLandscapeKazan": {
+    "nameOverride": null
+  },
+  "WMapNettaiPartsKabeA": {
+    "nameOverride": null
+  },
+  "WMapNettaiPartsKabeB": {
+    "nameOverride": null
+  },
+  "WMapNettaiPartsKabeC": {
+    "nameOverride": null
+  },
+  "WMapNettaiPartsKabeD": {
+    "nameOverride": null
+  },
+  "WMapNettaiPartsKabeE": {
+    "nameOverride": null
+  },
+  "WMapNettaiTenjyoA": {
+    "nameOverride": null
+  },
+  "WMapNettaiTutaHutaA": {
+    "nameOverride": null
+  },
+  "WMapNettaiTutaHutaB": {
+    "nameOverride": null
+  },
+  "WMapNettaiTutaHutaC": {
+    "nameOverride": null
+  },
+  "WMapNettaiTutaHutaD": {
+    "nameOverride": null
+  },
+  "WMapNettaiYoganIwaHutaA": {
+    "nameOverride": null
+  },
+  "WMapNettaiYoganTakiHutaA": {
+    "nameOverride": null
+  },
+  "WMapSabaku": {
+    "nameOverride": null
+  },
+  "WMapSabakuGarekiA": {
+    "nameOverride": null
+  },
+  "WMapSabakuGarekiB": {
+    "nameOverride": null
+  },
+  "WMapSabakuKakusiKabeAHuta": {
+    "nameOverride": null
+  },
+  "WMapSabakuKakusiKabeBHuta": {
+    "nameOverride": null
+  },
+  "WMapSabakuLandscape": {
+    "nameOverride": null
+  },
+  "WMapSabakuPaertsSwitchA": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsFenceA": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsGateA": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsKiA": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsKiB": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsKiC": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsKumoA": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsKumoB": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsYamaA": {
+    "nameOverride": null
+  },
+  "WMapSabakuPartsYamaB": {
+    "nameOverride": null
+  },
+  "WMapSabakuSuimenIseki": {
+    "nameOverride": null
+  },
+  "WMapSabakuTesuriA": {
+    "nameOverride": null
+  },
+  "WMapSabakuUPKaidan": {
+    "nameOverride": null
+  },
+  "WMapSavannaBaseChiteiB": {
+    "nameOverride": null
+  },
+  "WMapSavannaBaseDaichiA": {
+    "nameOverride": null
+  },
+  "WMapSavannaBaseHeigenA": {
+    "nameOverride": null
+  },
+  "WMapSavannaBaseHeigenEntranceA": {
+    "nameOverride": null
+  },
+  "WMapSavannaBaseHeigenKusaA": {
+    "nameOverride": null
+  },
+  "WMapSavannaBaseHeigenPalaceA": {
+    "nameOverride": null
+  },
+  "WMapSavannaBaseSabakuA": {
+    "nameOverride": null
+  },
+  "WMapSavannaBaseYama": {
+    "nameOverride": null
+  },
+  "WMapSavannaChiteiKageA": {
+    "nameOverride": null
+  },
+  "WMapSavannaCloudRoad": {
+    "nameOverride": null
+  },
+  "WMapSavannaCloudRoadB": {
+    "nameOverride": null
+  },
+  "WMapSavannaCloudRoadC": {
+    "nameOverride": null
+  },
+  "WMapSavannaLandscape": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsChiteiDokanHikariA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsChiteiIwaA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsChiteiIwaB": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsChiteiKokeA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsChiteiKokeB": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsHeigenIwaE": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsHeigenIwaF": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsHeigenIwaG": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsHeigenIwaH": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsHeigenKiA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsHeigenKiB": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsHeigenKumoA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsHeigenKumoB": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsMoriIwaA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsMoriIwaAHuta": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsMoriIwaB": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsMoriIwaC": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsMoriIwaKabeA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsMoriKiA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsSabakuIwaA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsSabakuIwaB": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsSabakuKiA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsSabakuKiB": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsSabakuKumoA": {
+    "nameOverride": null
+  },
+  "WMapSavannaPartsSabakuKumoB": {
+    "nameOverride": null
+  },
+  "WMapSeaCloudRoadG": {
+    "nameOverride": null
+  },
+  "WMapWaBaseEnkeiA": {
+    "nameOverride": null
+  },
+  "WMapWaDaitiA": {
+    "nameOverride": null
+  },
+  "WMapWaHutaA": {
+    "nameOverride": null
+  },
+  "WMapWaHutaB": {
+    "nameOverride": null
+  },
+  "WMapWaHutaC": {
+    "nameOverride": null
+  },
+  "WMapWaKumoA": {
+    "nameOverride": null
+  },
+  "WMapWaKumoB": {
+    "nameOverride": null
+  },
+  "WMapWaKumoC": {
+    "nameOverride": null
+  },
+  "WMapWaLandscape": {
+    "nameOverride": null
+  },
+  "WMapYama": {
+    "nameOverride": null
+  },
+  "WMapYamaCloudRoadD": {
+    "nameOverride": null
+  },
+  "WMapYamaCloudRoadE": {
+    "nameOverride": null
+  },
+  "WMapYamaEnkei": {
+    "nameOverride": null
+  },
+  "WMapYamaLandscape": {
+    "nameOverride": null
+  },
+  "WMapYamaLandscapeFarKumoA": {
+    "nameOverride": null
+  },
+  "WMapYamaPartsFarKumoA": {
+    "nameOverride": null
+  },
+  "WMapYamaPartsKumoHutaA": {
+    "nameOverride": null
+  },
+  "WMapYamaPartsKumoHutaB": {
+    "nameOverride": null
+  },
+  "WMapYamaPartsKumoHutaC": {
+    "nameOverride": null
+  },
+  "WMaqHajimariPartsSougenKarikomiA": {
+    "nameOverride": null
+  },
+  "WObjAnythingShopCounter": {
+    "nameOverride": null
+  },
+  "WObjCastleFactoryMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjCommonBlockShadow": {
+    "nameOverride": null
+  },
+  "WObjCommonLockGateCourse": {
+    "nameOverride": null
+  },
+  "WObjCommonLockGateFlower": {
+    "nameOverride": null
+  },
+  "WObjCommonLockGatePalace": {
+    "nameOverride": null
+  },
+  "WObjCommonLockGateShisetu": {
+    "nameOverride": null
+  },
+  "WObjCommonLockGateTorideA": {
+    "nameOverride": null
+  },
+  "WObjCommonLockGateTorideA_Demo": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniArenaA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniDummyPointA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniDummyPointA_Deco": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniDummyPointC": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniGoldenTeleportFlowerA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniHiddenA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniHirobaA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniInvisibleDummyPointA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniKanbanA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniKoopaSenkanA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniKoopaSenkanA_Demo": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniKoopaTeleportFlowerA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniNPCKinopioCaptain": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniNPCShopBadgeA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniNPCVillagerA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniNPCVillagerANoAddPlacement": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniTeleportFlowerA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniTsushinA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniWShougaiA": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniWShougaiAWithDummy": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniWShougaiB": {
+    "nameOverride": null
+  },
+  "WObjCommonMiniWShougaiBWithDummy": {
+    "nameOverride": null
+  },
+  "WObjCommonNPCEventDemoA": {
+    "nameOverride": null
+  },
+  "WObjCommonNPCEventDemoC": {
+    "nameOverride": null
+  },
+  "WObjCommonPackunCloudKin": {
+    "nameOverride": null
+  },
+  "WObjCommonPackunCloudNettai": {
+    "nameOverride": null
+  },
+  "WObjCommonPackunCloudSabaku": {
+    "nameOverride": null
+  },
+  "WObjCommonPackunCloudSavanna": {
+    "nameOverride": null
+  },
+  "WObjCommonPackunCloudWa": {
+    "nameOverride": null
+  },
+  "WObjCommonPackunCloudYama": {
+    "nameOverride": null
+  },
+  "WObjCommonTransitWorldArrowToKin": {
+    "nameOverride": null
+  },
+  "WObjCommonTransitWorldArrowToNettai": {
+    "nameOverride": null
+  },
+  "WObjCommonTransitWorldArrowToSabaku": {
+    "nameOverride": null
+  },
+  "WObjCommonTransitWorldArrowToSavanna": {
+    "nameOverride": null
+  },
+  "WObjCommonTransitWorldArrowToWa": {
+    "nameOverride": null
+  },
+  "WObjCommonTransitWorldArrowToYama": {
+    "nameOverride": null
+  },
+  "WObjCommonUnlockDemoPackun": {
+    "nameOverride": null
+  },
+  "WObjCommonYashikiMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniBase": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniDokanBase": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniDokanYokoBase": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniLockedBase": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniLockedBaseL": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniLockedBaseLOnlyUniqueAnim": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniLockedBaseS": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniPalaceBase": {
+    "nameOverride": null
+  },
+  "WObjCoursePointMiniTeleportFlowerBase": {
+    "nameOverride": null
+  },
+  "WObjCoursePointoMiniDemoBase": {
+    "nameOverride": null
+  },
+  "WObjDummyPointBase": {
+    "nameOverride": null
+  },
+  "WObjEventDemoNpcBase": {
+    "nameOverride": null
+  },
+  "WObjHajimariChikaMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjHajimariChikaMiniTijyoA_Demo": {
+    "nameOverride": null
+  },
+  "WObjHajimariKaiganMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjHajimariKaiganMiniChallengeB": {
+    "nameOverride": null
+  },
+  "WObjHajimariKaiganMiniChallengeC": {
+    "nameOverride": null
+  },
+  "WObjHajimariKaiganMiniShisetuA": {
+    "nameOverride": null
+  },
+  "WObjHajimariKaiganMiniShisetuA_Demo": {
+    "nameOverride": null
+  },
+  "WObjHajimariKaiganMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjHajimariKaiganMiniTijyoA_Demo": {
+    "nameOverride": null
+  },
+  "WObjHajimariMoriMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjHajimariSougenMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjHajimariSougenMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjHimituPalaceMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjKinCommonMiniBonusA": {
+    "nameOverride": null
+  },
+  "WObjKinDokanIdoTateA": {
+    "nameOverride": null
+  },
+  "WObjKinDokanIdoYokoA": {
+    "nameOverride": null
+  },
+  "WObjKinDokanMiddleTateA": {
+    "nameOverride": null
+  },
+  "WObjKinMoriAkaruiMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjKinMoriMiniShisetuA": {
+    "nameOverride": null
+  },
+  "WObjKinMoriMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjKinSlimeMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjKinSlimeMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjMiniKanbanBase": {
+    "nameOverride": null
+  },
+  "WObjMushiMachiMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjMushiMachMiniChallengeB": {
+    "nameOverride": null
+  },
+  "WObjNakaCommonMiniNPCFishermanA": {
+    "nameOverride": null
+  },
+  "WObjNettaiCommonMiniBonusA": {
+    "nameOverride": null
+  },
+  "WObjNettaiDokanIdoTateA": {
+    "nameOverride": null
+  },
+  "WObjNettaiDokanIdoYokoA": {
+    "nameOverride": null
+  },
+  "WObjNettaiJurinMiniShisetuA": {
+    "nameOverride": null
+  },
+  "WObjNettaiResortMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjNettaiResortMiniChallengeC": {
+    "nameOverride": null
+  },
+  "WObjNettaiResortMiniChallengeD": {
+    "nameOverride": null
+  },
+  "WObjNettaiResortMiniChallengeE": {
+    "nameOverride": null
+  },
+  "WObjNettaiResortMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjNettaiYoganMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjNettaiYoganMiniChallengeC": {
+    "nameOverride": null
+  },
+  "WObjNettaiYoganMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjNpcOnlyNpcBase": {
+    "nameOverride": null
+  },
+  "WObjRadioTowerBase": {
+    "nameOverride": null
+  },
+  "WObjSabakuChijouMiniShisetuA": {
+    "nameOverride": null
+  },
+  "WObjSabakuChijouMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjSabakuChikaMiniChikaA": {
+    "nameOverride": null
+  },
+  "WObjSabakuCommonMiniBonusA": {
+    "nameOverride": null
+  },
+  "WObjSabakuIsekiMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjSabakuIsekiMiniChallengeC": {
+    "nameOverride": null
+  },
+  "WObjSabakuIsekiMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjSabakuJyokuMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjSabakuJyokuMiniJyokuA": {
+    "nameOverride": null
+  },
+  "WObjSavannaChiteiDokanIdoYokoA": {
+    "nameOverride": null
+  },
+  "WObjSavannaChiteiMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjSavannaCommonMiniBonusA": {
+    "nameOverride": null
+  },
+  "WObjSavannaHeigenDokanIdoTateA": {
+    "nameOverride": null
+  },
+  "WObjSavannaHeigenMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjSavannaHeigenMiniChallengeB": {
+    "nameOverride": null
+  },
+  "WObjSavannaHeigenMiniJyokuA": {
+    "nameOverride": null
+  },
+  "WObjSavannaHeigenMiniPalaceA": {
+    "nameOverride": null
+  },
+  "WObjSavannaHeigenMiniShisetuA": {
+    "nameOverride": null
+  },
+  "WObjSavannaHeigenMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjSavannaJyokuMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjSavannaSabakuMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjSavannaSabakuMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjTransitWorldArrowBase": {
+    "nameOverride": null
+  },
+  "WObjWaCommonMiniBonusA": {
+    "nameOverride": null
+  },
+  "WObjWaDokanIdoTateA": {
+    "nameOverride": null
+  },
+  "WObjWaJyokuMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjWaKaigaMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjWaKaiganMiniShisetuA": {
+    "nameOverride": null
+  },
+  "WObjWaKaiganMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjYamaCommonMiniBonusA": {
+    "nameOverride": null
+  },
+  "WObjYamaDokanIdoTateA": {
+    "nameOverride": null
+  },
+  "WObjYamaJyokuMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjYamaJyokuMiniChallengeC": {
+    "nameOverride": null
+  },
+  "WObjYamaJyokuMiniGateA": {
+    "nameOverride": null
+  },
+  "WObjYamaJyokuMiniGateAOpen": {
+    "nameOverride": null
+  },
+  "WObjYamaJyokuMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WObjYamaTijyoMiniChallengeA": {
+    "nameOverride": null
+  },
+  "WObjYamaTijyoMiniShisetuA": {
+    "nameOverride": null
+  },
+  "WObjYamaTijyoMiniTijyoA": {
+    "nameOverride": null
+  },
+  "WonderBlockPow": {
+    "nameOverride": null
+  },
+  "WonderDragonRollTag": {
+    "nameOverride": null
+  },
+  "WonderFastAndSlowTag": {
+    "nameOverride": null
+  },
+  "WonderHaiden": {
+    "nameOverride": null
+  },
+  "WonderNextGoto": {
+    "nameOverride": null
+  },
+  "WonderShabonGenerateTag": {
+    "nameOverride": null
+  },
+  "WonderShadowKuribo": {
+    "nameOverride": null
+  },
+  "WonderSignalDelayTag": {
+    "nameOverride": null
+  },
+  "WonderSpRateMgr": {
+    "nameOverride": null
+  },
+  "WonderTipDemo": {
+    "nameOverride": null
+  },
+  "WonderTipTag": {
+    "nameOverride": null
+  },
+  "WoodBoxBase": {
+    "nameOverride": null
+  },
+  "WorldMapAppearGroundBase": {
+    "nameOverride": null
+  },
+  "WorldMapAreaSwitch": {
+    "nameOverride": null
+  },
+  "WorldMapAreaSwitchCapsule": {
+    "nameOverride": null
+  },
+  "WorldMapBGBase": {
+    "nameOverride": null
+  },
+  "WorldMapCallEnvironmentSoundTag": {
+    "nameOverride": null
+  },
+  "WorldMapCallEnvironmentSoundTag_Kin": {
+    "nameOverride": null
+  },
+  "WorldMapCallEnvironmentSoundTag_Naka": {
+    "nameOverride": null
+  },
+  "WorldMapCallEnvironmentSoundTag_Nettai": {
+    "nameOverride": null
+  },
+  "WorldMapCallEnvironmentSoundTag_Sabaku": {
+    "nameOverride": null
+  },
+  "WorldMapCallEnvironmentSoundTag_Wa": {
+    "nameOverride": null
+  },
+  "WorldMapCamera": {
+    "nameOverride": null
+  },
+  "WorldMapCameraLimitArea": {
+    "nameOverride": null
+  },
+  "WorldMapCameraLookAtTag": {
+    "nameOverride": null
+  },
+  "WorldMapCastleCoursePointPosLocator": {
+    "nameOverride": null
+  },
+  "WorldMapCheckAppearDemoKoopaJr": {
+    "nameOverride": null
+  },
+  "WorldMapCheckAppearFishermanTag": {
+    "nameOverride": null
+  },
+  "WorldMapCheckClearedCourseTag": {
+    "nameOverride": null
+  },
+  "WorldMapCheckCourseInTag": {
+    "nameOverride": null
+  },
+  "WorldMapCoinAppearArea": {
+    "nameOverride": null
+  },
+  "WorldMapConversationEventArea": {
+    "nameOverride": null
+  },
+  "WorldMapCoursePointBase": {
+    "nameOverride": null
+  },
+  "WorldMapCoursePointGateBase": {
+    "nameOverride": null
+  },
+  "WorldMapCoverGroundBase": {
+    "nameOverride": null
+  },
+  "WorldMapCoverGroundWithSleepBase": {
+    "nameOverride": null
+  },
+  "WorldMapDemoCameraLookAtTag": {
+    "nameOverride": null
+  },
+  "WorldMapDemoKoopaJr": {
+    "nameOverride": null
+  },
+  "WorldMapDemoMotherWonderSeed": {
+    "nameOverride": null
+  },
+  "WorldMapDemoNpcPrince": {
+    "nameOverride": null
+  },
+  "WorldMapDemoPropellerFlower": {
+    "nameOverride": null
+  },
+  "WorldMapDemoWonderSeed": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerBase": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerDaisy": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerKinopico": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerKinopioBlue": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerKinopioYellow": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerLuigi": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerMario": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerPeach": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerTotten": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerYoshiBlue": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerYoshiGreen": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerYoshiRed": {
+    "nameOverride": null
+  },
+  "WorldMapDummyPlayerYoshiYellow": {
+    "nameOverride": null
+  },
+  "WorldMapEDVBase": {
+    "nameOverride": null
+  },
+  "WorldMapEnvironmentSoundChangeTag": {
+    "nameOverride": null
+  },
+  "WorldMapFishermanLocator": {
+    "nameOverride": null
+  },
+  "WorldMapFrustumBoxSwitch": {
+    "nameOverride": null
+  },
+  "WorldMapGroundBase": {
+    "nameOverride": null
+  },
+  "WorldMapHatenaPlateObserveTag": {
+    "nameOverride": null
+  },
+  "WorldMapHDRumbleAreaSwitch": {
+    "nameOverride": null
+  },
+  "WorldMapHiddenFogArea": {
+    "nameOverride": null
+  },
+  "WorldMapHiddenMirageArea": {
+    "nameOverride": null
+  },
+  "WorldMapHiddenSandMountainArea": {
+    "nameOverride": null
+  },
+  "WorldMapManualDuckingControlTag": {
+    "nameOverride": null
+  },
+  "WorldMapNotifyDisplayStatusFlagUITag": {
+    "nameOverride": null
+  },
+  "WorldMapNpcAnythingShopBase": {
+    "nameOverride": null
+  },
+  "WorldMapNpcBase": {
+    "nameOverride": null
+  },
+  "WorldMapObjBattleShipPropellerFlower": {
+    "nameOverride": null
+  },
+  "WorldMapObjectBase": {
+    "nameOverride": null
+  },
+  "WorldMapObjectBlockHatena": {
+    "nameOverride": null
+  },
+  "WorldMapObjectBlockRenga": {
+    "nameOverride": null
+  },
+  "WorldMapObjectHatenaFence": {
+    "nameOverride": null
+  },
+  "WorldMapObjectHatenaPlate": {
+    "nameOverride": null
+  },
+  "WorldMapObjKoopaCastle": {
+    "nameOverride": null
+  },
+  "WorldMapObjKoopaCastleDemo": {
+    "nameOverride": null
+  },
+  "WorldMapObjKoopaCastleEntranceGround": {
+    "nameOverride": null
+  },
+  "WorldMapObstacleBase": {
+    "nameOverride": null
+  },
+  "WorldMapPlayer": {
+    "nameOverride": "World Map Player"
+  },
+  "WorldMapPlayerDaisy": {
+    "nameOverride": "World Map Player Daisy"
+  },
+  "WorldMapPlayerKinopico": {
+    "nameOverride": "World Map Player Toad"
+  },
+  "WorldMapPlayerKinopioBlue": {
+    "nameOverride": "World Map Player Toad Blue"
+  },
+  "WorldMapPlayerKinopioYellow": {
+    "nameOverride": "World Map Player Toad Yellow"
+  },
+  "WorldMapPlayerLuigi": {
+    "nameOverride": "World Map Player Luigi"
+  },
+  "WorldMapPlayerPeach": {
+    "nameOverride": "World Map Player Peach"
+  },
+  "WorldMapPlayerTotten": {
+    "nameOverride": "World Map Player Totten"
+  },
+  "WorldMapPlayerYoshiBlue": {
+    "nameOverride": "World Map Player Blue Yoshi"
+  },
+  "WorldMapPlayerYoshiGreen": {
+    "nameOverride": "World Map Player Green Yoshi"
+  },
+  "WorldMapPlayerYoshiRed": {
+    "nameOverride": "World Map Player Red Yoshi"
+  },
+  "WorldMapPlayerYoshiYellow": {
+    "nameOverride": "World Map Player Yellow Yoshi"
+  },
+  "WorldMapRemotePlayerDaisyChibi": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerDaisyElephant": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerKinopicoChibi": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerKinopicoElephant": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerKinopioBlueChibi": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerKinopioBlueElephant": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerKinopioYellowChibi": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerKinopioYellowElephant": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerLuigiChibi": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerLuigiElephant": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerMarioChibi": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerMarioElephant": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerPeachChibi": {
+    "nameOverride": null
+  },
+  "WorldMapRemotePlayerPeachElephant": {
+    "nameOverride": null
+  },
+  "WorldMapRhythmCallSETag": {
+    "nameOverride": null
+  },
+  "WorldMapSharePlayLimitArea": {
+    "nameOverride": null
+  },
+  "WorldMapSubregionAreaSwitch": {
+    "nameOverride": null
+  }
+}

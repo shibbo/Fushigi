@@ -19,13 +19,17 @@ Console.WriteLine("Starting Fushigi v0.6...");
 
 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 {
-  Console.WriteLine("Running on osx");
-} else {
-  Console.WriteLine("Not running on osx");
+    Console.WriteLine("Running on osx");
+}
+else
+{
+    Console.WriteLine("Not running on osx");
 };
 
 Console.WriteLine("Loading user settings...");
 UserSettings.Load();
+Console.WriteLine("Loading actor translations...");
+ActorDataDB.Load();
 Console.WriteLine("Loading parameter database...");
 ParamDB.Init();
 Console.WriteLine("Loading area parameter loader...");
@@ -34,9 +38,9 @@ ParamLoader.Load();
 Console.WriteLine("Checking for imgui.ini");
 if (!Path.Exists("imgui.ini"))
 {
-  Console.WriteLine("Creating imgui.ini...");
-  File.WriteAllText("imgui.ini", File.ReadAllText(Path.Combine("res", "imgui-default.ini")));
-  Console.WriteLine("Created!");
+    Console.WriteLine("Creating imgui.ini...");
+    File.WriteAllText("imgui.ini", File.ReadAllText(Path.Combine("res", "imgui-default.ini")));
+    Console.WriteLine("Created!");
 };
 
 MainWindow window = new MainWindow();

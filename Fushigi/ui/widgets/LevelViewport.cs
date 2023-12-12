@@ -473,11 +473,9 @@ namespace Fushigi.ui.widgets
             if (!IsViewportHovered)
                 mHoveredObject = null;
 
-            CourseActor? hoveredActor = mHoveredObject as CourseActor;
 
-            if (hoveredActor != null && 
-                mObjectPickingRequest == null && mPositionPickingRequest == null) //prevents tooltip flickering
-                ImGui.SetTooltip($"{hoveredActor.mPackName}");
+            if (mHoveredObject is CourseActor hoveredActor && mObjectPickingRequest == null && mPositionPickingRequest == null) //prevents tooltip flickering
+                ImGui.SetTooltip(hoveredActor.friendlyName);
 
             if (ImGui.IsKeyPressed(ImGuiKey.Z) && modifiers == KeyboardModifier.CtrlCmd)
             {
