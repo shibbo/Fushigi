@@ -1041,85 +1041,85 @@
     "nameOverride": "Cloud Yama Tijyo Far 04"
   },
   "CoinBase": {
-    "nameOverride": null
+    "nameOverride": "Coin Base"
   },
   "CompassTag": {
-    "nameOverride": null
+    "nameOverride": "Compass Tag"
   },
   "ControlCourseTimerTag": {
-    "nameOverride": null
+    "nameOverride": "Control Course Timer Tag"
   },
   "ConversationEventArea": {
-    "nameOverride": null
+    "nameOverride": "Conversation Event Area"
   },
   "ConversationEventAreaOnlyCrown": {
-    "nameOverride": null
+    "nameOverride": "Conversation Event Area (Only Crown)"
   },
   "CourseDisplayBoxSwitch": {
-    "nameOverride": null
+    "nameOverride": "Course Display Box Switch"
   },
   "CourseMapMapUnitMarker": {
-    "nameOverride": null
+    "nameOverride": "Course Map Map Unit Marker"
   },
   "CourseNpcAngler": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Angler"
   },
   "CourseNpcBase": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Base"
   },
   "CourseNpcBubble": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Bubble"
   },
   "CourseNpcButler": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Butler"
   },
   "CourseNpcEnemyKuribo": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Enemy Goomba"
   },
   "CourseNPCHanachan": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Hanachan"
   },
   "CourseNpcKinkinGuide": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Kinkin Guide"
   },
   "CourseNpcOpeningButler": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Opening Butler"
   },
   "CourseNpcPrince": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Prince"
   },
   "CourseNpcTeacher": {
-    "nameOverride": null
+    "nameOverride": "Course Npc Teacher"
   },
   "CourseScreenDispAngle": {
-    "nameOverride": null
+    "nameOverride": "Course Screen Display Angle"
   },
   "CourseStaticMgrActor": {
-    "nameOverride": null
+    "nameOverride": "Course Static Manager Actor"
   },
   "CreateTag": {
-    "nameOverride": null
+    "nameOverride": "Create Tag"
   },
   "CrownPriorityDirArea": {
-    "nameOverride": null
+    "nameOverride": "Crown Priority Direction Area"
   },
   "CullingSyncTag": {
-    "nameOverride": null
+    "nameOverride": "Culling Sync Tag"
   },
   "DecoBase": {
-    "nameOverride": null
+    "nameOverride": "Deco Base"
   },
   "DecoBaseBack": {
-    "nameOverride": null
+    "nameOverride": "Deco Base (Back)"
   },
   "DecoBaseFront": {
-    "nameOverride": null
+    "nameOverride": "Deco Base (Front)"
   },
   "DecoBaseFrontPanel": {
-    "nameOverride": null
+    "nameOverride": "Deco Base (Front Panel)"
   },
   "DisplayOutNextGotoTag": {
-    "nameOverride": null
+    "nameOverride": "Display Out Next Goto Tag"
   },
   "DisplayRotaionTag": {
     "nameOverride": null
@@ -8742,54 +8742,54 @@
     "nameOverride": "World Map Player Yellow Yoshi"
   },
   "WorldMapRemotePlayerDaisyChibi": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Daisy Chibi"
   },
   "WorldMapRemotePlayerDaisyElephant": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Daisy Elephant"
   },
   "WorldMapRemotePlayerKinopicoChibi": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Toadette Chibi"
   },
   "WorldMapRemotePlayerKinopicoElephant": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Toadette Elephant"
   },
   "WorldMapRemotePlayerKinopioBlueChibi": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Toad Blue Chibi"
   },
   "WorldMapRemotePlayerKinopioBlueElephant": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Toad Blue Elephant"
   },
   "WorldMapRemotePlayerKinopioYellowChibi": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Toad Yellow Chibi"
   },
   "WorldMapRemotePlayerKinopioYellowElephant": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Toad Yellow Elephant"
   },
   "WorldMapRemotePlayerLuigiChibi": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Luigi Chibi"
   },
   "WorldMapRemotePlayerLuigiElephant": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Luigi Elephant"
   },
   "WorldMapRemotePlayerMarioChibi": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Mario Chibi"
   },
   "WorldMapRemotePlayerMarioElephant": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Mario Elephant"
   },
   "WorldMapRemotePlayerPeachChibi": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Peach Chibi"
   },
   "WorldMapRemotePlayerPeachElephant": {
-    "nameOverride": null
+    "nameOverride": "World Map Remote Player Peach Elephant"
   },
   "WorldMapRhythmCallSETag": {
-    "nameOverride": null
+    "nameOverride": "World Map Rhythm Call SE Tag"
   },
   "WorldMapSharePlayLimitArea": {
-    "nameOverride": null
+    "nameOverride": "World Map Share Play Limit Area"
   },
   "WorldMapSubregionAreaSwitch": {
-    "nameOverride": null
+    "nameOverride": "World Map Subregion Area Switch"
   }
 }
