@@ -1928,9 +1928,9 @@ namespace Fushigi.ui.widgets
                             {
                                 var actorParam = actor.mActorParameters[pair.Key];
 
-                                if(pair.Value.IsSignedInt(out int minValue, out int maxValue))
+                                if (pair.Value.IsSignedInt(out int minValue, out int maxValue))
                                 {
-                                    int val_int = (int)actorParam;
+                                    int val_int = Convert.ToInt32(actorParam);
                                     if (ImGui.InputInt(id, ref val_int))
                                     {
                                         actor.mActorParameters[pair.Key] = Math.Clamp(val_int, minValue, maxValue);
@@ -1938,7 +1938,7 @@ namespace Fushigi.ui.widgets
                                 }
                                 else if (pair.Value.IsUnsignedInt(out minValue, out maxValue))
                                 {
-                                    uint val_uint = (uint)actorParam;
+                                    uint val_uint = Convert.ToUInt32(actorParam);
                                     int val_int = unchecked((int)val_uint);
                                     if (ImGui.InputInt(id, ref val_int))
                                     {
@@ -1956,7 +1956,7 @@ namespace Fushigi.ui.widgets
                                 }
                                 else if (pair.Value.IsFloat())
                                 {
-                                    float val_float = (float)actorParam;
+                                    float val_float = Convert.ToSingle(actorParam);
                                     if (ImGui.InputFloat(id, ref val_float))
                                     {
                                         actor.mActorParameters[pair.Key] = val_float;
@@ -1972,7 +1972,7 @@ namespace Fushigi.ui.widgets
                                 }
                                 else if (pair.Value.IsDouble())
                                 {
-                                    double val = (double)actorParam;
+                                    double val = Convert.ToDouble(actorParam);
                                     if (ImGui.InputDouble(id, ref val))
                                     {
                                         actor.mActorParameters[pair.Key] = val;
