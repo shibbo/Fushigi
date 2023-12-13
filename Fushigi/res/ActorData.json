@@ -1,42 +1,42 @@
 {
   "AdditionalCullingAabbArea": {
-    "nameOverride": null
+    "nameOverride": "Additional Culling Aabb Area"
   },
   "AirWall": {
-    "nameOverride": null
+    "nameOverride": "Air Wall"
   },
   "AirWallRight": {
-    "nameOverride": null
+    "nameOverride": "Air Wall (Right)"
   },
   "amplitudeTag": {
-    "nameOverride": null
+    "nameOverride": "Amplitude Tag"
   },
   "AnnihilateTag": {
-    "nameOverride": null
+    "nameOverride": "Annihilate Tag"
   },
   "AreaBottomlessPit": {
-    "nameOverride": null
+    "nameOverride": "Bottomless Pit Area"
   },
   "AreaCommon": {
     "nameOverride": "Common Area"
   },
   "AreaDowsing": {
-    "nameOverride": null
+    "nameOverride": "Dowsing Area"
   },
   "AreaEnemyDeath": {
     "nameOverride": "Enemy Death Area"
   },
   "AreaEnemyGoroboStrongReflection": {
-    "nameOverride": null
+    "nameOverride": "Gorobo Strong Reflection Area"
   },
   "AreaEnemyNokonokoRaceJump": {
-    "nameOverride": null
+    "nameOverride": "Koopa Jump Race Area"
   },
   "AreaEnemyNokonokoRaceSpeedSet": {
-    "nameOverride": null
+    "nameOverride": "Koopa Speed Set Race Area"
   },
   "AreaEnemyNokoNokoRaceTurn": {
-    "nameOverride": null
+    "nameOverride": "Koopa Turn Race Area"
   },
   "AreaEnemyRaceDance": {
     "nameOverride": null
