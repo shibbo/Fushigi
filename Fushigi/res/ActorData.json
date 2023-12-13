@@ -39,658 +39,658 @@
     "nameOverride": "Koopa Turn Race Area"
   },
   "AreaEnemyRaceDance": {
-    "nameOverride": null
+    "nameOverride": "Race Dance Area"
   },
   "AreaEnemyRacePlayAnim": {
-    "nameOverride": null
+    "nameOverride": "Race Play Anim Area"
   },
   "AreaEnemyRaceSwim": {
-    "nameOverride": null
+    "nameOverride": "Race Swim Area"
   },
   "AreaEnemyRaceWarp": {
-    "nameOverride": null
+    "nameOverride": "Race Warp Area"
   },
   "AreaEnterScreenCapture": {
-    "nameOverride": null
+    "nameOverride": "Enter Screen Capture Area"
   },
   "AreaForbidPlayerReturnJump": {
-    "nameOverride": null
+    "nameOverride": "Forbid Player Return Jump Area"
   },
   "AreaGelField": {
-    "nameOverride": null
+    "nameOverride": "Gel Field Area"
   },
   "AreaGelFieldBreakable": {
-    "nameOverride": null
+    "nameOverride": "Gel Field Breakable Area"
   },
   "AreaHipDropCallout": {
-    "nameOverride": null
+    "nameOverride": "Hip Drop Callout Area"
   },
   "AreaHipDropNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Hip Drop Next go to Area"
   },
   "AreaHitSendMessage": {
-    "nameOverride": null
+    "nameOverride": "Send Hit Message Area"
   },
   "AreaInLeftNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "In Left Next go to Area"
   },
   "AreaInRightNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "In Right Next go to Area"
   },
   "AreaInstantDeathForMapPartsRings": {
-    "nameOverride": null
+    "nameOverride": "Instant Death For Map Parts Rings Area"
   },
   "AreaJumpNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Jump Next go to Area"
   },
   "AreaKeepJumpSpeed": {
-    "nameOverride": null
+    "nameOverride": "Keep Jump Speed Area"
   },
   "AreaLavaBox": {
-    "nameOverride": null
+    "nameOverride": "Lava Box Area"
   },
   "AreaLavaSphere": {
-    "nameOverride": null
+    "nameOverride": "Lava Sphere Area"
   },
   "AreaNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Next go to Area"
   },
   "AreaNextGoToDrillOnly": {
-    "nameOverride": null
+    "nameOverride": "Next go to Drill Only Area"
   },
   "AreaNextGoToOnlyClownPlayer": {
-    "nameOverride": null
+    "nameOverride": "Next go to Only Clown Player Area"
   },
   "AreaNoWaitNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "No Wait Next go to Area"
   },
   "AreaOutLeftNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Out Left Next go to Area"
   },
   "AreaOutRightDisjointedNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Out Right Disjointed Next go to Area"
   },
   "AreaOutRightNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Out Right Next go to Area"
   },
   "AreaOutScreen": {
-    "nameOverride": null
+    "nameOverride": "Out Screen Area"
   },
   "AreaPlayerDisableInAirDecPow": {
-    "nameOverride": null
+    "nameOverride": "Player Disable In Air Decrease Pow Area"
   },
   "AreaPlayerDisplayCorrect": {
-    "nameOverride": null
+    "nameOverride": "Player Display Correct Area"
   },
   "AreaPlayerExpansionLimitSlopeAngle": {
-    "nameOverride": null
+    "nameOverride": "Player Expansion Limit Slope Angle Area"
   },
   "AreaPlayerJumpAcceptSurfaceVelocityY": {
-    "nameOverride": null
+    "nameOverride": "Player Jump Accept Surface Velocity Y Area"
   },
   "AreaPlayerPressPalliation": {
-    "nameOverride": null
+    "nameOverride": "Area Player Press Palliation"
   },
   "AreaPoisonousSwampBox": {
-    "nameOverride": null
+    "nameOverride": "Poisonous Swamp Box Area"
   },
   "AreaPoisonousSwampSphere": {
-    "nameOverride": null
+    "nameOverride": "Poisonous Swamp Sphere Area"
   },
   "AreaPropellerFlowerNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Propeller Flower Next go to Area"
   },
   "AreaReleasePropellerFlower": {
-    "nameOverride": null
+    "nameOverride": "Release Propeller Flower Area"
   },
   "AreaReturnWonderNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Return Wonder Next go to Area"
   },
   "AreaSand": {
-    "nameOverride": null
+    "nameOverride": "Sand Area"
   },
   "AreaScreenCapture": {
-    "nameOverride": null
+    "nameOverride": "Screen Capture Area"
   },
   "AreaSoundWonderStartJump": {
-    "nameOverride": null
+    "nameOverride": "Sound Wonder Start Jump Area"
   },
   "AreaSwitchBase": {
-    "nameOverride": null
+    "nameOverride": "Switch Base Area"
   },
   "AreaSwitchLightEffect": {
-    "nameOverride": null
+    "nameOverride": "Switch Light Effect Area"
   },
   "AreaSwitchLocal": {
-    "nameOverride": null
+    "nameOverride": "Switch Local Area"
   },
   "AreaSwitchLocalIncludeGhost": {
-    "nameOverride": null
+    "nameOverride": "Switch Local Include Ghost Area"
   },
   "AreaSwitchLocalOnlyCrown": {
-    "nameOverride": null
+    "nameOverride": "Switch Local Only Crown Area"
   },
   "AreaUpWaterFlow": {
-    "nameOverride": null
+    "nameOverride": "Up Water Flow Area"
   },
   "AreaVineNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Vine Next go to Area"
   },
   "AreaWaterBox": {
-    "nameOverride": null
+    "nameOverride": "Water Box Area"
   },
   "AreaWaterVineNextGoTo": {
-    "nameOverride": null
+    "nameOverride": "Water Vine Next go to Area"
   },
   "AreaWindFlow": {
-    "nameOverride": null
+    "nameOverride": "Wind Flow Area"
   },
   "ArenaCommendationTag": {
-    "nameOverride": null
+    "nameOverride": "Commendation Tag Arena"
   },
   "AssistantBindPulling": {
-    "nameOverride": null
+    "nameOverride": "Assistant Bind Pulling"
   },
   "AssistantPendulum": {
-    "nameOverride": null
+    "nameOverride": "Assistant Pendulum"
   },
   "AssistantRail": {
-    "nameOverride": null
+    "nameOverride": "Assistant Rail"
   },
   "AssistantRotation": {
-    "nameOverride": null
+    "nameOverride": "Assistant Rotation"
   },
   "AssistantRotationPulling": {
-    "nameOverride": null
+    "nameOverride": "Assistant Rotation (Pulling)"
   },
   "AutoScrollControlSignalFrame": {
-    "nameOverride": null
+    "nameOverride": "Auto Scroll Control Signal Frame"
   },
   "BackdanceHakkun": {
-    "nameOverride": null
+    "nameOverride": "Backdance Ninji"
   },
   "BackgroundAreaLocator": {
-    "nameOverride": null
+    "nameOverride": "Background Area Locator"
   },
   "BadgeFlower": {
-    "nameOverride": null
+    "nameOverride": "Flower Badge"
   },
   "BadSmokeTag": {
-    "nameOverride": null
+    "nameOverride": "Bad Smoke Tag"
   },
   "BallDaisy": {
-    "nameOverride": null
+    "nameOverride": "Ball Daisy"
   },
   "BallKinopio": {
-    "nameOverride": null
+    "nameOverride": "Ball Toad"
   },
   "BallLuigi": {
-    "nameOverride": null
+    "nameOverride": "Ball Luigi"
   },
   "BallMario": {
-    "nameOverride": null
-  },
-  "BalloonKillerDaisy": {
-    "nameOverride": null
-  },
-  "BalloonKillerKinopico": {
-    "nameOverride": null
-  },
-  "BalloonKillerKinopio": {
-    "nameOverride": null
-  },
-  "BalloonKillerLuigi": {
-    "nameOverride": null
-  },
-  "BalloonKillerMario": {
-    "nameOverride": null
-  },
-  "BalloonKillerPeach": {
-    "nameOverride": null
-  },
-  "BalloonKillerTotten": {
-    "nameOverride": null
-  },
-  "BalloonKillerYoshi": {
-    "nameOverride": null
-  },
-  "BalloonPosMappingArea": {
-    "nameOverride": null
+    "nameOverride": "Ball Mario"
   },
   "BallPeach": {
-    "nameOverride": null
+    "nameOverride": "Ball Peach"
   },
   "BallTotten": {
-    "nameOverride": null
+    "nameOverride": "Ball Totten"
   },
   "BallYoshi": {
-    "nameOverride": null
+    "nameOverride": "Ball Yoshi"
+  },
+  "BalloonKillerDaisy": {
+    "nameOverride": "Balloon Killer Daisy"
+  },
+  "BalloonKillerKinopico": {
+    "nameOverride": "Balloon Killer Toadette"
+  },
+  "BalloonKillerKinopio": {
+    "nameOverride": "Balloon Killer Toad"
+  },
+  "BalloonKillerLuigi": {
+    "nameOverride": "Balloon Killer Luigi"
+  },
+  "BalloonKillerMario": {
+    "nameOverride": "Balloon Killer Mario"
+  },
+  "BalloonKillerPeach": {
+    "nameOverride": "Balloon Killer Peach"
+  },
+  "BalloonKillerTotten": {
+    "nameOverride": "Balloon Killer Totten"
+  },
+  "BalloonKillerYoshi": {
+    "nameOverride": "Balloon Killer Yoshi"
+  },
+  "BalloonPosMappingArea": {
+    "nameOverride": "Balloon Pos Mapping Area"
   },
   "BgmChangeTag": {
-    "nameOverride": null
+    "nameOverride": "Background Music Change Tag"
   },
   "BgUnitBreakableFullHitA2x2": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Breakable Full Hit A2x2"
   },
   "BgUnitDecoDisableArea": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Deco Disable Area"
   },
   "BgUnitEmptyTag": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Empty Tag"
   },
   "BgUnitPart_A_Bridge_Ground": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ABridge Ground"
   },
   "BgUnitPart_A_Bridge_LL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ABridge LL30Slope"
   },
   "BgUnitPart_A_Bridge_LL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ABridge LL45Slope"
   },
   "BgUnitPart_A_Bridge_RL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ABridge RL30Slope"
   },
   "BgUnitPart_A_Bridge_RL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ABridge RL45Slope"
   },
   "BgUnitPart_A_Han_Ground": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan Ground"
   },
   "BgUnitPart_A_Han_LL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan LL30Slope"
   },
   "BgUnitPart_A_Han_LL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan LL45Slope"
   },
   "BgUnitPart_A_Han_LU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan LU30Slope"
   },
   "BgUnitPart_A_Han_LU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan LU45Slope"
   },
   "BgUnitPart_A_Han_RL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan RL30Slope"
   },
   "BgUnitPart_A_Han_RL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan RL45Slope"
   },
   "BgUnitPart_A_Han_RU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan RU30Slope"
   },
   "BgUnitPart_A_Han_RU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AHan RU45Slope"
   },
   "BgUnitPart_A_NoHit_Ground": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit Ground"
   },
   "BgUnitPart_A_NoHit_LL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit LL30Slope"
   },
   "BgUnitPart_A_NoHit_LL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit LL45Slope"
   },
   "BgUnitPart_A_NoHit_LU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit LU30Slope"
   },
   "BgUnitPart_A_NoHit_LU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit LU45Slope"
   },
   "BgUnitPart_A_NoHit_RL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit RL30Slope"
   },
   "BgUnitPart_A_NoHit_RL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit RL45Slope"
   },
   "BgUnitPart_A_NoHit_RU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit RU30Slope"
   },
   "BgUnitPart_A_NoHit_RU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part ANo Hit RU45Slope"
   },
   "BgUnitPart_A_Zen_Ground": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen Ground"
   },
   "BgUnitPart_A_Zen_LL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen LL30Slope"
   },
   "BgUnitPart_A_Zen_LL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen LL45Slope"
   },
   "BgUnitPart_A_Zen_LU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen LU30Slope"
   },
   "BgUnitPart_A_Zen_LU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen LU45Slope"
   },
   "BgUnitPart_A_Zen_RL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen RL30Slope"
   },
   "BgUnitPart_A_Zen_RL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen RL45Slope"
   },
   "BgUnitPart_A_Zen_RU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen RU30Slope"
   },
   "BgUnitPart_A_Zen_RU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part AZen RU45Slope"
   },
   "BgUnitPart_B_Bridge_Ground": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BBridge Ground"
   },
   "BgUnitPart_B_Bridge_LL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BBridge LL30Slope"
   },
   "BgUnitPart_B_Bridge_LL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BBridge LL45Slope"
   },
   "BgUnitPart_B_Bridge_RL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BBridge RL30Slope"
   },
   "BgUnitPart_B_Bridge_RL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BBridge RL45Slope"
   },
   "BgUnitPart_B_Han_Ground": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan Ground"
   },
   "BgUnitPart_B_Han_LL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan LL30Slope"
   },
   "BgUnitPart_B_Han_LL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan LL45Slope"
   },
   "BgUnitPart_B_Han_LU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan LU30Slope"
   },
   "BgUnitPart_B_Han_LU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan LU45Slope"
   },
   "BgUnitPart_B_Han_RL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan RL30Slope"
   },
   "BgUnitPart_B_Han_RL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan RL45Slope"
   },
   "BgUnitPart_B_Han_RU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan RU30Slope"
   },
   "BgUnitPart_B_Han_RU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BHan RU45Slope"
   },
   "BgUnitPart_B_NoHit_Ground": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit Ground"
   },
   "BgUnitPart_B_NoHit_LL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit LL30Slope"
   },
   "BgUnitPart_B_NoHit_LL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit LL45Slope"
   },
   "BgUnitPart_B_NoHit_LU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit LU30Slope"
   },
   "BgUnitPart_B_NoHit_LU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit LU45Slope"
   },
   "BgUnitPart_B_NoHit_RL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit RL30Slope"
   },
   "BgUnitPart_B_NoHit_RL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit RL45Slope"
   },
   "BgUnitPart_B_NoHit_RU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit RU30Slope"
   },
   "BgUnitPart_B_NoHit_RU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BNo Hit RU45Slope"
   },
   "BgUnitPart_B_Zen_Ground": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen Ground"
   },
   "BgUnitPart_B_Zen_LL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen LL30Slope"
   },
   "BgUnitPart_B_Zen_LL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen LL45Slope"
   },
   "BgUnitPart_B_Zen_LU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen LU30Slope"
   },
   "BgUnitPart_B_Zen_LU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen LU45Slope"
   },
   "BgUnitPart_B_Zen_RL30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen RL30Slope"
   },
   "BgUnitPart_B_Zen_RL45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen RL45Slope"
   },
   "BgUnitPart_B_Zen_RU30Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen RU30Slope"
   },
   "BgUnitPart_B_Zen_RU45Slope": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Part BZen RU45Slope"
   },
   "BgUnitPushWallA": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Push Wall A"
   },
   "BgUnitThroughPassge": {
-    "nameOverride": null
+    "nameOverride": "Background Unit Through Passge"
   },
   "BindRetryPoint": {
-    "nameOverride": null
+    "nameOverride": "Bind Retry Point"
   },
   "bindScrollLimitTag": {
-    "nameOverride": null
+    "nameOverride": "Bind Scroll Limit Tag"
   },
   "bindShabonPlayerLimitTag": {
-    "nameOverride": null
+    "nameOverride": "Background Music Change Tag"
   },
   "BisuRotate": {
-    "nameOverride": null
+    "nameOverride": "Bisu Rotate"
   },
   "BisuRotateMini": {
-    "nameOverride": null
+    "nameOverride": "Bisu Rotate (Mini)"
   },
   "BiyonSquatReciprocateTag": {
-    "nameOverride": null
+    "nameOverride": "Sproing Squat Reciprocate Tag"
   },
   "BlockChikuwaControlTag": {
-    "nameOverride": null
+    "nameOverride": "Donut Block Control Tag"
   },
   "BlockClarity": {
-    "nameOverride": null
+    "nameOverride": "Block Clarity"
   },
   "BlockCloudLight": {
-    "nameOverride": null
+    "nameOverride": "Block Cloud Light"
   },
   "BlockCloudLightLong": {
-    "nameOverride": null
+    "nameOverride": "Block Cloud Light Long"
   },
   "BlockHatena": {
     "nameOverride": "? Block"
   },
   "BlockHatenaBindable": {
-    "nameOverride": null
+    "nameOverride": "Block Hatena Bindable"
   },
   "BlockHatenaLong": {
-    "nameOverride": null
+    "nameOverride": "Block Hatena Long"
   },
   "BlockHatenaLongBindable": {
-    "nameOverride": null
+    "nameOverride": "Block Hatena Long Bindable"
   },
   "BlockMarioBros": {
-    "nameOverride": null
+    "nameOverride": "Block Mario Bros"
   },
   "BlockMarioBrosBindable": {
-    "nameOverride": null
+    "nameOverride": "Block Mario Bros Bindable"
   },
   "BlockMarioBrosItem": {
-    "nameOverride": null
+    "nameOverride": "Block Mario Bros Item"
   },
   "BlockRenga": {
     "nameOverride": "Brick Block"
   },
   "BlockRengaItem": {
-    "nameOverride": null
+    "nameOverride": "Brick Block (Item)"
   },
   "BlockRengaItemBindable": {
-    "nameOverride": null
+    "nameOverride": "Brick Block (Item Bindable)"
   },
   "BlockRengaLight": {
-    "nameOverride": null
+    "nameOverride": "Brick Block (Light)"
   },
   "BlockRoundLight": {
-    "nameOverride": null
+    "nameOverride": "Block Round Light"
   },
   "BlockRoundLightBindable": {
-    "nameOverride": null
+    "nameOverride": "Block Round Light Bindable"
   },
   "BlockRoundLong6x1": {
-    "nameOverride": null
+    "nameOverride": "Block Round Long 6x1"
   },
   "BlockRoundLong9x1": {
-    "nameOverride": null
+    "nameOverride": "Block Round Long 9x1"
   },
   "BlockRoundLongLight": {
-    "nameOverride": null
+    "nameOverride": "Block Round Long Light"
   },
   "BlueBlock": {
-    "nameOverride": null
+    "nameOverride": "Blue Block"
   },
   "BlueBlockShutter": {
-    "nameOverride": null
+    "nameOverride": "Blue Block Shutter"
   },
   "BlueBlockShutterEdge": {
-    "nameOverride": null
+    "nameOverride": "Blue Block Shutter Edge"
   },
   "BlueBlockShutterEdgeTop": {
-    "nameOverride": null
+    "nameOverride": "Blue Block Shutter Edge Top"
   },
   "BoolGameDataTag": {
-    "nameOverride": null
+    "nameOverride": "Bool Game Data Tag"
   },
   "BossKoopaJr": {
-    "nameOverride": null
+    "nameOverride": "Boss Bowser Jr"
   },
   "BossKoopaJrDummy": {
-    "nameOverride": null
+    "nameOverride": "Boss Bowser Jr (Dummy)"
   },
   "BulletBase": {
-    "nameOverride": null
+    "nameOverride": "Bullet Base"
   },
   "BulletBlast": {
-    "nameOverride": null
+    "nameOverride": "Bullet Blast"
   },
   "BulletEggUzaPiyo": {
-    "nameOverride": null
+    "nameOverride": "Bullet Egg Uza Piyo"
   },
   "BulletElephantDrainage": {
-    "nameOverride": null
+    "nameOverride": "Bullet Elephant Drainage"
   },
   "BulletFireBall": {
-    "nameOverride": null
+    "nameOverride": "Bullet Fire Ball"
   },
   "BulletHammer": {
-    "nameOverride": null
+    "nameOverride": "Bullet Hammer"
   },
   "BulletKoopaBall": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Ball"
   },
   "BulletKoopaCounterFire": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Counter Fire"
   },
   "BulletKoopaJrApron": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Jr Apron"
   },
   "BulletKoopaJrFire": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Jr Fire"
   },
   "BulletKoopaMusicalNote": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Musical Note"
   },
   "BulletKoopaMusicalNoteFromBackArea": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Musical Note From Back Area"
   },
   "BulletKoopaMusicalNoteFromBackAreaLarge": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Musical Note From Back Area Large"
   },
   "BulletKoopaMusicalNoteFromBackAreaLong": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Musical Note From Back Area Long"
   },
   "BulletKoopaMusicalNoteScatter": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Musical Note Scatter"
   },
   "BulletKoopaSmoke": {
-    "nameOverride": null
+    "nameOverride": "Bullet Koopa Smoke"
   },
   "BulletLavaBallComeFromBack_Fall": {
-    "nameOverride": null
+    "nameOverride": "Bullet Lava Ball Come From Back Fall"
   },
   "BulletLavaBallComeFromBack_Straight": {
-    "nameOverride": null
+    "nameOverride": "Bullet Lava Ball Come From Back Straight"
   },
   "BulletOfHanabi": {
-    "nameOverride": null
+    "nameOverride": "Bullet Of Hanabi"
   },
   "BulletShabon": {
-    "nameOverride": null
+    "nameOverride": "Bullet Shabon"
   },
   "BulletWaterBlast": {
-    "nameOverride": null
+    "nameOverride": "Bullet Water Blast"
   },
   "BulletWireCap": {
-    "nameOverride": null
+    "nameOverride": "Bullet Wire Cap"
   },
   "BulletYoshiFire": {
-    "nameOverride": null
+    "nameOverride": "Bullet Yoshi Fire"
   },
   "BulletYoshiSeed": {
-    "nameOverride": null
+    "nameOverride": "Bullet Yoshi Seed"
   },
   "CallEffectLastBossKoopaHeadDemoTag": {
-    "nameOverride": null
+    "nameOverride": "Call Effect Last Boss Koopa Head Demo Tag"
   },
   "CallEffectTag": {
-    "nameOverride": null
+    "nameOverride": "Call Effect Tag"
   },
   "CallEffectTagBase": {
-    "nameOverride": null
+    "nameOverride": "Call Effect Tag Base"
   },
   "CallEffectTagWorldMap": {
-    "nameOverride": null
+    "nameOverride": "Call Effect Tag World Map"
   },
   "CallEnvironmentSoundTag": {
-    "nameOverride": null
+    "nameOverride": "Call Environment Sound Tag"
   },
   "CallSETag": {
-    "nameOverride": null
+    "nameOverride": "Call SE Tag"
   },
   "CameraArea": {
-    "nameOverride": null
+    "nameOverride": "Camera Area"
   },
   "CameraAreaConditional": {
-    "nameOverride": null
+    "nameOverride": "Camera Area (Conditional)"
   },
   "CameraAreaPlacement": {
-    "nameOverride": null
+    "nameOverride": "Camera Area (Placement)"
   },
   "CameraAreaSignal": {
-    "nameOverride": null
+    "nameOverride": "Camera Area (Signal)"
   },
   "CarriedThrowObjectBase": {
-    "nameOverride": null
+    "nameOverride": "Carried Throw Object Base"
   },
   "ChangeWorldGravityTag": {
-    "nameOverride": null
+    "nameOverride": "Change World Gravity Tag"
   },
   "ChangeXLinkGlobalPropertyTag": {
-    "nameOverride": null
+    "nameOverride": "Change X Link Global Property Tag"
   },
   "CheckWonderFinishTag": {
-    "nameOverride": null
+    "nameOverride": "Check Wonder Finish Tag"
   },
   "ChildActorDeathObserveTag": {
-    "nameOverride": null
+    "nameOverride": "Child Actor Death Observe Tag"
   },
   "CloudCastleFactoryFar00": {
     "nameOverride": null
