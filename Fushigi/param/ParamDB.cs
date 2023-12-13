@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Fushigi.SARC;
 using Silk.NET.OpenGL;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Fushigi.Byml;
 using Silk.NET.Core;
@@ -29,8 +28,33 @@ namespace Fushigi.param
 
         public struct ComponentParam
         {
-            public object InitValue;
-            public string Type;
+            //used by the serializer, don't rename
+            public object InitValue { get; init; }
+            public string Type { get; init; }
+
+            //used by the deserializer, don't remove
+            [JsonConstructor]
+            private ComponentParam(string type, object initValue)
+            {
+                InitValue = CastJsonValue(initValue, type);
+                Type = type;
+            }
+
+            private static object CastJsonValue(object jsonValue, string type)
+            {
+                return type switch
+                {
+                    "S16" => Convert.ToInt16(jsonValue)!,
+                    "S32" => Convert.ToInt32(jsonValue)!,
+                    "U8" => Convert.ToByte(jsonValue)!,
+                    "U32" => Convert.ToUInt32(jsonValue)!,
+                    "F32" => Convert.ToSingle(jsonValue)!,
+                    "F64" => Convert.ToDouble(jsonValue)!,
+                    "Bool" => Convert.ToBoolean(jsonValue)!,
+                    "String" => Convert.ToString(jsonValue)!,
+                    _ => throw new Exception($"Invalid param Type {type}")
+                };
+            }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly bool IsSignedInt() => IsSignedInt(out _, out _);
