@@ -321,6 +321,7 @@ namespace Fushigi.ui.widgets
                     //Load popup when button is pressed
                     if (ImGui.Button("Area Parameters"))
                         ImGui.OpenPopup("AreaParams");
+
                     ImGui.SameLine();
 
                     //Display Mouse Position  
@@ -333,13 +334,9 @@ namespace Fushigi.ui.widgets
                         ImGui.Text("X:\nY:");
 
                     //Fixed popup pos, render popup
-                    var pos = ImGui.GetCursorScreenPos();
-                    ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
-                    if (ImGui.BeginPopup($"AreaParams", ImGuiWindowFlags.NoMove))
-                    {
-                        AreaParameters(area.mAreaParams);
-                        ImGui.EndPopup();
-                    }
+                    //var pos = ImGui.GetCursorScreenPos();
+                    //ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
+                    AreaParameters(area.mAreaParams);
                 }
             }
 
@@ -1113,10 +1110,11 @@ namespace Fushigi.ui.widgets
             ParamHolder areaParams = ParamLoader.GetHolder("AreaParam");
             var pos = ImGui.GetCursorScreenPos();
             ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
-            ImGui.SetNextWindowSize(new Vector2(400, 800), ImGuiCond.Once);
+            ImGui.SetNextWindowContentSize(new Vector2(400, 800));
 
-            if (ImGui.Begin("Area Parameters", ImGuiWindowFlags.NoMove))
+            if (ImGui.BeginPopup($"AreaParams", ImGuiWindowFlags.NoMove))
             {
+                ImGui.SeparatorText("Area Parameters");
                 ImGui.Columns(2);
 
                 foreach (string key in areaParams.Keys)
@@ -1183,7 +1181,7 @@ namespace Fushigi.ui.widgets
 
                     ImGui.NextColumn();
                 }
-                ImGui.End();
+                ImGui.EndPopup();
             }
         }
 
