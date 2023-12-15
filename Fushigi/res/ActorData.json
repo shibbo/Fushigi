@@ -483,7 +483,7 @@
     "nameOverride": "Bind Scroll Limit Tag"
   },
   "bindShabonPlayerLimitTag": {
-    "nameOverride": "Background Music Change Tag"
+    "nameOverride": "Bind Shabon Player Limit Tag"
   },
   "BisuRotate": {
     "nameOverride": "Bisu Rotate"

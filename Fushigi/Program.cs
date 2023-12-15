@@ -28,7 +28,7 @@ else
 
 Console.WriteLine("Loading user settings...");
 UserSettings.Load();
-Console.WriteLine("Loading actor translations...");
+Console.WriteLine("Loading actor data...");
 ActorDataDB.Load();
 Console.WriteLine("Loading parameter database...");
 ParamDB.Init();
