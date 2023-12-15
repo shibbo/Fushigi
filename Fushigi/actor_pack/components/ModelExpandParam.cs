@@ -17,6 +17,9 @@ namespace Fushigi.actor_pack.components
     [Serializable]
     public class ModelExpandParamSettings
     {
+        [BymlProperty("ModelKeyName")]
+        public string mModelKeyName { get; set; } = "";
+
         [BymlProperty("MinScale")]
         public Vector2 mMinScale { get; set; }
 
