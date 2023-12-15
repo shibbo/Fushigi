@@ -10,7 +10,9 @@ using Fushigi.util;
 using ImGuiNET;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
+using System.Data;
 using System.Drawing;
+using System.Dynamic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using static Fushigi.course.CourseUnit;
@@ -398,6 +400,11 @@ namespace Fushigi.ui.widgets
             DistantViewScrollManager.UpdateMatrix(actor.mLayer, ref mat);
 
             var model = render.Models[modelName];
+
+            if(actor.mActorPack.ModelExpandParamRef != null)
+            {
+                ActorModelExpand(actor, model, scaleMat);
+            }
             //switch for drawing models with different methods easier
             if(actor.mActorPack.DrainPipeRef != null && actor.mActorPack.DrainPipeRef.ModelKeyTop != null &&
              actor.mActorPack.DrainPipeRef.ModelKeyMiddle != null){
@@ -423,6 +430,55 @@ namespace Fushigi.ui.widgets
             {
                 model.Render(gl, render, mat, this.Camera);
             }
+        }
+        public Dictionary<string, Func<Vector2, Vector2>> ExpandCalcTypes = new Dictionary<string, Func<Vector2, Vector2>>{
+            {"ActorScale", (Vector2 actScale) => actScale},
+            {"ActorScaleMinus1", (Vector2 actScale) => actScale - Vector2.One},
+            {"ActorScaleMinus2", (Vector2 actScale) => actScale - new Vector2(2)},
+            {"ActorScaleDiv4", (Vector2 actScale) => actScale/4},
+            {"ZeroWhenActorScaleOne", (Vector2 actScale) => new Vector2(actScale.X == 1 ? 0:1, actScale.Y == 1 ? 0:1)}
+        };
+
+        public Dictionary<string, Func<Vector2, Vector2>> ExpandScaleTypes = new Dictionary<string, Func<Vector2, Vector2>>{
+            {"XAxisOnly", (Vector2 scale) => new (scale.X, 1)},
+            {"YAxisOnly", (Vector2 scale) => new (1, scale.Y)},
+            {"XYAxis", (Vector2 scale) => scale}
+        };
+        private void ActorModelExpand(CourseActor actor, BfresRender.BfresModel model, Matrix4x4 scaleMat)
+        {
+            //Model Expand Param
+            foreach(var setting in actor.mActorPack.ModelExpandParamRef.Settings)
+            {
+                foreach(var bone in model.Skeleton.Bones.Values)
+                {
+                    bone.WorldMatrix = bone.CalculateWorldMatrix(model.Skeleton);
+                    var boneParam = setting.mBoneSetting.BoneInfoList.Find(x => x.mBoneName == bone.Name);
+
+                    if(boneParam != null)
+                    {
+                        Vector2 boneScale = new (bone.Scale.X, bone.Scale.Y);
+                        if(boneParam.mIsCustomCalc)
+                        {
+                            boneScale.X *= boneParam.mCustomCalc.A == default ? 1:boneParam.mCustomCalc.A;
+                            boneScale.Y *= boneParam.mCustomCalc.B == default ? 1:boneParam.mCustomCalc.B;
+                        }
+
+                        var mat = ExpandCalcTypes[boneParam.mCalcType].Invoke(new Vector2(boneScale.X * Math.Max(actor.mScale.X, setting.mMinScale.X), 
+                            boneScale.Y * Math.Max(actor.mScale.Y, setting.mMinScale.Y)));
+                        mat = ExpandScaleTypes[boneParam.mScalingType].Invoke(mat);
+                        // mat.X = Math.Max(mat.X, 0);
+                        // mat.Y = Math.Max(mat.Y, 0);
+                        bone.WorldMatrix *= Matrix4x4.CreateScale(new Vector3(mat, 1));
+                    }
+                    
+                    Matrix4x4.Invert(scaleMat, out Matrix4x4 inv);
+                        bone.WorldMatrix *= inv;
+
+                    Matrix4x4.Invert(bone.WorldMatrix, out Matrix4x4 wInv);
+                        bone.InverseMatrix = bone.WorldMatrix * wInv;
+                }        
+            }
+            model.UpdateSkeleton(Matrix4x4.CreateTranslation(new(0)));
         }
 
         public void Draw(Vector2 size, double deltaSeconds, IDictionary<string, bool> layersVisibility)
