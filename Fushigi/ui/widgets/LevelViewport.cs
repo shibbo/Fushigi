@@ -449,7 +449,7 @@ namespace Fushigi.ui.widgets
         {
             //Model Expand Param
 
-            Dictionary<string, (Vector3 scale, Vector3 invScale)> boneScaleLookup = [];
+            Dictionary<string, (Vector3 scale, bool isApplyToChildren)> boneScaleLookup = [];
 
             Debug.Assert(actor.mActorPack.ModelExpandParamRef.Settings.Count > 0);
 
@@ -465,18 +465,25 @@ namespace Fushigi.ui.widgets
 
             foreach (var boneParam in setting.mBoneSetting.BoneInfoList)
             {
-
+                Vector2 boneScale;
                 if (boneParam.mIsCustomCalc)
                 {
-                    //TODO
+                    float a = boneParam.mCustomCalc.A;
+                    float b = boneParam.mCustomCalc.B;
+                    boneScale = (clampedActorScale - new Vector2(a)) / b;
+                }
+                else
+                {
+                    boneScale = ExpandCalcTypes[boneParam.mCalcType].Invoke(clampedActorScale);
                 }
 
-                var mat = ExpandCalcTypes[boneParam.mCalcType].Invoke(clampedActorScale);
-                mat = ExpandScaleTypes[boneParam.mScalingType].Invoke(mat);
-                
+                boneScale = ExpandScaleTypes[boneParam.mScalingType].Invoke(boneScale);
+
+                bool isApplyToChildren = boneParam.mCalcType != "ZeroWhenActorScaleOne"; //appearently
+
                 boneScaleLookup[boneParam.mBoneName] = (
-                    new Vector3(mat, 1), 
-                    new Vector3(1/mat.X, 1/mat.Y, 1)
+                    new Vector3(boneScale, 1), 
+                    isApplyToChildren
                 );
             }
 
@@ -499,8 +506,8 @@ namespace Fushigi.ui.widgets
 
                 var parent = model.Skeleton.Bones[bone.ParentIndex];
 
-                (Vector3 scale, Vector3 invScale) entry;
-                if (boneScaleLookup.TryGetValue(parent.Name ?? "", out entry))
+                (Vector3 scale, bool isApplyToChildren) entry;
+                if (boneScaleLookup.TryGetValue(parent.Name ?? "", out entry) && entry.isApplyToChildren)
                 {
                     bone.WorldMatrix.Translation *= entry.scale;
                 }
