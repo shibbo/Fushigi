@@ -59,19 +59,21 @@ namespace Fushigi
 
         public string GetModelName()
         {
-            if (ModelInfoRef != null) return ModelInfoRef.mModelName;
-            if (DrawArrayModelInfoRef != null) return DrawArrayModelInfoRef.mModelName;
+            return ModelInfoRef?.mModelName ?? DrawArrayModelInfoRef?.mModelName ?? "";
+            // if (ModelInfoRef != null) return ModelInfoRef.mModelName;
+            // if (DrawArrayModelInfoRef != null) return DrawArrayModelInfoRef.mModelName;
 
-            return "";
+            // return "";
         }
 
 
         public string GetModelFileName()
         {
-            if (ModelInfoRef != null) return ModelInfoRef.mFilePath;
-            if (DrawArrayModelInfoRef != null) return DrawArrayModelInfoRef.mFilePath;
+            return ModelInfoRef?.mFilePath ?? DrawArrayModelInfoRef?.mFilePath ?? "";
+            // if (ModelInfoRef != null) return ModelInfoRef.mFilePath;
+            // if (DrawArrayModelInfoRef != null) return DrawArrayModelInfoRef.mFilePath;
 
-            return "";
+            // return "";
         }
 
         private void Load(string path)
@@ -185,7 +187,7 @@ namespace Fushigi
 
             while (!string.IsNullOrEmpty(ControllerPath.parent) &&
             (ControllerPath.ShapeNamePathAry == null ||
-            (ControllerPath.mRigids == null && ControllerPath.mEntity == null)))
+            ((ControllerPath.mRigids ?? ControllerPath.mEntity ?? ControllerPath.mSensor ?? null) == null)))
             {
                 filePath = GetPathGyml(ControllerPath.parent);
                 data = sarc.OpenFile(filePath);
@@ -199,10 +201,10 @@ namespace Fushigi
             }
             
             if(ControllerPath.ShapeNamePathAry != null &&
-            (ControllerPath.mRigids != null || ControllerPath.mEntity != null))
+            ((ControllerPath.mRigids ?? ControllerPath.mEntity ?? ControllerPath.mSensor ?? null) != null))
             {
                 var shapes = ControllerPath.ShapeNamePathAry;
-                var rigidBodies = (ControllerPath.mRigids ?? new()).Concat(ControllerPath.mEntity ?? new());
+                var rigidBodies = ControllerPath.mRigids ?? ControllerPath.mEntity ?? ControllerPath.mSensor ?? [];
 
                 foreach(var rigid in rigidBodies)
                 {

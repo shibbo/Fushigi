@@ -62,7 +62,32 @@ namespace Fushigi.actor_pack.components
     [Serializable]
     public class ModelExpandMatSetting
     {
+        public List<ModelExpandMatParam> MatInfoList { get; set; }
         public bool IsUpdateByModelUpdateWldMtx { get; set; }
+    }
+
+    [Serializable]
+    public class ModelExpandMatParam
+    {
+        [BymlProperty("MatNameSuffix", DefaultValue = "")]
+        public string mMatName { get; set; }
+
+        [BymlProperty("CalcType", DefaultValue = "")]
+        public string mCalcType { get; set; }
+
+        [BymlProperty("ScalingType", DefaultValue = "")]
+        public string mScalingType { get; set; }
+
+        [BymlProperty("CustomCalc")]
+        public CustomCalc mCustomCalc { get; set; }
+
+        [BymlProperty("IsCustomCalc")]
+        public bool mIsCustomCalc { get; set; }
+
+        public Vector3 CalculateScale()
+        {
+            return Vector3.One;
+        }
     }
 
     [Serializable]

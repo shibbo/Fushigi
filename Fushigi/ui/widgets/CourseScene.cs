@@ -126,7 +126,12 @@ namespace Fushigi.ui.widgets
                 foreach (var actor in area.GetActors())
                 {
                     if (actor.mActorPack != null)
+                    {
                         resourceFiles.Add(actor.mActorPack.GetModelFileName());
+
+                        foreach (var sub in actor.mActorPack.ModelInfoRef?.SubModels ?? [])
+                            resourceFiles.Add(sub.ModelProjectName);
+                    }
                 }
             }
             //All resource files to load
@@ -1747,53 +1752,54 @@ namespace Fushigi.ui.widgets
             float tanFOV = MathF.Tan(cam.Fov / 2);
 
             var ratio = size.X/levelRect.X < size.Y/levelRect.Y ? size.X/levelRect.X : size.Y/levelRect.Y;
-            var miniRect = levelRect*ratio;
-            var miniCam = new Vector2(cam.Target.X-bounds.X, -cam.Target.Y + bounds.Y)*ratio;
+            var miniLevelRect = levelRect*ratio;
+            var miniCamPos = new Vector2(cam.Target.X-bounds.X, -cam.Target.Y + bounds.Y)*ratio;
             var miniCamSize = camSize*ratio;
-            var miniSaveCam = new Vector2(camSave.X-bounds.X, -camSave.Y + bounds.Y)*ratio;
-            var center = new Vector2((size.X - miniRect.X)/2, (size.Y - miniRect.Y)/2);
+            var miniCamSave = new Vector2(camSave.X-bounds.X, -camSave.Y + bounds.Y)*ratio;
+            var center = new Vector2((size.X - miniLevelRect.X)/2, (size.Y - miniLevelRect.Y)/2);
+
+            var lvlTopLeft = topLeft + center;
 
             var col = ImGuiCol.ButtonActive;
 
-            //ImGui.SetNextItemAllowOverlap();
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left) 
-            && ImGui.IsWindowHovered())
+            if (ImGui.IsMouseDown(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left) &&
+            (ImGui.IsWindowHovered() || (ImGui.IsWindowFocused() && ImGui.IsMouseReleased(ImGuiMouseButton.Left))) && camSave == default)
             {
                 camSave = cam.Target;
             }
 
-            if ((ImGui.IsMouseDown(ImGuiMouseButton.Left) || ImGui.IsMouseDown(ImGuiMouseButton.Right))
-            && ImGui.IsWindowFocused() &&
-            ((!ImGui.IsMouseClicked(ImGuiMouseButton.Right) && !ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-            || ImGui.IsWindowHovered()))
+            if ((ImGui.IsMouseDown(ImGuiMouseButton.Left) ||
+            ImGui.IsMouseDown(ImGuiMouseButton.Right)) &&
+            ImGui.IsWindowHovered())
             {
                 if (camSave != default)
                 {
                     col = ImGuiCol.TextDisabled;
-                    ImGui.GetWindowDrawList().AddRect(topLeft + miniSaveCam - miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
-                    topLeft + miniSaveCam + miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
-                    ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Button]),6,0,3);
+                    ImGui.GetWindowDrawList().AddRect(lvlTopLeft + miniCamSave - miniCamSize/2 + new Vector2(0, miniLevelRect.Y), 
+                        lvlTopLeft + miniCamSave + miniCamSize/2 + new Vector2(0, miniLevelRect.Y), 
+                        ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Button]),6,0,3);
                 }
 
                 var pos = ImGui.GetMousePos();
-                cam.Target = new((pos.X - (topLeft.X + center.X))/ratio + bounds.X,
-                (-pos.Y + topLeft.Y + center.Y + miniRect.Y)/ratio + bounds.Y, cam.Target.Z);
+                cam.Target = new((pos.X - lvlTopLeft.X)/ratio + bounds.X,
+                    (-pos.Y + lvlTopLeft.Y + miniLevelRect.Y)/ratio + bounds.Y, cam.Target.Z);
             }
 
-            if (ImGui.IsMouseReleased(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left)
-            && camSave != default)
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Right) && camSave != default)
             {
-                cam.Target = camSave;
+                if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
+                    cam.Target = camSave;
+
                 camSave = default;
             }
 
-            ImGui.GetWindowDrawList().AddRect(topLeft + center, 
-            topLeft + miniRect + center, 
-            ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Text]),6,0,3);
+            ImGui.GetWindowDrawList().AddRect(lvlTopLeft, 
+                lvlTopLeft + miniLevelRect, 
+                ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Text]),6,0,3);
 
-            ImGui.GetWindowDrawList().AddRect(topLeft + miniCam - miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
-            topLeft + miniCam + miniCamSize/2 + new Vector2(0, miniRect.Y) + center, 
-            ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)col]),6,0,3);
+            ImGui.GetWindowDrawList().AddRect(lvlTopLeft + miniCamPos - miniCamSize/2 + new Vector2(0, miniLevelRect.Y), 
+                lvlTopLeft + miniCamPos + miniCamSize/2 + new Vector2(0, miniLevelRect.Y), 
+                ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)col]),6,0,3);
 
             if (status)
                 ImGui.End();

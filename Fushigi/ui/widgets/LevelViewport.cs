@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Dynamic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static Fushigi.course.CourseUnit;
 using Vector3 = System.Numerics.Vector3;
@@ -384,9 +385,11 @@ namespace Fushigi.ui.widgets
             var modelName = modelInfo.mModelName;
 
             var render = BfresCache.Load(gl, resourceName);
+
             if (render == null || !render.Models.ContainsKey(modelName))
                 return;
 
+            var subRender = render;
             var transMat = Matrix4x4.CreateTranslation(actor.mTranslation);
             var scaleMat = Matrix4x4.CreateScale(actor.mScale);
             var rotMat = Matrix4x4.CreateRotationX(actor.mRotation.X) *
@@ -406,8 +409,9 @@ namespace Fushigi.ui.widgets
                 ActorModelExpand(actor, model, modelName);
             }
             //switch for drawing models with different methods easier
-            if(actor.mActorPack.DrainPipeRef != null && actor.mActorPack.DrainPipeRef.ModelKeyTop != null &&
-             actor.mActorPack.DrainPipeRef.ModelKeyMiddle != null){
+            if (actor.mActorPack.DrainPipeRef != null && actor.mActorPack.DrainPipeRef.ModelKeyTop != null &&
+            actor.mActorPack.DrainPipeRef.ModelKeyMiddle != null)
+            {
                 var drainRef = actor.mActorPack.DrainPipeRef;
                 var calc = actor.mActorPack.ShapeParams.mCalc;
                 var KeyMats = new Dictionary<string, Matrix4x4>{
@@ -422,29 +426,48 @@ namespace Fushigi.ui.widgets
                         rotMat *
                         transMat}};
 
-                render.Models[modelName].Render(gl, render, KeyMats[modelInfo.SearchModelKey], this.Camera);
-                if(modelInfo.SubModels?.Any() ?? false)
+                model.Render(gl, render, KeyMats[modelInfo.SearchModelKey], this.Camera);
+                if ((modelInfo.SubModels?.Count ?? 0) != 0)
                     render.Models[modelInfo.SubModels[0].FmdbName].Render(gl, render, KeyMats[modelInfo.SubModels[0].SearchModelKey], this.Camera);
             }
             else
             {
                 model.Render(gl, render, mat, this.Camera);
+                foreach (var sub in modelInfo.SubModels ?? [])
+                {
+                    if (sub.ModelProjectName != modelName)
+                        subRender = BfresCache.Load(gl, sub.ModelProjectName);
+                    subRender.Models[sub.FmdbName].Render(gl, render, mat, this.Camera);
+                }
             }
         }
-        public Dictionary<string, Func<Vector2, Vector2>> ExpandCalcTypes = new Dictionary<string, Func<Vector2, Vector2>>{
-            {"ActorScale", (Vector2 actScale) => actScale},
-            {"ActorScaleMinus1", (Vector2 actScale) => actScale - Vector2.One},
-            {"ActorScaleMinus2", (Vector2 actScale) => actScale - new Vector2(2)},
-            {"ActorScaleDiv4", (Vector2 actScale) => actScale/4},
-            {"ActorScaleDiv2", (Vector2 actScale) => actScale/2},
-            {"ZeroWhenActorScaleOne", (Vector2 actScale) => new Vector2(actScale.X == 1 ? 0:1, actScale.Y == 1 ? 0:1)}
-        };
+        public Vector2 ExpandCalcTypes(string type, Vector2 actScale)
+        {
+            var result = type switch
+            {
+                "ActorScale" => actScale,
+                "ActorScaleMinus1" => actScale - Vector2.One,
+                "ActorScaleMinus2" => actScale - new Vector2(2),
+                "ActorScaleDiv2" => actScale/2,
+                "ActorScaleDiv4" => actScale/4,
+                "ZeroWhenActorScaleOne" => new Vector2(actScale.X == 1 ? 0:1, actScale.Y == 1 ? 0:1),
+                "None" => Vector2.One,
+                _ => actScale
+            };
+            return result;
+        }
 
-        public Dictionary<string, Func<Vector2, Vector2>> ExpandScaleTypes = new Dictionary<string, Func<Vector2, Vector2>>{
-            {"XAxisOnly", (Vector2 scale) => new (scale.X, 1)},
-            {"YAxisOnly", (Vector2 scale) => new (1, scale.Y)},
-            {"XYAxis", (Vector2 scale) => scale}
-        };
+        public Vector2 ExpandScaleTypes(string type, Vector2 scale)
+        {
+            var result = type switch
+            {
+                "XAxisOnly" => new (scale.X, 1),
+                "YAxisOnly" => new (1, scale.Y),
+                "XYAxis" => scale,
+                _ => scale
+            };
+            return result;
+        }
         private void ActorModelExpand(CourseActor actor, BfresRender.BfresModel model, string modelName)
         {
             //Model Expand Param
@@ -465,20 +488,40 @@ namespace Fushigi.ui.widgets
 
             foreach (var boneParam in setting.mBoneSetting.BoneInfoList)
             {
-
+                var calc = clampedActorScale;
                 if (boneParam.mIsCustomCalc)
                 {
-                    //TODO
+                    //STILL TODO
                 }
 
-                var mat = ExpandCalcTypes[boneParam.mCalcType].Invoke(clampedActorScale);
-                mat = ExpandScaleTypes[boneParam.mScalingType].Invoke(mat);
+                var mat = ExpandCalcTypes(boneParam.mCalcType, calc);
+                mat = ExpandScaleTypes(boneParam.mScalingType, mat);
                 
                 boneScaleLookup[boneParam.mBoneName] = (
-                    new Vector3(mat, 1), 
+                    new Vector3(Math.Max(mat.X, 0), Math.Max(mat.Y, 0), 1), 
                     new Vector3(1/mat.X, 1/mat.Y, 1)
                 );
             }
+
+            // foreach (var matParam in setting.mMatSetting.MatInfoList)
+            // {
+            //     var calc = clampedActorScale;
+            //     if (matParam.mIsCustomCalc)
+            //     {
+            //         calc = new Vector2(
+            //             Math.Max(actor.mScale.X, matParam.mCustomCalc.A),
+            //             Math.Max(actor.mScale.Y, matParam.mCustomCalc.B)
+            //         );
+            //     }
+
+            //     var mat = ExpandCalcTypes(matParam.mCalcType, calc);
+            //     mat = ExpandScaleTypes(matParam.mScalingType, mat);
+                
+            //     boneScaleLookup[matParam.mMatName] = (
+            //         new Vector3(Math.Max(mat.X, 0), Math.Max(mat.Y, 0), 1), 
+            //         new Vector3(1/mat.X, 1/mat.Y, 1)
+            //     );
+            // }
 
             var rootMatrix = Matrix4x4.CreateScale(
                 1 / actor.mScale.X,
@@ -975,7 +1018,7 @@ namespace Fushigi.ui.widgets
                     var calc = actor.mActorPack.ShapeParams.mCalc;
 
                     if(((actor.mActorPack.ShapeParams.mSphere?.Count ??  0) > 0) ||
-                        ((actor.mActorPack.ShapeParams.mCapsule?.Count?? 0) > 0))
+                        ((actor.mActorPack.ShapeParams.mCapsule?.Count ?? 0) > 0))
                     { 
                         drawing = "sphere";
                     }
