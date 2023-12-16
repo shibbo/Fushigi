@@ -389,7 +389,6 @@ namespace Fushigi.ui.widgets
             if (render == null || !render.Models.ContainsKey(modelName))
                 return;
 
-            var subRender = render;
             var transMat = Matrix4x4.CreateTranslation(actor.mTranslation);
             var scaleMat = Matrix4x4.CreateScale(actor.mScale);
             var rotMat = Matrix4x4.CreateRotationX(actor.mRotation.X) *
@@ -406,7 +405,9 @@ namespace Fushigi.ui.widgets
 
             if(actor.mActorPack.ModelExpandParamRef != null)
             {
-                ActorModelExpand(actor, model, modelName);
+                ActorModelExpand(actor, model);
+
+                //TODO SubModels
             }
             //switch for drawing models with different methods easier
             if (actor.mActorPack.DrainPipeRef != null && actor.mActorPack.DrainPipeRef.ModelKeyTop != null &&
@@ -433,12 +434,6 @@ namespace Fushigi.ui.widgets
             else
             {
                 model.Render(gl, render, mat, this.Camera);
-                foreach (var sub in modelInfo.SubModels ?? [])
-                {
-                    if (sub.ModelProjectName != modelName)
-                        subRender = BfresCache.Load(gl, sub.ModelProjectName);
-                    subRender.Models[sub.FmdbName].Render(gl, render, mat, this.Camera);
-                }
             }
         }
         public Vector2 ExpandCalcTypes(string type, Vector2 actScale)
@@ -468,39 +463,49 @@ namespace Fushigi.ui.widgets
             };
             return result;
         }
-        private void ActorModelExpand(CourseActor actor, BfresRender.BfresModel model, string modelName)
+        private void ActorModelExpand(CourseActor actor, BfresRender.BfresModel model, string modelKeyName = "")
         {
             //Model Expand Param
-
-            Dictionary<string, (Vector3 scale, Vector3 invScale)> boneScaleLookup = [];
 
             Debug.Assert(actor.mActorPack.ModelExpandParamRef.Settings.Count > 0);
 
             if (actor.mActorPack.ModelExpandParamRef.Settings.Count == 0)
                 return;
 
-            var setting = actor.mActorPack.ModelExpandParamRef.Settings[^1]; //yeah idk either
+            //TODO is that actually how the game does it?
+            var setting = actor.mActorPack.ModelExpandParamRef.Settings.FindLast(x=>x.mModelKeyName == modelKeyName);
+
+            //Debug.Assert(setting != null);
+            if (setting == null) 
+                return;
 
             var clampedActorScale = new Vector2(
                 Math.Max(actor.mScale.X, setting.mMinScale.X),
                 Math.Max(actor.mScale.Y, setting.mMinScale.Y)
             );
 
+            Dictionary<string, Vector3> boneScaleLookup = [];
+
             foreach (var boneParam in setting.mBoneSetting.BoneInfoList)
             {
-                var calc = clampedActorScale;
+                Vector2 boneScale;
                 if (boneParam.mIsCustomCalc)
                 {
-                    //STILL TODO
+                    float a = boneParam.mCustomCalc.A;
+                    float b = boneParam.mCustomCalc.B == 0 ? 1:boneParam.mCustomCalc.B;
+                    boneScale = (clampedActorScale - new Vector2(a)) / b;
+                }
+                else
+                {
+                    boneScale = ExpandCalcTypes(boneParam.mCalcType, clampedActorScale);
                 }
 
-                var mat = ExpandCalcTypes(boneParam.mCalcType, calc);
-                mat = ExpandScaleTypes(boneParam.mScalingType, mat);
-                
-                boneScaleLookup[boneParam.mBoneName] = (
-                    new Vector3(Math.Max(mat.X, 0), Math.Max(mat.Y, 0), 1), 
-                    new Vector3(1/mat.X, 1/mat.Y, 1)
-                );
+                boneScale = ExpandScaleTypes(boneParam.mScalingType, boneScale);
+
+                boneScale.X = Math.Max(boneScale.X, 0);
+                boneScale.Y = Math.Max(boneScale.Y, 0);
+
+                boneScaleLookup[boneParam.mBoneName] = new Vector3(boneScale, 1);
             }
 
             // foreach (var matParam in setting.mMatSetting.MatInfoList)
@@ -542,18 +547,18 @@ namespace Fushigi.ui.widgets
 
                 var parent = model.Skeleton.Bones[bone.ParentIndex];
 
-                (Vector3 scale, Vector3 invScale) entry;
-                if (boneScaleLookup.TryGetValue(parent.Name ?? "", out entry))
+                Vector3 scale;
+                if (boneScaleLookup.TryGetValue(parent.Name ?? "", out scale))
                 {
-                    bone.WorldMatrix.Translation *= entry.scale;
+                    bone.WorldMatrix.Translation *= scale;
                 }
 
                 bone.WorldMatrix *= nonScaledMatrices[bone.ParentIndex];
 
                 nonScaledMatrices[i] = bone.WorldMatrix;
-                if (boneScaleLookup.TryGetValue(bone.Name, out entry))
+                if (boneScaleLookup.TryGetValue(bone.Name, out scale))
                 {
-                    bone.WorldMatrix = Matrix4x4.CreateScale(entry.scale) * bone.WorldMatrix;
+                    bone.WorldMatrix = Matrix4x4.CreateScale(scale) * bone.WorldMatrix;
                 }
             }
         }
