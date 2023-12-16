@@ -2,10 +2,12 @@
 
 namespace Fushigi.Byml
 {
-    public class BymlBigDataNode<T> : IBymlNode
+    public class BymlBigDataNode<T> : IBymlNode, IBymlValueNode
     {
         public BymlNodeId Id { get; }
         public T Data { get; set; }
+
+        object IBymlValueNode.GetValue() => Data!;
 
         public BymlBigDataNode(BymlNodeId id, BinaryReader reader, Func<BinaryReader, T> valueReader)
         {
