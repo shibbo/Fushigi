@@ -31,7 +31,7 @@ namespace Fushigi.ui.widgets
         void OnSelect(CourseAreaEditContext editContext);
         public static void DefaultSelect(CourseAreaEditContext ctx, object selectable)
         {
-            if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+            if (ImGui.GetIO().KeyShift || ImGui.GetIO().KeyCtrl)
             {
                 ctx.Select(selectable);
             }
@@ -202,7 +202,7 @@ namespace Fushigi.ui.widgets
 
         public void SelectedActor(CourseActor actor)
         {
-            if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+            if (ImGui.GetIO().KeyShift || ImGui.GetIO().KeyCtrl)
             {
                 mEditContext.Select(actor);
             }

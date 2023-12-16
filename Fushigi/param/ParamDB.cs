@@ -44,9 +44,9 @@ namespace Fushigi.param
             {
                 return type switch
                 {
-                    "S16" => Convert.ToInt16(jsonValue)!,
+                    "S16" => Convert.ToInt32(jsonValue)!,
                     "S32" => Convert.ToInt32(jsonValue)!,
-                    "U8" => Convert.ToByte(jsonValue)!,
+                    "U8" => Convert.ToUInt32(jsonValue)!,
                     "U32" => Convert.ToUInt32(jsonValue)!,
                     "F32" => Convert.ToSingle(jsonValue)!,
                     "F64" => Convert.ToDouble(jsonValue)!,

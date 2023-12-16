@@ -14,12 +14,17 @@ namespace Fushigi.util
     {
         public static T GetNodeData<T>(IBymlNode node)
         {
-            if (node.Id == BymlNodeId.Int64 || node.Id == BymlNodeId.UInt64)
+            if (node is BymlBigDataNode<T> bigDataNode)
             {
-                return ((BymlBigDataNode<T>)node).Data;
+                return bigDataNode.Data;
             }
 
             return ((BymlNode<T>)node).Data;
+        }
+
+        public static object GetNodeValue(IBymlNode node)
+        {
+            return ((IBymlValueNode)node).GetValue();
         }
 
         public static T GetNodeFromArray<T>(BymlArrayNode? array, int idx)
@@ -60,24 +65,23 @@ namespace Fushigi.util
         
         public static object GetValueFromDynamicNode(IBymlNode node, ParamDB.ComponentParam param)
         {
-            //TODO should we cast to the correct signed-ness?
-            if (param.IsUnsignedInt() && node.Id == BymlNodeId.Int)
-                return BymlUtil.GetNodeData<int>(node);
-            if (param.IsSignedInt() && node.Id == BymlNodeId.UInt)
-                return BymlUtil.GetNodeData<uint>(node);
-
             if (param.IsUnsignedInt())
-                return BymlUtil.GetNodeData<uint>(node);
+                return Convert.ToUInt32(BymlUtil.GetNodeValue(node));
             if (param.IsSignedInt())
-                return BymlUtil.GetNodeData<int>(node);
+                return Convert.ToInt32(BymlUtil.GetNodeValue(node));
             if (param.IsBool())
                 return BymlUtil.GetNodeData<bool>(node);
             if (param.IsString())
                 return BymlUtil.GetNodeData<string>(node);
             if (param.IsFloat())
+            {
+                if (node is BymlBigDataNode<double> doubleNode)
+                    return (float)doubleNode.Data;
+
                 return BymlUtil.GetNodeData<float>(node);
+            }
             if (param.IsDouble())
-                return BymlUtil.GetNodeData<double>(node);
+                return (float)BymlUtil.GetNodeData<double>(node);
 
             return null!;
         }
