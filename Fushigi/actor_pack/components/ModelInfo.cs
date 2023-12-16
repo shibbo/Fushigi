@@ -29,6 +29,7 @@ namespace Fushigi.actor_pack.components
         [Serializable]
         public class SubModel
         {
+            public string Bone { get; set; }
             public string FmdbName { get; set; }
 
             public string ModelProjectName { get; set; }

@@ -126,12 +126,8 @@ namespace Fushigi.ui.widgets
                 foreach (var actor in area.GetActors())
                 {
                     if (actor.mActorPack != null)
-                    {
                         resourceFiles.Add(actor.mActorPack.GetModelFileName());
-
-                        foreach (var sub in actor.mActorPack.ModelInfoRef?.SubModels ?? [])
-                            resourceFiles.Add(sub.ModelProjectName);
-                    }
+                    
                 }
             }
             //All resource files to load
