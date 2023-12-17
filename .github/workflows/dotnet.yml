@@ -23,12 +23,13 @@ jobs:
 
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln
+
     - name: Restore dependancies for MacOS Silicon
       run: dotnet restore -r osx-arm64 Fushigi/Fushigi.sln
     - name: Publish Mac Silicon
       run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
     - name: Tar files
-      run: tar -cvf /tmp/osx-arm.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-arm64/publish/
+      run: tar -cvf /tmp/osx-arm.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-arm64/publish
     - uses: actions/download-artifact@v4
       with:
         name: osx-arm.tar
@@ -39,7 +40,7 @@ jobs:
     - name: Publish Mac x64
       run: dotnet publish Fushigi/Fushigi.sln -r osx-x64 --no-restore
     - name: Tar files
-      run: tar -cvf /tmp/osx-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish/
+      run: tar -cvf /tmp/osx-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish
     - uses: actions/download-artifact@v4
       with:
         name: osx-x64.tar
@@ -50,7 +51,7 @@ jobs:
     - name: Publish Linux x64
       run: dotnet publish Fushigi/Fushigi.sln -r linux-x64 --no-restore
     - name: Tar files
-      run: tar -cvf /tmp/linux-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish/
+      run: tar -cvf /tmp/linux-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish
     - uses: actions/download-artifact@v4
       with:
         name: linux-x64.tar
@@ -61,7 +62,7 @@ jobs:
     - name: Publish Windows x64
       run: dotnet publish Fushigi/Fushigi.sln -r windows-x64 --no-restore
     - name: Tar files
-      run: tar -cvf /tmp/windows-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish/
+      run: tar -cvf /tmp/windows-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish
     - uses: actions/download-artifact@v4
       with:
         name: windows-x64.tar
