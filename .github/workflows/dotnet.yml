@@ -20,37 +20,55 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
-    - name: Install NativeFileDialogSharp
-      run: dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp --version 0.6.0-alpha
-    - name: Install Newtonsoft.Json
-      run: dotnet add Fushigi/Fushigi.csproj package Newtonsoft.Json 
-    - name: Install Silk.NET.Core
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
-    - name: Install Silk.NET.Input
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Input
-    - name: Install Silk.NET.Core
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
-    - name: Install Silk.NET.GLFW
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.GLFW
-    - name: Install Silk.NET.OpenGL.Extensions.ImGui
-      run: dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui
-    - name: Install StbImageSharp
-      run: dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
-    - name: Install ZstdSharp
-      run: dotnet add Fushigi/Fushigi.csproj package ZstdSharp.Port
-    - name: Restore dependencies
-      run: dotnet restore Fushigi/Fushigi.sln
+
     - name: Build
-      run: dotnet build Fushigi/Fushigi.sln --no-restore 
+      run: dotnet build Fushigi/Fushigi.sln
+
+    - name: mkdir
+      run: mkdir builds
+
     - name: Restore dependancies for MacOS Silicon
       run: dotnet restore -r osx-arm64 Fushigi/Fushigi.sln
     - name: Publish Mac Silicon
       run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
+    - name: Tar files
+      run: tar -cvf builds/osx-arm64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-arm64/publish
+    - name: test
+      run: ls builds/
+    - uses: actions/download-artifact@v4
+      with:
+        name: osx-arm64.tar
+        path: builds/
+
     - name: Restore dependancies for MacOS x64
       run: dotnet restore -r osx-x64 Fushigi/Fushigi.sln
     - name: Publish Mac x64
       run: dotnet publish Fushigi/Fushigi.sln -r osx-x64 --no-restore
+    - name: Tar files
+      run: tar -cvf builds/osx-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish
+    - uses: actions/download-artifact@v4
+      with:
+        name: osx-x64.tar
+        path: builds/
+
     - name: Restore dependancies for Linux
       run: dotnet restore -r linux-x64 Fushigi/Fushigi.sln
     - name: Publish Linux x64
       run: dotnet publish Fushigi/Fushigi.sln -r linux-x64 --no-restore
+    - name: Tar files
+      run: tar -cvf builds/linux-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish
+    - uses: actions/download-artifact@v4
+      with:
+        name: linux-x64.tar
+        path: builds/linux-x64.tar
+
+    - name: Restore dependancies for Windows
+      run: dotnet restore -r windows-x64 Fushigi/Fushigi.sln
+    - name: Publish Windows x64
+      run: dotnet publish Fushigi/Fushigi.sln -r windows-x64 --no-restore
+    - name: Tar files
+      run: tar -cvf builds/windows-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish
+    - uses: actions/download-artifact@v4
+      with:
+        name: windows-x64.tar
+        path: builds/windows-x64.tar
