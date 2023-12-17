@@ -27,7 +27,6 @@ jobs:
     - name: mkdir
       run: mkdir builds
 
-
     - name: Restore dependancies for MacOS Silicon
       run: dotnet restore -r osx-arm64 Fushigi/Fushigi.sln
     - name: Publish Mac Silicon
@@ -50,7 +49,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: osx-x64.tar
-        path: builds/osx-x64.tar
+        path: builds/
 
     - name: Restore dependancies for Linux
       run: dotnet restore -r linux-x64 Fushigi/Fushigi.sln
