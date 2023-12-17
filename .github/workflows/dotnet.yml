@@ -34,8 +34,7 @@ jobs:
       run: ls /tmp/
     - uses: actions/download-artifact@v4
       with:
-        name: osx-arm64.tar
-        path: /tmp/osx-arm64.tar
+        name: /tmp/osx-arm64.tar
 
     - name: Restore dependancies for MacOS x64
       run: dotnet restore -r osx-x64 Fushigi/Fushigi.sln
@@ -45,8 +44,7 @@ jobs:
       run: tar -cvf /tmp/osx-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish
     - uses: actions/download-artifact@v4
       with:
-        name: osx-x64
-        path: /tmp/osx-x64.tar
+        name: /tmp/osx-x64.tar
 
     - name: Restore dependancies for Linux
       run: dotnet restore -r linux-x64 Fushigi/Fushigi.sln
@@ -56,8 +54,7 @@ jobs:
       run: tar -cvf /tmp/linux-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish
     - uses: actions/download-artifact@v4
       with:
-        name: linux-x64
-        path: /tmp/linux-x64.tar
+        name: /tmp/linux-x64.tar
 
     - name: Restore dependancies for Windows
       run: dotnet restore -r windows-x64 Fushigi/Fushigi.sln
@@ -67,5 +64,4 @@ jobs:
       run: tar -cvf /tmp/windows-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish
     - uses: actions/download-artifact@v4
       with:
-        name: windows-x64
-        path: /tmp/windows-x64.tar
+        name: /tmp/windows-x64.tar
