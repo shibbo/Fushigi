@@ -24,6 +24,8 @@ jobs:
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln
 
+    - name: mkdir
+      run: mkdir build
 
     - name: Restore dependancies for MacOS Silicon
       run: dotnet restore -r osx-arm64 Fushigi/Fushigi.sln
