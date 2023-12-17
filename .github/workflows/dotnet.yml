@@ -34,7 +34,7 @@ jobs:
       run: ls /tmp/
     - uses: actions/download-artifact@v4
       with:
-        name: osx-arm64
+        name: osx-arm64.tar
         path: /tmp/osx-arm64.tar
 
     - name: Restore dependancies for MacOS x64
