@@ -30,6 +30,8 @@ jobs:
       run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
     - name: Tar files
       run: tar -cvf /tmp/osx-arm64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-arm64/publish
+    - name: test
+      run: ls /tmp/
     - uses: actions/download-artifact@v4
       with:
         name: osx-arm64
