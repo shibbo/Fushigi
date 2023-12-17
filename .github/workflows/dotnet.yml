@@ -23,21 +23,38 @@ jobs:
 
     - name: Build
       run: dotnet build Fushigi/Fushigi.sln
-
     - name: Restore dependancies for MacOS Silicon
       run: dotnet restore -r osx-arm64 Fushigi/Fushigi.sln
-
     - name: Publish Mac Silicon
       run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
+    - uses: actions/download-artifact@v4
+      with:
+        name: Mac Silicon Download
+        path: /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-arm64/publish/
 
     - name: Restore dependancies for MacOS x64
       run: dotnet restore -r osx-x64 Fushigi/Fushigi.sln
-
     - name: Publish Mac x64
       run: dotnet publish Fushigi/Fushigi.sln -r osx-x64 --no-restore
+    - uses: actions/download-artifact@v4
+      with:
+        name: Mac x64 Download
+        path: /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish/
 
     - name: Restore dependancies for Linux
       run: dotnet restore -r linux-x64 Fushigi/Fushigi.sln
-
     - name: Publish Linux x64
       run: dotnet publish Fushigi/Fushigi.sln -r linux-x64 --no-restore
+    - uses: actions/download-artifact@v4
+      with:
+        name: Linux x64 Download
+        path: /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish/
+
+    - name: Restore dependancies for Windows
+      run: dotnet restore -r windows-x64 Fushigi/Fushigi.sln
+    - name: Publish Windows x64
+      run: dotnet publish Fushigi/Fushigi.sln -r windows-x64 --no-restore
+    - uses: actions/download-artifact@v4
+      with:
+        name: Windows x64 Download
+        path: /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish/
