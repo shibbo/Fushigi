@@ -28,41 +28,41 @@ jobs:
     - name: Publish Mac Silicon
       run: dotnet publish Fushigi/Fushigi.sln -r osx-arm64 --no-restore
     - name: Tar files
-      run: tar -cvf osx-arm.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-arm64/publish/
+      run: tar -cvf /tmp/osx-arm.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-arm64/publish/
     - uses: actions/download-artifact@v4
       with:
         name: osx-arm.tar
-        path: /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-arm64/publish/
+        path: /tmp/
 
     - name: Restore dependancies for MacOS x64
       run: dotnet restore -r osx-x64 Fushigi/Fushigi.sln
     - name: Publish Mac x64
       run: dotnet publish Fushigi/Fushigi.sln -r osx-x64 --no-restore
     - name: Tar files
-      run: tar -cvf osx-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish/
+      run: tar -cvf /tmp/osx-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish/
     - uses: actions/download-artifact@v4
       with:
         name: osx-x64.tar
-        path: /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish/
+        path: /tmp/
 
     - name: Restore dependancies for Linux
       run: dotnet restore -r linux-x64 Fushigi/Fushigi.sln
     - name: Publish Linux x64
       run: dotnet publish Fushigi/Fushigi.sln -r linux-x64 --no-restore
     - name: Tar files
-      run: tar -cvf linux-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish/
+      run: tar -cvf /tmp/linux-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish/
     - uses: actions/download-artifact@v4
       with:
         name: linux-x64.tar
-        path: /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish/
+        path: /tmp/
 
     - name: Restore dependancies for Windows
       run: dotnet restore -r windows-x64 Fushigi/Fushigi.sln
     - name: Publish Windows x64
       run: dotnet publish Fushigi/Fushigi.sln -r windows-x64 --no-restore
     - name: Tar files
-      run: tar -cvf windows-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish/
+      run: tar -cvf /tmp/windows-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish/
     - uses: actions/download-artifact@v4
       with:
         name: windows-x64.tar
-        path: /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish/
+        path: /tmp/
