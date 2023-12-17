@@ -37,8 +37,8 @@ jobs:
       run: ls builds/
     - uses: actions/download-artifact@v4
       with:
-        name: builds/osx-arm64.tar
-        path: builds/osx-arm64.tar
+        name: osx-arm64.tar
+        path: builds/
 
     - name: Restore dependancies for MacOS x64
       run: dotnet restore -r osx-x64 Fushigi/Fushigi.sln
