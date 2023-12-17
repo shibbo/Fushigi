@@ -37,7 +37,7 @@ jobs:
       run: ls builds/
     - uses: actions/download-artifact@v4
       with:
-        name: osx-arm64.tar
+        name: builds/osx-arm64.tar
         path: builds/osx-arm64.tar
 
     - name: Restore dependancies for MacOS x64
@@ -58,8 +58,8 @@ jobs:
     - name: Tar files
       run: tar -cvf builds/linux-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/linux-x64/publish
     - uses: actions/download-artifact@v4
-
       with:
+        name: linux-x64.tar
         path: builds/linux-x64.tar
 
     - name: Restore dependancies for Windows
@@ -70,4 +70,5 @@ jobs:
       run: tar -cvf builds/windows-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/windows-x64/publish
     - uses: actions/download-artifact@v4
       with:
+        name: windows-x64.tar
         path: builds/windows-x64.tar
