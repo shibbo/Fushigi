@@ -37,6 +37,7 @@ jobs:
       run: ls builds/
     - uses: actions/download-artifact@v4
       with:
+        name: osx-arm64.tar
         path: builds/osx-arm64.tar
 
     - name: Restore dependancies for MacOS x64
@@ -47,6 +48,7 @@ jobs:
       run: tar -cvf builds/osx-x64.tar /home/runner/work/Fushigi/Fushigi/Fushigi/bin/Release/net8.0/osx-x64/publish
     - uses: actions/download-artifact@v4
       with:
+        name: osx-x64.tar
         path: builds/osx-x64.tar
 
     - name: Restore dependancies for Linux
