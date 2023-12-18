@@ -133,7 +133,8 @@ namespace Fushigi.gl.Bfres
                     for (int i = 0; i < Skeleton.NumSmoothMatrices; i++)
                     {
                         var bone_index = Skeleton.MatrixToBoneList[i];
-                        var value = (Skeleton.Bones[bone_index].InverseMatrix) * root;
+                        var value = (Skeleton.Bones[bone_index].InverseMatrix * 
+                            Skeleton.Bones[bone_index].WorldMatrix) * root;
 
                         writer.Write(value.Column0());
                         writer.Write(value.Column1());
