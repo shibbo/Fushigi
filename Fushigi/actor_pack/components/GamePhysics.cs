@@ -62,6 +62,8 @@ namespace Fushigi.actor_pack.components
     [Serializable]
     public class RigidParam
     {
+        [BymlProperty("$parent")]
+        public string parent { get; set; }
         public string ShapeName { get; set; }
 
         public List<object> ShapeNames { get; set; }

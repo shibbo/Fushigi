@@ -12,7 +12,7 @@ namespace Fushigi.actor_pack.components
     public class ModelInfo 
     {
         [BymlProperty("$parent")]
-            public string parent { get; set; }
+        public string parent { get; set; }
             
         [BymlProperty("FmdbName", DefaultValue = "")]
         public string mModelName { get; set; }

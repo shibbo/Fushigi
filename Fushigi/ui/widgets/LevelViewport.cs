@@ -1020,16 +1020,17 @@ namespace Fushigi.ui.widgets
 
                 if (actor.mActorPack.ShapeParams != null)
                 {
-                    var calc = actor.mActorPack.ShapeParams.mCalc;
+                    var shapes = actor.mActorPack.ShapeParams;
+                    var calc = shapes.mCalc;
 
-                    if(((actor.mActorPack.ShapeParams.mSphere?.Count ??  0) > 0) ||
-                        ((actor.mActorPack.ShapeParams.mCapsule?.Count ?? 0) > 0))
+                    if(((shapes.mSphere?.Count ??  0) > 0) ||
+                        ((shapes.mCapsule?.Count ?? 0) > 0))
                     { 
                         drawing = "sphere";
                     }
-                    else if((actor.mActorPack.ShapeParams.mPoly?.Count ??  0) > 0)
+                    else if ((shapes.mPoly?.Count ??  0) > 0)
                     { 
-                        calc = actor.mActorPack.ShapeParams.mPoly[0].mCalc;
+                        calc = shapes.mPoly[0].mCalc;
                     }
                     
                     min = calc.mMin;
@@ -1063,13 +1064,13 @@ namespace Fushigi.ui.widgets
                         off = new(0, .5f, 0);
                     }
                     //topLeft
-                    s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(min.X, off.Y+max.Y, 0), transform));
+                    s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new Vector3(min.X, max.Y, 0)+off, transform));
                     //topRight
-                    s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(max.X, off.Y+max.Y, 0), transform));
+                    s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new Vector3(max.X, max.Y, 0)+off, transform));
                     //bottomRight
-                    s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(max.X, off.Y+min.Y, 0), transform));
+                    s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new Vector3(max.X, min.Y, 0)+off, transform));
                     //bottomLeft
-                    s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(min.X, off.Y+min.Y, 0), transform));
+                    s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new Vector3(min.X, min.Y, 0)+off, transform));
 
                     if (mEditContext.IsSelected(actor))
                     {
@@ -1103,12 +1104,15 @@ namespace Fushigi.ui.widgets
                         {
                             mDrawList.AddCircleFilled(s_actorRectPolygon[i],
                                 pointSize, color);
-                            mDrawList.AddLine(
-                            s_actorRectPolygon[i],
-                            s_actorRectPolygon[(i+1) % 4 ],
-                            color, isHovered ? 2.5f : 1.5f);
+                            if(drawing == "sphere")
+                            {
+                                mDrawList.AddLine(
+                                s_actorRectPolygon[i],
+                                s_actorRectPolygon[(i+1) % 4 ],
+                                color, isHovered ? 2.5f : 1.5f);
+                            }
                         }
-                        mDrawList.AddEllipse(WorldToScreen(Vector3.Transform(new(0), transform)), pointSize*3, pointSize*3, color, -actor.mRotation.Z, 4, 2);
+                        mDrawList.AddEllipse(WorldToScreen(transform.Translation), pointSize*3, pointSize*3, color, -actor.mRotation.Z, 4, 2);
                     }
 
                     string name = actor.mPackName;
