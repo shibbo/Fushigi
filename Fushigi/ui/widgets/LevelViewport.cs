@@ -894,9 +894,12 @@ namespace Fushigi.ui.widgets
                         calc = actor.mActorPack.ShapeParams.mPoly[0].mCalc;
                     }
                     
-                    min = calc.mMin;
-                    max = calc.mMax;
-                    center = calc.mCenter;
+                    if (calc != null)
+                    {
+                        min = calc.mMin;
+                        max = calc.mMax;
+                        center = calc.mCenter;
+                    }
                 }
                     
                 string layer = actor.mLayer;
