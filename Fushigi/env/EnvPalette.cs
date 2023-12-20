@@ -351,14 +351,29 @@ namespace Fushigi.env
 
             public float[] ComputeRgba32(int width = 64)
             {
+                float[] buffer = new float[width * 4];
+
+                //If curve is null, use constant color instead
+                if (Curve == null)
+                {
+                    for (int i = 0; i < width * 4; i += 4)
+                    {
+                        //Use "X" to lerp between the colors to get
+                        Vector4 color = this.ColorEnd.ToVector4();
+                        buffer[i + 0] = Math.Clamp(color.X, 0, 1f);
+                        buffer[i + 1] = Math.Clamp(color.Y, 0, 1f);
+                        buffer[i + 2] = Math.Clamp(color.Z, 0, 1f);
+                        buffer[i + 3] = Math.Clamp(color.W, 0, 1f);
+                    }
+                    return buffer;
+                }
+
                 var type = Curve.GetCurveType();
                 var data = Curve.Data.ToArray();
 
                 Vector4[] colors = UseMiddleColor ?
                     new Vector4[] { ColorBegin.ToVector4(), ColorMiddle.ToVector4(), ColorEnd.ToVector4() } :
                     new Vector4[] { ColorBegin.ToVector4(), ColorEnd.ToVector4(), ColorEnd.ToVector4() };
-
-                float[] buffer = new float[width * 4];
 
                 Vector4 LerpBetweenColors(Vector4 a, Vector4 b, Vector4 c, float t)
                 {
