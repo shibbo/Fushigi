@@ -12,6 +12,7 @@ using Fushigi.agl;
 using Fushigi.gl;
 using ImGuiNET;
 using static Fushigi.gl.Bfres.GsysEnvironment;
+using System.Diagnostics;
 
 namespace Fushigi.env
 {
@@ -39,6 +40,11 @@ namespace Fushigi.env
         public bool IsApplyEnvColor { get; set; }
         public bool IsApplyObjLight { get; set; }
 
+        public EnvPalette()
+        {
+            
+        }
+
         public EnvPalette(string name)
         {
             Load(name);
@@ -51,7 +57,10 @@ namespace Fushigi.env
             string local_path = Path.Combine("Gyml", "Gfx", "EnvPaletteParam", $"{name}.game__gfx__EnvPaletteParam.bgyml");
             string file_path = FileUtil.FindContentPath(local_path);
             if (!File.Exists(file_path))
+            {
+                Debug.Fail(null);
                 return;
+            }
 
             var byml = new Byml.Byml(new MemoryStream(File.ReadAllBytes(file_path)));
             this.Load((BymlHashTable)byml.Root);
@@ -256,11 +265,11 @@ namespace Fushigi.env
 
         public class EnvFogList
         {
-            public EnvFog Cloud { get; set; }
-            public EnvFog CloudWorld { get; set; }
-            public EnvFog Main { get; set; }
-            public EnvFog MainWorld { get; set; }
-            public EnvFog Option { get; set; }
+            public EnvFog Cloud { get; set; } = new EnvFog();
+            public EnvFog CloudWorld { get; set; } = new EnvFog();
+            public EnvFog Main { get; set; } = new EnvFog();
+            public EnvFog MainWorld { get; set; } = new EnvFog();
+            public EnvFog Option { get; set; } = new EnvFog();
         }
 
         public class EnvFog
@@ -351,8 +360,6 @@ namespace Fushigi.env
 
             public float[] ComputeRgba32(int width = 64)
             {
-                float[] buffer = new float[width * 4];
-
                 //If curve is null, use constant color instead
                 if (Curve == null)
                 {
@@ -366,7 +373,6 @@ namespace Fushigi.env
                         buffer[i + 3] = Math.Clamp(color.W, 0, 1f);
                     }
                     return buffer;
-                }
 
                 var type = Curve.GetCurveType();
                 var data = Curve.Data.ToArray();

@@ -30,8 +30,10 @@ namespace Fushigi.course
             mAreaParams = new AreaParam(new Byml.Byml(new MemoryStream(File.ReadAllBytes(areaParamPath))));
 
             //Load env settings
-            if (mAreaParams.EnvPaletteSetting != null)
+            if (mAreaParams.EnvPaletteSetting != null && mAreaParams.EnvPaletteSetting.InitPaletteBaseName != null)
                 mInitEnvPalette = new EnvPalette(mAreaParams.EnvPaletteSetting.InitPaletteBaseName);
+            else
+                mInitEnvPalette = new EnvPalette();
 
 
             string levelPath = FileUtil.FindContentPath(

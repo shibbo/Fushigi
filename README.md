@@ -11,23 +11,22 @@ Make sure you have all of the following installed:
 > [!WARNING]  
 > DO NOT HAVE ANY SELF-CREATED FILES NAMED "Fushigi" ON YOUR DESKTOP. THEY WILL BE DELETED.
 
+If all you want to do is run the latest version of the editor do this  
+if you want to update the editor just rerun this again
+
 Open a CMD or terminal and run the following:
 ```
 cd Desktop
 rm -rf Fushigi
 git clone https://github.com/shibbo/Fushigi.git
-cd Fushigi
-dotnet add Fushigi/Fushigi.csproj package NativeFileDialogSharp --version 0.6.0-alpha
-dotnet add Fushigi/Fushigi.csproj package Newtonsoft.Json 
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.Input
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.Core
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.GLFW
-dotnet add Fushigi/Fushigi.csproj package Silk.NET.OpenGL.Extensions.ImGui
-dotnet add Fushigi/Fushigi.csproj package StbImageSharp 
-dotnet add Fushigi/Fushigi.csproj package ZstdSharp.Port
-dotnet restore Fushigi/Fushigi.sln
-dotnet build Fushigi/Fushigi.sln --no-restore
+cd Fushigi/Fushigi
+dotnet run -c Release
+```
+
+To run it once its been downloaded all you have to do then is this
+```
+cd Desktop/Fushigi/Fushigi
+dotnet run -c Release
 ```
 
 You will now have either "Fushigi.exe" (if you are on Windows) or "Fushigi" (if you are not on windows) located on your desktop at Fushigi/Fushigi/bin/Debug/net8.0/
@@ -36,3 +35,4 @@ You will now have either "Fushigi.exe" (if you are on Windows) or "Fushigi" (if 
 Line Awesome icon font provided by [icons8](https://icons8.com/line-awesome)
 
 Ryujinx ASTC decoder by Ac_K. [Ryujinx repo](https://github.com/Ryujinx/Ryujinx)
+

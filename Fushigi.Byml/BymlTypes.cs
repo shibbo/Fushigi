@@ -68,10 +68,16 @@ namespace Fushigi.Byml
         public BymlNodeId Id { get; }
     }
 
-    public class BymlNode<T> : IBymlNode
+    public interface IBymlValueNode
+    {
+        public object GetValue();
+    }
+
+    public class BymlNode<T> : IBymlNode, IBymlValueNode
     {
         public BymlNodeId Id { get; }
         public T Data;
+        object IBymlValueNode.GetValue() => Data!;
 
         public BymlNode(BymlNodeId id, T data)
         {
