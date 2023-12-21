@@ -434,7 +434,25 @@ namespace Fushigi.ui.widgets
             }
             else
             {
-                model.Render(gl, render, mat, this.Camera);
+                if (modelInfo.IsUseTilingMode)
+                {
+                    for (int y = 0; y < actor.mScale.Y; y++)
+                    {
+                        for (int x = 0; x < actor.mScale.X; x++)
+                        {
+                            model.Render(gl, render, 
+                                Matrix4x4.CreateTranslation(
+                                    -actor.mScale.X / 2 + x + 0.5f,
+                                    -actor.mScale.Y / 2 + y + 0.5f, 
+                                    0) 
+                                * rotMat * transMat, 
+                            this.Camera);
+                        }
+                    }
+                }
+                else
+                    model.Render(gl, render, mat, this.Camera);
+
             }
         }
         public Vector2 ExpandCalcTypes(string type, Vector2 actScale)

@@ -24,6 +24,8 @@ namespace Fushigi.actor_pack.components
         public Vector3 mModelScale { get; set; }
         public string SearchModelKey { get; set; }
 
+        public bool IsUseTilingMode { get; set; }
+
         public List<SubModel> SubModels { get; set; }
 
         [Serializable]
