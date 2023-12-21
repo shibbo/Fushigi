@@ -503,7 +503,7 @@ namespace Fushigi.ui.widgets
                 Math.Max(actor.mScale.Y, setting.mMinScale.Y)
             );
 
-            foreach (var matParam in setting.mMatSetting.MatInfoList)
+            foreach (var matParam in setting.mMatSetting?.MatInfoList ?? [])
             {
                 var material = model.Meshes.Select(x => x.MaterialRender)
                     .FirstOrDefault(x=>x.Name.EndsWith(matParam.mMatNameSuffix));
