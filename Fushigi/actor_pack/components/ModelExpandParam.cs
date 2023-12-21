@@ -79,7 +79,7 @@ namespace Fushigi.actor_pack.components
     public class ModelExpandMatParam
     {
         [BymlProperty("MatNameSuffix", DefaultValue = "")]
-        public string mMatName { get; set; }
+        public string mMatNameSuffix { get; set; }
 
         [BymlProperty("CalcType", DefaultValue = "")]
         public string mCalcType { get; set; }

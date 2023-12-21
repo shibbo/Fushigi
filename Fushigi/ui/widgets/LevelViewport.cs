@@ -1,4 +1,5 @@
 using Fushigi.actor_pack.components;
+using Fushigi.Bfres;
 using Fushigi.Byml.Serializer;
 using Fushigi.course;
 using Fushigi.course.distance_view;
@@ -483,6 +484,39 @@ namespace Fushigi.ui.widgets
                 Math.Max(actor.mScale.X, setting.mMinScale.X),
                 Math.Max(actor.mScale.Y, setting.mMinScale.Y)
             );
+
+            foreach (var matParam in setting.mMatSetting.MatInfoList)
+            {
+                var material = model.Meshes.Select(x => x.MaterialRender)
+                    .FirstOrDefault(x=>x.Name.EndsWith(matParam.mMatNameSuffix));
+
+                if (material == null)
+                    return;
+
+                Vector2 matScale;
+                if (matParam.mIsCustomCalc)
+                {
+                    float a = matParam.mCustomCalc.A;
+                    float b = matParam.mCustomCalc.B == 0 ? 1 : matParam.mCustomCalc.B;
+                    matScale = (clampedActorScale - new Vector2(a)) / b;
+                }
+                else
+                {
+                    matScale = ExpandCalcTypes(matParam.mCalcType, clampedActorScale);
+                }
+
+                matScale = ExpandScaleTypes(matParam.mScalingType, matScale);
+
+                matScale.X = Math.Max(matScale.X, 0);
+                matScale.Y = Math.Max(matScale.Y, 0);
+
+                // for now
+                material.SetParam("tex_srt0", new ShaderParam.TexSrt
+                {
+                    Mode = ShaderParam.TexSrt.TexSrtMode.ModeMaya,
+                    Scaling = matScale
+                });
+            }
 
             Dictionary<string, Vector3> boneScaleLookup = [];
 
