@@ -1,4 +1,5 @@
 using Fushigi.actor_pack.components;
+using Fushigi.Bfres;
 using Fushigi.Byml.Serializer;
 using Fushigi.course;
 using Fushigi.course.distance_view;
@@ -8,10 +9,13 @@ using Fushigi.gl.Bfres.AreaData;
 using Fushigi.param;
 using Fushigi.util;
 using ImGuiNET;
-using Silk.NET.Maths;
 using Silk.NET.OpenGL;
+using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.Dynamic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static Fushigi.course.CourseUnit;
 using Vector3 = System.Numerics.Vector3;
@@ -382,6 +386,7 @@ namespace Fushigi.ui.widgets
             var modelName = modelInfo.mModelName;
 
             var render = BfresCache.Load(gl, resourceName);
+
             if (render == null || !render.Models.ContainsKey(modelName))
                 return;
 
@@ -398,9 +403,17 @@ namespace Fushigi.ui.widgets
             DistantViewScrollManager.UpdateMatrix(actor.mLayer, ref mat);
 
             var model = render.Models[modelName];
+
+            if(actor.mActorPack.ModelExpandParamRef != null)
+            {
+                ActorModelExpand(actor, model);
+
+                //TODO SubModels
+            }
             //switch for drawing models with different methods easier
-            if(actor.mActorPack.DrainPipeRef != null && actor.mActorPack.DrainPipeRef.ModelKeyTop != null &&
-             actor.mActorPack.DrainPipeRef.ModelKeyMiddle != null){
+            if (actor.mActorPack.DrainPipeRef != null && actor.mActorPack.DrainPipeRef.ModelKeyTop != null &&
+            actor.mActorPack.DrainPipeRef.ModelKeyMiddle != null)
+            {
                 var drainRef = actor.mActorPack.DrainPipeRef;
                 var calc = actor.mActorPack.ShapeParams.mCalc;
                 var KeyMats = new Dictionary<string, Matrix4x4>{
@@ -415,13 +428,190 @@ namespace Fushigi.ui.widgets
                         rotMat *
                         transMat}};
 
-                render.Models[modelName].Render(gl, render, KeyMats[modelInfo.SearchModelKey], this.Camera);
-                if(modelInfo.SubModels?.Any() ?? false)
+                model.Render(gl, render, KeyMats[modelInfo.SearchModelKey], this.Camera);
+                if ((modelInfo.SubModels?.Count ?? 0) != 0)
                     render.Models[modelInfo.SubModels[0].FmdbName].Render(gl, render, KeyMats[modelInfo.SubModels[0].SearchModelKey], this.Camera);
             }
             else
             {
-                model.Render(gl, render, mat, this.Camera);
+                if (modelInfo.IsUseTilingMode)
+                {
+                    for (int y = 0; y < actor.mScale.Y; y++)
+                    {
+                        for (int x = 0; x < actor.mScale.X; x++)
+                        {
+                            model.Render(gl, render, 
+                                Matrix4x4.CreateTranslation(
+                                    -actor.mScale.X / 2 + x + 0.5f,
+                                    -actor.mScale.Y / 2 + y + 0.5f, 
+                                    0) 
+                                * rotMat * transMat, 
+                            this.Camera);
+                        }
+                    }
+                }
+                else
+                    model.Render(gl, render, mat, this.Camera);
+
+            }
+        }
+        public Vector2 ExpandCalcTypes(string type, Vector2 actScale)
+        {
+            var result = type switch
+            {
+                "ActorScale" => actScale,
+                "ActorScaleMinus1" => actScale - Vector2.One,
+                "ActorScaleMinus2" => actScale - new Vector2(2),
+                "ActorScaleDiv2" => actScale/2,
+                "ActorScaleDiv4" => actScale/4,
+                "ZeroWhenActorScaleOne" => new Vector2(actScale.X == 1 ? 0:1, actScale.Y == 1 ? 0:1),
+                "None" => Vector2.One,
+                _ => actScale
+            };
+            return result;
+        }
+
+        public Vector2 ExpandScaleTypes(string type, Vector2 scale)
+        {
+            var result = type switch
+            {
+                "XAxisOnly" => new (scale.X, 1),
+                "YAxisOnly" => new (1, scale.Y),
+                "XYAxis" => scale,
+                _ => scale
+            };
+            return result;
+        }
+        private void ActorModelExpand(CourseActor actor, BfresRender.BfresModel model, string modelKeyName = "")
+        {
+            //Model Expand Param
+
+            Debug.Assert(actor.mActorPack.ModelExpandParamRef.Settings.Count > 0);
+
+            if (actor.mActorPack.ModelExpandParamRef.Settings.Count == 0)
+                return;
+
+            //TODO is that actually how the game does it?
+            var setting = actor.mActorPack.ModelExpandParamRef.Settings.FindLast(x=>x.mModelKeyName == modelKeyName);
+
+            //Debug.Assert(setting != null);
+            if (setting == null) 
+                return;
+
+            var clampedActorScale = new Vector2(
+                Math.Max(actor.mScale.X, setting.mMinScale.X),
+                Math.Max(actor.mScale.Y, setting.mMinScale.Y)
+            );
+
+            foreach (var matParam in setting.mMatSetting?.MatInfoList ?? [])
+            {
+                var material = model.Meshes.Select(x => x.MaterialRender)
+                    .FirstOrDefault(x=>x.Name.EndsWith(matParam.mMatNameSuffix));
+
+                if (material == null)
+                    return;
+
+                Vector2 matScale;
+                if (matParam.mIsCustomCalc)
+                {
+                    float a = matParam.mCustomCalc.A;
+                    float b = matParam.mCustomCalc.B == 0 ? 1 : matParam.mCustomCalc.B;
+                    matScale = (clampedActorScale - new Vector2(a)) / b;
+                }
+                else
+                {
+                    matScale = ExpandCalcTypes(matParam.mCalcType, clampedActorScale);
+                }
+
+                matScale = ExpandScaleTypes(matParam.mScalingType, matScale);
+
+                matScale.X = Math.Max(matScale.X, 0);
+                matScale.Y = Math.Max(matScale.Y, 0);
+
+                // for now
+                material.SetParam("tex_srt0", new ShaderParam.TexSrt
+                {
+                    Mode = ShaderParam.TexSrt.TexSrtMode.ModeMaya,
+                    Scaling = matScale
+                });
+            }
+
+            Dictionary<string, Vector3> boneScaleLookup = [];
+
+            foreach (var boneParam in setting.mBoneSetting.BoneInfoList)
+            {
+                Vector2 boneScale;
+                if (boneParam.mIsCustomCalc)
+                {
+                    float a = boneParam.mCustomCalc.A;
+                    float b = boneParam.mCustomCalc.B == 0 ? 1:boneParam.mCustomCalc.B;
+                    boneScale = (clampedActorScale - new Vector2(a)) / b;
+                }
+                else
+                {
+                    boneScale = ExpandCalcTypes(boneParam.mCalcType, clampedActorScale);
+                }
+
+                boneScale = ExpandScaleTypes(boneParam.mScalingType, boneScale);
+
+                boneScale.X = Math.Max(boneScale.X, 0);
+                boneScale.Y = Math.Max(boneScale.Y, 0);
+
+                boneScaleLookup[boneParam.mBoneName] = new Vector3(boneScale, 1);
+            }
+
+            // foreach (var matParam in setting.mMatSetting.MatInfoList)
+            // {
+            //     var calc = clampedActorScale;
+            //     if (matParam.mIsCustomCalc)
+            //     {
+            //         calc = new Vector2(
+            //             Math.Max(actor.mScale.X, matParam.mCustomCalc.A),
+            //             Math.Max(actor.mScale.Y, matParam.mCustomCalc.B)
+            //         );
+            //     }
+
+            //     var mat = ExpandCalcTypes(matParam.mCalcType, calc);
+            //     mat = ExpandScaleTypes(matParam.mScalingType, mat);
+                
+            //     boneScaleLookup[matParam.mMatName] = (
+            //         new Vector3(Math.Max(mat.X, 0), Math.Max(mat.Y, 0), 1), 
+            //         new Vector3(1/mat.X, 1/mat.Y, 1)
+            //     );
+            // }
+
+            var rootMatrix = Matrix4x4.CreateScale(
+                1 / actor.mScale.X,
+                1 / actor.mScale.Y,
+                1
+                );
+
+            model.Skeleton.Bones[0].WorldMatrix = rootMatrix;
+
+            var nonScaledMatrices = new Matrix4x4[model.Skeleton.Bones.Count];
+            nonScaledMatrices[0] = rootMatrix;
+
+
+            for (int i = 1; i < model.Skeleton.Bones.Count; i++)
+            {
+                var bone = model.Skeleton.Bones[i];
+                bone.WorldMatrix = bone.CalculateLocalMatrix();
+
+                var parent = model.Skeleton.Bones[bone.ParentIndex];
+
+                Vector3 scale;
+                if (boneScaleLookup.TryGetValue(parent.Name ?? "", out scale))
+                {
+                    bone.WorldMatrix.Translation *= scale;
+                }
+
+                bone.WorldMatrix *= nonScaledMatrices[bone.ParentIndex];
+
+                nonScaledMatrices[i] = bone.WorldMatrix;
+                if (boneScaleLookup.TryGetValue(bone.Name, out scale))
+                {
+                    bone.WorldMatrix = Matrix4x4.CreateScale(scale) * bone.WorldMatrix;
+                }
             }
         }
 
@@ -882,16 +1072,17 @@ namespace Fushigi.ui.widgets
 
                 if (actor.mActorPack.ShapeParams != null)
                 {
-                    var calc = actor.mActorPack.ShapeParams.mCalc;
+                    var shapes = actor.mActorPack.ShapeParams;
+                    var calc = shapes.mCalc;
 
-                    if(((actor.mActorPack.ShapeParams.mSphere?.Count ??  0) > 0) ||
-                        ((actor.mActorPack.ShapeParams.mCapsule?.Count?? 0) > 0))
+                    if(((shapes.mSphere?.Count ??  0) > 0) ||
+                        ((shapes.mCapsule?.Count ?? 0) > 0))
                     { 
                         drawing = "sphere";
                     }
-                    else if((actor.mActorPack.ShapeParams.mPoly?.Count ??  0) > 0)
+                    else if ((shapes.mPoly?.Count ??  0) > 0)
                     { 
-                        calc = actor.mActorPack.ShapeParams.mPoly[0].mCalc;
+                        calc = shapes.mPoly[0].mCalc;
                     }
                     
                     if (calc != null)
@@ -928,13 +1119,13 @@ namespace Fushigi.ui.widgets
                         off = new(0, .5f, 0);
                     }
                     //topLeft
-                    s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new(min.X, off.Y+max.Y, 0), transform));
+                    s_actorRectPolygon[0] = WorldToScreen(Vector3.Transform(new Vector3(min.X, max.Y, 0)+off, transform));
                     //topRight
-                    s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new(max.X, off.Y+max.Y, 0), transform));
+                    s_actorRectPolygon[1] = WorldToScreen(Vector3.Transform(new Vector3(max.X, max.Y, 0)+off, transform));
                     //bottomRight
-                    s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new(max.X, off.Y+min.Y, 0), transform));
+                    s_actorRectPolygon[2] = WorldToScreen(Vector3.Transform(new Vector3(max.X, min.Y, 0)+off, transform));
                     //bottomLeft
-                    s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new(min.X, off.Y+min.Y, 0), transform));
+                    s_actorRectPolygon[3] = WorldToScreen(Vector3.Transform(new Vector3(min.X, min.Y, 0)+off, transform));
 
                     if (mEditContext.IsSelected(actor))
                     {
@@ -968,12 +1159,15 @@ namespace Fushigi.ui.widgets
                         {
                             mDrawList.AddCircleFilled(s_actorRectPolygon[i],
                                 pointSize, color);
-                            mDrawList.AddLine(
-                            s_actorRectPolygon[i],
-                            s_actorRectPolygon[(i+1) % 4 ],
-                            color, isHovered ? 2.5f : 1.5f);
+                            if(drawing == "sphere")
+                            {
+                                mDrawList.AddLine(
+                                s_actorRectPolygon[i],
+                                s_actorRectPolygon[(i+1) % 4 ],
+                                color, isHovered ? 2.5f : 1.5f);
+                            }
                         }
-                        mDrawList.AddEllipse(WorldToScreen(Vector3.Transform(new(0), transform)), pointSize*3, pointSize*3, color, -actor.mRotation.Z, 4, 2);
+                        mDrawList.AddEllipse(WorldToScreen(transform.Translation), pointSize*3, pointSize*3, color, -actor.mRotation.Z, 4, 2);
                     }
 
                     string name = actor.mPackName;

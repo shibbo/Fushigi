@@ -12,7 +12,7 @@ namespace Fushigi.actor_pack.components
     public class ModelInfo 
     {
         [BymlProperty("$parent")]
-            public string parent { get; set; }
+        public string parent { get; set; }
             
         [BymlProperty("FmdbName", DefaultValue = "")]
         public string mModelName { get; set; }
@@ -24,11 +24,14 @@ namespace Fushigi.actor_pack.components
         public Vector3 mModelScale { get; set; }
         public string SearchModelKey { get; set; }
 
+        public bool IsUseTilingMode { get; set; }
+
         public List<SubModel> SubModels { get; set; }
 
         [Serializable]
         public class SubModel
         {
+            public string Bone { get; set; }
             public string FmdbName { get; set; }
 
             public string ModelProjectName { get; set; }

@@ -21,17 +21,20 @@ namespace Fushigi.actor_pack.components
         [BymlProperty("$parent")]
         public string parent { get; set; }
         
-        public List<ShapeName> ShapeNamePathAry { get; set; }
+        public List<PathAry> ShapeNamePathAry { get; set; }
 
         [BymlProperty("MatterRigidBodyNamePathAry", DefaultValue = "")]
-        public List<ShapeName> mRigids { get; set; }
+        public List<PathAry> mRigids { get; set; }
 
         [BymlProperty("RigidBodyEntityNamePathAry", DefaultValue = "")]
-        public List<ShapeName> mEntity { get; set; }
+        public List<PathAry> mEntity { get; set; }
+
+        [BymlProperty("RigidBodySensorNamePathAry", DefaultValue = "")]
+        public List<PathAry> mSensor { get; set; }
     }
 
     [Serializable]
-    public class ShapeName
+    public class PathAry
     {
         public string FilePath { get; set; }
         public string Name { get; set; }
@@ -59,6 +62,8 @@ namespace Fushigi.actor_pack.components
     [Serializable]
     public class RigidParam
     {
+        [BymlProperty("$parent")]
+        public string parent { get; set; }
         public string ShapeName { get; set; }
 
         public List<object> ShapeNames { get; set; }

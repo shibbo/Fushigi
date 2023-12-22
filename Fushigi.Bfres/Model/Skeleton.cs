@@ -9,6 +9,8 @@ using Fushigi.Bfres.Common;
 using Ryujinx.Common.Logging;
 using System.Reflection.PortableExecutable;
 using System.Numerics;
+using Ryujinx.Common.Collections;
+using System.Diagnostics;
 
 namespace Fushigi.Bfres
 {
@@ -34,16 +36,36 @@ namespace Fushigi.Bfres
             Bones = reader.ReadDictionary<Bone>(header.BoneDictionaryOffset, header.BoneArrayOffset);
             MatrixToBoneList = reader.ReadCustom(() => reader.ReadUInt16s(num_bone_indices), header.MatrixToBoneListOffset);
 
-            foreach (var bone in Bones.Values)
-            {
-                bone.WorldMatrix = bone.CalculateWorldMatrix(this);
-
-                Matrix4x4.Invert(bone.WorldMatrix, out Matrix4x4 inv);
-                bone.InverseMatrix = bone.WorldMatrix * inv;
-            }
+            CalculateMatrices(true);
 
             //return
             reader.SeekBegin(pos);
+        }
+
+        public void RecalculateMatrices() => CalculateMatrices(false);
+
+        private void CalculateMatrices(bool calculateInverse)
+        {
+            for (int i = 0; i < Bones.Count; i++)
+            {
+                var bone = Bones[i];
+                var localMatrix = bone.CalculateLocalMatrix();
+
+                bone.WorldMatrix = localMatrix;
+
+                if (bone.ParentIndex != -1)
+                {
+                    Debug.Assert(bone.ParentIndex < i);
+                    var parent = Bones[bone.ParentIndex];
+                    bone.WorldMatrix *= parent.WorldMatrix;
+                }
+
+                if (calculateInverse)
+                {
+                    Matrix4x4.Invert(bone.WorldMatrix, out Matrix4x4 inv);
+                    bone.InverseMatrix = inv;
+                }
+            }
         }
     }
 
@@ -102,16 +124,6 @@ namespace Fushigi.Bfres
             Name = reader.ReadStringOffset(header.NameOffset);
         }
 
-        public Matrix4x4 CalculateWorldMatrix(Skeleton skeleton)
-        {
-            var matrix = CalculateLocalMatrix();
-
-            if (this.ParentIndex != -1)
-                return matrix * skeleton.Bones[this.ParentIndex].CalculateWorldMatrix(skeleton);
-
-            return matrix;
-        }
-
         public Matrix4x4 CalculateLocalMatrix()
         {
             Matrix4x4 transMatrix = Matrix4x4.CreateTranslation(this.Position);
@@ -130,7 +142,6 @@ namespace Fushigi.Bfres
                             Matrix4x4.CreateRotationZ(this.Rotate.Z);
             }
             return scaleMatrix * rotMatrix * transMatrix;
-
         }
         public enum BoneFlagsRotation : uint
         {

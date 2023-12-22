@@ -47,6 +47,15 @@ namespace Fushigi.gl.Bfres
             }
         }
 
+        public void SetParam(string name, ShaderParam.TexSrt value)
+        {
+            if (this.Material.ShaderParams.ContainsKey(name))
+            {
+                this.Material.ShaderParams[name].DataValue = value;
+                GsysShaderRender.ReloadMaterialBlock();
+            }
+        }
+
         public void SetTexture(string name, string sampler)
         {
             int index = this.Material.Samplers.Keys.ToList().IndexOf(sampler);
