@@ -346,9 +346,12 @@ namespace Fushigi.ui.widgets
                 for (int i = 0; i < course.GetAreaCount(); i++)
                 {
                     var area = course.GetArea(i);
-                    if (area.mActorHolder.mActors.Any(x => x.mPackName == "PlayerLocator"))
+                    var playerLocator = area.mActorHolder.mActors.Find(x => x.mPackName == "PlayerLocator");
+
+                    if (playerLocator is not null)
                     {
                         ImGui.SetWindowFocus(area.GetName());
+                        viewports[area].FrameSelectedActor(playerLocator);
                         break;
                     }
 
