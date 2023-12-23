@@ -1801,25 +1801,42 @@ namespace Fushigi.ui.widgets
                 MathF.Round(lvlRectTopLeft.Y + (pos.Y - bb.Max.Y) / (bb.Min.Y - bb.Max.Y) * lvlRectSize.Y)
                 );
 
-            
-            foreach (var unit in area.mUnitHolder.mUnits)
-            {
-                foreach (var subUnit in unit.mTileSubUnits)
-                {
-                    var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+            var backgroundSubUnits = area.mUnitHolder.mUnits
+                .Where(x => x.mModelType == CourseUnit.ModelType.NoCollision)
+                .SelectMany(x => x.mTileSubUnits);
 
-                    foreach (var tile in subUnit.GetTiles(bb.Min - origin2D, bb.Max - origin2D))
-                    {
-                        var pos = tile.pos + origin2D;
-                        dl.AddRectFilled(
-                            MapPointPixelAligned(pos),
-                            MapPointPixelAligned(pos + Vector2.One),
-                            0xFF999999);
-                    }
+            foreach (var subUnit in backgroundSubUnits)
+            {
+                var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+
+                foreach (var tile in subUnit.GetTiles(bb.Min - origin2D, bb.Max - origin2D))
+                {
+                    var pos = tile.pos + origin2D;
+                    dl.AddRectFilled(
+                        MapPointPixelAligned(pos),
+                        MapPointPixelAligned(pos + Vector2.One),
+                        0xFF444444);
                 }
             }
 
-            
+            var foregroundSubUnits = area.mUnitHolder.mUnits
+                .Where(x => x.mModelType != CourseUnit.ModelType.NoCollision)
+                .SelectMany(x => x.mTileSubUnits);
+
+            foreach (var subUnit in foregroundSubUnits)
+            {
+                var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+
+                foreach (var tile in subUnit.GetTiles(bb.Min - origin2D, bb.Max - origin2D))
+                {
+                    var pos = tile.pos + origin2D;
+                    dl.AddRectFilled(
+                        MapPointPixelAligned(pos),
+                        MapPointPixelAligned(pos + Vector2.One),
+                        0xFF999999);
+                }
+            }
+
 
             dl.AddRect(lvlRectTopLeft, 
                 lvlRectTopLeft + lvlRectSize, 
