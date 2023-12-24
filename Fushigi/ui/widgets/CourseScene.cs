@@ -300,9 +300,12 @@ namespace Fushigi.ui.widgets
 
                     if (ImGui.IsWindowFocused())
                     {
-                        selectedArea = area;
+                        if (selectedArea != area)
+                        {
+                            selectedArea = area;
+                            mHasFilledLayers = false;
+                        }
                         activeViewport = viewport;
-                        mHasFilledLayers = false;
                     }
 
                     var topLeft = ImGui.GetCursorScreenPos();
