@@ -346,9 +346,12 @@ namespace Fushigi.ui.widgets
                 for (int i = 0; i < course.GetAreaCount(); i++)
                 {
                     var area = course.GetArea(i);
-                    if (area.mActorHolder.mActors.Any(x => x.mPackName == "PlayerLocator"))
+                    var playerLocator = area.mActorHolder.mActors.Find(x => x.mPackName == "PlayerLocator");
+
+                    if (playerLocator is not null)
                     {
                         ImGui.SetWindowFocus(area.GetName());
+                        viewports[area].FrameSelectedActor(playerLocator);
                         break;
                     }
 
@@ -1714,69 +1717,73 @@ namespace Fushigi.ui.widgets
             var view = viewports[area];
             bool status = ImGui.Begin("Minimap", ImGuiWindowFlags.NoNav);
 
-            var topLeft = ImGui.GetCursorScreenPos();
+            var widgetTopLeft = ImGui.GetCursorScreenPos();
 
-            ImGui.SetNextItemAllowOverlap();
-            ImGui.SetCursorScreenPos(topLeft);
-
-                    //ImGui.SetNextItemAllowOverlap();
-            var size = ImGui.GetContentRegionAvail();
-
-            ImGui.SetNextItemAllowOverlap();
-            ImGui.SetCursorScreenPos(topLeft);
+            var widgetSize = ImGui.GetContentRegionAvail();
+            ImGui.InvisibleButton("MiniMapWidget", widgetSize);
+            bool isActive = ImGui.IsItemActive();
+            bool isHovered = ImGui.IsItemHovered();
 
             var cam = view.Camera;
             var camSize = view.GetCameraSizeIn2DWorldSpace();
 
-            Vector4 bounds = Vector4.Zero;
-            foreach(var actor in area.GetActors().Where(x => x.mPackName != "GlobalAreaInfoActor"))
+            BoundingBox2D bb = BoundingBox2D.Empty;
+
+            foreach (var actor in area.GetActors())
             {
-                if(bounds == Vector4.Zero){
-                    bounds = new Vector4(actor.mTranslation.X, actor.mTranslation.X, actor.mTranslation.Y, actor.mTranslation.Y);
-                }
-                else{
-                    bounds = new(Math.Min(bounds.X, actor.mTranslation.X),
-                    Math.Min(bounds.Y, actor.mTranslation.Y),
-                    Math.Max(bounds.Z, actor.mTranslation.X),
-                    Math.Max(bounds.W, actor.mTranslation.Y));
+                if (actor.mPackName == "GlobalAreaInfoActor")
+                    continue;
+
+                bb.Include(new Vector2(actor.mTranslation.X, actor.mTranslation.Y));
+            }
+
+            foreach (var unit in area.mUnitHolder.mUnits)
+            {
+                foreach (var subUnit in unit.mTileSubUnits)
+                {
+                    var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+
+                    foreach (var tile in subUnit.GetTiles(new Vector2(float.NegativeInfinity), new Vector2(float.PositiveInfinity)))
+                    {
+                        var pos = tile.pos + origin2D;
+                        bb.Include(new BoundingBox2D(pos, pos + Vector2.One));
+                    }
                 }
             }
-            var levelRect = new Vector2(bounds.Z-bounds.X, bounds.W - bounds.Y);
+            var levelSize = bb.Max - bb.Min;
 
-            float tanFOV = MathF.Tan(cam.Fov / 2);
-
-            var ratio = size.X/levelRect.X < size.Y/levelRect.Y ? size.X/levelRect.X : size.Y/levelRect.Y;
-            var miniLevelRect = levelRect*ratio;
-            var miniCamPos = new Vector2(cam.Target.X-bounds.X, -cam.Target.Y + bounds.Y)*ratio;
+            var ratio = widgetSize.X/levelSize.X < widgetSize.Y/levelSize.Y ? widgetSize.X/levelSize.X : widgetSize.Y/levelSize.Y;
+            var lvlRectSize = levelSize*ratio;
+            var miniCamPos = new Vector2(cam.Target.X - bb.Min.X, -cam.Target.Y + bb.Min.Y) * ratio;
             var miniCamSize = camSize*ratio;
-            var miniCamSave = new Vector2(camSave.X-bounds.X, -camSave.Y + bounds.Y)*ratio;
-            var center = new Vector2((size.X - miniLevelRect.X)/2, (size.Y - miniLevelRect.Y)/2);
+            var miniCamSave = new Vector2(camSave.X - bb.Min.X, -camSave.Y + bb.Min.Y) * ratio;
+            var padding = (widgetSize - lvlRectSize)/2;
 
-            var lvlTopLeft = topLeft + center;
+            var lvlRectTopLeft = widgetTopLeft + padding;
 
             var col = ImGuiCol.ButtonActive;
 
             if (ImGui.IsMouseDown(ImGuiMouseButton.Right) && !ImGui.IsMouseDown(ImGuiMouseButton.Left) &&
-            (ImGui.IsWindowHovered() || (ImGui.IsWindowFocused() && ImGui.IsMouseReleased(ImGuiMouseButton.Left))) && camSave == default)
+            (isHovered || (isActive && ImGui.IsMouseReleased(ImGuiMouseButton.Left))) && camSave == default)
             {
                 camSave = cam.Target;
             }
 
             if ((ImGui.IsMouseDown(ImGuiMouseButton.Left) ||
             ImGui.IsMouseDown(ImGuiMouseButton.Right)) &&
-            ImGui.IsWindowHovered())
+            isHovered)
             {
                 if (camSave != default)
                 {
                     col = ImGuiCol.TextDisabled;
-                    ImGui.GetWindowDrawList().AddRect(lvlTopLeft + miniCamSave - miniCamSize/2 + new Vector2(0, miniLevelRect.Y), 
-                        lvlTopLeft + miniCamSave + miniCamSize/2 + new Vector2(0, miniLevelRect.Y), 
+                    ImGui.GetWindowDrawList().AddRect(lvlRectTopLeft + miniCamSave - miniCamSize/2 + new Vector2(0, lvlRectSize.Y), 
+                        lvlRectTopLeft + miniCamSave + miniCamSize/2 + new Vector2(0, lvlRectSize.Y), 
                         ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Button]),6,0,3);
                 }
 
                 var pos = ImGui.GetMousePos();
-                cam.Target = new((pos.X - lvlTopLeft.X)/ratio + bounds.X,
-                    (-pos.Y + lvlTopLeft.Y + miniLevelRect.Y)/ratio + bounds.Y, cam.Target.Z);
+                cam.Target = new((pos.X - lvlRectTopLeft.X)/ratio + bb.Min.X,
+                    (-pos.Y + lvlRectTopLeft.Y + lvlRectSize.Y)/ratio + bb.Min.Y, cam.Target.Z);
             }
 
             if (ImGui.IsMouseReleased(ImGuiMouseButton.Right) && camSave != default)
@@ -1787,12 +1794,56 @@ namespace Fushigi.ui.widgets
                 camSave = default;
             }
 
-            ImGui.GetWindowDrawList().AddRect(lvlTopLeft, 
-                lvlTopLeft + miniLevelRect, 
+            var dl = ImGui.GetWindowDrawList();
+
+            Vector2 MapPointPixelAligned(Vector2 pos) => new Vector2(
+                MathF.Round(lvlRectTopLeft.X + (pos.X - bb.Min.X) / (bb.Max.X - bb.Min.X) * lvlRectSize.X),
+                MathF.Round(lvlRectTopLeft.Y + (pos.Y - bb.Max.Y) / (bb.Min.Y - bb.Max.Y) * lvlRectSize.Y)
+                );
+
+            var backgroundSubUnits = area.mUnitHolder.mUnits
+                .Where(x => x.mModelType == CourseUnit.ModelType.NoCollision)
+                .SelectMany(x => x.mTileSubUnits);
+
+            foreach (var subUnit in backgroundSubUnits)
+            {
+                var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+
+                foreach (var tile in subUnit.GetTiles(bb.Min - origin2D, bb.Max - origin2D))
+                {
+                    var pos = tile.pos + origin2D;
+                    dl.AddRectFilled(
+                        MapPointPixelAligned(pos),
+                        MapPointPixelAligned(pos + Vector2.One),
+                        0xFF444444);
+                }
+            }
+
+            var foregroundSubUnits = area.mUnitHolder.mUnits
+                .Where(x => x.mModelType != CourseUnit.ModelType.NoCollision)
+                .SelectMany(x => x.mTileSubUnits);
+
+            foreach (var subUnit in foregroundSubUnits)
+            {
+                var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+
+                foreach (var tile in subUnit.GetTiles(bb.Min - origin2D, bb.Max - origin2D))
+                {
+                    var pos = tile.pos + origin2D;
+                    dl.AddRectFilled(
+                        MapPointPixelAligned(pos),
+                        MapPointPixelAligned(pos + Vector2.One),
+                        0xFF999999);
+                }
+            }
+
+
+            dl.AddRect(lvlRectTopLeft, 
+                lvlRectTopLeft + lvlRectSize, 
                 ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)ImGuiCol.Text]),6,0,3);
 
-            ImGui.GetWindowDrawList().AddRect(lvlTopLeft + miniCamPos - miniCamSize/2 + new Vector2(0, miniLevelRect.Y), 
-                lvlTopLeft + miniCamPos + miniCamSize/2 + new Vector2(0, miniLevelRect.Y), 
+            dl.AddRect(lvlRectTopLeft + miniCamPos - miniCamSize/2 + new Vector2(0, lvlRectSize.Y), 
+                lvlRectTopLeft + miniCamPos + miniCamSize/2 + new Vector2(0, lvlRectSize.Y), 
                 ImGui.ColorConvertFloat4ToU32(ImGui.GetStyle().Colors[(int)col]),6,0,3);
 
             if (status)
