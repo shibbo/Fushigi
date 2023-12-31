@@ -42,7 +42,7 @@ namespace Fushigi.env
 
         public EnvPalette()
         {
-            
+
         }
 
         public EnvPalette(string name)
@@ -233,7 +233,7 @@ namespace Fushigi.env
         public class EnvShadow
         {
             public Color AOColor { get; set; }
-            public bool EnableDynamicDepthShadow {  get; set; }
+            public bool EnableDynamicDepthShadow { get; set; }
             public float Latitude { get; set; }
             public float Longitude { get; set; }
         }
@@ -277,7 +277,7 @@ namespace Fushigi.env
             public Color Color { get; set; }
             public float Damp { get; set; }
             public float End { get; set; }
-            public float Start { get; set;}
+            public float Start { get; set; }
         }
 
         public class EnvLightList
@@ -360,19 +360,20 @@ namespace Fushigi.env
 
             public float[] ComputeRgba32(int width = 64)
             {
-                //If curve is null, use constant color instead
-                if (Curve == null)
+                if (Curve == null) // Always means constant?
                 {
+                    var color = ColorEnd.ToVector4();
+                    var tmp = new float[width * 4];
                     for (int i = 0; i < width * 4; i += 4)
                     {
-                        //Use "X" to lerp between the colors to get
-                        Vector4 color = this.ColorEnd.ToVector4();
-                        buffer[i + 0] = Math.Clamp(color.X, 0, 1f);
-                        buffer[i + 1] = Math.Clamp(color.Y, 0, 1f);
-                        buffer[i + 2] = Math.Clamp(color.Z, 0, 1f);
-                        buffer[i + 3] = Math.Clamp(color.W, 0, 1f);
+                        tmp[i + 0] = Math.Clamp(color.X, 0, 1f);
+                        tmp[i + 1] = Math.Clamp(color.Y, 0, 1f);
+                        tmp[i + 2] = Math.Clamp(color.Z, 0, 1f);
+                        tmp[i + 3] = Math.Clamp(color.W, 0, 1f);
                     }
-                    return buffer;
+
+                    return tmp;
+                }
 
                 var type = Curve.GetCurveType();
                 var data = Curve.Data.ToArray();
@@ -380,6 +381,8 @@ namespace Fushigi.env
                 Vector4[] colors = UseMiddleColor ?
                     new Vector4[] { ColorBegin.ToVector4(), ColorMiddle.ToVector4(), ColorEnd.ToVector4() } :
                     new Vector4[] { ColorBegin.ToVector4(), ColorEnd.ToVector4(), ColorEnd.ToVector4() };
+
+                float[] buffer = new float[width * 4];
 
                 Vector4 LerpBetweenColors(Vector4 a, Vector4 b, Vector4 c, float t)
                 {
@@ -438,7 +441,7 @@ namespace Fushigi.env
 
             public Color() { }
 
-            public Color(Vector4 v) 
+            public Color(Vector4 v)
             {
                 R = v.X;
                 G = v.Y;
@@ -446,7 +449,8 @@ namespace Fushigi.env
                 A = v.W;
             }
 
-            public static Color Lerp(Color a, Color b, float t) {
+            public static Color Lerp(Color a, Color b, float t)
+            {
                 return new Color(Vector4.Lerp(a.ToVector4(), b.ToVector4(), t));
             }
         }
