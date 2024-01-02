@@ -11,6 +11,9 @@ namespace Fushigi.actor_pack.components
     [Serializable]
     public class GamePhysics
     {
+        [BymlProperty("$parent")]
+        public string parent { get; set; }
+        
         [BymlProperty("ControllerSetPath", DefaultValue = "")]
         public string mPath { get; set; }
     }

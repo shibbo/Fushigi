@@ -17,6 +17,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Fushigi.rstb;
 using Fushigi.ui.helpers;
+using Fasterflect;
 
 namespace Fushigi.ui.widgets
 {
@@ -702,19 +703,23 @@ namespace Fushigi.ui.widgets
 
                         if (ImGui.Selectable(linkType))
                         {
+                            KeyboardModifier modifier;
                             ImGui.SetWindowFocus(selectedArea.GetName());
                             Task.Run(async () =>
                             {
-                                var pickedDest = await PickLinkDestInViewportFor(mSelectedActor);
-                                if (pickedDest is null)
-                                    return;
-
-                                var link = new CourseLink(linkType)
+                                do
                                 {
-                                    mSource = mSelectedActor.mHash,
-                                    mDest = pickedDest.mHash
-                                };
-                                editContext.AddLink(link);
+                                    (var pickedDest, modifier) = await PickLinkDestInViewportFor(mSelectedActor);
+                                    if (pickedDest is null)
+                                        return;
+                                    
+                                    var link = new CourseLink(linkType)
+                                    {
+                                        mSource = mSelectedActor.mHash,
+                                        mDest = pickedDest.mHash
+                                    };
+                                    editContext.AddLink(link);
+                                } while ((modifier & KeyboardModifier.Shift) > 0);
                             });
                         }
                     }
@@ -786,7 +791,7 @@ namespace Fushigi.ui.widgets
                             ImGui.SetWindowFocus(selectedArea.GetName());
                             Task.Run(async () =>
                             {
-                                var pickedDest = await PickLinkDestInViewportFor(mSelectedActor);
+                                var (pickedDest, _) = await PickLinkDestInViewportFor(mSelectedActor);
                                 if (pickedDest is null)
                                     return;
 
@@ -1440,92 +1445,104 @@ namespace Fushigi.ui.widgets
             var wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
             var wcMax = wcMin + ImGui.GetContentRegionAvail();
 
-            RecursiveLinkFind(area, links, editContext, em);
+            var topLinks = area.GetActors()
+                .Where(x => links.GetDestHashesFromSrc(x.mHash).Count > 0);
+
+            RecursiveLinkFind(area, links, editContext, em, topLinks);
 
             ImGui.PopClipRect();
 
             ImGui.EndChild();
         }
 
-        private void RecursiveLinkFind(CourseArea area, CourseLinkHolder links, CourseAreaEditContext editContext, float em)
+        private void RecursiveLinkFind(CourseArea area, CourseLinkHolder links, CourseAreaEditContext editContext, float em, IEnumerable<CourseActor> linkList)
         {
-            foreach (CourseActor actor in area.GetActors().Where(x => !links.GetSrcHashesFromDest(x.mHash).Any() && links.GetDestHashesFromSrc(x.mHash).Any()))
+            foreach (CourseActor actor in linkList)
             {
                 ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.OpenOnArrow;
-                ImGui.PushID(actor.mHash.ToString());
+                ImGui.PushID($"##{actor.mHash}");
                 bool expanded = false;
                 bool isVisible = true;
                 float margin = 1.5f * em;
                 float headerHeight = 1.4f * em;
                 Vector2 cp = ImGui.GetCursorScreenPos();
-                expanded = ImGui.TreeNodeEx(actor.mHash.ToString(), node_flags, actor.mPackName);
-
-                if (ImGui.IsItemFocused())
+                if(links.GetDestHashesFromSrc(actor.mHash).Count > 0)
                 {
-                    activeViewport.SelectedActor(actor);
-                }
+                    expanded = ImGui.TreeNodeEx($"{actor.mHash}", node_flags, actor.mPackName);
 
-                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                {
-                    activeViewport.FrameSelectedActor(actor);
-                }
-
-                if (!isVisible)
-                    ImGui.BeginDisabled();
-
-                if (expanded)
-                {
-                    foreach (var link in links.GetDestHashesFromSrc(actor.mHash))
+                    if (ImGui.IsItemFocused())
                     {
-                        if(ImGui.TreeNodeEx(actor.mHash.ToString() + link.Key, ImGuiTreeNodeFlags.FramePadding, link.Key))
+                        activeViewport.SelectedActor(actor);
+                    }
+
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                    {
+                        activeViewport.FrameSelectedActor(actor);
+                    }
+
+                    if (!isVisible)
+                        ImGui.BeginDisabled();
+
+                    if (expanded)
+                    {
+                        foreach (var link in links.GetDestHashesFromSrc(actor.mHash))
                         {
-                            foreach (CourseActor linkActor in area.GetActors().Where(x => link.Value.Contains(x.mHash)))
+                            ImGui.PushID($"##{link.Key}");
+                            if(ImGui.TreeNodeEx($"##{link.Key}", ImGuiTreeNodeFlags.FramePadding, link.Key))
                             {
-                                var act = linkActor;
-                                string actorName = act.mPackName;
-                                string name = act.mName;
-                                ulong actorHash = act.mHash;
-                                string actorLink = link.Key;
-                                //Check if the node is within the necessary search filter requirements if search is used
-                                bool HasText = act.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                            act.mPackName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                            act.ToString().Equals(mActorSearchText);
-
-                                if (!HasText)
-                                    continue;
-
-                                bool isSelected = editContext.IsSelected(act);
-
-                                ImGui.PushID(actorHash.ToString());
-                                ImGui.Columns(2);
-                                
-                                if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
-                                {
-                                    activeViewport.SelectedActor(act);
-                                }
-                                else if (ImGui.IsItemFocused())
-                                {
-                                    activeViewport.SelectedActor(act);
-                                }
-
-                                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                                {
-                                    activeViewport.FrameSelectedActor(act);
-                                }
-
-
-                                ImGui.NextColumn();
-                                ImGui.BeginDisabled();
-                                ImGui.Text(name);
-                                ImGui.EndDisabled();
-                                ImGui.Columns(1);
-
-                                ImGui.PopID();
+                                var reLinks = area.GetActors().Where(x => link.Value.Contains(x.mHash));
+                                RecursiveLinkFind(area, links, editContext, em, reLinks);
+                                // foreach (CourseActor linkActor in )
+                                // {
+                                //     
+                                // }
                                 ImGui.TreePop();
                             }
+                            ImGui.PopID();
                         }
+                        ImGui.TreePop();
                     }
-                    ImGui.TreePop();
+                }
+                else
+                {
+                    string actorName = actor.mPackName;
+                    string name = actor.mName;
+                    ulong actorHash = actor.mHash;
+                    //Check if the node is within the necessary search filter requirements if search is used
+                    bool HasText = actor.mName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                actor.mPackName.IndexOf(mActorSearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                actor.ToString().Equals(mActorSearchText);
+
+                    if (!HasText)
+                        continue;
+
+                    bool isSelected = editContext.IsSelected(actor);
+
+                    ImGui.PushID($"##{actorName}");
+                    ImGui.Columns(2);
+                    
+                    if (ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns))
+                    {
+                        activeViewport.SelectedActor(actor);
+                    }
+                    else if (ImGui.IsItemFocused())
+                    {
+                        activeViewport.SelectedActor(actor);
+                    }
+
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                    {
+                        activeViewport.FrameSelectedActor(actor);
+                    }
+
+
+                    ImGui.NextColumn();
+                    ImGui.BeginDisabled();
+                    ImGui.Text(name);
+                    ImGui.EndDisabled();
+                    ImGui.Columns(1);
+
+                    ImGui.PopID();
                 }
             
                 if (!isVisible)
@@ -1819,21 +1836,56 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            var foregroundSubUnits = area.mUnitHolder.mUnits
-                .Where(x => x.mModelType != CourseUnit.ModelType.NoCollision)
-                .SelectMany(x => x.mTileSubUnits);
+            var foregroundTileUnits = area.mUnitHolder.mUnits
+                .Where(x => x.mModelType != CourseUnit.ModelType.NoCollision);
 
+            var foregroundSubUnits = foregroundTileUnits
+                .SelectMany(x => x.mTileSubUnits)
+                .OrderBy(x => x.mOrigin.Z);
+
+            var t = 0;
             foreach (var subUnit in foregroundSubUnits)
             {
-                var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
+                var type = foregroundTileUnits.First(x => x.mTileSubUnits.Contains(subUnit)).mModelType;
+                var unitColor = 0xFF999999;
+                var edgeColor = 0xFFEEEEEE;
 
+                switch (type)
+                {
+                    case CourseUnit.ModelType.Solid:
+                        unitColor = 0xFFBB9999; 
+                        edgeColor = 0xFFFFEEEE;
+                        break;
+                    case CourseUnit.ModelType.SemiSolid:
+                        unitColor = 0xFF99BB99; 
+                        edgeColor = 0xFFEEFFEE;
+                        break;
+                }
+
+                var origin2D = new Vector2(subUnit.mOrigin.X, subUnit.mOrigin.Y);
                 foreach (var tile in subUnit.GetTiles(bb.Min - origin2D, bb.Max - origin2D))
                 {
                     var pos = tile.pos + origin2D;
                     dl.AddRectFilled(
                         MapPointPixelAligned(pos),
                         MapPointPixelAligned(pos + Vector2.One),
-                        0xFF999999);
+                        unitColor);
+                }
+                if (subUnit == foregroundSubUnits.Last(x => x.mOrigin.Z == subUnit.mOrigin.Z))
+                {
+                    foreach(var wall in foregroundTileUnits
+                        .SelectMany(x => x.Walls)
+                        .Where(x => x.ExternalRail.Points[0].Position.Z == subUnit.mOrigin.Z))
+                    {
+                        var rail = wall.ExternalRail;
+
+                        var pos = rail.Points.Select(x => MapPointPixelAligned(new(x.Position.X, x.Position.Y))).ToArray();
+                        dl.AddPolyline(ref pos[0], 
+                            rail.Points.Count, 
+                            edgeColor, 
+                            rail.IsClosed ? ImDrawFlags.Closed:ImDrawFlags.None, 
+                            1.5f);
+                    }
                 }
             }
 
@@ -2051,12 +2103,12 @@ namespace Fushigi.ui.widgets
             return course;
         }
 
-        private async Task<CourseActor?> PickLinkDestInViewportFor(CourseActor source)
+        private async Task<(CourseActor?, KeyboardModifier modifiers)> PickLinkDestInViewportFor(CourseActor source)
         {
-            var (picked, _) = await activeViewport.PickObject(
-                            "Select the destination actor you wish to link to.",
+            var (picked, modifier) = await activeViewport.PickObject(
+                            "Select the destination actor you wish to link to. -- Hold SHIFT to link multiple",
                             x => x is CourseActor && x != source);
-            return picked as CourseActor;
+            return (picked as CourseActor, modifier);
         }
 
         private async Task DeleteObjectsWithWarningPrompt(IReadOnlyList<object> objectsToDelete,
@@ -2162,6 +2214,12 @@ namespace Fushigi.ui.widgets
                 posVec.Y = MathF.Round(posVec.Y * 2, MidpointRounding.AwayFromZero) / 2;
                 posVec.Z = 0.0f;
                 actor.mTranslation = posVec;
+                var i = 0;
+                do
+                {
+                    i++;
+                } while (area.GetActors().Any(x => x.mName == $"{actor.mPackName}{i}"));
+                actor.mName = $"{actor.mPackName}{i}";
 
                 ctx.AddActor(actor);
 

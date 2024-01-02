@@ -1070,7 +1070,7 @@ namespace Fushigi.ui.widgets
                 Vector3 center = new(0f);
                 var drawing = "box";
 
-                if (actor.mActorPack.ShapeParams != null)
+                if (actor.mActorPack?.ShapeParams != null)
                 {
                     var shapes = actor.mActorPack.ShapeParams;
                     var calc = shapes.mCalc;

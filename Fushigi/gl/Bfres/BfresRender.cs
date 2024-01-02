@@ -92,7 +92,10 @@ namespace Fushigi.gl.Bfres
             internal void Render(GL gl, BfresRender render, Matrix4x4 transform, Camera camera)
             {
                 foreach (var mesh in Meshes)
+                {
+                    mesh.LodMeshes[0].BoundingBox.Transform(transform);
                     BoundingBox.Include(mesh.LodMeshes[0].BoundingBox);
+                }
 
                 if (!IsVisible || !camera.InFrustum(BoundingBox))
                     return;
