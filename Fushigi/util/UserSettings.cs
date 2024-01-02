@@ -34,7 +34,7 @@ namespace Fushigi.util
                 ModPaths = new();
                 RomFSModPath = "";
                 RecentCourses = new List<string>(MaxRecents);
-                UseGameShaders = true;
+                UseGameShaders = false;
                 UseAstcTextureCache = false;
             }
         }

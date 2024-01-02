@@ -42,7 +42,7 @@ namespace Fushigi.env
 
         public EnvPalette()
         {
-            
+
         }
 
         public EnvPalette(string name)
@@ -233,7 +233,7 @@ namespace Fushigi.env
         public class EnvShadow
         {
             public Color AOColor { get; set; }
-            public bool EnableDynamicDepthShadow {  get; set; }
+            public bool EnableDynamicDepthShadow { get; set; }
             public float Latitude { get; set; }
             public float Longitude { get; set; }
         }
@@ -277,7 +277,7 @@ namespace Fushigi.env
             public Color Color { get; set; }
             public float Damp { get; set; }
             public float End { get; set; }
-            public float Start { get; set;}
+            public float Start { get; set; }
         }
 
         public class EnvLightList
@@ -441,7 +441,7 @@ namespace Fushigi.env
 
             public Color() { }
 
-            public Color(Vector4 v) 
+            public Color(Vector4 v)
             {
                 R = v.X;
                 G = v.Y;
@@ -449,7 +449,8 @@ namespace Fushigi.env
                 A = v.W;
             }
 
-            public static Color Lerp(Color a, Color b, float t) {
+            public static Color Lerp(Color a, Color b, float t)
+            {
                 return new Color(Vector4.Lerp(a.ToVector4(), b.ToVector4(), t));
             }
         }
