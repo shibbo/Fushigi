@@ -98,6 +98,8 @@ namespace Fushigi.ui.widgets
         public TileBfresRender TileBfresRenderFieldA;
         public TileBfresRender TileBfresRenderFieldB;
         public AreaResourceManager EnvironmentData = new AreaResourceManager(gl, area.mInitEnvPalette);
+        
+        private readonly HashSet<CourseUnit> mRegisteredUnits = [];
 
         DistantViewManager DistantViewScrollManager = new DistantViewManager(area);
 
@@ -318,15 +320,7 @@ namespace Fushigi.ui.widgets
                         NoHit: table.GetPackName(skinName, "NoHit"),
                         Bridge: table.GetPackName(skinName, "Bridge")
                     ), division);
-                render.Load(this.mArea.mUnitHolder, this.Camera);
-
-                foreach (var courseUnit in this.mArea.mUnitHolder.mUnits.Where(x => x.mSkinDivision == division))
-                {
-                    courseUnit.TilesUpdated += delegate
-                    {
-                        render.Load(this.mArea.mUnitHolder, this.Camera);
-                    };
-                }
+                render.Load(this.mArea.mUnitHolder);
 
                 return render;
             }
@@ -338,6 +332,24 @@ namespace Fushigi.ui.widgets
 
             if (TileBfresRenderFieldB == null && !string.IsNullOrEmpty(fieldBSkin))
                 TileBfresRenderFieldB = CreateTileRendererForSkin(SkinDivision.FieldB, fieldBSkin);
+
+            //continuously register all course units that haven't been registered yet
+            foreach (var courseUnit in mArea.mUnitHolder.mUnits)
+            {
+                if (mRegisteredUnits.Contains(courseUnit))
+                    continue;
+
+                if(courseUnit.mSkinDivision == SkinDivision.FieldA && TileBfresRenderFieldA is not null)
+                {
+                    courseUnit.TilesUpdated += () => TileBfresRenderFieldA.Load(this.mArea.mUnitHolder);
+                }
+                else if (courseUnit.mSkinDivision == SkinDivision.FieldB && TileBfresRenderFieldB is not null)
+                {
+                    courseUnit.TilesUpdated += () => TileBfresRenderFieldB.Load(this.mArea.mUnitHolder);
+                }
+
+                mRegisteredUnits.Add(courseUnit);
+            }
 
             TileBfresRenderFieldA?.Render(gl, this.Camera);
             TileBfresRenderFieldB?.Render(gl, this.Camera);
@@ -894,7 +906,7 @@ namespace Fushigi.ui.widgets
         }
 
         private static Vector2[] s_actorRectPolygon = new Vector2[4];
-
+        
         void DrawAreaContent()
         {
             const float pointSize = 3.0f;

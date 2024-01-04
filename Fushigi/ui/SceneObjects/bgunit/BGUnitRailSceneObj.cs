@@ -71,7 +71,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             ctx.CommitAction(revertible);
             ctx.Select(point);
-            CourseUnit.GenerateTileSubUnits();
         }
 
         public void AddPoint(CourseAreaEditContext ctx, BGUnitRail.RailPoint point)
@@ -81,7 +80,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             ctx.CommitAction(revertible);
             ctx.Select(point);
-            CourseUnit.GenerateTileSubUnits();
         }
 
         public void RemoveSelected(CourseAreaEditContext ctx, LevelViewport viewport)
@@ -99,8 +97,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
             }
 
             batchAction.Commit($"{IconUtil.ICON_TRASH} Delete Rail Points");
-
-            CourseUnit.GenerateTileSubUnits();
         }
 
         public void OnKeyDown(CourseAreaEditContext ctx, LevelViewport viewport)

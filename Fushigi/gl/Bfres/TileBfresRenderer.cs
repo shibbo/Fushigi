@@ -77,7 +77,7 @@ namespace Fushigi.gl.Bfres
                 ));
         }
 
-        public void Load(CourseUnitHolder unitHolder, Camera camera)
+        public void Load(CourseUnitHolder unitHolder)
         {
             SolidModel.TileManager.Clear();
             SemisolidModel.TileManager.Clear();
