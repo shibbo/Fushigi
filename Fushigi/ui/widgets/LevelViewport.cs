@@ -929,7 +929,7 @@ namespace Fushigi.ui.widgets
                     }
 
                     bool isSelected = mEditContext.IsSelected(rail);
-                    bool hovered = LevelViewport.HitTestLineLoopPoint(GetPoints(), 10f, ImGui.GetMousePos());
+                    bool hovered = MathUtil.HitTestLineLoopPoint(GetPoints(), 10f, ImGui.GetMousePos());
 
                     CourseRail.CourseRailPoint selectedPoint = null;
 
@@ -1172,11 +1172,11 @@ namespace Fushigi.ui.widgets
 
                     string name = actor.mPackName;
 
-                    isHovered = HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
+                    isHovered = MathUtil.HitTestConvexPolygonPoint(s_actorRectPolygon, ImGui.GetMousePos());
 
                     if (name.Contains("Area"))
                     {
-                        isHovered = HitTestLineLoopPoint(s_actorRectPolygon, 4f,
+                        isHovered = MathUtil.HitTestLineLoopPoint(s_actorRectPolygon, 4f,
                             ImGui.GetMousePos());
                     }
 
@@ -1188,61 +1188,6 @@ namespace Fushigi.ui.widgets
             }
 
             mHoveredObject = newHoveredObject;
-        }
-
-        /// <summary>
-        /// Does a collision check between a convex polygon and a point
-        /// </summary>
-        /// <param name="polygon">Points of Polygon a in Clockwise orientation (in screen coordinates)</param>
-        /// <param name="point">Point</param>
-        /// <returns></returns>
-        public static bool HitTestConvexPolygonPoint(ReadOnlySpan<Vector2> polygon, Vector2 point)
-        {
-            // separating axis theorem (lite)
-            // we can view the point as a polygon with 0 sides and 1 point
-            for (int i = 0; i < polygon.Length; i++)
-            {
-                var p1 = polygon[i];
-                var p2 = polygon[(i + 1) % polygon.Length];
-                var vec = (p2 - p1);
-                var normal = new Vector2(vec.Y, -vec.X);
-
-                (Vector2 origin, Vector2 normal) edge = (p1, normal);
-
-                if (Vector2.Dot(point - edge.origin, edge.normal) >= 0)
-                    return false;
-            }
-
-            //no separating axis found -> collision
-            return true;
-        }
-
-        /// <summary>
-        /// Does a collision check between a LineLoop and a point
-        /// </summary>
-        /// <param name="polygon">Points of a LineLoop</param>
-        /// <param name="point">Point</param>
-        /// <returns></returns>
-        public static bool HitTestLineLoopPoint(ReadOnlySpan<Vector2> points, float thickness, Vector2 point)
-        {
-            for (int i = 0; i < points.Length; i++)
-            {
-                var p1 = points[i];
-                var p2 = points[(i + 1) % points.Length];
-                if (HitTestPointLine(point,
-                    p1, p2, thickness))
-                    return true;
-            }
-
-            return false;
-        }
-
-        static bool HitTestPointLine(Vector2 p, Vector2 a, Vector2 b, float thickness)
-        {
-            Vector2 pa = p - a, ba = b - a;
-            float h = Math.Clamp(Vector2.Dot(pa, ba) /
-                      Vector2.Dot(ba, ba), 0, 1);
-            return (pa - ba * h).Length() < thickness / 2;
         }
     }
 

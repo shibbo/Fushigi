@@ -8,9 +8,15 @@ namespace Fushigi.ui.SceneObjects.bgunit
         {
             unit.GenerateTileSubUnits();
 
-            void CreateOrUpdateRail(BGUnitRail rail)
+            void CreateOrUpdateRail(BGUnitRail rail, bool isBelt = false)
             {
-                ctx.UpdateOrCreateObjFor(rail, () => new BGUnitRailSceneObj(unit, rail));
+                ctx.UpdateOrCreateObjFor(rail, () => new BGUnitRailSceneObj(unit, rail, isBelt));
+            }
+
+            if (unit.mModelType is CourseUnit.ModelType.SemiSolid or CourseUnit.ModelType.Bridge)
+            {
+                foreach (var rail in unit.mBeltRails)
+                    CreateOrUpdateRail(rail, true);
             }
 
             foreach (var wall in unit.Walls)
@@ -21,10 +27,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
                     CreateOrUpdateRail(rail);
                 }
             }
-
-            //Don't include belt for now. TODO how should this be handled?
-            //foreach (var rail in unit.mBeltRails)
-            //    CreateOrUpdateRail(rail);
         }
     }
 }
