@@ -19,7 +19,7 @@ namespace Fushigi.ui.widgets
         {
             var result = await modalHost.ShowPopUp(
                 new OperationWarningDialog(warning, categorizedWarnings),
-                title, ImGuiWindowFlags.AlwaysAutoResize);
+                title, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBringToFrontOnFocus);
 
             if (result.wasClosed)
                 return DialogResult.Cancel;
