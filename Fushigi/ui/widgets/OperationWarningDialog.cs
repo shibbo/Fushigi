@@ -19,7 +19,7 @@ namespace Fushigi.ui.widgets
         {
             var result = await modalHost.ShowPopUp(
                 new OperationWarningDialog(warning, categorizedWarnings),
-                title, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBringToFrontOnFocus);
+                title, ImGuiWindowFlags.AlwaysAutoResize);
 
             if (result.wasClosed)
                 return DialogResult.Cancel;
@@ -43,12 +43,8 @@ namespace Fushigi.ui.widgets
             float width = ImGui.GetContentRegionAvail().X;
             ImGui.SetNextWindowSizeConstraints(new Vector2(width, 0),
                 new Vector2(width, ImGui.GetWindowViewport().WorkSize.Y / 3f));
-            ImGui.SetNextWindowPos(ImGui.GetCursorScreenPos());
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0));
             var cursorPos = ImGui.GetCursorPos();
-            if (ImGui.Begin("CategorizedWarnings",
-                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoNavFocus))
+            if(ImGui.BeginChild("Categorized", Vector2.Zero, ImGuiChildFlags.AutoResizeY))
             {
                 var headerStickPosY = 0f;
                 foreach (var (category, warnings) in mCategorizedWarnings)
@@ -72,7 +68,7 @@ namespace Fushigi.ui.widgets
                     if(!expanded)
                         continue;
 
-                    ImGui.PushClipRect(ImGui.GetCursorScreenPos(), 
+                    ImGui.PushClipRect(ImGui.GetCursorScreenPos(),
                         new Vector2(float.PositiveInfinity), true);
 
                     headerStickPosY = ImGui.GetCursorPosY() - ImGui.GetScrollY();
@@ -87,13 +83,9 @@ namespace Fushigi.ui.widgets
                     }
                     ImGui.Unindent();
                     ImGui.PopClipRect();
-                    ImGui.SetWindowSize(new Vector2(100, 100));
                 }
-                cursorPos += ImGui.GetWindowSize() with { X = 0 };
-                ImGui.End();
+                ImGui.EndChild();
             }
-            ImGui.PopStyleVar(2);
-            ImGui.SetCursorPos(cursorPos);
             #endregion
 
 
