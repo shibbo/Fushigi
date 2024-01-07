@@ -42,8 +42,8 @@ namespace Fushigi.gl.Bfres
             Framebuffer = new GLFramebuffer(gl, FramebufferTarget.Framebuffer);
             Framebuffer.SetDrawBuffers(buffers);
 
-            NormalsTexture = new DDSTextureRender(gl, Path.Combine("res", "bfres", "normals.dds"));
-            LUTTexture = new DDSTextureRender(gl, Path.Combine("res", "bfres", "gradient.dds"));
+            NormalsTexture = new DDSTextureRender(gl, Path.Combine(AppContext.BaseDirectory, "res", "bfres", "normals.dds"));
+            LUTTexture = new DDSTextureRender(gl, Path.Combine(AppContext.BaseDirectory, "res", "bfres", "gradient.dds"));
 
             ScreenQuadRender = new ScreenQuad(gl, 1f);
         }
@@ -67,8 +67,8 @@ namespace Fushigi.gl.Bfres
             var size = output.Width / (uint)Math.Pow(2, mip_level);
 
             var shader = GLShaderCache.GetShader(gl, "Lightmap", 
-                Path.Combine("res", "shaders", "Lightmap.vert"),
-                Path.Combine("res", "shaders", "Lightmap.frag"));
+                Path.Combine(AppContext.BaseDirectory, "res", "shaders", "Lightmap.vert"),
+                Path.Combine(AppContext.BaseDirectory, "res", "shaders", "Lightmap.frag"));
 
             shader.Use();
             Framebuffer.Bind();

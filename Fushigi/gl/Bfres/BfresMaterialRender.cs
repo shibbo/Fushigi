@@ -31,8 +31,8 @@ namespace Fushigi.gl.Bfres
             Name = material.Name;
 
             Shader = GLShaderCache.GetShader(gl, "Bfres",
-               Path.Combine("res", "shaders", "Bfres.vert"),
-               Path.Combine("res", "shaders", "Bfres.frag"));
+               Path.Combine(AppContext.BaseDirectory, "res", "shaders", "Bfres.vert"),
+               Path.Combine(AppContext.BaseDirectory, "res", "shaders", "Bfres.frag"));
 
             GsysRenderState.Init(material);
             GsysShaderRender.Init(gl, modelRender, meshRender, shape, material);
