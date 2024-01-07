@@ -15,7 +15,7 @@ namespace Fushigi.param
             mParams = new Dictionary<string, ParamHolder>();
             var nodes = JsonNode.Parse(
                 File.ReadAllText(
-                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "res", "AreaParam.json")
+                    Path.Combine(AppContext.BaseDirectory, "res", "AreaParam.json")
                 )
             ).AsObject();
             ParamHolder areaParms = new ParamHolder();

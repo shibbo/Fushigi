@@ -26,8 +26,8 @@ namespace Fushigi.gl
                 Image = GLTexture2D.Load(_gl, "Wood.png");
 
             var shader = GLShaderCache.GetShader(_gl, "Basic",
-               Path.Combine("res", "shaders", "Basic.vert"),
-               Path.Combine("res", "shaders", "Basic.frag"));
+               Path.Combine(AppContext.BaseDirectory, "res", "shaders", "Basic.vert"),
+               Path.Combine(AppContext.BaseDirectory, "res", "shaders", "Basic.frag"));
 
             shader.Use();
             shader.SetUniform("hasTexture", Image != null ? 1 : 0);

@@ -35,7 +35,7 @@ Console.WriteLine("Checking for imgui.ini");
 if (!Path.Exists("imgui.ini"))
 {
   Console.WriteLine("Creating imgui.ini...");
-  File.WriteAllText("imgui.ini", File.ReadAllText(Path.Combine("res", "imgui-default.ini")));
+  File.WriteAllText("imgui.ini", File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "res", "imgui-default.ini")));
   Console.WriteLine("Created!");
 };
 

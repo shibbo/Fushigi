@@ -18,8 +18,8 @@ namespace Fushigi.util
 
         public static void Init()
         {
-            string folder = Path.Combine("res", "actor_icons");
-            string actor_icons_zip = Path.Combine("res", "ActorIcons.zip");
+            string folder = Path.Combine(AppContext.BaseDirectory, "res", "actor_icons");
+            string actor_icons_zip = Path.Combine(AppContext.BaseDirectory, "res", "ActorIcons.zip");
             if (!File.Exists(actor_icons_zip))
                 return;
 
@@ -38,7 +38,7 @@ namespace Fushigi.util
 
         public static int GetIcon(GL gl, string gyml, string model)
         {
-            string folder = Path.Combine("res", "actor_icons");
+            string folder = Path.Combine(AppContext.BaseDirectory, "res", "actor_icons");
             string icon_path = Path.Combine(folder, $"{gyml}.bfres_{model}.png");
 
             if (Icons.ContainsKey(icon_path))
