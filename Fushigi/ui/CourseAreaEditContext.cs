@@ -217,6 +217,20 @@ namespace Fushigi.ui
                     $"{IconUtil.ICON_TRASH} Delete Wall"));
         }
 
+        public void AddBeltRail(CourseUnit unit, BGUnitRail rail)
+        {
+            LogAdding<BGUnitRail>();
+            CommitAction(unit.mBeltRails.RevertableAdd(rail,
+                    $"{IconUtil.ICON_PLUS_CIRCLE} Add Belt"));
+        }
+
+        public void DeleteBeltRail(CourseUnit unit, BGUnitRail rail)
+        {
+            LogDeleting<BGUnitRail>();
+            CommitAction(unit.mBeltRails.RevertableRemove(rail,
+                    $"{IconUtil.ICON_TRASH} Delete Belt"));
+        }
+
         private void LogAdding<T>(ulong hash) => 
             LogAdding<T>($"[{hash}]");
 

@@ -889,6 +889,90 @@ namespace Fushigi.ui.widgets
 
                     ImGui.Columns(1);
                 }
+
+                if(mSelectedUnit.mModelType is CourseUnit.ModelType.SemiSolid)
+                {
+                    ImGui.Spacing();
+                    ImGui.Separator();
+                    ImGui.Spacing();
+
+                    if(ImGui.Button("Remove all Belts"))
+                    {
+                        var batchAction = editContext.BeginBatchAction();
+
+                        for (int i = mSelectedUnit.mBeltRails.Count - 1; i >= 0; i--)
+                            editContext.DeleteBeltRail(mSelectedUnit, mSelectedUnit.mBeltRails[i]);
+
+                        batchAction.Commit("Remove all Belts from TileUnit");
+                    }
+
+                    ImGui.SameLine();
+
+                    if (ImGui.Button("Generate Belts"))
+                    {
+                        var batchAction = editContext.BeginBatchAction();
+
+                        void ProcessRail(BGUnitRail rail)
+                        {
+                            if (rail.Points.Count <= 1)
+                                return;
+
+                            BGUnitRail? firstBeltRail = null;
+                            BGUnitRail? currentBeltRail = null;
+
+                            var lastPoint = new Vector3(float.NaN);
+
+                            for (int i = 0; i < rail.Points.Count; i++)
+                            {
+                                var point0 = rail.Points[i].Position;
+                                var point1 = rail.Points.GetWrapped(i + 1).Position;
+
+                                if (point0.X >= point1.X)
+                                    continue;
+
+                                if (point0 != lastPoint)
+                                {
+                                    if (currentBeltRail is not null)
+                                        editContext.AddBeltRail(mSelectedUnit, currentBeltRail);
+
+                                    currentBeltRail = new BGUnitRail(mSelectedUnit);
+                                    currentBeltRail.Points.Add(new BGUnitRail.RailPoint(currentBeltRail, point0));
+                                    firstBeltRail ??= currentBeltRail;
+                                }
+
+                                currentBeltRail!.Points.Add(new BGUnitRail.RailPoint(currentBeltRail, point1));
+                                lastPoint = point1;
+                            }
+
+                            var lastBeltRail = currentBeltRail;
+
+                            if(firstBeltRail is not null && lastBeltRail is not null &&
+                                firstBeltRail != lastBeltRail &&
+                                lastBeltRail.Points[^1].Position == firstBeltRail.Points[0].Position)
+                            {
+                                //connect first and last rail
+
+                                for (int i = 0; i < lastBeltRail.Points.Count-1; i++)
+                                {
+                                    var position = lastBeltRail.Points[i].Position;
+                                    firstBeltRail.Points.Insert(i, new BGUnitRail.RailPoint(firstBeltRail, position));
+                                }
+                            }
+                            else if (lastBeltRail is not null)
+                                editContext.AddBeltRail(mSelectedUnit, lastBeltRail);
+                        }
+
+                        foreach (var wall in mSelectedUnit.Walls)
+                        {
+                            ProcessRail(wall.ExternalRail);
+
+                            foreach (var internalRail in wall.InternalRails)
+                                ProcessRail(internalRail);
+                        }
+
+                        batchAction.Commit("Add Belts");
+                    }
+                }
             }
             else if (editContext.IsSingleObjectSelected(out BGUnitRail? mSelectedUnitRail))
             {
@@ -1329,45 +1413,76 @@ namespace Fushigi.ui.widgets
                         }
                     }
 
-                    if (ImGui.Button("Add Wall"))
-                        editContext.AddWall(unit, new Wall(unit));
-                    ImGui.SameLine();
-                    if (ImGui.Button("Remove Wall"))
+                    if (unit.mModelType is not CourseUnit.ModelType.Bridge)
                     {
-                        editContext.WithSuspendUpdateDo(() =>
+                        if (ImGui.Button("Add Wall"))
+                            editContext.AddWall(unit, new Wall(unit));
+                        ImGui.SameLine();
+                        if (ImGui.Button("Remove Wall"))
                         {
-                            for (int i = unit.Walls.Count - 1; i >= 0; i--)
+                            editContext.WithSuspendUpdateDo(() =>
                             {
-                                //TODO is that REALLY how we want to do this?
-                                if (editContext.IsSelected(unit.Walls[i].ExternalRail))
-                                    editContext.DeleteWall(unit, unit.Walls[i]);
-                            }
-                        });
-                    }
-
-                    foreach (var wall in unit.Walls)
-                    {
-                        if (wall.InternalRails.Count > 0)
-                        {
-                            bool ex = ImGui.TreeNodeEx($"##{name}Wall{unit.Walls.IndexOf(wall)}", ImGuiTreeNodeFlags.DefaultOpen);
-                            ImGui.SameLine();
-
-                            RailListItem("Wall", wall.ExternalRail, unit.Walls.IndexOf(wall));
-
-                            ImGui.Indent();
-
-                            if (ex)
-                            {
-                                foreach (var rail in wall.InternalRails)
-                                    RailListItem("Internal Rail", rail, wall.InternalRails.IndexOf(rail));
-                            }
-                            ImGui.Unindent();
-
-                            ImGui.TreePop();
+                                for (int i = unit.Walls.Count - 1; i >= 0; i--)
+                                {
+                                    //TODO is that REALLY how we want to do this?
+                                    if (editContext.IsSelected(unit.Walls[i].ExternalRail))
+                                        editContext.DeleteWall(unit, unit.Walls[i]);
+                                }
+                            });
                         }
-                        else
+
+                        for (int iWall = 0; iWall < unit.Walls.Count; iWall++)
                         {
-                            RailListItem("Wall", wall.ExternalRail, unit.Walls.IndexOf(wall));
+                            Wall wall = unit.Walls[iWall];
+                            if (wall.InternalRails.Count > 0)
+                            {
+                                ImGui.Unindent();
+                                bool ex = ImGui.TreeNodeEx($"##{name}Wall{iWall}", ImGuiTreeNodeFlags.DefaultOpen);
+                                ImGui.SameLine();
+
+                                RailListItem("Wall", wall.ExternalRail, unit.Walls.IndexOf(wall));
+
+                                ImGui.Indent();
+
+                                if (ex)
+                                {
+                                    for (int iInternal = 0; iInternal < wall.InternalRails.Count; iInternal++)
+                                    {
+                                        BGUnitRail? rail = wall.InternalRails[iInternal];
+                                        RailListItem("Internal Rail", rail, iInternal);
+                                    }
+                                }
+
+                                ImGui.TreePop();
+                            }
+                            else
+                            {
+                                RailListItem("Wall", wall.ExternalRail, iWall);
+                            }
+                        }
+                    } 
+
+                    if (unit.mModelType is CourseUnit.ModelType.SemiSolid or CourseUnit.ModelType.Bridge)
+                    {
+                        if (ImGui.Button("Add Belt"))
+                            editContext.AddBeltRail(unit, new BGUnitRail(unit));
+                        ImGui.SameLine();
+                        if (ImGui.Button("Remove Belt"))
+                        {
+                            editContext.WithSuspendUpdateDo(() =>
+                            {
+                                for (int i = unit.mBeltRails.Count - 1; i >= 0; i--)
+                                {
+                                    if (editContext.IsSelected(unit.mBeltRails[i]))
+                                        editContext.DeleteBeltRail(unit, unit.mBeltRails[i]);
+                                }
+                            });
+                        }
+
+                        for (int iBeltRail = 0; iBeltRail < unit.mBeltRails.Count; iBeltRail++)
+                        {
+                            BGUnitRail beltRail = unit.mBeltRails[iBeltRail];
+                            RailListItem("Belt", beltRail, iBeltRail);
                         }
                     }
                     ImGui.TreePop();
@@ -1916,7 +2031,7 @@ namespace Fushigi.ui.widgets
                 {
                     foreach(var wall in foregroundTileUnits
                         .SelectMany(x => x.Walls)
-                        .Where(x => x.ExternalRail.Points[0].Position.Z == subUnit.mOrigin.Z))
+                        .Where(x => x.ExternalRail.Points.FirstOrDefault()?.Position.Z == subUnit.mOrigin.Z))
                     {
                         var rail = wall.ExternalRail;
 
