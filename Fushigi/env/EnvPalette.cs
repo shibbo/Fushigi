@@ -58,7 +58,7 @@ namespace Fushigi.env
             string file_path = FileUtil.FindContentPath(local_path);
             if (!File.Exists(file_path))
             {
-                Debug.Fail(null);
+                //Debug.Fail(null);
                 return;
             }
 

@@ -36,7 +36,7 @@ namespace Fushigi.ui.widgets
             {
                 ctx.Select(selectable);
             }
-            else  if(!ctx.IsSelected(selectable))
+            else if(!ctx.IsSelected(selectable))
             {
                 ctx.WithSuspendUpdateDo(() =>
                 {
@@ -82,13 +82,14 @@ namespace Fushigi.ui.widgets
 
         public bool IsViewportHovered;
         public bool IsViewportActive;
-        public bool IsWonderView;
+        public WonderViewType WonderViewMode = WonderViewType.Normal;
         public bool PlayAnimations = false;
         public bool ShowGrid = true;
 
         Vector2 mSize = Vector2.Zero;
       
         public ulong prevSelectVersion { get; private set; } = 0;
+        public bool dragRelease; 
         private IDictionary<string, bool>? mLayersVisibility;
         Vector2 mTopLeft = Vector2.Zero;
 
@@ -347,9 +348,14 @@ namespace Fushigi.ui.widgets
 
             foreach (var actor in this.mArea.GetActors())
             {
-                if (actor.mActorPack == null || mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer])
-                    continue;
+                actor.wonderVisible = WonderViewMode == actor.mWonderView || 
+                                        WonderViewMode == WonderViewType.Normal ||
+                                        actor.mWonderView == WonderViewType.Normal;
 
+                if (actor.mActorPack == null || (mLayersVisibility.ContainsKey(actor.mLayer) && !mLayersVisibility[actor.mLayer]) ||
+                !actor.wonderVisible)
+                    continue;
+                
                 RenderActor(actor, actor.mActorPack.ModelInfoRef);
                 RenderActor(actor, actor.mActorPack.DrawArrayModelInfoRef);
             }
@@ -796,22 +802,25 @@ namespace Fushigi.ui.widgets
                 }
             }
 
-            if(mHoveredObject != null && mHoveredObject is CourseActor &&
-            ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+            if (ImGui.IsMouseDown(0))
+                dragRelease = ImGui.IsMouseDragging(0);
+
+            if(mHoveredObject != null && 
+                mHoveredObject is CourseActor &&
+                !dragRelease &&
+                ImGui.IsMouseReleased(0))
             {
-                if (ImGui.GetIO().MouseDragMaxDistanceSqr[0] <= ImGui.GetIO().MouseDragThreshold)
+                if(ImGui.IsKeyDown(ImGuiKey.LeftShift) && 
+                    prevSelectVersion == mEditContext.SelectionVersion)
                 {
-                    if(ImGui.IsKeyDown(ImGuiKey.LeftShift)
-                    && prevSelectVersion == mEditContext.SelectionVersion)
-                    {
-                        mEditContext.Deselect(mHoveredObject!);
-                    }
-                    else if(!ImGui.IsKeyDown(ImGuiKey.LeftShift))
-                    {
-                        mEditContext.DeselectAll();
-                        IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
-                    }
+                    mEditContext.Deselect(mHoveredObject!);
                 }
+                else if(!ImGui.IsKeyDown(ImGuiKey.LeftShift))
+                {
+                    mEditContext.DeselectAll();
+                    IViewportSelectable.DefaultSelect(mEditContext, mHoveredObject);
+                }
+                dragRelease = false;
             }
 
             if (ImGui.IsKeyPressed(ImGuiKey.Delete))
@@ -1095,7 +1104,7 @@ namespace Fushigi.ui.widgets
                     
                 string layer = actor.mLayer;
 
-                if (mLayersVisibility!.TryGetValue(layer, out bool isVisible) && isVisible)
+                if (mLayersVisibility!.TryGetValue(layer, out bool isVisible) && isVisible && actor.wonderVisible)
                 {
                     Matrix4x4 transform =
                         Matrix4x4.CreateScale(actor.mScale.X, actor.mScale.Y, actor.mScale.Z
