@@ -48,6 +48,11 @@ namespace Fushigi.ui.widgets
 
         CourseLink? mSelectedGlobalLink = null;
 
+        string[] viewMode = [
+            "View All Actors", 
+            "View Normal Actors", 
+            "View Wonder Actors"];
+
         string[] linkTypes = [
             "BasicSignal",
             "Create",
@@ -242,8 +247,6 @@ namespace Fushigi.ui.widgets
 
                         ImGui.SameLine();
 
-                        ImGui.SameLine();
-
                         string current_palette = area.mInitEnvPalette == null ? "" : area.mInitEnvPalette.Name;
 
                         void SelectPalette(string name, string palette)
@@ -262,8 +265,8 @@ namespace Fushigi.ui.widgets
                                 ImGui.SetItemDefaultFocus();
                         }
 
-                        ImGui.PushItemWidth(30);
-                        if (ImGui.BeginCombo($"##EnvPalette", $"{IconUtil.ICON_PALETTE}", ImGuiComboFlags.NoArrowButton))
+                        var flags = ImGuiComboFlags.NoArrowButton | ImGuiComboFlags.WidthFitPreview;
+                        if (ImGui.BeginCombo($"##EnvPalette", $"{IconUtil.ICON_PALETTE}", flags))
                         {
                             SelectPalette($"Default Palette", area.mAreaParams.EnvPaletteSetting.InitPaletteBaseName);
 
@@ -284,7 +287,6 @@ namespace Fushigi.ui.widgets
                             }
                             ImGui.EndCombo();
                         }
-                        ImGui.PopItemWidth();
 
                         ImGui.SameLine();
 
@@ -292,6 +294,18 @@ namespace Fushigi.ui.widgets
                         if (ImGui.Checkbox("Use Game Shaders", ref useGameShaders))
                         {
                             UserSettings.SetGameShaders(useGameShaders);
+                        }
+
+                        ImGui.SameLine();
+
+                        if (ImGui.BeginCombo("Wonder View", viewMode[(int)activeViewport.WonderViewMode], ImGuiComboFlags.WidthFitPreview))
+                        {
+                            for (int n = 0; n < 3; n++)
+                            {
+                                if (ImGui.Selectable(viewMode[n]))
+                                    viewport.WonderViewMode = (WonderViewType)n;
+                            }
+                            ImGui.EndCombo();
                         }
 
                         ImGui.PopStyleColor(1);
@@ -497,8 +511,6 @@ namespace Fushigi.ui.widgets
         private void LocalLinksPanel()
         {
             ImGui.Begin("Local Links");
-
-            ImGui.Checkbox("Wonder View", ref activeViewport.IsWonderView);
 
             ImGui.Separator();
 
@@ -1337,7 +1349,7 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.Selectable(name, editContext.IsSelected(unit)))
                 {
-                    editContext.DeselectAllOfType<CourseUnit>();
+                    editContext.DeselectAll();
                     editContext.Select(unit);
                 }
                 if (expanded)
@@ -1573,7 +1585,8 @@ namespace Fushigi.ui.widgets
             ImGui.EndChild();
         }
 
-        private void RecursiveLinkFind(CourseArea area, CourseLinkHolder links, CourseAreaEditContext editContext, float em, IEnumerable<CourseActor> linkList)
+        private void RecursiveLinkFind(CourseArea area, CourseLinkHolder links, 
+            CourseAreaEditContext editContext, float em, IEnumerable<CourseActor> linkList)
         {
             foreach (CourseActor actor in linkList)
             {
@@ -1601,6 +1614,8 @@ namespace Fushigi.ui.widgets
                     if (!isVisible)
                         ImGui.BeginDisabled();
 
+                    UpdateWonderVisibility(actor, links, area);
+
                     if (expanded)
                     {
                         foreach (var link in links.GetDestHashesFromSrc(actor.mHash))
@@ -1610,10 +1625,6 @@ namespace Fushigi.ui.widgets
                             {
                                 var reLinks = area.GetActors().Where(x => link.Value.Contains(x.mHash));
                                 RecursiveLinkFind(area, links, editContext, em, reLinks);
-                                // foreach (CourseActor linkActor in )
-                                // {
-                                //     
-                                // }
                                 ImGui.TreePop();
                             }
                             ImGui.PopID();
@@ -1667,6 +1678,34 @@ namespace Fushigi.ui.widgets
                     ImGui.EndDisabled();
 
                 ImGui.PopID();
+            }
+        }
+
+        private void UpdateWonderVisibility(CourseActor actor, CourseLinkHolder links, CourseArea area)
+        {
+            foreach (var link in links.GetDestHashesFromSrc(actor.mHash))
+            {
+                var reLinks = area.GetActors().Where(x => link.Value.Contains(x.mHash));
+                if (!link.Key.Contains("CreateRelative") &&
+                    (link.Key.Contains("Create") ||
+                    link.Key.Contains("PopUp") || 
+                    link.Key.Contains("Delete") ||
+                    link.Key.Contains("BasicSignal")))
+                {
+                    foreach (CourseActor linkActor in reLinks)
+                    {
+                        if ((actor.mPackName == "ObjectWonderTag" || actor.mWonderView == WonderViewType.WonderOnly) &&
+                        (!link.Key.Contains("BasicSignal") || (linkActor.mActorPack?.Category.Contains("Tag") ?? false)))
+                        {
+                            if (link.Key.Contains("Delete"))
+                                linkActor.mWonderView = WonderViewType.WonderOff;
+                            else
+                                linkActor.mWonderView = WonderViewType.WonderOnly;
+                        }
+                        else
+                            linkActor.mWonderView = WonderViewType.Normal;
+                    }
+                }
             }
         }
 
@@ -1950,7 +1989,7 @@ namespace Fushigi.ui.widgets
                     dl.AddRectFilled(
                         MapPointPixelAligned(pos),
                         MapPointPixelAligned(pos + Vector2.One),
-                        0xFF444444);
+                        0xFF666688);
                 }
             }
 
@@ -1961,7 +2000,6 @@ namespace Fushigi.ui.widgets
                 .SelectMany(x => x.mTileSubUnits)
                 .OrderBy(x => x.mOrigin.Z);
 
-            var t = 0;
             foreach (var subUnit in foregroundSubUnits)
             {
                 var type = foregroundTileUnits.First(x => x.mTileSubUnits.Contains(subUnit)).mModelType;
@@ -2006,7 +2044,6 @@ namespace Fushigi.ui.widgets
                     }
                 }
             }
-
 
             dl.AddRect(lvlRectTopLeft, 
                 lvlRectTopLeft + lvlRectSize, 
