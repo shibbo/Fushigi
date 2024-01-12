@@ -139,7 +139,7 @@ namespace Fushigi.course
             {
                 this.mHash = RandomUtil.GetRandom();
                 this.mTranslate = point.mTranslate;
-                this.mControl = point.mControl;
+                this.mControl = new(this, point.mControl.mTranslate);
                 foreach (var param in point.mParameters)
                     this.mParameters.Add(param.Key, param.Value);
             }
@@ -148,6 +148,7 @@ namespace Fushigi.course
             {
                 mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);
                 mTranslate = BymlUtil.GetVector3FromArray(node["Translate"] as BymlArrayNode);
+                mControl = new(this);
 
                 IDictionary<string, ParamDB.ComponentParam> comp;
                 if (ParamDB.TryGetRailPointComponent(pointParam, out var componentName))
@@ -169,7 +170,8 @@ namespace Fushigi.course
 
                 if (node.ContainsKey("Control1"))
                 {
-                    mControl = BymlUtil.GetVector3FromArray(node["Control1"] as BymlArrayNode);
+                    mControl.mTranslate = BymlUtil.GetVector3FromArray(node["Control1"] as BymlArrayNode);
+                    mIsCurve = true;
                 }
 
                 var dynamicNode = node["Dynamic"] as BymlHashTable;
@@ -204,12 +206,12 @@ namespace Fushigi.course
 
                 tbl.AddNode(BymlNodeId.Hash, dynamicNode, "Dynamic");
 
-                if (mControl != null)
+                if (mIsCurve)
                 {
                     BymlArrayNode controlNode = new(3);
-                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mControl.Value.X));
-                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mControl.Value.Y));
-                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", mControl.Value.Z));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mControl.mTranslate.X));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mControl.mTranslate.Y));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", mControl.mTranslate.Z));
 
                     tbl.AddNode(BymlNodeId.Array, controlNode, "Control1");
                 }
@@ -227,10 +229,20 @@ namespace Fushigi.course
             public ulong mHash;
             public Dictionary<string, object> mParameters = new();
             public System.Numerics.Vector3 mTranslate;
-            public System.Numerics.Vector3? mControl = null;
+            public CourseRailPointControl mControl;
+            public bool mIsCurve;
+        }
+        public class CourseRailPointControl
+        {
+            public CourseRailPointControl(CourseRail.CourseRailPoint point, System.Numerics.Vector3 pos = default)
+            {
+                this.point = point;
+                this.mTranslate = pos;
+            }
+            public CourseRail.CourseRailPoint point;
+            public System.Numerics.Vector3 mTranslate;
         }
     }
-
     public class CourseRailHolder
     {
         public CourseRailHolder()
@@ -291,6 +303,7 @@ namespace Fushigi.course
         {
             mSourceActor = BymlUtil.GetNodeData<ulong>(table["Src"]);
             mDestRail = BymlUtil.GetNodeData<ulong>(table["Dst"]);
+            mDestPoint = BymlUtil.GetNodeData<ulong>(table["Point"]);
             mLinkName = BymlUtil.GetNodeData<string>(table["Name"]);
         }
 
@@ -299,7 +312,7 @@ namespace Fushigi.course
             BymlHashTable tbl = new();
             tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mDestRail), "Dst");
             tbl.AddNode(BymlNodeId.String, BymlUtil.CreateNode<string>(mLinkName), "Name");
-            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mSourceActor), "Point");
+            tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mDestPoint), "Point");
             tbl.AddNode(BymlNodeId.UInt64, BymlUtil.CreateNode<ulong>(mSourceActor), "Src");
             return tbl;
         }

@@ -206,10 +206,9 @@ namespace Fushigi
             }
         }
 
-        private ShapeParamList GetActorShape(SARC.SARC sarc)
+        private ShapeParamList? GetActorShape(SARC.SARC sarc)
         {
-            
-            var file = GetPathGyml(GamePhysicsRef.mPath);
+            var file = GetPathGyml(this.GamePhysicsRef.mPath);
             var dat = sarc.OpenFile(file);
             this.ControllerPath = BymlSerialize.Deserialize<ControllerSetParam>(dat);
             
