@@ -132,6 +132,7 @@ namespace Fushigi.course
             {
                 this.mHash = RandomUtil.GetRandom();
                 this.mTranslate = new System.Numerics.Vector3();
+                this.mControl = new(this);
             }
 
 
