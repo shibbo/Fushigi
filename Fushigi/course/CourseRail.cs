@@ -132,7 +132,7 @@ namespace Fushigi.course
             {
                 this.mHash = RandomUtil.GetRandom();
                 this.mTranslate = new System.Numerics.Vector3();
-                this.mControl = new(this);
+                this.mControl = new(this, mTranslate);
             }
 
 
@@ -149,7 +149,7 @@ namespace Fushigi.course
             {
                 mHash = BymlUtil.GetNodeData<ulong>(node["Hash"]);
                 mTranslate = BymlUtil.GetVector3FromArray(node["Translate"] as BymlArrayNode);
-                mControl = new(this);
+                mControl = new(this, mTranslate);
 
                 IDictionary<string, ParamDB.ComponentParam> comp;
                 if (ParamDB.TryGetRailPointComponent(pointParam, out var componentName))
@@ -235,7 +235,7 @@ namespace Fushigi.course
         }
         public class CourseRailPointControl
         {
-            public CourseRailPointControl(CourseRail.CourseRailPoint point, System.Numerics.Vector3 pos = default)
+            public CourseRailPointControl(CourseRail.CourseRailPoint point, System.Numerics.Vector3 pos)
             {
                 this.point = point;
                 this.mTranslate = pos;
