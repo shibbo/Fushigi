@@ -124,7 +124,7 @@ namespace Fushigi.course
 
             foreach (CourseArea area in mAreas)
             {
-                refArr.AddNodeToArray(BymlUtil.CreateNode<string>("", $"Work/Stage/StageParam/{area.GetName()}.game__stage__StageParam.gyml"));
+                refArr.AddNodeToArray(BymlUtil.CreateNode($"Work/Stage/StageParam/{area.GetName()}.game__stage__StageParam.gyml"));
             }
 
             stageParamRoot.AddNode(BymlNodeId.Array, refArr, "RefStages");

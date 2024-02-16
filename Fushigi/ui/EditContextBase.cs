@@ -36,7 +36,7 @@ namespace Fushigi.ui
 
         public ICommittable BeginBatchAction()
         {
-            mCurrentActionBatch = [];
+            mCurrentActionBatch ??= [];
             var batchAction = new BatchAction(this);
             mNestedBatchActions.Push(batchAction);
             return batchAction;

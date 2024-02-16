@@ -210,17 +210,17 @@ namespace Fushigi.course
                 if (mIsCurve)
                 {
                     BymlArrayNode controlNode = new(3);
-                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mControl.mTranslate.X));
-                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mControl.mTranslate.Y));
-                    controlNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", mControl.mTranslate.Z));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode(mControl.mTranslate.X));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode( mControl.mTranslate.Y));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode(mControl.mTranslate.Z));
 
                     tbl.AddNode(BymlNodeId.Array, controlNode, "Control1");
                 }
 
                 BymlArrayNode translateNode = new(3);
-                translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("X", mTranslate.X));
-                translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Y", mTranslate.Y));
-                translateNode.AddNodeToArray(BymlUtil.CreateNode<float>("Z", mTranslate.Z));
+                translateNode.AddNodeToArray(BymlUtil.CreateNode(mTranslate.X));
+                translateNode.AddNodeToArray(BymlUtil.CreateNode(mTranslate.Y));
+                translateNode.AddNodeToArray(BymlUtil.CreateNode(mTranslate.Z));
 
                 tbl.AddNode(BymlNodeId.Array, translateNode, "Translate");
 
