@@ -880,7 +880,6 @@ namespace Fushigi.ui.widgets
                     }
                 }
 
-
                 dragRelease = false;
             }
 
@@ -1008,6 +1007,11 @@ namespace Fushigi.ui.widgets
                     bool isSelected = mEditContext.IsSelected(rail);
                     bool hovered = MathUtil.HitTestLineLoopPoint(GetPoints(), 10f, ImGui.GetMousePos());
 
+                    //Rail selection disabled for now as it conflicts with point selection
+                    //Putting it at the top of the for loop should make it prioritize points -Donavin
+                    if (hovered)
+                      newHoveredObject = rail;
+
                     CourseRail.CourseRailPoint selectedPoint = null;
 
                     foreach (var point in rail.mPoints)
@@ -1036,9 +1040,11 @@ namespace Fushigi.ui.widgets
                     if (selectedPoint != null && ImGui.IsMouseReleased(0))
                     {
                         //Check if point matches an existing point, remove if intersected
-                        var matching = rail.mPoints.Where(x => x.mTranslate == selectedPoint.mTranslate).ToList();
-                        if (matching.Count > 1)
-                            rail.mPoints.Remove(selectedPoint);
+                        //The base game has overlapping points, this breaks things
+
+                        // var matching = rail.mPoints.Where(x => x.mTranslate == selectedPoint.mTranslate).ToList();
+                        // if (matching.Count > 1)
+                        //     rail.mPoints.Remove(selectedPoint);
                     }
                 
                     bool add_point = ImGui.IsMouseClicked(0) && ImGui.IsMouseDown(0) && ImGui.GetIO().KeyAlt;
@@ -1080,10 +1086,6 @@ namespace Fushigi.ui.widgets
                         this.mEditContext.Select(newPoint);
                         newHoveredObject = newPoint;
                     }
-
-                    //Rail selection disabled for now as it conflicts with point selection
-                    // if (hovered)
-                    //   newHoveredObject = rail;
                 }
 
                 foreach (CourseRail rail in mArea.mRailHolder.mRails)
