@@ -211,7 +211,7 @@ namespace Fushigi.course
                 {
                     BymlArrayNode controlNode = new(3);
                     controlNode.AddNodeToArray(BymlUtil.CreateNode(mControl.mTranslate.X));
-                    controlNode.AddNodeToArray(BymlUtil.CreateNode( mControl.mTranslate.Y));
+                    controlNode.AddNodeToArray(BymlUtil.CreateNode(mControl.mTranslate.Y));
                     controlNode.AddNodeToArray(BymlUtil.CreateNode(mControl.mTranslate.Z));
 
                     tbl.AddNode(BymlNodeId.Array, controlNode, "Control1");
