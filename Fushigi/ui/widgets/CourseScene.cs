@@ -19,6 +19,7 @@ using Fushigi.rstb;
 using Fushigi.course.distance_view;
 using Fushigi.ui.helpers;
 using Fasterflect;
+using System.Text.RegularExpressions;
 
 namespace Fushigi.ui.widgets
 {
@@ -1851,7 +1852,7 @@ namespace Fushigi.ui.widgets
                     expanded = ImGui.TreeNodeEx("TreeNode", ImGuiTreeNodeFlags.FramePadding, layer);
 
                     ImGui.PushClipRect(wcMin, wcMax, false);
-                    ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em) / 2, cp.Y));
+                    ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em*4) / 2, cp.Y));
                     isVisible = mLayersVisibility[layer];
                     if (ToggleButton($"VisibleCheckbox", IconUtil.ICON_EYE, IconUtil.ICON_EYE_SLASH,
                         ref isVisible, new Vector2(em)))
@@ -1863,6 +1864,13 @@ namespace Fushigi.ui.widgets
                     ImGui.AlignTextToFramePadding();
                     ImGui.Text(layer);
                 }
+                var dummy = false;
+                ImGui.PushClipRect(wcMin, wcMax, false);
+                ImGui.SetCursorScreenPos(new Vector2(wcMax.X - (margin + em) / 2, cp.Y));
+                if (ToggleButton($"Delete Layer", IconUtil.ICON_TRASH, IconUtil.ICON_TRASH,
+                    ref dummy, new Vector2(em)))
+                    _ = DeleteLayerWithWarningPrompt(layer, actorArray, editContext);
+                ImGui.PopClipRect();
 
                 if (!isVisible)
                     ImGui.BeginDisabled();
@@ -2389,6 +2397,42 @@ namespace Fushigi.ui.widgets
             batchAction.Commit($"{IconUtil.ICON_TRASH} {actionName}");
         }
 
+        //TODO making this undoable
+        private async Task DeleteLayerWithWarningPrompt(string layer,
+            CourseActorHolder actorArray, CourseAreaEditContext ctx)
+        {
+            var actors = actorArray.mActors.FindAll(x => x.mLayer == layer);
+            var confirm = await OperationWarningDialog.ShowDialog(mPopupModalHost,
+                "Deletion warning",
+                "Are you sure you want to delete " +
+                $"{layer}");
+
+            if (confirm == OperationWarningDialog.DialogResult.Cancel)
+                return;
+
+            bool noWarnings = !actors.Any();
+
+            if (!noWarnings)
+            {
+                List<string> warningActors = [];
+                foreach (var actor in actors)
+                {
+                    if (selectedArea.mActorHolder.TryGetActor(actor.mHash, out _))
+                    {
+                        warningActors.Add($"{selectedArea.mActorHolder[actor.mHash].mPackName} [{selectedArea.mActorHolder[actor.mHash].mName}]\n");
+                    }
+                }
+
+                var result = await OperationWarningDialog.ShowDialog(mPopupModalHost,
+                "Deletion warning",
+                "The following actors will be deleted",
+                ("Actors", warningActors));
+
+                if (result == OperationWarningDialog.DialogResult.Cancel)
+                    return;
+            }
+        }
+
         private async Task AddActorsWithSelectActorAndLayerWindow()
         {
             var viewport = activeViewport;
@@ -2604,12 +2648,24 @@ namespace Fushigi.ui.widgets
 
                 if (ImGui.BeginListBox("Select the layer you want to add the actor to.", ImGui.GetContentRegionAvail()))
                 {
-                    foreach (string layer in fileteredLayers)
+                    for (var i = 0; i < fileteredLayers.Count; i++)
                     {
+                        var layer = i < 2 ? 
+                            fileteredLayers[i]+$" ({mLayersVisibility.Count(x => Regex.Replace(x.Key, @"\\d+", "").Contains(fileteredLayers[i]))}/10)":
+                            fileteredLayers[i];
+
+                        if(layer.Contains("(10/10)"))
+                            ImGui.BeginDisabled(true);
+
                         ImGui.Selectable(layer);
 
                         if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                            mSelectedLayer = layer;
+                        {
+                            mSelectedLayer = Layers[i];
+                        }
+
+                        if(layer.Contains("(10/10)"))
+                            ImGui.EndDisabled();
                     }
 
                     ImGui.EndListBox();

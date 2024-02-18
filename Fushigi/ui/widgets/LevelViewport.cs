@@ -560,7 +560,7 @@ namespace Fushigi.ui.widgets
 
             Dictionary<string, Vector3> boneScaleLookup = [];
 
-            foreach (var boneParam in setting.mBoneSetting.BoneInfoList)
+            foreach (var boneParam in setting.mBoneSetting?.BoneInfoList ?? [])
             {
                 Vector2 boneScale;
                 if (boneParam.mIsCustomCalc)
@@ -857,7 +857,7 @@ namespace Fushigi.ui.widgets
 
                 var actors = mEditContext.GetSelectedObjects<CourseActor>().Where(x => x.mTranslation != x.mStartingTrans) ?? [];
 
-                if (actors.Count() > 0)
+                if (actors.Any())
                 {
                     if (mEditContext.IsSingleObjectSelected(out CourseActor? act))
                     {
