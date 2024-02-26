@@ -581,7 +581,7 @@ namespace Fushigi.ui.widgets
                         ImGui.TextDisabled("Invalid");
                     }
                     ImGui.TableNextColumn();
-                    if (railIndex >= 0)
+                    if (railIndex >= 0 && rails[railIndex].mPoints.Count > 0)
                     {
                         int pointIndex = rails[railIndex].mPoints.FindIndex(x => x.mHash == link.mDestPoint);
 

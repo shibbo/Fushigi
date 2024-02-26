@@ -1008,9 +1008,10 @@ namespace Fushigi.ui.widgets
                     bool hovered = MathUtil.HitTestLineLoopPoint(GetPoints(), 10f, ImGui.GetMousePos());
 
                     //Rail selection disabled for now as it conflicts with point selection
-                    //Putting it at the top of the for loop should make it prioritize points -Donavin
-                    if (hovered)
-                      newHoveredObject = rail;
+                    //Putting it at the top of the for loop should make it prioritize points 
+                    //TODO curved rails still need work-Donavin
+                    // if (hovered)
+                    //   newHoveredObject = rail;
 
                     CourseRail.CourseRailPoint selectedPoint = null;
 

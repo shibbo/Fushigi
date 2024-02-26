@@ -62,6 +62,14 @@ namespace Fushigi.util
             vec.Z = GetNodeFromArray<float>(array, 2);
             return vec;
         }
+        public static System.Numerics.Vector3 GetVector3FromHashTable(BymlHashTable? table)
+        {
+            System.Numerics.Vector3 vec = new System.Numerics.Vector3();
+            vec.X = GetNodeData<float>(table["X"]);
+            vec.Y = GetNodeData<float>(table["Y"]);
+            vec.Z = GetNodeData<float>(table["Z"]);
+            return vec;
+        }
         
         public static object GetValueFromDynamicNode(IBymlNode node, ParamDB.ComponentParam param)
         {

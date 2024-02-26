@@ -35,7 +35,16 @@ namespace Fushigi.course
 
             string pointParam = Path.GetFileNameWithoutExtension(BymlUtil.GetNodeData<string>(node["Gyaml"])).Split(".game")[0];
             var railParams = ParamDB.GetRailComponent(pointParam);
+            var railParent = ParamDB.GetRailComponentParent(railParams);
             var comp = ParamDB.GetRailComponentParams(railParams);
+            if (railParent != "null")
+            {
+                var parentComp = ParamDB.GetRailComponentParams(railParent);
+                foreach (var component in parentComp)
+                {
+                    comp.TryAdd(component.Key, component.Value);
+                }
+            }
 
             if (!node.ContainsKey("Dynamic"))
             {
