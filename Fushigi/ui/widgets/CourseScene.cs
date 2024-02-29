@@ -20,6 +20,7 @@ using Fushigi.course.distance_view;
 using Fushigi.ui.helpers;
 using Fasterflect;
 using System.Text.RegularExpressions;
+using System.Collections;
 
 namespace Fushigi.ui.widgets
 {
@@ -1182,7 +1183,7 @@ namespace Fushigi.ui.widgets
                             ImGui.Checkbox("##Curved", ref mSelectedRailPoint.mIsCurve);
                             ImGui.SameLine();
                             if (!mSelectedRailPoint.mIsCurve)
-                                ImGui.BeginDisabled(true);
+                                ImGui.BeginDisabled();
                             ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
                             ImGui.DragFloat3("##Control", ref mSelectedRailPoint.mControl.mTranslate, 0.25f);  
                             ImGui.PopItemWidth();
@@ -1632,6 +1633,8 @@ namespace Fushigi.ui.widgets
         
         //VERY ROUGH BASE
         //TODO, optomize recursion
+        List<CourseActor> topLinks;
+        CourseActor? selected;
         private void AreaLocalLinksView(CourseArea area)
         {
             var links = area.mLinkHolder;
@@ -1641,11 +1644,12 @@ namespace Fushigi.ui.widgets
             var wcMin = ImGui.GetCursorScreenPos() + new Vector2(0, ImGui.GetScrollY());
             var wcMax = wcMin + ImGui.GetContentRegionAvail();
 
-            var topLinks = area.GetActors()
-                .Where(x => links.GetDestHashesFromSrc(x.mHash).Count > 0);
+            topLinks = area.GetActors()
+                .Where(x => links.mLinks.Any(y => y.mSource == x.mHash)).ToList();
             if (ImGui.BeginTable("##Links", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.Resizable))
             {
-                RecursiveLinkFind(area, links, editContext, em, topLinks);
+                CourseActor? selected = null;
+                RecursiveLinkFind(area, links, editContext, em, topLinks, []);
                 ImGui.EndTable();
             }
 
@@ -1655,14 +1659,13 @@ namespace Fushigi.ui.widgets
         }
 
         private void RecursiveLinkFind(CourseArea area, CourseLinkHolder links, 
-            CourseAreaEditContext editContext, float em, IEnumerable<CourseActor> linkList)
+            CourseAreaEditContext editContext, float em, IEnumerable<CourseActor> linkList,
+            Hashtable parentActors)
         {
             foreach (CourseActor actor in linkList)
             {
+                var destLinks = links.GetDestHashesFromSrc(actor.mHash);
                 ImGui.TableNextRow();
-                
-                ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.OpenOnArrow;
-                ImGui.PushID($"##{actor.mHash}");
 
                 string actorName = actor.mPackName;
                 string name = actor.mName;
@@ -1670,9 +1673,7 @@ namespace Fushigi.ui.widgets
                 bool isSelected = editContext.IsSelected(actor);
 
                 ImGui.TableSetColumnIndex(1);
-                ImGui.BeginDisabled();
-                ImGui.Text(name);
-                ImGui.EndDisabled();
+                ImGui.TextDisabled(name);
 
                 bool expanded = false;
                 bool isVisible = true;
@@ -1681,18 +1682,17 @@ namespace Fushigi.ui.widgets
                 Vector2 cp = ImGui.GetCursorScreenPos();
                 ImGui.TableSetColumnIndex(0);
 
-                if(links.GetDestHashesFromSrc(actor.mHash).Count > 0)
-                {
-                    if (isSelected)
-                        node_flags |= ImGuiTreeNodeFlags.Selected;
-                    expanded = ImGui.TreeNodeEx($"{actor.mHash}", node_flags, actor.mPackName);
-                }
-                else
-                {
-                    expanded = ImGui.Selectable(actorName, isSelected, ImGuiSelectableFlags.SpanAllColumns);
-                }
+                ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.OpenOnArrow;
 
-                if (ImGui.IsItemFocused())
+                if (isSelected)
+                    node_flags |= ImGuiTreeNodeFlags.Selected;
+
+                if (!parentActors.ContainsValue(actor) && destLinks.Count > 0)
+                    expanded = ImGui.TreeNodeEx($"{actorHash}", node_flags, actorName);
+                else
+                    expanded = ImGui.Selectable(actorName, isSelected);
+
+                if (ImGui.IsItemClicked())
                 {
                     activeViewport.SelectedActor(actor);
                 }
@@ -1700,39 +1700,47 @@ namespace Fushigi.ui.widgets
                 if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                 {
                     activeViewport.FrameSelectedActor(actor);
+                    selected ??= actor;
+                }
+                if (parentActors.Count == 0 && selected == actor)
+                {
+                    ImGui.SetScrollHereY();
+                    selected = null;
                 }
 
                 if (!isVisible)
                     ImGui.BeginDisabled();
 
-                UpdateWonderVisibility(actor, links, area);
+                UpdateWonderVisibility(actor, destLinks, area);
 
-                if (expanded && (links.GetDestHashesFromSrc(actor.mHash).Count > 0))
+                if (expanded)
                 {
-                    foreach (var link in links.GetDestHashesFromSrc(actor.mHash))
+                    if(!parentActors.ContainsValue(actor) && destLinks.Count > 0)
                     {
-                        ImGui.PushID($"##{link.Key}");
-                        if(ImGui.TreeNodeEx($"##{link.Key}", ImGuiTreeNodeFlags.FramePadding, link.Key))
+                        foreach (var link in destLinks)
                         {
-                            var reLinks = area.GetActors().Where(x => link.Value.Contains(x.mHash));
-                            RecursiveLinkFind(area, links, editContext, em, reLinks);
-                            ImGui.TreePop();
+                            if(ImGui.TreeNodeEx($"{link.Key}##{actorHash}", ImGuiTreeNodeFlags.FramePadding, link.Key))
+                            {
+                                var parents = new Hashtable(parentActors);
+                                parents[actorHash] = actor;
+                                var reLinks = area.GetActors().Where(x => link.Value.Contains(x.mHash));
+                                RecursiveLinkFind(area, links, editContext, em, reLinks, parents);
+                                ImGui.TreePop();
+                            }
                         }
-                        ImGui.PopID();
-                    }
-                    ImGui.TreePop();
+                        ImGui.TreePop();
+                    }                 
                 }
             
                 if (!isVisible)
                     ImGui.EndDisabled();
-
-                ImGui.PopID();
             }
+            parentActors.Clear();
         }
 
-        private void UpdateWonderVisibility(CourseActor actor, CourseLinkHolder links, CourseArea area)
+        static void UpdateWonderVisibility(CourseActor actor, Dictionary<string, List<ulong>> links, CourseArea area)
         {
-            foreach (var link in links.GetDestHashesFromSrc(actor.mHash))
+            foreach (var link in links)
             {
                 var reLinks = area.GetActors().Where(x => link.Value.Contains(x.mHash));
                 if (!link.Key.Contains("CreateRelative") &&
@@ -2655,7 +2663,7 @@ namespace Fushigi.ui.widgets
                             fileteredLayers[i];
 
                         if(layer.Contains("(10/10)"))
-                            ImGui.BeginDisabled(true);
+                            ImGui.BeginDisabled();
 
                         ImGui.Selectable(layer);
 
