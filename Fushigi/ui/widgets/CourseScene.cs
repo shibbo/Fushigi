@@ -85,6 +85,69 @@ namespace Fushigi.ui.widgets
             "EventGuest_11",
         ];
 
+        public static string[] layerTypes = [
+            "DvScreen",
+            "DvNear2",
+            "DvNear1",
+            "DecoAreaFront",
+            "PlayArea", 
+            "DecoArea",
+            "DvMiddle1",
+            "DvMiddle2",
+            "DvFar1",
+            "DvFar2",
+            "DvFar3",
+            "DvFar4",
+            "DvFar5",
+            "DvFar6",
+            "DvFar7",
+            "DvFar8",
+            "DvFar9",
+            "DvFar10"
+        ];
+        public static Regex RxLetters = new(@"\d+");
+
+        // This code sorts the layer order on the layer panel.
+        // You can look through it before deciding if it's optimized enough to include.
+        // Just uncomment all of this if it is.
+        // public static List<string> layerSortTypes = [
+        //     "DvScreen",
+        //     "DvNear",
+        //     "DecoAreaFront",
+        //     "PlayArea", 
+        //     "DvPlayArea",
+        //     "DecoArea",
+        //     "DvMiddle",
+        //     "DvFar"
+        // ];
+
+        // public class LayerSorter : IComparer<string>
+        // {
+        //     public int Compare(string x, string y)
+        //     {
+        //         var idX = layerSortTypes.IndexOf(RxLetters.Replace(x, ""));
+        //         var idY = layerSortTypes.IndexOf(RxLetters.Replace(y, ""));
+        //         if(idX != -1)
+        //         {
+        //                 int result = idY == -1 ? 1:idX.CompareTo(idY);
+        //                 if (result != 0)
+        //                 {
+        //                     return result;
+        //                 }
+        //                 else
+        //                 {
+        //                     result = x.Length.CompareTo(x.Length);
+        //                     return result != 0 ? result:x.CompareTo(y);
+        //                 }
+        //         }
+        //         else
+        //         {
+        //                 return idY != -1 ? -1:0;
+        //         }
+        //     }
+        // }
+        // readonly LayerSorter layerSort = new();
+
         public static async Task<CourseScene> Create(Course course, 
             GLTaskScheduler glScheduler, 
             IPopupModalHost popupModalHost,
@@ -1182,14 +1245,14 @@ namespace Fushigi.ui.widgets
                             ImGui.TableNextColumn();
                             ImGui.Checkbox("##Curved", ref mSelectedRailPoint.mIsCurve);
                             ImGui.SameLine();
-                            if (!mSelectedRailPoint.mIsCurve)
-                                ImGui.BeginDisabled();
+
+                            ImGui.BeginDisabled(!mSelectedRailPoint.mIsCurve);
+
                             ImGui.PushItemWidth(ImGui.GetColumnWidth() - ImGui.GetStyle().ScrollbarSize);
                             ImGui.DragFloat3("##Control", ref mSelectedRailPoint.mControl.mTranslate, 0.25f);  
                             ImGui.PopItemWidth();
 
-                            if (!mSelectedRailPoint.mIsCurve)
-                                ImGui.EndDisabled();
+                            ImGui.EndDisabled();
 
                         ImGui.EndTable();
                     }
@@ -1708,8 +1771,7 @@ namespace Fushigi.ui.widgets
                     selected = null;
                 }
 
-                if (!isVisible)
-                    ImGui.BeginDisabled();
+                ImGui.BeginDisabled(!isVisible);
 
                 UpdateWonderVisibility(actor, destLinks, area);
 
@@ -1732,8 +1794,7 @@ namespace Fushigi.ui.widgets
                     }                 
                 }
             
-                if (!isVisible)
-                    ImGui.EndDisabled();
+                ImGui.EndDisabled();
             }
             parentActors.Clear();
         }
@@ -1846,9 +1907,11 @@ namespace Fushigi.ui.widgets
             ImGui.PushClipRect(wcMin, wcMax - new Vector2(margin, 0), true);
 
             bool isSearch = !string.IsNullOrWhiteSpace(mActorSearchText);
+            //var sortedLayers = mLayersVisibility.Keys.ToList();
+            //sortedLayers.Sort(layerSort);
 
             ImGui.Spacing();
-            foreach (string layer in mLayersVisibility.Keys)
+            foreach (string layer in mLayersVisibility.Keys) //Use sortedLayers if you think the sorting code is good
             {
                 ImGui.PushID(layer);
                 cp = ImGui.GetCursorScreenPos();
@@ -1880,8 +1943,7 @@ namespace Fushigi.ui.widgets
                     _ = DeleteLayerWithWarningPrompt(layer, actorArray, editContext);
                 ImGui.PopClipRect();
 
-                if (!isVisible)
-                    ImGui.BeginDisabled();
+                ImGui.BeginDisabled(!isVisible);
 
                 if (expanded || isSearch)
                 {
@@ -1942,8 +2004,7 @@ namespace Fushigi.ui.widgets
                         ImGui.TreePop();
                 }
 
-                if (!isVisible)
-                    ImGui.EndDisabled();
+                ImGui.EndDisabled();
 
                 ImGui.PopID();
             }
@@ -2410,15 +2471,7 @@ namespace Fushigi.ui.widgets
             CourseActorHolder actorArray, CourseAreaEditContext ctx)
         {
             var actors = actorArray.mActors.FindAll(x => x.mLayer == layer);
-            var confirm = await OperationWarningDialog.ShowDialog(mPopupModalHost,
-                "Deletion warning",
-                "Are you sure you want to delete " +
-                $"{layer}");
-
-            if (confirm == OperationWarningDialog.DialogResult.Cancel)
-                return;
-
-            bool noWarnings = !actors.Any();
+            bool noWarnings = !(actors.Count > 0);
 
             if (!noWarnings)
             {
@@ -2433,12 +2486,39 @@ namespace Fushigi.ui.widgets
 
                 var result = await OperationWarningDialog.ShowDialog(mPopupModalHost,
                 "Deletion warning",
-                "The following actors will be deleted",
+                "Deleting " + layer +
+                " will delete the following actors",
                 ("Actors", warningActors));
 
                 if (result == OperationWarningDialog.DialogResult.Cancel)
                     return;
             }
+            else
+            {
+                var result = await OperationWarningDialog.ShowDialog(mPopupModalHost,
+                "Deletion warning",
+                "Are you sure you want to delete " +
+                layer+"?");
+
+                if (result == OperationWarningDialog.DialogResult.Cancel)
+                    return;
+            }
+
+            var batchAction = ctx.BeginBatchAction();
+
+            foreach (var actor in actors)
+            {
+                ctx.DeleteActor(actor);
+            }
+            ctx.CommitAction(new PropertyFieldsSetUndo(
+                    this, 
+                    [("mLayersVisibility", new Dictionary<string, bool>(mLayersVisibility))],
+                    $"{IconUtil.ICON_TRASH} Delete {layer}"
+                )
+            );
+            mLayersVisibility.Remove(layer);
+
+            batchAction.Commit($"{IconUtil.ICON_TRASH} Delete Layer: {layer}");
         }
 
         private async Task AddActorsWithSelectActorAndLayerWindow()
@@ -2507,14 +2587,22 @@ namespace Fushigi.ui.widgets
 
             if(layer == "PlayArea" || layer == "DecoArea")
             {
-                var i = layer == "DecoArea" ? 0:1;
-                do
-                {
-                    i++;
-                } while (mLayersVisibility.Keys.Any(x => x == $"{layer}{i}"));
-                layer += i;
+                int startIdx = layer == "DecoArea" ? 0:1;
+                for (int i = startIdx; /*no condition*/; i++)  
+                {  
+                    if (!mLayersVisibility.ContainsKey($"{layer}{i}"))
+                    {
+                        layer += i;
+                        break;
+                    }
+                }  
             }
-
+            ctx.CommitAction(new PropertyFieldsSetUndo(
+                    this, 
+                    [("mLayersVisibility", new Dictionary<string, bool>(mLayersVisibility))],
+                    $"{IconUtil.ICON_LAYER_GROUP} Added Layer: {layer}"
+                )
+            );
             mLayersVisibility[layer] = true;
         }
 
@@ -2638,10 +2726,12 @@ namespace Fushigi.ui.widgets
             // TODO, maybe find a way to combine with SelectActorToAddLayer(), if that's needed
             private void SelectLayerToAdd()
             {
+                const int MaxLayerCount = 10;
+                int layerCount = 0;
+
                 ImGui.InputText("Search", ref mAddLayerSearchQuery, 256);
 
-                string[] Layers = ["PlayArea", "DecoArea", "DecoAreaFront"];
-                Layers = Layers.Concat(DistantViewManager.ParamTable.Layers.Keys)
+                string[] Layers = layerTypes
                     .Except(mLayersVisibility.Keys)
                     .ToArray();
                 var fileteredLayers = Layers.ToImmutableList();
@@ -2658,22 +2748,19 @@ namespace Fushigi.ui.widgets
                 {
                     for (var i = 0; i < fileteredLayers.Count; i++)
                     {
-                        var layer = i < 2 ? 
-                            fileteredLayers[i]+$" ({mLayersVisibility.Count(x => Regex.Replace(x.Key, @"\\d+", "").Contains(fileteredLayers[i]))}/10)":
-                            fileteredLayers[i];
+                        layerCount = mLayersVisibility.Count(x => RxLetters.Replace(x.Key, "") == fileteredLayers[i]);
+                        var layer = i < 2 ? $"{fileteredLayers[i]} ({layerCount}/{MaxLayerCount})" : fileteredLayers[i];
 
-                        if(layer.Contains("(10/10)"))
-                            ImGui.BeginDisabled();
+                        ImGui.BeginDisabled(layerCount == MaxLayerCount);
 
                         ImGui.Selectable(layer);
 
                         if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
                         {
-                            mSelectedLayer = Layers[i];
+                            mSelectedLayer = fileteredLayers[i];
                         }
 
-                        if(layer.Contains("(10/10)"))
-                            ImGui.EndDisabled();
+                        ImGui.EndDisabled();
                     }
 
                     ImGui.EndListBox();

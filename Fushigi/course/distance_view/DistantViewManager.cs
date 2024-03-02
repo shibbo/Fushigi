@@ -12,9 +12,7 @@ namespace Fushigi.course.distance_view
     public class DistantViewManager
     {
         private Dictionary<string, Matrix4x4> LayerMatrices = new Dictionary<string, Matrix4x4>();
-
-        private DVLayerParamTable LvlParamTable = new DVLayerParamTable();
-        public static DVLayerParamTable ParamTable = new DVLayerParamTable();
+        public DVLayerParamTable ParamTable = new DVLayerParamTable();
 
         private CourseActor DVLocator;
 
@@ -29,7 +27,6 @@ namespace Fushigi.course.distance_view
         public void PrepareDVLocator(CourseArea area)
         {
             ParamTable.LoadDefault();
-            LvlParamTable = ParamTable;
 
             foreach (var actor in area.GetActors())
             {
@@ -45,13 +42,13 @@ namespace Fushigi.course.distance_view
                     {
                         string layer_param = (string)DVLocator.mActorParameters["DVLayerParamName"];
                         if (!string.IsNullOrEmpty(layer_param))
-                            LvlParamTable.Load(layer_param);
+                            ParamTable.Load(layer_param);
                     }
                 }
             }
 
             LayerMatrices.Clear();
-            foreach (var layer in this.LvlParamTable.Layers)
+            foreach (var layer in this.ParamTable.Layers)
                 LayerMatrices.Add(layer.Key, Matrix4x4.Identity);
         }
 
@@ -63,7 +60,7 @@ namespace Fushigi.course.distance_view
 
         public void Calc(Vector3 camera_pos)
         {
-            foreach (var layer in this.LvlParamTable.Layers.Keys)
+            foreach (var layer in this.ParamTable.Layers.Keys)
             {
                 var scroll_config = ParamTable.Layers[layer];
                 var locator_pos = DVLocator != null ? DVLocator.mTranslation : Vector3.Zero;

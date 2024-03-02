@@ -362,7 +362,7 @@ namespace Fushigi.ui.widgets
             //Display skybox
             EnvironmentData.RenderSky(gl, this.Camera);
 
-            foreach (var actor in this.mArea.GetActors())
+            foreach (var actor in this.mArea.GetActors().OrderBy(x => x.mTranslation.Z))
             {
                 actor.wonderVisible = WonderViewMode == actor.mWonderView || 
                                         WonderViewMode == WonderViewType.Normal ||
