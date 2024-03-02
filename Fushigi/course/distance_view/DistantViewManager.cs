@@ -12,8 +12,7 @@ namespace Fushigi.course.distance_view
     public class DistantViewManager
     {
         private Dictionary<string, Matrix4x4> LayerMatrices = new Dictionary<string, Matrix4x4>();
-
-        private DVLayerParamTable ParamTable = new DVLayerParamTable();
+        public DVLayerParamTable ParamTable = new DVLayerParamTable();
 
         private CourseActor DVLocator;
 
