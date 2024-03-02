@@ -362,6 +362,8 @@ namespace Fushigi.ui.widgets
             //Display skybox
             EnvironmentData.RenderSky(gl, this.Camera);
 
+            // Actors are listed in the order they were pulled from the yaml.
+            // So they are ordered by depth for rendering.
             foreach (var actor in this.mArea.GetActors().OrderBy(x => x.mTranslation.Z))
             {
                 actor.wonderVisible = WonderViewMode == actor.mWonderView || 

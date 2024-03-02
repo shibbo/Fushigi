@@ -105,7 +105,7 @@ namespace Fushigi.ui.widgets
             "DvFar9",
             "DvFar10"
         ];
-        public static Regex RxLetters = new(@"\d+");
+        public static Regex NumberRegex = new(@"\d+");
 
         // This code sorts the layer order on the layer panel.
         // You can look through it before deciding if it's optimized enough to include.
@@ -125,8 +125,8 @@ namespace Fushigi.ui.widgets
         // {
         //     public int Compare(string x, string y)
         //     {
-        //         var idX = layerSortTypes.IndexOf(RxLetters.Replace(x, ""));
-        //         var idY = layerSortTypes.IndexOf(RxLetters.Replace(y, ""));
+        //         var idX = layerSortTypes.IndexOf(NumberRegex.Replace(x, ""));
+        //         var idY = layerSortTypes.IndexOf(NumberRegex.Replace(y, ""));
         //         if(idX != -1)
         //         {
         //                 int result = idY == -1 ? 1:idX.CompareTo(idY);
@@ -2748,8 +2748,11 @@ namespace Fushigi.ui.widgets
                 {
                     for (var i = 0; i < fileteredLayers.Count; i++)
                     {
-                        layerCount = mLayersVisibility.Count(x => RxLetters.Replace(x.Key, "") == fileteredLayers[i]);
-                        var layer = i < 2 ? $"{fileteredLayers[i]} ({layerCount}/{MaxLayerCount})" : fileteredLayers[i];
+                        var layer = fileteredLayers[i];
+                        layerCount = mLayersVisibility.Keys
+                            .Count(x => x.StartsWith(layer) && NumberRegex.IsMatch(x.AsSpan(layer.Length..)));
+                        if (layer == "PlayArea" || layer == "DecoArea")
+                            layer += $" ({layerCount}/{MaxLayerCount})";
 
                         ImGui.BeginDisabled(layerCount == MaxLayerCount);
 
