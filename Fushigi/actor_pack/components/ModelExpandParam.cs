@@ -1,4 +1,5 @@
 ﻿using Fushigi.Byml.Serializer;
+using Fushigi.SARC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,20 @@ namespace Fushigi.actor_pack.components
     [Serializable]
     public class ModelExpandParam
     {
+        public void LoadParentIfExists(Func<string, ModelExpandParam> fileLoader)
+        {
+            if (ParentRef == null)
+                return;
+
+            Parent = fileLoader(ParentRef);
+            Parent.LoadParentIfExists(fileLoader);
+        }
+
+        [BymlProperty(Key = "$parent")]
+        public string? ParentRef { get; set; }
+
+        public ModelExpandParam? Parent { get; set; }
+
         public List<ModelExpandParamSettings> Settings { get; set; }
     }
 

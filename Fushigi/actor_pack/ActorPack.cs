@@ -190,6 +190,11 @@ namespace Fushigi
                     break;
                     case "ModelExpandRef":
                         this.ModelExpandParamRef ??= BymlSerialize.Deserialize<ModelExpandParam>(data);
+                        this.ModelExpandParamRef.LoadParentIfExists(filePath =>
+                        {
+                            filePath = GetPathGyml(filePath);
+                            return BymlSerialize.Deserialize<ModelExpandParam>(sarc.OpenFile(filePath));
+                        });
                     break;
                     case "DrainPipeRef":
                         this.DrainPipeRef ??= BymlSerialize.Deserialize<DrainPipe>(data);
