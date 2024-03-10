@@ -56,11 +56,11 @@ namespace Fushigi.ui
 
                         {
                             mDefaultFont = io.Fonts.AddFontFromFileTTF(
-                                Path.Combine("res", "Font.ttf"),
+                                Path.Combine(AppContext.BaseDirectory, "res", "Font.ttf"),
                                 size, nativeConfig, io.Fonts.GetGlyphRangesDefault());
 
                              io.Fonts.AddFontFromFileTTF(
-                                Path.Combine("res", "NotoSansCJKjp-Medium.otf"),
+                                Path.Combine(AppContext.BaseDirectory, "res", "NotoSansCJKjp-Medium.otf"),
                                     size, nativeConfigJP, io.Fonts.GetGlyphRangesJapanese());
 
                             //other fonts go here and follow the same schema
@@ -68,15 +68,15 @@ namespace Fushigi.ui
                             try
                             {
                                 io.Fonts.AddFontFromFileTTF(
-                                    Path.Combine("res", "la-regular-400.ttf"),
+                                    Path.Combine(AppContext.BaseDirectory, "res", "la-regular-400.ttf"),
                                     size, iconConfig, rangeHandle.AddrOfPinnedObject());
 
                                 io.Fonts.AddFontFromFileTTF(
-                                    Path.Combine("res", "la-solid-900.ttf"),
+                                    Path.Combine(AppContext.BaseDirectory, "res", "la-solid-900.ttf"),
                                     size, iconConfig, rangeHandle.AddrOfPinnedObject());
 
                                 io.Fonts.AddFontFromFileTTF(
-                                    Path.Combine("res", "la-brands-400.ttf"),
+                                    Path.Combine(AppContext.BaseDirectory, "res", "la-brands-400.ttf"),
                                     size, iconConfig, rangeHandle.AddrOfPinnedObject());
 
                                 io.Fonts.Build();

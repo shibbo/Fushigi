@@ -122,8 +122,8 @@ namespace Fushigi.gl.Bfres
             DiffuseLightmap = GLTextureCube.CreateEmpty(gl, 4);
             SpecularLightmap = GLTextureCube.CreateEmpty(gl, 4);
 
-            CubeMap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapHDR.dds"), TextureTarget.TextureCubeMapArray);
-         //   DiffuseLightmap = new DDSTextureRender(gl, Path.Combine("res", "bfres", "CubemapLightmap.dds"), TextureTarget.TextureCubeMap);
+            CubeMap = new DDSTextureRender(gl, Path.Combine(AppContext.BaseDirectory, "res", "bfres", "CubemapHDR.dds"), TextureTarget.TextureCubeMapArray);
+         //   DiffuseLightmap = new DDSTextureRender(gl, Path.Combine(AppContext.BaseDirectory, "res", "bfres", "CubemapLightmap.dds"), TextureTarget.TextureCubeMap);
 
             DiffuseLightmap.Bind();
             DiffuseLightmap.WrapS = TextureWrapMode.ClampToEdge;

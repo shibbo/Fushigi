@@ -25,7 +25,7 @@ namespace Fushigi.gl
         {
             //Default texture
             if (DefaultTexture == null)
-                DefaultTexture = GLTexture2D.Load(gl, Path.Combine("res", "DefaultTexture.png"));
+                DefaultTexture = GLTexture2D.Load(gl, Path.Combine(AppContext.BaseDirectory, "res", "DefaultTexture.png"));
 
             return DefaultTexture;
         }

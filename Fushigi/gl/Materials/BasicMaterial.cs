@@ -18,8 +18,8 @@ namespace Fushigi.gl
         public void Render(GL gl, Matrix4x4 matrix)
         {
             Shader = GLShaderCache.GetShader(gl, "Basic", 
-                Path.Combine("res", "shaders", "Basic.vert"),
-                Path.Combine("res", "shaders", "Basic.frag"));
+                Path.Combine(AppContext.BaseDirectory, "res", "shaders", "Basic.vert"),
+                Path.Combine(AppContext.BaseDirectory, "res", "shaders", "Basic.frag"));
 
             Shader.Use();
             Shader.SetUniform("mtxCam", matrix);
