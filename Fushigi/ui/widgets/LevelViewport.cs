@@ -364,7 +364,7 @@ namespace Fushigi.ui.widgets
 
             // Actors are listed in the order they were pulled from the yaml.
             // So they are ordered by depth for rendering.
-            foreach (var actor in this.mArea.GetActors().OrderBy(x => x.mTranslation.Z))
+            foreach (var actor in this.mArea.GetSortedActors())
             {
                 actor.wonderVisible = WonderViewMode == actor.mWonderView || 
                                         WonderViewMode == WonderViewType.Normal ||
