@@ -431,6 +431,7 @@ namespace Fushigi.ui.widgets
             if(actor.mActorPack.ModelExpandParamRef != null)
             {
                 ActorModelExpand(actor, model);
+                ActorModelExpand(actor, model, "Main"); //yeah idk either
 
                 //TODO SubModels
             }
@@ -510,15 +511,17 @@ namespace Fushigi.ui.widgets
         {
             //Model Expand Param
 
-            Debug.Assert(actor.mActorPack.ModelExpandParamRef.Settings.Count > 0);
-
-            if (actor.mActorPack.ModelExpandParamRef.Settings.Count == 0)
-                return;
-
             //TODO is that actually how the game does it?
-            var setting = actor.mActorPack.ModelExpandParamRef.Settings.FindLast(x=>x.mModelKeyName == modelKeyName);
+            var param = actor.mActorPack.ModelExpandParamRef;
+            ModelExpandParamSettings? setting = null;
+            do
+            {
+                if (param.Settings != null)
+                    setting = param.Settings.FindLast(x => x.mModelKeyName == modelKeyName);
 
-            //Debug.Assert(setting != null);
+                param = param.Parent;
+            } while (setting == null && param != null);
+
             if (setting == null) 
                 return;
 
