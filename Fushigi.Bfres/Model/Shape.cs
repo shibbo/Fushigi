@@ -159,7 +159,7 @@ namespace Fushigi.Bfres
             {
                 for (int i = 0; i < vertexBuffer.VertexCount; i++)
                 {
-                    reader.SeekBegin(i * buffer.Stride);
+                    reader.SeekBegin(i * buffer.Stride + Offset );
                     data[i] = reader.ReadAttribute(this.Format);
                 }
             }
