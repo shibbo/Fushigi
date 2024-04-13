@@ -10,6 +10,8 @@ namespace Fushigi.ui.widgets
     {
         public static bool Show(string label, ref string path, bool isValid = true)
         {
+            bool edited;
+            bool clicked;
             //Ensure path isn't null for imgui
             if (path == null)
                 path = "";
@@ -18,49 +20,50 @@ namespace Fushigi.ui.widgets
             if (!System.IO.Directory.Exists(path))
                 isValid = false;
 
-            ImGui.Columns(2);
-
-            ImGui.SetColumnWidth(0, 150);
-
-            bool edited = false;
-
-            ImGui.Text(label);
-
-            ImGui.NextColumn();
-
-            ImGui.PushItemWidth(ImGui.GetColumnWidth() - 100);
-
-            if (!isValid)
+            ImGui.BeginTable("path", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.Resizable);
             {
-                ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.5f, 0, 0, 1));
-                ImGui.InputText($"##{label}", ref path, 500, ImGuiInputTextFlags.ReadOnly);
-                ImGui.PopStyleColor();
+                ImGui.TableSetupColumn("one", ImGuiTableColumnFlags.WidthFixed, 150.0f);
+                
+                ImGui.TableNextRow();
+                ImGui.TableSetColumnIndex(0);
+                    edited = false;
+
+                    ImGui.Text(label);
+
+                    ImGui.TableNextColumn();
+
+                    ImGui.PushItemWidth(ImGui.GetColumnWidth() - 100);
+
+                    if (!isValid)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.5f, 0, 0, 1));
+                        ImGui.InputText($"##{label}", ref path, 500, ImGuiInputTextFlags.ReadOnly);
+                        ImGui.PopStyleColor();
+                    }
+                    else
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 0.5f, 0, 1));
+                        ImGui.InputText($"##{label}", ref path, 500, ImGuiInputTextFlags.ReadOnly);
+                        ImGui.PopStyleColor();
+                    }
+
+                    if (ImGui.BeginPopupContextItem($"{label}_clear", ImGuiPopupFlags.MouseButtonRight))
+                    {
+                        if (ImGui.MenuItem("Clear"))
+                        {
+                            path = "";
+                            edited = true;
+                        }
+                        ImGui.EndPopup();
+                    }
+
+                    ImGui.PopItemWidth();
+
+                    ImGui.SameLine();
+                    clicked = ImGui.Button($"Select##{label}");
+
+                ImGui.EndTable();
             }
-            else
-            {
-                ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 0.5f, 0, 1));
-                ImGui.InputText($"##{label}", ref path, 500, ImGuiInputTextFlags.ReadOnly);
-                ImGui.PopStyleColor();
-            }
-
-            if (ImGui.BeginPopupContextItem($"{label}_clear", ImGuiPopupFlags.MouseButtonRight))
-            {
-                if (ImGui.MenuItem("Clear"))
-                {
-                    path = "";
-                    edited = true;
-                }
-                ImGui.EndPopup();
-            }
-
-            ImGui.PopItemWidth();
-
-            ImGui.SameLine();
-            bool clicked = ImGui.Button($"Select##{label}");
-
-            ImGui.NextColumn();
-
-            ImGui.Columns(1);
 
             if (clicked)
             {

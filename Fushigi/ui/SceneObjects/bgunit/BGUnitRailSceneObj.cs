@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace Fushigi.ui.SceneObjects.bgunit
 {
-    internal class BGUnitRailSceneObj(CourseUnit unit, BGUnitRail rail) : ISceneObject, IViewportDrawable, IViewportSelectable
+    internal class BGUnitRailSceneObj(CourseUnit unit, BGUnitRail rail, bool isBelt) : ISceneObject, IViewportDrawable, IViewportSelectable
     {
         public IReadOnlyDictionary<BGUnitRail.RailPoint, RailPoint> ChildPoints;
         public List<BGUnitRail.RailPoint> GetSelected(CourseAreaEditContext ctx) => rail.Points.Where(ctx.IsSelected).ToList();
@@ -71,7 +71,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             ctx.CommitAction(revertible);
             ctx.Select(point);
-            CourseUnit.GenerateTileSubUnits();
         }
 
         public void AddPoint(CourseAreaEditContext ctx, BGUnitRail.RailPoint point)
@@ -81,7 +80,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             ctx.CommitAction(revertible);
             ctx.Select(point);
-            CourseUnit.GenerateTileSubUnits();
         }
 
         public void RemoveSelected(CourseAreaEditContext ctx, LevelViewport viewport)
@@ -99,8 +97,6 @@ namespace Fushigi.ui.SceneObjects.bgunit
             }
 
             batchAction.Commit($"{IconUtil.ICON_TRASH} Delete Rail Points");
-
-            CourseUnit.GenerateTileSubUnits();
         }
 
         public void OnKeyDown(CourseAreaEditContext ctx, LevelViewport viewport)
@@ -114,7 +110,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
         private bool HitTest(LevelViewport viewport)
         {
-            return LevelViewport.HitTestLineLoopPoint(GetPoints(viewport), 10f,
+            return MathUtil.HitTestLineLoopPoint(GetPoints(viewport), 10f,
                     ImGui.GetMousePos());
         }
 
@@ -300,7 +296,7 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             addPointPos = EvaluateAddPointPos(ctx, viewport);
 
-            if ((addPointPos.HasValue && ctx.IsSelected(rail)) || HitTest(viewport))
+            if ((addPointPos.HasValue && ctx.IsSelected(rail)) || (!isBelt && HitTest(viewport)))
                 isNewHoveredObj = true;
 
             bool isSelected = IsSelected(ctx);
@@ -318,31 +314,49 @@ namespace Fushigi.ui.SceneObjects.bgunit
 
             var lineThickness = viewport.IsHovered(this) ? 3.5f : 2.5f;
 
+
+
             for (int i = 0; i < rail.Points.Count; i++)
             {
-                Vector3 point = rail.Points[i].Position;
-                var pos2D = viewport.WorldToScreen(new(point.X, point.Y, point.Z));
+                Vector3 pos = rail.Points[i].Position;
 
-                //Next pos 2D
-                Vector2 nextPos2D = Vector2.Zero;
+                Vector3 nextPos;
                 if (i < rail.Points.Count - 1) //is not last point
                 {
-                    nextPos2D = viewport.WorldToScreen(
-                        rail.Points[i + 1].Position);
+                    nextPos = rail.Points[i + 1].Position;
                 }
                 else if (rail.IsClosed) //last point to first if closed
                 {
-                    nextPos2D = viewport.WorldToScreen(
-                       rail.Points[0].Position);
+                    nextPos = rail.Points[0].Position;
                 }
                 else //last point but not closed, draw no line
                     continue;
+
+                var pos2D = viewport.WorldToScreen(pos);
+                var nextPos2D = viewport.WorldToScreen(nextPos);
 
                 uint line_color = IsValidAngle(pos2D, nextPos2D) ? Color_Default : Color_SlopeError;
                 if (isSelected && line_color != Color_SlopeError)
                     line_color = Color_SelectionEdit;
 
-                dl.AddLine(pos2D, nextPos2D, line_color, lineThickness);
+                if (isBelt) 
+                {
+                    var bottomPos2D = viewport.WorldToScreen(pos - Vector3.UnitY * 0.5f);
+                    var bottomNextPos2D = viewport.WorldToScreen(nextPos - Vector3.UnitY * 0.5f);
+
+                    dl.AddQuadFilled(pos2D, nextPos2D, bottomNextPos2D, bottomPos2D, line_color & 0x00FFFFFF | 0x55000000);
+                    dl.AddQuad(pos2D, nextPos2D, bottomNextPos2D, bottomPos2D, line_color, lineThickness - 1);
+
+                    if (MathUtil.HitTestConvexQuad(pos2D, nextPos2D, bottomNextPos2D, bottomPos2D,
+                    ImGui.GetMousePos())) 
+                    {
+                        isNewHoveredObj = true;
+                    }
+                }
+                else 
+                {
+                    dl.AddLine(pos2D, nextPos2D, line_color, lineThickness);
+                }
 
                 if (isSelected)
                 {
@@ -379,7 +393,9 @@ namespace Fushigi.ui.SceneObjects.bgunit
                     var pointB = viewport.WorldToScreen(rail.Points.GetWrapped(index).Position);
                     var pointC = pos2D;
 
-                    dl.AddTriangleFilled(pointA, pointB, pointC, 0x99FFFFFF);
+                    if(!isBelt)
+                        dl.AddTriangleFilled(pointA, pointB, pointC, 0x99FFFFFF);
+
                     if(rail.IsClosed || index > 0)
                         dl.AddLine(pointA, pointC, 0xFFFFFFFF, 2.5f);
                     if(rail.IsClosed || index < rail.Points.Count)

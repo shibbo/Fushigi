@@ -190,6 +190,11 @@ namespace Fushigi
                     break;
                     case "ModelExpandRef":
                         this.ModelExpandParamRef ??= BymlSerialize.Deserialize<ModelExpandParam>(data);
+                        this.ModelExpandParamRef.LoadParentIfExists(filePath =>
+                        {
+                            filePath = GetPathGyml(filePath);
+                            return BymlSerialize.Deserialize<ModelExpandParam>(sarc.OpenFile(filePath));
+                        });
                     break;
                     case "DrainPipeRef":
                         this.DrainPipeRef ??= BymlSerialize.Deserialize<DrainPipe>(data);
@@ -206,10 +211,9 @@ namespace Fushigi
             }
         }
 
-        private ShapeParamList GetActorShape(SARC.SARC sarc)
+        private ShapeParamList? GetActorShape(SARC.SARC sarc)
         {
-            
-            var file = GetPathGyml(GamePhysicsRef.mPath);
+            var file = GetPathGyml(this.GamePhysicsRef.mPath);
             var dat = sarc.OpenFile(file);
             this.ControllerPath = BymlSerialize.Deserialize<ControllerSetParam>(dat);
             

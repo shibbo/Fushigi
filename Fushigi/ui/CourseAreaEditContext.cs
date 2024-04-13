@@ -68,15 +68,17 @@ namespace Fushigi.ui
             LogAdding<CourseLink>($": {link.mSource} -{link.mLinkName}-> {link.mDest}");
 
             //Checks if the the source actor already has links
-            if(linkList.Any(x => x.mSource == link.mSource)){
+            if (linkList.Any(x => x.mSource == link.mSource)){
 
                 //Looks through the source actor's links
                 //Then looks through it's links of the same type (If it has any)
                 //Placing the new link in the right spot
+                var index = linkList.FindLastIndex(x => x.mSource == link.mSource &&
+                        (!linkList.Any(y => x.mLinkName == link.mLinkName) ||
+                        x.mLinkName == link.mLinkName));
+
                 CommitAction(
-                    area.mLinkHolder.mLinks.RevertableInsert(link, 
-                        linkList.FindLastIndex(x => x.mSource == link.mSource 
-                        && ((!linkList.Any(y => y.mLinkName == link.mLinkName)) || x.mLinkName == link.mLinkName))+1,
+                    area.mLinkHolder.mLinks.RevertableInsert(link, index+1,
                         $"{IconUtil.ICON_PLUS_CIRCLE} Add {link.mLinkName} Link")
                 );
                 return;
@@ -213,6 +215,20 @@ namespace Fushigi.ui
             LogDeleting<Wall>();
             CommitAction(unit.Walls.RevertableRemove(wall,
                     $"{IconUtil.ICON_TRASH} Delete Wall"));
+        }
+
+        public void AddBeltRail(CourseUnit unit, BGUnitRail rail)
+        {
+            LogAdding<BGUnitRail>();
+            CommitAction(unit.mBeltRails.RevertableAdd(rail,
+                    $"{IconUtil.ICON_PLUS_CIRCLE} Add Belt"));
+        }
+
+        public void DeleteBeltRail(CourseUnit unit, BGUnitRail rail)
+        {
+            LogDeleting<BGUnitRail>();
+            CommitAction(unit.mBeltRails.RevertableRemove(rail,
+                    $"{IconUtil.ICON_TRASH} Delete Belt"));
         }
 
         private void LogAdding<T>(ulong hash) => 

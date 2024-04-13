@@ -114,6 +114,7 @@ namespace Fushigi.param
         public static List<string> GetActorComponents(string actor) => sActors[actor].Components;
 
         public static Dictionary<string, ComponentParam> GetComponentParams(string componentName) => sComponents[componentName].Parameters;
+        public static string GetComponentParent(string componentName) => sComponents[componentName].Parent;
         public static string GetRailComponent(string railName) => sRailParamList[railName].Components[0];
         public static bool TryGetRailPointComponent(string railName, [NotNullWhen(true)] out string? componentName)
         {
@@ -125,6 +126,7 @@ namespace Fushigi.param
             return componentName is not null;
         }
 
+        public static string GetRailComponentParent(string componentName) => sRails[componentName].Parent;
         public static Dictionary<string, ComponentParam> GetRailComponentParams(string componentName) => sRails[componentName].Parameters;
 
         public static string[] GetActors() => sActors.Keys.ToArray();
@@ -207,7 +209,7 @@ namespace Fushigi.param
             {
                 var byml = new Byml.Byml(new MemoryStream(File.ReadAllBytes(railComp)));
                 string name = Path.GetFileNameWithoutExtension(railComp).Split(".engine")[0];
-                Component component = ReadByml(byml);
+                Component component = ReadByml(byml, true);
                 sRails.Add(name, component);
             }
 
@@ -268,7 +270,7 @@ namespace Fushigi.param
             Load(progress);
         }
 
-        static Component ReadByml(Byml.Byml byml)
+        static Component ReadByml(Byml.Byml byml, bool isRailParam = false)
         {
             var root = (BymlHashTable)byml.Root;
 
@@ -340,10 +342,12 @@ namespace Fushigi.param
 
                             /* if the IsInstanceParam value is False, it means that the parameter is not used in a course context
                                 * so, if it is False, we ignore it and move on to the next parameter as we will only read what matters
+
+                                * No, this causes some rail types to save without default parameters. -Donavin
                                 */
                             bool isInstParam = ((BymlNode<bool>)(ht["IsInstanceParam"])).Data;
 
-                            if (!isInstParam)
+                            if (!isInstParam && !isRailParam)
                             {
                                 continue;
                             }

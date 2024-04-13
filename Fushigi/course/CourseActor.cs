@@ -13,6 +13,11 @@ using System.Threading.Tasks;
 
 namespace Fushigi.course
 {
+    public enum WonderViewType{
+        Normal,
+        WonderOff,
+        WonderOnly
+    }
     public class CourseActor
     {
         public CourseActor(BymlHashTable actorNode)
@@ -222,6 +227,8 @@ namespace Fushigi.course
         public string mPackName;
         public string mName;
         public string mLayer;
+        public WonderViewType mWonderView = WonderViewType.Normal;
+        public bool wonderVisible = true;
         public System.Numerics.Vector3 mStartingTrans;
         public System.Numerics.Vector3 mTranslation;
         public System.Numerics.Vector3 mRotation;
@@ -260,7 +267,7 @@ namespace Fushigi.course
             get
             {
                 bool exists = TryGetActor(hash, out CourseActor? actor);
-                Debug.Assert(exists);
+                //Debug.Assert(exists);
                 return actor!;
             }
         }
