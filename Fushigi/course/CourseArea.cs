@@ -159,6 +159,16 @@ namespace Fushigi.course
             return mActorHolder.mActors;
         }
 
+        public IReadOnlyList<CourseActor> GetSortedActors()
+        {
+            if (!mActorHolder.mActors.TrueForAll(mActorHolder.mSortedActors.Contains))
+            {
+                mActorHolder.mSortedActors = new List<CourseActor>(mActorHolder.mActors);
+                mActorHolder.mSortedActors.Sort((x, y) => x.mTranslation.Z.CompareTo(y.mTranslation.Z));
+            }   
+            return mActorHolder.mSortedActors;
+        }
+
         public string mAreaName;
         public uint mRootHash;
         string mStageParams;

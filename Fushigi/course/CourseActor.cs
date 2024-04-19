@@ -284,7 +284,8 @@ namespace Fushigi.course
             return node;
         }
 
-        public List<CourseActor> mActors = new List<CourseActor>();
+        public List<CourseActor> mActors = [];
+        public List<CourseActor> mSortedActors = [];
     }
 
     public class CourseActorRender //This can be overridden per actor for individual behavior
