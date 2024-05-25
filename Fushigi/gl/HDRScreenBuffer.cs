@@ -33,8 +33,8 @@ namespace Fushigi.gl
             gl.Viewport(0, 0, Framebuffer.Width, Framebuffer.Height);
 
             var shader = GLShaderCache.GetShader(gl, "PostEffect",
-                Path.Combine("res", "shaders", "screen.vert"),
-                Path.Combine("res", "shaders", "screen.frag"));
+                Path.Combine(AppContext.BaseDirectory, "res", "shaders", "screen.vert"),
+                Path.Combine(AppContext.BaseDirectory, "res", "shaders", "screen.frag"));
 
             shader.Use();
             shader.SetTexture("screenTexture", input, 1);
