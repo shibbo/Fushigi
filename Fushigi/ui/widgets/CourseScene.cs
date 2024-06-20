@@ -2671,11 +2671,11 @@ namespace Fushigi.ui.widgets
             {
                 ImGui.InputText("Search", ref mAddActorSearchQuery, 256);
 
-                var filteredActors = ParamDB.GetActors().ToImmutableList();
+                var filteredActors = ActorDataDB.GetTranslations().ToImmutableList();
 
                 if (mAddActorSearchQuery != "")
                 {
-                    filteredActors = FuzzySharp.Process.ExtractAll(mAddActorSearchQuery, ParamDB.GetActors(), cutoff: 65)
+                    filteredActors = FuzzySharp.Process.ExtractAll(mAddActorSearchQuery, ActorDataDB.GetTranslations(), cutoff: 65)
                         .OrderByDescending(result => result.Score)
                         .Select(result => result.Value)
                         .ToImmutableList();
@@ -2688,7 +2688,7 @@ namespace Fushigi.ui.widgets
                         ImGui.Selectable(actor);
 
                         if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-                            mSelectedActor = actor;
+                            mSelectedActor = ActorDataDB.ReverseTranslate(actor);
                     }
 
                     ImGui.EndListBox();
